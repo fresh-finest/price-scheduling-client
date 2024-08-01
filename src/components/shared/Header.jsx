@@ -1,33 +1,20 @@
-import Button from 'react-bootstrap/Button';
-import Container from 'react-bootstrap/Container';
-import Form from 'react-bootstrap/Form';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+import React from 'react';
+import { Navbar, Nav, Container } from 'react-bootstrap';
 
 function NavScrollExample() {
   return (
-    <Navbar expand="lg" className="bg-body-tertiary">
+    <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
       <Container fluid>
-        <Navbar.Brand href="#">Navbar scroll</Navbar.Brand>
-        <Navbar.Toggle aria-controls="navbarScroll" />
-        <Navbar.Collapse id="navbarScroll">
-          <Nav
-            className="me-auto my-2 my-lg-0"
-            style={{ maxHeight: '100px' }}
-            navbarScroll
-          >
-            <Nav.Link href="#action1">Home</Nav.Link>
-            <Nav.Link href="#action2">Link</Nav.Link>
-           
-            <Nav.Link href="#" disabled>
-              Link
-            </Nav.Link>
+        <Navbar.Brand href="#" style={{ color: 'white' }}>Fresh Finest</Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            <Nav.Link href="#list" style={{ color: 'white' }}>List</Nav.Link>
+            <Nav.Link href="#calendar" style={{ color: 'white' }}>Calendar View</Nav.Link>
           </Nav>
-          <Nav.Link href="#" disabled>
-              Link
-            </Nav.Link>
-          
+          <Nav>
+            <Nav.Link href="#login" style={{ color: 'white' }}>Logout</Nav.Link>
+          </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>
