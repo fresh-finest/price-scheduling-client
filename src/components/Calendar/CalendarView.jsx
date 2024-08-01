@@ -124,11 +124,11 @@ const CalendarView = () => {
       <ViewUpdatedListModal show={showViewModal} onClose={handleCloseViewModal} />
       <Modal show={showOptionModal} onHide={handleCloseOptionModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Options</Modal.Title>
+          <Modal.Title> <Button variant='primary' onClick={handleUpdatePrice}>+</Button></Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Button variant='primary' onClick={handleUpdatePrice}>Update Price</Button>
-          <Button variant='secondary' onClick={handleViewUpdatedList}>View Updated List</Button>
+          <Button style={{marginLeft:"15px"}} variant='secondary' onClick={handleViewUpdatedList}>View Updated List</Button>
         </Modal.Body>
       </Modal>
     </div>
