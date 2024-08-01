@@ -11,3 +11,13 @@ const fetchProductPrice = async(sku)=>{
     }
 }
 
+const updateProductPrice = async(sku,value)=>{
+    try {
+        const response  = await axios.patch(`${BASE_URL}/product/${sku}/price`,{value});
+        return response.data;
+    } catch (error) {
+        console.log('Error updating product price: ', error.response? error.response.data: error.message );
+        throw error;
+    }
+}
+
