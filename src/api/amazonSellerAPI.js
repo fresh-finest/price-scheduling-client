@@ -21,3 +21,5 @@ const updateProductPrice = async(sku,value)=>{
     }
 }
 
+export {fetchProductPrice, updateProductPrice}
+
