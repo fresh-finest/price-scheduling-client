@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import {Form, Button, Modal } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
+import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 function UpdatePriceModal({ show, onClose, event }) {
-  
+
+  const {addEvents} = useContext(PriceScheduleContext);
   const[asin,setAsin] = useState('');
   const [sku,setSku]= useState('');
   const [price,setPrice] = useState('');
@@ -54,6 +55,25 @@ function UpdatePriceModal({ show, onClose, event }) {
     }
   }
 
+  const handleSubmit = async (e)=>{
+    e.preventDefault();
+    try {
+      if(!originalPriceRef.current){
+        await fetchCurrentPrice(aisn); 
+      }
+      // call schedule Price update
+      addEvent({
+        title: `SKU: ${sku} - $${price}`,
+        start: startDate,
+        end: endDate,
+        allDay: false,
+      });
+      onClose();
+
+    } catch (error) {
+      console.error("Error updating price:",error);
+    }
+  }
 
   return (
     <div><Modal show={show} onHide={onClose}>
