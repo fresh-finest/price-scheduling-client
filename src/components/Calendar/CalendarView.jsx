@@ -8,9 +8,8 @@ import { ButtonGroup, Button, Modal } from 'react-bootstrap';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import UpdatePriceModal from '../Modal/UpdatePriceModal';
 import ViewUpdatedListModal from '../Modal/ViewUpdatedListModal';
-import './CalendarView.css'; // Import the custom CSS file
+import './CalendarView.css';
 
-// Localizer for the calendar
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
@@ -67,7 +66,7 @@ const CalendarView = () => {
         <ButtonGroup>
           <Button variant="secondary" onClick={() => handleViewChange(Views.MONTH)}>Month</Button>
           <Button variant="secondary" onClick={() => handleViewChange(Views.WEEK)}>Week</Button>
-          <Button variant="secondary" onClick={() => handleViewChange(Views.DAY)}>Day</Button>
+          {/* <Button variant="secondary" onClick={() => handleViewChange(Views.DAY)}>Day</Button> */}
         </ButtonGroup>
         <DatePicker
           selected={selectedDate}
@@ -82,7 +81,7 @@ const CalendarView = () => {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        views={['month', 'week', 'day']}
+        views={['month', 'week']}
         view={view}
         date={selectedDate}
         onNavigate={handleNavigate}
@@ -98,7 +97,8 @@ const CalendarView = () => {
         </Modal.Header>
         <Modal.Body>
           <Button variant='primary' onClick={handleUpdatePrice}>Update Price</Button>
-          <Button style={{marginLeft:"15px"}} variant='secondary' onClick={handleViewUpdatedList}>View Updated List</Button>
+          {/* <Button style={{ marginLeft: "15px" }} variant='secondary' onClick={handleViewUpdatedList}>View Updated List</Button> */}
+          <ViewUpdatedListModal/>
         </Modal.Body>
       </Modal>
     </div>
