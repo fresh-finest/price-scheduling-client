@@ -25,6 +25,25 @@ function UpdatePriceModal({ show, onClose, event }) {
         setSkus([]);
     }
   }, [show]);
+
+  const fetchCurrentPrice = async(asin) =>{
+    try {
+      const response = await fetch(`http://localhost:3000/product/${asin}`);
+      const data = await response.json();
+      const offers = data.payload[0].Product.Offers;
+      setSkus(offers);
+      if(offers.length > 0){
+        const firstOffer = offers[0];
+        setSku(firstOffer.SellerSKU);
+        setCurrentPrice(firstOffer.BuyingPrice.ListingPrice.Amount);
+        originalPriceRef.current = firstOffer.BuyingPrice.ListingPrice.Amount;
+      }
+    } catch (error) {
+      console.error('Error fetching current price: ',error);
+    }
+  }
+
+  
   return (
     <div><Modal show={show} onHide={onClose}>
     <Modal.Header closeButton>
