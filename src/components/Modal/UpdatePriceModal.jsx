@@ -1,17 +1,28 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {Form, Button, Modal } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 function UpdatePriceModal({ show, onClose, event }) {
+  
+  const[asin,setAsin] = useState('');
+  const [sku,setSku]= useState('');
+  const [price,setPrice] = useState('');
+  const [currentPrice,setCurrentPrice] = useState(null);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [skus,setSkus] = useState([]);
+  const originalPriceRef = useRef(null);
 
   useEffect(() => {
     if (show) {
-    
-      setStartDate(new Date());
-      setEndDate(new Date());
+        setAsin('');
+        setSku('');
+        setPrice('');
+        setCurrentPrice(null);
+        setStartDate(new Date());
+        setEndDate(new Date());
+        setSkus([]);
     }
   }, [show]);
   return (
@@ -35,7 +46,7 @@ function UpdatePriceModal({ show, onClose, event }) {
           Search by ASIN
         </Button>
        
-        <Form.Group >
+        <Form.Group style={{marginBottom:"5px"}} >
           <Form.Label>New Price</Form.Label>
           <Form.Control
             type="number"
@@ -46,7 +57,7 @@ function UpdatePriceModal({ show, onClose, event }) {
           />
         </Form.Group>
         <Form.Group >
-          <Form.Label>Start Date and Time</Form.Label>
+          <Form.Label style={{marginRight:"5px"}}>Start Date and Time</Form.Label>
           <DatePicker
             selected={startDate}
             onChange={(date) => setStartDate(date)}
@@ -57,7 +68,7 @@ function UpdatePriceModal({ show, onClose, event }) {
           />
         </Form.Group>
         <Form.Group >
-          <Form.Label>End Date and Time</Form.Label>
+          <Form.Label style={{marginRight:"11px"}}>End Date and Time</Form.Label>
           <DatePicker
             selected={endDate}
             onChange={(date) => setEndDate(date)}
