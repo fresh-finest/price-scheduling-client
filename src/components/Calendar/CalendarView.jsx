@@ -8,35 +8,10 @@ import { ButtonGroup, Button, Modal } from 'react-bootstrap';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import UpdatePriceModal from '../Modal/UpdatePriceModal';
 import ViewUpdatedListModal from '../Modal/ViewUpdatedListModal';
+import './CalendarView.css'; // Import the custom CSS file
 
 // Localizer for the calendar
 const localizer = momentLocalizer(moment);
-
-// Event Wrapper Component
-function BoundEventWrapperComponent(app) {
-  return class EventWrapperComponent extends React.Component {
-    render() {
-      // Style for positioning the event
-      const style = {
-        left: this.props.style.left + '%',
-        top: this.props.style.top + '%',
-        width: this.props.style.width + '%',
-        height: this.props.style.height + '%',
-        position: 'absolute',
-      };
-
-      return (
-        <div onMouseOver={this.onEventWrapperDivMouseOver} style={style}>
-          {this.props.children}
-        </div>
-      );
-    }
-  
-    onEventWrapperDivMouseOver = (event) => {
-      app.setState({ selected: this.props.event });
-    };
-  };
-}
 
 const CalendarView = () => {
   const { events } = useContext(PriceScheduleContext);
@@ -114,17 +89,12 @@ const CalendarView = () => {
         selectable
         onSelectSlot={handleSelectSlot}
         style={{ height: 'calc(100vh - 120px)' }}
-        components={{
-          eventWrapper: BoundEventWrapperComponent({
-            setState: (state) => setSelectedEvent(state.selected),
-          }),
-        }}
       />
       <UpdatePriceModal show={showUpdateModal} onClose={handleCloseUpdateModal} event={selectedEvent} />
       <ViewUpdatedListModal show={showViewModal} onClose={handleCloseViewModal} />
       <Modal show={showOptionModal} onHide={handleCloseOptionModal}>
         <Modal.Header closeButton>
-          <Modal.Title> <Button variant='primary' onClick={handleUpdatePrice}>+</Button></Modal.Title>
+          <Modal.Title>Options</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Button variant='primary' onClick={handleUpdatePrice}>Update Price</Button>

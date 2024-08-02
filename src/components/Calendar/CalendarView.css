@@ -1,7 +1,7 @@
-/* File path: src/components/CalendarView/CalendarView.css */
-
-.hover-effect {
-    background-color: #e0e0e0 !important;
-    border: 2px solid #000;
-  }
-  
+/* Add custom hover effect for calendar cells */
+.rbc-month-view .rbc-date-cell:hover, 
+.rbc-month-view .rbc-day-bg:hover, 
+.rbc-month-view .rbc-event:hover {
+  background-color: rgba(0, 123, 255, 0.3); /* Adjust the color and opacity as needed */
+  transition: background-color 0.3s ease;
+}
