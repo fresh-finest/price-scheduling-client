@@ -1,7 +1,16 @@
-/* Add custom hover effect for calendar cells */
+/* Add custom hover effect for month view */
 .rbc-month-view .rbc-date-cell:hover, 
 .rbc-month-view .rbc-day-bg:hover, 
 .rbc-month-view .rbc-event:hover {
+  background-color: rgba(0, 123, 255, 0.3); /* Adjust the color and opacity as needed */
+  transition: background-color 0.3s ease;
+}
+
+/* Add custom hover effect for week and day views */
+.rbc-time-view .rbc-time-slot:hover, 
+.rbc-time-view .rbc-day-slot:hover, 
+.rbc-time-view .rbc-event:hover, 
+.rbc-time-view .rbc-day-bg:hover {
   background-color: rgba(0, 123, 255, 0.3); /* Adjust the color and opacity as needed */
   transition: background-color 0.3s ease;
 }
