@@ -3,13 +3,25 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import { updateProductPrice } from '../../api/amazonSellerAPI';
+import axios from 'axios';
 
+const BASE_URL = 'https://price-scheduling-server-2.onrender.com';
+
+const updateProductPrice = async (sku, value) => {
+  try {
+    console.log(`Updating price for SKU: ${sku} with value: ${value}`);
+    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, { value });
+    console.log('Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating product price:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
 
 const UpdatePriceModal = ({ show, onClose, event }) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [asin, setAsin] = useState('');
-  const [sku, setSku] = useState('');
   const [price, setPrice] = useState('');
   const [currentPrice, setCurrentPrice] = useState(null);
   const [startDate, setStartDate] = useState(new Date());
@@ -17,11 +29,9 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
   const [skus, setSkus] = useState([]);
   const originalPriceRef = useRef(null);
 
-
   useEffect(() => {
     if (show) {
       setAsin('');
-      setSku('');
       setPrice('');
       setCurrentPrice(null);
       setStartDate(new Date());
@@ -30,17 +40,14 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
     }
   }, [show]);
 
-
   const fetchCurrentPrice = async (asin) => {
     try {
-      const response = await fetch(`http://localhost:3000/product/${asin}`);
+      const response = await fetch(`${BASE_URL}/product/${asin}`);
       const data = await response.json();
       const offers = data.payload[0].Product.Offers;
       setSkus(offers);
-      // Default to the first offer
       if (offers.length > 0) {
         const firstOffer = offers[0];
-        setSku(firstOffer.SellerSKU);
         setCurrentPrice(firstOffer.BuyingPrice.ListingPrice.Amount);
         originalPriceRef.current = firstOffer.BuyingPrice.ListingPrice.Amount;
       }
@@ -49,18 +56,6 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
     }
   };
 
-
-  const handleSkuChange = (e) => {
-    const selectedSku = e.target.value;
-    setSku(selectedSku);
-    const selectedOffer = skus.find(offer => offer.SellerSKU === selectedSku);
-    if (selectedOffer) {
-      setCurrentPrice(selectedOffer.BuyingPrice.ListingPrice.Amount);
-      originalPriceRef.current = selectedOffer.BuyingPrice.ListingPrice.Amount;
-    }
-  };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -68,11 +63,13 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
         await fetchCurrentPrice(asin);
       }
       // await schedulePriceUpdate();
-      addEvent({
-        title: `SKU: ${sku} - $${price}`,
-        start: startDate,
-        end: endDate,
-        allDay: false,
+      skus.forEach((offer) => {
+        addEvent({
+          title: `SKU: ${offer.SellerSKU} - $${price}`,
+          start: startDate,
+          end: endDate,
+          allDay: false,
+        });
       });
       onClose();
     } catch (error) {
@@ -80,29 +77,35 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
     }
   };
 
-
   const schedulePriceUpdate = async () => {
     const now = new Date();
     const delayStart = startDate - now;
     const delayEnd = endDate - now;
 
+    const updateAllSkus = async (newPrice) => {
+      await Promise.all(skus.map(async (offer) => {
+        try {
+          await updateProductPrice(offer.SellerSKU, newPrice);
+        } catch (error) {
+          console.error(`Error updating SKU ${offer.SellerSKU}:`, error.response ? error.response.data : error.message);
+        }
+      }));
+    };
 
     if (delayStart > 0) {
       setTimeout(async () => {
-        await updateProductPrice(sku, price);
+        await updateAllSkus(price);
       }, delayStart);
     } else {
-      await updateProductPrice(sku, price);
+      await updateAllSkus(price);
     }
-
 
     if (delayEnd > 0) {
       setTimeout(async () => {
-        await updateProductPrice(sku, originalPriceRef.current);
+        await updateAllSkus(originalPriceRef.current);
       }, delayEnd);
     }
   };
-
 
   const modalStyles = {
     formControl: {
@@ -112,7 +115,6 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
       width: '100%',
     },
   };
-
 
   return (
     <Modal show={show} onHide={onClose}>
@@ -136,22 +138,21 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
           </Button>
           {skus.length > 0 && (
             <>
-              <Form.Group controlId="formSku" style={modalStyles.formControl}>
-                <Form.Label>Select SKU</Form.Label>
-                <Form.Control as="select" value={sku} onChange={handleSkuChange} required>
-                  {skus.map((offer, index) => (
-                    <option key={index} value={offer.SellerSKU}>
-                      {offer.SellerSKU}
-                    </option>
-                  ))}
-                </Form.Control>
-              </Form.Group>
               <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
                 <Form.Label>Current Price</Form.Label>
                 <Form.Control
                   type="text"
                   value={`$${currentPrice}`}
                   readOnly
+                />
+              </Form.Group>
+              <Form.Group controlId="formSkuList" style={modalStyles.formControl}>
+                <Form.Label>SKUs</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  value={skus.map((offer) => offer.SellerSKU).join('\n')}
+                  readOnly
+                  rows={skus.length}
                 />
               </Form.Group>
             </>
@@ -197,8 +198,4 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
   );
 };
 
-
 export default UpdatePriceModal;
-
-
-
