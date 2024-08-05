@@ -62,7 +62,7 @@ const UpdatePriceModal = ({ show, onClose, event }) => {
       if (!originalPriceRef.current) {
         await fetchCurrentPrice(asin);
       }
-      // await schedulePriceUpdate();
+      await schedulePriceUpdate();
       skus.forEach((offer) => {
         addEvent({
           title: `SKU: ${offer.SellerSKU} - $${price}`,
