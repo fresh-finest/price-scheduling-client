@@ -6,7 +6,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ButtonGroup, Button, Modal } from 'react-bootstrap';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import UpdatePriceModal from '../Modal/UpdatePriceModal';
+import UpdatePrice from '../Modal/UpdatePrice';
 import ViewUpdatedListModal from '../Modal/ViewUpdatedListModal';
 import './CalendarView.css';
 
@@ -89,7 +89,7 @@ const CalendarView = () => {
         onSelectSlot={handleSelectSlot}
         style={{ height: 'calc(100vh - 120px)' }}
       />
-      <UpdatePriceModal show={showUpdateModal} onClose={handleCloseUpdateModal} event={selectedEvent} />
+      <UpdatePrice show={showUpdateModal} onClose={handleCloseUpdateModal} event={selectedEvent} />
       <ViewUpdatedListModal show={showViewModal} onClose={handleCloseViewModal} />
       <Modal show={showOptionModal} onHide={handleCloseOptionModal}>
         <Modal.Header closeButton>
