@@ -1,9 +1,23 @@
-import React, { useContext, useState } from 'react';
-import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const UpdatedList = () => {
-  const { events } = useContext(PriceScheduleContext);
+  const [events, setEvents] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/schedule');
+        setEvents(response.data.result);
+      } catch (error) {
+        setErrorMessage('Error fetching schedules: ' + (error.response ? error.response.data.error : error.message));
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const listStyles = {
     container: {
@@ -23,29 +37,20 @@ const UpdatedList = () => {
     },
   };
 
-  // Demo data for updated products
-  const demoProducts = [
-    { sku: 'SKU123', price: '12.99', date: new Date() },
-    { sku: 'SKU456', price: '13.99', date: new Date() },
-    { sku: 'SKU789', price: '14.99', date: new Date() },
-    { sku: 'SKU101', price: '15.99', date: new Date() },
-    { sku: 'SKU112', price: '16.99', date: new Date() },
-    { sku: 'SKU131', price: '17.99', date: new Date() },
-  ];
-
-  const displayProducts = showAll ? demoProducts : demoProducts.slice(0, 5);
+  const displayProducts = showAll ? events : events.slice(0, 5);
 
   return (
     <div style={listStyles.container}>
       <h3>Updated Price List</h3>
+      {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
       <ul>
         {displayProducts.map((product, index) => (
           <li key={index} style={listStyles.listItem}>
-            <strong>SKU:</strong> {product.sku} - <strong>Price:</strong> ${product.price} - <strong>Date:</strong> {product.date.toLocaleString()}
+            <strong>SKU:</strong> {product.sku} - <strong>Price:</strong> ${product.price}
           </li>
         ))}
       </ul>
-      {!showAll && demoProducts.length > 5 && (
+      {!showAll && events.length > 5 && (
         <div
           style={listStyles.showMore}
           onClick={() => setShowAll(true)}
