@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://price-scheduling-server-2.onrender.com';
 
 const updateProductPrice = async (sku, value) => {
   try {

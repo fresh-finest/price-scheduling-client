@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const PriceScheduleContext = createContext();
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'https://price-scheduling-server-2.onrender.com';
 
 export const PriceScheduleProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
