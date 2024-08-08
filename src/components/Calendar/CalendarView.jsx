@@ -1,14 +1,15 @@
-import React, { useContext, useState } from 'react';
-import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
-import moment from 'moment';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { ButtonGroup, Button, Modal } from 'react-bootstrap';
-import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import UpdatePriceModal from '../Modal/UpdatePriceModal';
-import ViewUpdatedListModal from '../Modal/ViewUpdatedListModal';
-import './CalendarView.css';
+import React, { useContext, useState } from "react";
+import { Calendar, momentLocalizer, Views } from "react-big-calendar";
+import moment from "moment";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import DatePicker from "react-datepicker";
+import { MdOutlineUpdate } from "react-icons/md";
+import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
+import "react-datepicker/dist/react-datepicker.css";
+import { ButtonGroup, Button, Modal } from "react-bootstrap";
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+import "./CalendarView.css";
+import UpdatePriceModal from "../Modal/UpdatePriceModal";
 
 const localizer = momentLocalizer(moment);
 
@@ -20,6 +21,7 @@ const CalendarView = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -31,11 +33,6 @@ const CalendarView = () => {
 
   const handleViewChange = (newView) => {
     setView(newView);
-  };
-
-  const handleSelectSlot = (slotInfo) => {
-    setSelectedEvent(slotInfo);
-    setShowOptionModal(true);
   };
 
   const handleCloseOptionModal = () => {
@@ -60,13 +57,43 @@ const CalendarView = () => {
     setShowViewModal(true);
   };
 
+  const handleSelectSlot = (slotInfo) => {
+    const calendarElement = document.querySelector('.rbc-calendar');
+    const boundingRect = calendarElement.getBoundingClientRect();
+
+    const top = slotInfo.box.y - boundingRect.top - 200;
+    const left = slotInfo.box.x - boundingRect.left - 400;
+
+    setSelectedEvent(slotInfo);
+    setModalPosition({
+      top: top,
+      left: left,
+    });
+    setShowOptionModal(true);
+  };
+
   return (
-    <div style={{ padding: '20px', marginTop: '50px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+    <div style={{ padding: "20px", marginTop: "50px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "10px",
+        }}
+      >
         <ButtonGroup>
-          <Button variant="secondary" onClick={() => handleViewChange(Views.MONTH)}>Month</Button>
-          <Button variant="secondary" onClick={() => handleViewChange(Views.WEEK)}>Week</Button>
-          {/* <Button variant="secondary" onClick={() => handleViewChange(Views.DAY)}>Day</Button> */}
+          <Button
+            variant="secondary"
+            onClick={() => handleViewChange(Views.MONTH)}
+          >
+            Month
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => handleViewChange(Views.WEEK)}
+          >
+            Week
+          </Button>
         </ButtonGroup>
         <DatePicker
           selected={selectedDate}
@@ -81,24 +108,41 @@ const CalendarView = () => {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        views={['month', 'week']}
+        views={["month", "week"]}
         view={view}
         date={selectedDate}
         onNavigate={handleNavigate}
         selectable
         onSelectSlot={handleSelectSlot}
-        style={{ height: 'calc(100vh - 120px)' }}
+        style={{ height: "calc(100vh - 120px)" }}
       />
-      <UpdatePriceModal show={showUpdateModal} onClose={handleCloseUpdateModal} event={selectedEvent} />
-      <ViewUpdatedListModal show={showViewModal} onClose={handleCloseViewModal} />
-      <Modal show={showOptionModal} onHide={handleCloseOptionModal}>
+      <UpdatePriceModal
+        show={showUpdateModal}
+        onClose={handleCloseUpdateModal}
+        event={selectedEvent}
+      />
+      <ViewUpdatedListModal
+        show={showViewModal}
+        onClose={handleCloseViewModal}
+      />
+      <Modal
+        show={showOptionModal}
+        onHide={handleCloseOptionModal}
+        style={{
+          top: `${modalPosition.top}px`,
+          left: `${modalPosition.left}px`,
+          position: "fixed",
+          margin: 0
+        }}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Options</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Button variant='primary' onClick={handleUpdatePrice}>Update Price</Button>
-          {/* <Button style={{ marginLeft: "15px" }} variant='secondary' onClick={handleViewUpdatedList}>View Updated List</Button> */}
-          <ViewUpdatedListModal/>
+          <Button variant="primary" onClick={handleUpdatePrice}>
+            <MdOutlineUpdate />
+          </Button>
+          <ViewUpdatedListModal />
         </Modal.Body>
       </Modal>
     </div>
