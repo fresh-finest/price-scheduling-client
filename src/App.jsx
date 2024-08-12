@@ -5,6 +5,7 @@ import Calendar from './pages/Calendar';
 import List from './pages/List';
 // import Login from './pages/Login';
 import { PriceScheduleProvider } from './contexts/PriceScheduleContext';
+import Login from './pages/Auth/Login';
 
 function App() {
   return (
@@ -12,7 +13,7 @@ function App() {
       <Router>
         <Header />
         <Routes>
-          <Route path="/" element={<Calendar/>}/>
+          <Route path="/" element={<Login/>}/>
           <Route path="/list" element={<List />} />
           <Route path="/calendar" element={<Calendar />} />
           {/* <Route path="/login" element={<Login />} /> */}

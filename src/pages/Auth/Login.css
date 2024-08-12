@@ -1,0 +1,31 @@
+body {
+    background-color:  #FFFEF9;
+
+  }
+  
+  .card {
+    border: none;
+  }
+  
+  .card-title img {
+    width: 150px;
+  }
+
+  .logo {
+    width: 200px;
+    height: 65.99px;
+    margin: 0 auto 20px; /* Center the logo and add bottom margin */
+}
+
+.login-container{
+    width: 300px;
+}
+/*  
+.login-container {
+    width: 626.43px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    background-color: #fff;
+    text-align: center;
+} */
