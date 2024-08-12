@@ -10,6 +10,7 @@ import { ButtonGroup, Button, Modal } from "react-bootstrap";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
 import UpdatePriceModal from "../Modal/UpdatePriceModal";
+import UpdatePriceByAsin from "../Modal/UpdatePriceByAsin"
 
 const localizer = momentLocalizer(moment);
 
@@ -116,7 +117,7 @@ const CalendarView = () => {
         onSelectSlot={handleSelectSlot}
         style={{ height: "calc(100vh - 120px)" }}
       />
-      <UpdatePriceModal
+      <UpdatePriceByAsin
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         event={selectedEvent}

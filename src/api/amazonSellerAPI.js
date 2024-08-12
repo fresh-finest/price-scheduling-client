@@ -1,5 +1,7 @@
 import axios from 'axios'
-const BASE_URL = 'https://price-scheduling-server-2.onrender.com';
+// const BASE_URL = 'https://price-scheduling-server-2.onrender.com';
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
+
 
 const fetchProductPrice = async(sku)=>{
     try {

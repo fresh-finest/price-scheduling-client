@@ -9,7 +9,7 @@ const UpdatedList = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('https://price-scheduling-server-2.onrender.com/api/schedule');
+        const response = await axios.get('https://dps-server-b829cf5871b7.herokuapp.com/api/schedule');
         setEvents(response.data.result);
       } catch (error) {
         setErrorMessage('Error fetching schedules: ' + (error.response ? error.response.data.error : error.message));
