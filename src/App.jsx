@@ -6,6 +6,7 @@ import List from './pages/List';
 import { PriceScheduleProvider } from './contexts/PriceScheduleContext';
 import Login from './pages/Auth/Login';
 import PrivateRoute from './pages/Auth/PrivateRoute';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
              <Calendar />
           </PrivateRoute>
            } />
-          {/* <Route path="/login" element={<Login />} /> */}
+         <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </PriceScheduleProvider>
