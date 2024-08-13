@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Form, Button, Container, Row, Col, Card } from 'react-bootstrap';
 import './Login.css';
 import logo from '../../assets/images/logo.png';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { signInFailure, signInStart, signInSuccess } from '../../redux/user/userSlice';
+
 
 
 const Login = () => {
   const [formData,setFormData] = useState({});
 
-//   const {loading,error} = useSelector((state)=>state.user);
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
+  const {loading,error} = useSelector((state)=>state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleChange = (e)=>{
     setFormData({
@@ -21,32 +22,32 @@ const Login = () => {
     })
   }
 
-//   const handleSubmit = async(e)=>{
-//     e.preventDefault();
-//     try {
-//       dispatch(signInStart);
+  const handleSubmit = async(e)=>{
+    e.preventDefault();
+    try {
+      dispatch(signInStart);
 
-//       const res = await fetch("https://fresh-finest-server-dd57784051b3.herokuapp.com/api/auth/signin",{
-//         method:"POST",
-//         headers:{
-//           "Content-Type": "application/json",
-//         },
-//         body:JSON.stringify(formData),
-//       });
+      const res = await fetch("https://dps-server-b829cf5871b7.herokuapp.com/api/auth/signin",{
+        method:"POST",
+        headers:{
+          "Content-Type": "application/json",
+        },
+        body:JSON.stringify(formData),
+      });
 
-//       const data = await res.json();
+      const data = await res.json();
 
-//       if(data.success === false){
-//         dispatch(signInFailure(data.message));
-//         return;
-//       }
-//       dispatch(signInSuccess(data));
-//       navigate("/");
-//     } catch (error) {
-//       dispatch(signInFailure(error.message));
-//     console.log(error);
-//     }
-//   }
+      if(data.success === false){
+        dispatch(signInFailure(data.message));
+        return;
+      }
+      dispatch(signInSuccess(data));
+      navigate("/calendar");
+    } catch (error) {
+      dispatch(signInFailure(error.message));
+    console.log(error);
+    }
+  }
 
 
 
@@ -59,7 +60,7 @@ const Login = () => {
                   <Card.Title className="text-center">
                     <img src={logo} alt="Fresh Finest" className="mb-4 logo" />
                   </Card.Title>
-                  <Form onSubmit="">
+                  <Form onSubmit={handleSubmit}>
                     <Form.Group controlId="formBasicEmail">
                       <Form.Label>Email</Form.Label>
                       <Form.Control type="email" placeholder="Enter your email" id='email' onChange={handleChange} />
@@ -74,20 +75,16 @@ const Login = () => {
                       <Form.Check type="checkbox" label="Remember me" />
                     </Form.Group>
     
-                    <Button  variant="success" type="submit" className="w-100 mt-3">
-                      
-                      Login
-                    </Button>
-                     {/* <Button disabled={loading}  variant="success" type="submit" className="w-100 mt-3">
+                
+                     <Button disabled={loading}  variant="success" type="submit" className="w-100 mt-3">
                       {loading? "Loading...":"Login"}
-                      Login
-                    </Button> */}
+                    </Button>
 
                     <div className="text-center mt-3">
                       <a href="/forgot-password">Forgot password?</a>
                     </div>
                   </Form>
-                  {/* {error && <p className="text-red-500">{error}</p>} */}
+                  {error && <p className="text-red-500" style={{color:"red"}}>{error}</p>}
                 </Card.Body>
               </Card>
             </Col>
