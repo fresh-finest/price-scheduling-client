@@ -1,7 +1,40 @@
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { useNavigate } from 'react-router-dom';
 
-function NavScrollExample() {
+import {
+ 
+  signOutUserFailure,
+  signOutUserStart,
+  signOutUserSuccess,
+  
+} from "../../redux/user/userSlice";
+
+function Header() {
+
+  const { currentUser, error } = useSelector((state) => state.user);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      dispatch(signOutUserStart());
+      const res = await fetch("https://dps-server-b829cf5871b7.herokuapp.com/api/auth/logout");
+      const data = await res.json();
+      if (data.success === false) {
+        signOutUserFailure(data.message);
+        return;
+      }
+      dispatch(signOutUserSuccess(data));
+      navigate("/");
+    } catch (error) {
+      dispatch(signOutUserFailure(error.message));
+    }
+  };
+
   return (
     <Navbar bg="dark" variant="dark" expand="lg" fixed="top">
       <Container fluid>
@@ -13,7 +46,11 @@ function NavScrollExample() {
             <Nav.Link as={NavLink} to="/calendar" style={{ color: 'white' }}>Calendar View</Nav.Link>
           </Nav>
           <Nav>
-            <Nav.Link as={NavLink} to="/login" style={{ color: 'white' }}>Logout</Nav.Link>
+            {/* <Nav.Link as={NavLink} to="/" style={{ color: 'white' }}>Logout</Nav.Link>
+             */}
+             <span onClick={handleSignOut} className="text-red-700 cursor-pointer" style={{color:"red", cursor:"pointer"}}>
+           Logout
+        </span>
           </Nav>
         </Navbar.Collapse>
       </Container>
@@ -21,4 +58,4 @@ function NavScrollExample() {
   );
 }
 
-export default NavScrollExample;
+export default Header;
