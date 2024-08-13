@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Button } from 'react-bootstrap';
-
+import Header from "../components/shared/Header"
 const demoData = [
   {
     asin: 'JF2CJRI',
@@ -35,6 +35,8 @@ const demoData = [
 
 const ListView = () => {
   return (
+    <>
+    <Header/>
     <div style={{ padding: '20px', marginTop:'50px' }}>
     <h1>List of product</h1>
       <Table bordered>
@@ -82,6 +84,7 @@ const ListView = () => {
         </tbody>
       </Table>
     </div>
+    </>
   );
 };
 
