@@ -96,7 +96,7 @@ const UpdatePrice = ({ show, onClose }) => {
     e.preventDefault();
     try {
       // First, update the product price immediately
-    //   await updateProductPrice(sku, currentPrice);
+      await updateProductPrice(sku, currentPrice);
 
       // Save the schedule
       const scheduleResponse = await saveSchedule(sku, price, startDate, endDate);
