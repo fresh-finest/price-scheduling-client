@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Table, Container, Row, Col, Form, InputGroup, Button, Spinner } from 'react-bootstrap';
+import { Table, Container, Row, Col, Form, InputGroup, Spinner } from 'react-bootstrap';
 import './ListView.css'; // Include any additional styles you need
 import ProductDetailView from './ProductDetailView'; // Assuming ProductDetailView is a separate file
 
@@ -9,6 +9,7 @@ const ListView = () => {
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [columnWidths, setColumnWidths] = useState([60, 100, 100, 400, 60]); // Initial widths: Image, ASIN, SKU, Title, Price
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -45,50 +46,32 @@ const ListView = () => {
   };
 
   const filteredProducts = productData.filter(product => 
-    product.payload.AttributeSets[0].Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.payload.Identifiers.MarketplaceASIN.ASIN.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.payload.AttributeSets[0].Model.toLowerCase().includes(searchTerm.toLowerCase())
+    product.payload?.AttributeSets?.[0]?.Title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.payload?.Identifiers?.MarketplaceASIN?.ASIN?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.payload?.AttributeSets?.[0]?.Model?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  useEffect(() => {
-    const table = tableRef.current;
-    if (!table) return;
+  const handleResize = (index, event) => {
+    const startX = event.clientX;
+    const startWidth = columnWidths[index];
 
-    const cols = table.querySelectorAll('th');
+    const doDrag = (e) => {
+      const newWidth = Math.max(50, startWidth + (e.clientX - startX));
+      setColumnWidths((prevWidths) => {
+        const newWidths = [...prevWidths];
+        newWidths[index] = newWidth;
+        return newWidths;
+      });
+    };
 
-    cols.forEach((col, index) => {
-      col.style.position = 'relative';
-      const resizer = document.createElement('div');
-      resizer.className = 'resizer';
-      resizer.style.width = '5px';
-      resizer.style.height = '100%';
-      resizer.style.position = 'absolute';
-      resizer.style.right = '0';
-      resizer.style.top = '0';
-      resizer.style.cursor = 'col-resize';
-      resizer.addEventListener('mousedown', initResize(index));
-      col.appendChild(resizer);
-    });
+    const stopDrag = () => {
+      document.removeEventListener('mousemove', doDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    };
 
-    function initResize(index) {
-      return function (e) {
-        const startX = e.clientX;
-        const startWidth = cols[index].offsetWidth;
-
-        function doDrag(e) {
-          cols[index].style.width = startWidth + e.clientX - startX + 'px';
-        }
-
-        function stopDrag() {
-          document.removeEventListener('mousemove', doDrag);
-          document.removeEventListener('mouseup', stopDrag);
-        }
-
-        document.addEventListener('mousemove', doDrag);
-        document.addEventListener('mouseup', stopDrag);
-      };
-    }
-  }, []);
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', stopDrag);
+  };
 
   if (loading) return <p style={{ marginTop: "100px" }}><Spinner animation="border" /> Loading...</p>;
   if (error) return <p style={{ marginTop: "100px" }}>{error}</p>;
@@ -105,42 +88,73 @@ const ListView = () => {
               onChange={handleSearch} 
               style={{ borderRadius: '4px' }} 
             />
-            <Button variant="outline-secondary" id="button-addon2">
-              Search
-            </Button>
           </InputGroup>
-          <Table bordered hover responsive ref={tableRef} style={{ width: '100%', tableLayout: 'fixed' }}>
-            <thead style={{ backgroundColor: '#f0f0f0', color: '#333', fontFamily: 'Arial, sans-serif', fontSize: '14px' }}>
-              <tr>
-                <th style={{ minWidth: '80px' }}>Image</th>
-                <th style={{ minWidth: '150px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>ASIN</th>
-                <th style={{ minWidth: '150px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>SKU</th>
-                <th style={{ minWidth: '300px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>Title</th>
-                <th style={{ minWidth: '100px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>Price</th>
-              </tr>
-            </thead>
-            <tbody style={{ fontSize: '12px', fontFamily: 'Arial, sans-serif', lineHeight: '1.5' }}>
-              {filteredProducts.map((item, index) => (
-                <tr key={index} onClick={() => handleProductSelect(item)} style={{ cursor: 'pointer', height: '40px' }}>
-                  <td>
-                    <img
-                      src={item.payload.AttributeSets[0].SmallImage.URL}
-                      alt={item.payload.AttributeSets[0].Title}
-                      style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+          {filteredProducts.length > 0 ? (
+            <Table bordered hover responsive ref={tableRef} style={{ width: '100%', tableLayout: 'fixed' }}>
+              <thead style={{ backgroundColor: '#f0f0f0', color: '#333', fontFamily: 'Arial, sans-serif', fontSize: '14px' }}>
+                <tr>
+                  <th style={{ width: `${columnWidths[0]}px`, position: 'relative' }}>
+                    Image
+                    <div
+                      style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
+                      onMouseDown={(e) => handleResize(0, e)}
                     />
-                  </td>
-                  <td>{item.payload.Identifiers.MarketplaceASIN.ASIN}</td>
-                  <td>{item.payload.AttributeSets[0].Model}</td>
-                  <td>{item.payload.AttributeSets[0].Title}</td>
-                  <td>${item.payload.AttributeSets[0].ListPrice.Amount}</td>
+                  </th>
+                  <th style={{ width: `${columnWidths[1]}px`, position: 'relative' }}>
+                    ASIN
+                    <div
+                      style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
+                      onMouseDown={(e) => handleResize(1, e)}
+                    />
+                  </th>
+                  <th style={{ width: `${columnWidths[2]}px`, position: 'relative' }}>
+                    SKU
+                    <div
+                      style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
+                      onMouseDown={(e) => handleResize(2, e)}
+                    />
+                  </th>
+                  <th style={{ width: `${columnWidths[3]}px`, position: 'relative', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    Title
+                    <div
+                      style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
+                      onMouseDown={(e) => handleResize(3, e)}
+                    />
+                  </th>
+                  <th style={{ width: `${columnWidths[4]}px`, position: 'relative' }}>
+                    Price
+                    <div
+                      style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
+                      onMouseDown={(e) => handleResize(4, e)}
+                    />
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody style={{ fontSize: '12px', fontFamily: 'Arial, sans-serif', lineHeight: '1.5' }}>
+                {filteredProducts.map((item, index) => (
+                  <tr key={index} onClick={() => handleProductSelect(item)} style={{ cursor: 'pointer', height: '40px' }}>
+                    <td>
+                      <img
+                        src={item.payload?.AttributeSets?.[0]?.SmallImage?.URL}
+                        alt={item.payload?.AttributeSets?.[0]?.Title}
+                        style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                      />
+                    </td>
+                    <td>{item.payload?.Identifiers?.MarketplaceASIN?.ASIN}</td>
+                    <td>{item.payload?.AttributeSets?.[0]?.Model}</td>
+                    <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.payload?.AttributeSets?.[0]?.Title}</td>
+                    <td>${item.payload?.AttributeSets?.[0]?.ListPrice?.Amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p>No products found.</p>
+          )}
         </Col>
         <Col md={4} style={{ paddingLeft: '0px', marginTop: '20px', paddingRight: '20px' }}>
           {selectedProduct ? (
-            <div style={{marginTop:"35px"}}>
+            <div style={{ marginTop: "35px" }}>
               <ProductDetailView product={selectedProduct} />
             </div>
           ) : (
