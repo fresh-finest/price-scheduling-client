@@ -122,10 +122,10 @@ const CalendarView = () => {
         onClose={handleCloseUpdateModal}
         event={selectedEvent}
       />
-      <ViewUpdatedListModal
+      {/* <ViewUpdatedListModal
         show={showViewModal}
         onClose={handleCloseViewModal}
-      />
+      /> */}
       <Modal
         show={showOptionModal}
         onHide={handleCloseOptionModal}
