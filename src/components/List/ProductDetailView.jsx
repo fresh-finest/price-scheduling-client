@@ -15,8 +15,8 @@ const ProductDetailView = ({ product }) => {
       width: '100%',
     },
     title: {
-      fontSize: '16px',
-      fontWeight: 'bold',
+      fontSize: '14px',
+    
       marginBottom: '10px',
     },
     info: {
