@@ -1,0 +1,30 @@
+th {
+    position: relative;
+    white-space: nowrap;
+    min-width: 100px;
+  }
+  
+  th .resizer {
+    position: absolute;
+    width: 5px;
+    height: 100%;
+    top: 0;
+    right: 0;
+    background-color: transparent;
+    cursor: col-resize;
+    user-select: none;
+    transition: background-color 0.25s;
+  }
+  
+  th .resizer:hover {
+    background-color: #ccc;
+  }
+  
+  .card {
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-3px);
+  }
+  
