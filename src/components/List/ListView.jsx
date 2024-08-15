@@ -2,15 +2,20 @@ import React, { useState, useRef } from 'react';
 import { Table, Container, Row, Col, Form, InputGroup, Spinner, Pagination } from 'react-bootstrap';
 import { useQuery } from 'react-query';
 import './ListView.css';
-import ProductDetailView from './ProductDetailView';
+import axios from 'axios';
 
+import ProductDetailView from './ProductDetailView';
 const fetchProducts = async ({ queryKey }) => {
   const [_key, { page, limit }] = queryKey;
-  const response = await fetch(`https://all-product-list.onrender.com/fetch-all-listings?page=${page}&limit=${limit}`);
-  if (!response.ok) {
+  try {
+    const response = await axios.get(`https://all-product-list.onrender.com/fetch-all-listings`, {
+      params: { page, limit }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch products:', error.message);
     throw new Error('Failed to fetch products');
   }
-  return response.json();
 };
 
 const ListView = () => {
@@ -19,16 +24,15 @@ const ListView = () => {
   const [columnWidths, setColumnWidths] = useState([60, 100, 100, 400, 60]);
   const [currentPage, setCurrentPage] = useState(1);
   const tableRef = useRef(null);
-  
+
   const { data, error, isLoading } = useQuery(['products', { page: currentPage, limit: 10 }], fetchProducts);
-  
+
   const handleProductSelect = async (asin) => {
     try {
-      const response = await fetch(`https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`);
-      const productDetails = await response.json();
-      setSelectedProduct(productDetails.payload);
+      const response = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`);
+      setSelectedProduct(response.data.payload);
     } catch (error) {
-      console.error('Error fetching product details:', error);
+      console.error('Error fetching product details:', error.message);
     }
   };
 
@@ -144,11 +148,11 @@ const ListView = () => {
                   ))}
                 </tbody>
               </Table>
-              <Pagination>
+              {/* <Pagination>
                 <Pagination.Prev disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} />
                 <Pagination.Item active>{currentPage}</Pagination.Item>
                 <Pagination.Next disabled={filteredProducts.length < 10} onClick={() => handlePageChange(currentPage + 1)} />
-              </Pagination>
+              </Pagination> */}
             </>
           ) : (
             <p>No products found.</p>
