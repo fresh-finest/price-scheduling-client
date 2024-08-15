@@ -15,40 +15,49 @@ const ProductDetailView = ({ product }) => {
       width: '100%',
     },
     title: {
-      fontSize: '14px',
-    
-      marginBottom: '10px',
+      fontSize: '16px', // Slightly larger for emphasis
+      fontWeight: 'bold',
+      marginBottom: '15px',
     },
     info: {
-      marginBottom: '5px',
+      marginBottom: '10px',
       fontSize: '14px',
     },
     tag: {
       display: 'inline-block',
       backgroundColor: '#00c0ef',
       color: '#fff',
-      padding: '2px 8px',
-      borderRadius: '10px',
+      padding: '4px 10px',
+      borderRadius: '12px',
       fontSize: '12px',
-      marginRight: '5px',
+      marginRight: '8px',
     }
   };
 
   return (
     <Card style={detailStyles.card}>
-      <Card.Img variant="top" src={product.payload.AttributeSets[0].SmallImage.URL} style={detailStyles.image} />
+      <Card.Img variant="top" src={product.AttributeSets[0].SmallImage.URL} style={detailStyles.image} />
       <Card.Body>
-        <Card.Title style={detailStyles.title}>{product.payload.AttributeSets[0].Title}</Card.Title>
+        <Card.Title style={detailStyles.title}>{product.AttributeSets[0].Title}</Card.Title>
         <Card.Text style={detailStyles.info}>
-          <strong>SKU:</strong> {product.payload.AttributeSets[0].Model}
+          <strong>SKU:</strong> {product.AttributeSets[0].Model}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>ASIN:</strong> {product.payload.Identifiers.MarketplaceASIN.ASIN}
+          <strong>ASIN:</strong> {product.Identifiers.MarketplaceASIN.ASIN}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>Price:</strong> ${product.payload.AttributeSets[0].ListPrice.Amount}
+          <strong>Price:</strong> ${product.AttributeSets[0].ListPrice.Amount}
         </Card.Text>
-      
+        {/* Additional Information */}
+        <Card.Text style={detailStyles.info}>
+          <strong>Brand:</strong> {product.AttributeSets[0].Brand}
+        </Card.Text>
+        <Card.Text style={detailStyles.info}>
+          <strong>Manufacturer:</strong> {product.AttributeSets[0].Manufacturer}
+        </Card.Text>
+        <Card.Text style={detailStyles.info}>
+          <strong>Ranking:</strong> #{product.SalesRankings[0].Rank} in {product.SalesRankings[0].ProductCategoryId}
+        </Card.Text>
       </Card.Body>
     </Card>
   );
