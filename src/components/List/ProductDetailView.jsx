@@ -47,7 +47,7 @@ const ProductDetailView = ({ product }) => {
           <strong>ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>Price:</strong> ${product?.AttributeSets[0]?.ListPrice.Amount}
+          <strong>Price:</strong> ${product?.AttributeSets[0]?.ListPrice?.Amount}
         </Card.Text>
         {/* Additional Information */}
         <Card.Text style={detailStyles.info}>
@@ -57,7 +57,7 @@ const ProductDetailView = ({ product }) => {
           <strong>Manufacturer:</strong> {product?.AttributeSets[0]?.Manufacturer}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>Ranking:</strong> #{product?.SalesRankings[0]?.Rank} in {product.SalesRankings[0].ProductCategoryId}
+          <strong>Ranking:</strong> #{product?.SalesRankings[0]?.Rank} in {product?.SalesRankings[0]?.ProductCategoryId}
         </Card.Text>
       </Card.Body>
     </Card>
