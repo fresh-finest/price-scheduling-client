@@ -1,10 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { Table, Container, Row, Col, Form, InputGroup, Spinner, Pagination } from 'react-bootstrap';
+import { Table, Container, Row, Col, Form, InputGroup, Spinner } from 'react-bootstrap';
+import { Button } from "react-bootstrap";
 import { useQuery } from 'react-query';
-import './ListView.css';
+import { IoAddSharp } from "react-icons/io5";
+import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from 'axios';
-
+import './ListView.css';
 import ProductDetailView from './ProductDetailView';
+
 const fetchProducts = async ({ queryKey }) => {
   const [_key, { page, limit }] = queryKey;
   try {
@@ -21,9 +24,11 @@ const fetchProducts = async ({ queryKey }) => {
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [columnWidths, setColumnWidths] = useState([60, 100, 100, 400, 60]);
+  const [columnWidths, setColumnWidths] = useState([80,80,300,60,80]);
   const [currentPage, setCurrentPage] = useState(1);
   const tableRef = useRef(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedAsin, setSelectedAsin] = useState('');
 
   const { data, error, isLoading } = useQuery(['products', { page: currentPage, limit: 10 }], fetchProducts);
 
@@ -31,9 +36,19 @@ const ListView = () => {
     try {
       const response = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`);
       setSelectedProduct(response.data.payload);
+      setSelectedAsin(asin);
     } catch (error) {
       console.error('Error fetching product details:', error.message);
     }
+  };
+
+  const handleUpdate = (asin) => {
+    setSelectedAsin(asin);
+    setShowUpdateModal(true);
+  };
+
+  const handleCloseUpdateModal = () => {
+    setShowUpdateModal(false);
   };
 
   const handleSearch = (e) => {
@@ -77,6 +92,11 @@ const ListView = () => {
 
   return (
     <Container fluid style={{ marginTop: '100px' }}>
+      <UpdatePriceFromList
+        show={showUpdateModal}
+        onClose={handleCloseUpdateModal}
+        asin={selectedAsin} 
+      />
       <Row>
         <Col md={8} style={{ paddingRight: '20px' }}>
           <InputGroup className="mb-3" style={{ maxWidth: '300px' }}>
@@ -93,36 +113,36 @@ const ListView = () => {
               <Table bordered hover responsive ref={tableRef} style={{ width: '100%', tableLayout: 'fixed' }}>
                 <thead style={{ backgroundColor: '#f0f0f0', color: '#333', fontFamily: 'Arial, sans-serif', fontSize: '14px' }}>
                   <tr>
-                    {/* <th style={{ width: `${columnWidths[0]}px`, position: 'relative' }}>
-                      Image
+                    <th style={{ width: `${columnWidths[0]}px`, position: 'relative' }}>
+                      ASIN
                       <div
                         style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
                         onMouseDown={(e) => handleResize(0, e)}
                       />
-                    </th> */}
+                    </th>
                     <th style={{ width: `${columnWidths[1]}px`, position: 'relative' }}>
-                      ASIN
+                      SKU
                       <div
                         style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
                         onMouseDown={(e) => handleResize(1, e)}
                       />
                     </th>
-                    <th style={{ width: `${columnWidths[2]}px`, position: 'relative' }}>
-                      SKU
+                    <th style={{ width: `${columnWidths[2]}px`, position: 'relative', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      Title
                       <div
                         style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
                         onMouseDown={(e) => handleResize(2, e)}
                       />
                     </th>
-                    <th style={{ width: `${columnWidths[3]}px`, position: 'relative', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      Title
+                    <th style={{ width: `${columnWidths[3]}px`, position: 'relative' }}>
+                      Price
                       <div
                         style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
                         onMouseDown={(e) => handleResize(3, e)}
                       />
                     </th>
                     <th style={{ width: `${columnWidths[4]}px`, position: 'relative' }}>
-                      Price
+                      Update Price
                       <div
                         style={{ width: '5px', height: '100%', position: 'absolute', right: '0', top: '0', cursor: 'col-resize' }}
                         onMouseDown={(e) => handleResize(4, e)}
@@ -133,26 +153,19 @@ const ListView = () => {
                 <tbody style={{ fontSize: '12px', fontFamily: 'Arial, sans-serif', lineHeight: '1.5' }}>
                   {filteredProducts.map((item, index) => (
                     <tr key={index} onClick={() => handleProductSelect(item.asin1)} style={{ cursor: 'pointer', height: '40px' }}>
-                      {/* <td>
-                        <img
-                          src={`https://m.media-amazon.com/images/I/${item.productId}_SL75_.jpg`}
-                          alt={item.itemName}
-                          style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-                        />
-                      </td> */}
                       <td>{item.asin1}</td>
                       <td>{item.sellerSku}</td>
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.itemName}</td>
                       <td>${item.price}</td>
+                      <td>
+                        <Button variant="primary" onClick={() => handleUpdate(item.asin1)}>
+                          <IoAddSharp />
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
-              {/* <Pagination>
-                <Pagination.Prev disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} />
-                <Pagination.Item active>{currentPage}</Pagination.Item>
-                <Pagination.Next disabled={filteredProducts.length < 10} onClick={() => handlePageChange(currentPage + 1)} />
-              </Pagination> */}
             </>
           ) : (
             <p>No products found.</p>

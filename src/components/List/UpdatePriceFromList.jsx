@@ -33,19 +33,19 @@ const updateProductPrice = async (sku, value) => {
     throw error;
   }
 };
+
 const saveSchedule = async (sku, price, startDate, endDate) => {
-    try {
-      const response = await axios.post(`${BASE_URL}/api/schedule`, { sku, price: parseFloat(price), startDate, endDate });
-      return response.data;
-    } catch (error) {
-      console.error('Error saving schedule:', error.response ? error.response.data : error.message);
-      throw error;
-    }
-  };
-  
-const UpdatePrice = ({ show, onClose }) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/api/schedule`, { sku, price: parseFloat(price), startDate, endDate });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving schedule:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const { addEvent } = useContext(PriceScheduleContext);
-  const [asin, setAsin] = useState('');
   const [sku, setSku] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [price, setPrice] = useState('');
@@ -56,13 +56,13 @@ const UpdatePrice = ({ show, onClose }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
-    if (show) {
+    if (show && asin) {
       resetForm();
+      fetchProductDetailsByAsin(asin);
     }
-  }, [show]);
+  }, [show, asin]);
 
   const resetForm = () => {
-    setAsin('');
     setSku('');
     setCurrentPrice('');
     setPrice('');
@@ -72,40 +72,25 @@ const UpdatePrice = ({ show, onClose }) => {
     setErrorMessage('');
   };
 
-  const handleAsinChange = async (e) => {
-    const asinValue = e.target.value;
-    setAsin(asinValue);
-    if (asinValue) {
-      try {
-        const data = await fetchProductDetails(asinValue);
-        const productDetails = data.payload[0].Product.Offers[0];
-        setSku(productDetails.SellerSKU);
-        setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
-      } catch (error) {
-        setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
-        console.error('Error fetching product details:', error);
-      }
+  const fetchProductDetailsByAsin = async (asin) => {
+    try {
+      const data = await fetchProductDetails(asin);
+      const productDetails = data.payload[0].Product.Offers[0];
+      setSku(productDetails.SellerSKU);
+      setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+    } catch (error) {
+      setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
+      console.error('Error fetching product details:', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // First, schedule the price update and the revert to original price
       await schedulePriceUpdate(sku, currentPrice, price, startDate, endDate);
 
-      // Log the scheduling in MongoDB
-    //   await axios.post(`${BASE_URL}/api/schedule`, {
-    //     sku,
-    //     newPrice: price,
-    //     originalPrice: currentPrice,
-    //     startDate,
-    //     endDate,
-    //   });
+      const scheduleResponse = await saveSchedule(sku, price, startDate, endDate);
 
-    const scheduleResponse = await saveSchedule(sku, price, startDate, endDate);
-
-      // Add event to the context
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
@@ -113,13 +98,8 @@ const UpdatePrice = ({ show, onClose }) => {
         allDay: false,
       });
 
-      // Set success message
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-
-      // Show success modal
       setShowSuccessModal(true);
-
-      // Close the main modal
       onClose();
     } catch (error) {
       setErrorMessage('Error scheduling price update: ' + (error.response ? error.response.data.error : error.message));
@@ -132,11 +112,10 @@ const UpdatePrice = ({ show, onClose }) => {
     const delayStart = startDate - now;
     const delayEnd = endDate - now;
 
-    // Schedule the price update at the start date
     if (delayStart > 0) {
       setTimeout(async () => {
         try {
-            console.log("Price is getting updating.")
+          console.log("Price is getting updated.");
           await updateProductPrice(sku, newPrice);
           console.log(`Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
         } catch (error) {
@@ -152,11 +131,10 @@ const UpdatePrice = ({ show, onClose }) => {
       }
     }
 
-    // Schedule the price revert at the end date
     if (delayEnd > 0) {
       setTimeout(async () => {
         try {
-            console.log("Price is getting reverting...");
+          console.log("Price is getting reverted...");
           await updateProductPrice(sku, originalPrice);
           console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
         } catch (error) {
@@ -179,21 +157,20 @@ const UpdatePrice = ({ show, onClose }) => {
     <>
       <Modal show={show} onHide={onClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Update Scheduled Price</Modal.Title>
+          <Modal.Title>Update Schedule Price</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
           <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formAsin" style={modalStyles.formControl}>
-              <Form.Label>ASIN</Form.Label>
-              <Form.Control
+          <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
+              <Form.Label>ASIN: {asin}</Form.Label>
+              {/* <Form.Control
                 type="text"
-                placeholder="Enter ASIN"
+                placeholder="Current price will be auto-filled"
                 value={asin}
-                onChange={handleAsinChange}
-                required
-              />
+                readOnly
+              /> */}
             </Form.Group>
             <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
@@ -215,7 +192,7 @@ const UpdatePrice = ({ show, onClose }) => {
               />
             </Form.Group>
             <Form.Group controlId="formStartDate" style={modalStyles.formControl}>
-              <Form.Label>Start Date and Time</Form.Label>
+              <Form.Label>Start Date and Time </Form.Label>
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
@@ -226,7 +203,7 @@ const UpdatePrice = ({ show, onClose }) => {
               />
             </Form.Group>
             <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
-              <Form.Label>End Date and Time</Form.Label>
+              <Form.Label>End Date and Time </Form.Label>
               <DatePicker
                 selected={endDate}
                 onChange={(date) => setEndDate(date)}
@@ -236,7 +213,7 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Button variant="primary" type="submit" style={modalStyles.button}>
+            <Button variant="primary" type="submit">
               Schedule Price Update
             </Button>
           </Form>
@@ -251,4 +228,4 @@ const UpdatePrice = ({ show, onClose }) => {
   );
 };
 
-export default UpdatePrice;
+export default UpdatePriceFromList;

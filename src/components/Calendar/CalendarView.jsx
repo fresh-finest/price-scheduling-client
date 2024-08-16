@@ -3,7 +3,7 @@ import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import DatePicker from "react-datepicker";
-import { MdOutlineUpdate } from "react-icons/md";
+import { IoAddSharp } from "react-icons/io5";
 import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
 import "react-datepicker/dist/react-datepicker.css";
 import { ButtonGroup, Button, Modal } from "react-bootstrap";
@@ -56,6 +56,10 @@ const CalendarView = () => {
   const handleViewUpdatedList = () => {
     setShowOptionModal(false);
     setShowViewModal(true);
+  };
+
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
   };
  
   const handleSelectSlot = (slotInfo) => {
@@ -115,6 +119,7 @@ const CalendarView = () => {
         onNavigate={handleNavigate}
         selectable
         onSelectSlot={handleSelectSlot}
+        onClickDay={handleDateClick}
         style={{ height: "calc(100vh - 120px)" }}
       />
       <UpdateSchedulePrice
@@ -142,9 +147,9 @@ const CalendarView = () => {
         </Modal.Header>
         <Modal.Body >
           <Button variant="primary" onClick={handleUpdatePrice}>
-            <MdOutlineUpdate />
+          <IoAddSharp />
           </Button>
-          <ViewUpdatedListModal />
+          {selectedDate && <ViewUpdatedListModal selectedDate={selectedDate} />}
         </Modal.Body>
       </Modal>
     </div>
