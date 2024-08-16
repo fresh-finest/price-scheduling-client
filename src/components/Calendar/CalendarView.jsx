@@ -57,11 +57,7 @@ const CalendarView = () => {
     setShowOptionModal(false);
     setShowViewModal(true);
   };
-  const handleDateClick = (date) => {
-    setSelectedDate(date);
-  };
-
-
+ 
   const handleSelectSlot = (slotInfo) => {
     const calendarElement = document.querySelector('.rbc-calendar');
     const boundingRect = calendarElement.getBoundingClientRect();
