@@ -8,7 +8,7 @@ import ProductDetailView from './ProductDetailView';
 const fetchProducts = async ({ queryKey }) => {
   const [_key, { page, limit }] = queryKey;
   try {
-    const response = await axios.get(`https://all-product-list.onrender.com/fetch-all-listings`, {
+    const response = await axios.get(`https://all-product-list-5fffc5e9c5f7.herokuapp.com/fetch-all-listings`, {
       params: { page, limit }
     });
     return response.data;
