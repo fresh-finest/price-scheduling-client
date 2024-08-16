@@ -11,7 +11,7 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
 import UpdatePriceModal from "../Modal/UpdatePriceModal";
 import UpdatePriceByAsin from "../Modal/UpdatePriceByAsin"
-
+import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice"
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
@@ -117,7 +117,7 @@ const CalendarView = () => {
         onSelectSlot={handleSelectSlot}
         style={{ height: "calc(100vh - 120px)" }}
       />
-      <UpdatePriceByAsin
+      <UpdateSchedulePrice
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         event={selectedEvent}
