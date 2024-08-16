@@ -57,13 +57,17 @@ const CalendarView = () => {
     setShowOptionModal(false);
     setShowViewModal(true);
   };
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+  };
+
 
   const handleSelectSlot = (slotInfo) => {
     const calendarElement = document.querySelector('.rbc-calendar');
     const boundingRect = calendarElement.getBoundingClientRect();
 
-    const top = slotInfo.box.y - boundingRect.top - 200;
-    const left = slotInfo.box.x - boundingRect.left - 400;
+    const top = slotInfo.box.y - boundingRect.top - 30;
+    const left = slotInfo.box.x - boundingRect.left - 60;
 
     setSelectedEvent(slotInfo);
     setModalPosition({
@@ -74,7 +78,7 @@ const CalendarView = () => {
   };
 
   return (
-    <div style={{ padding: "20px", marginTop: "50px" }}>
+    <div style={{ padding: "20px", marginTop: "50px"}}>
       <div
         style={{
           display: "flex",
@@ -133,13 +137,14 @@ const CalendarView = () => {
           top: `${modalPosition.top}px`,
           left: `${modalPosition.left}px`,
           position: "fixed",
+          width:'400px',
           margin: 0
         }}
       >
         <Modal.Header closeButton>
           <Modal.Title>Options</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body >
           <Button variant="primary" onClick={handleUpdatePrice}>
             <MdOutlineUpdate />
           </Button>

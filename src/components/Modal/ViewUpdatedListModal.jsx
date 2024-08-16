@@ -22,6 +22,7 @@ const UpdatedList = () => {
   const listStyles = {
     container: {
       marginTop: '20px',
+      width:'300px'
     },
     listItem: {
       marginBottom: '10px',
