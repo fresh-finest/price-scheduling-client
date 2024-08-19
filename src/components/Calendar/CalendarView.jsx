@@ -9,9 +9,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ButtonGroup, Button, Modal } from "react-bootstrap";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
-import UpdatePriceModal from "../Modal/UpdatePriceModal";
-import UpdatePriceByAsin from "../Modal/UpdatePriceByAsin"
-import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice"
+import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
@@ -60,8 +58,9 @@ const CalendarView = () => {
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
+    setShowOptionModal(true);
   };
- 
+
   const handleSelectSlot = (slotInfo) => {
     const calendarElement = document.querySelector('.rbc-calendar');
     const boundingRect = calendarElement.getBoundingClientRect();
@@ -69,6 +68,7 @@ const CalendarView = () => {
     const top = slotInfo.box.y - boundingRect.top - 30;
     const left = slotInfo.box.x - boundingRect.left - 60;
 
+    setSelectedDate(slotInfo.start); // Set the selected date when slot is selected
     setSelectedEvent(slotInfo);
     setModalPosition({
       top: top,
@@ -127,10 +127,6 @@ const CalendarView = () => {
         onClose={handleCloseUpdateModal}
         event={selectedEvent}
       />
-      {/* <ViewUpdatedListModal
-        show={showViewModal}
-        onClose={handleCloseViewModal}
-      /> */}
       <Modal
         show={showOptionModal}
         onHide={handleCloseOptionModal}
@@ -138,7 +134,7 @@ const CalendarView = () => {
           top: `${modalPosition.top}px`,
           left: `${modalPosition.left}px`,
           position: "fixed",
-          width:'400px',
+          width: '400px',
           margin: 0
         }}
       >
@@ -147,7 +143,7 @@ const CalendarView = () => {
         </Modal.Header>
         <Modal.Body >
           <Button variant="primary" onClick={handleUpdatePrice}>
-          <IoAddSharp />
+            <IoAddSharp />
           </Button>
           {selectedDate && <ViewUpdatedListModal selectedDate={selectedDate} />}
         </Modal.Body>

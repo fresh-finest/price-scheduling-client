@@ -1,15 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const UpdatedList = () => {
+const UpdatedList = ({ selectedDate }) => {
   const [events, setEvents] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  console.log(selectedDate);
   useEffect(() => {
     const fetchEvents = async () => {
+      if (!selectedDate) return;
+
       try {
-        const response = await axios.get('https://dps-server-b829cf5871b7.herokuapp.com/api/schedule');
+        // Format the selectedDate to the format accepted by the API
+        // const formattedDate = selectedDate.toISOString().split('T')[0];
+        const localDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
+      
+        // Fetch events filtered by the selected date from the backend
+        const response = await axios.get('http://localhost:3000/api/schedule', {
+          params: {
+            startDate: localDate,
+          },
+        });
+        // console.log("response:"+response)
+        console.log("Response data:", response.data);
         setEvents(response.data.result);
       } catch (error) {
         setErrorMessage('Error fetching schedules: ' + (error.response ? error.response.data.error : error.message));
@@ -17,12 +32,12 @@ const UpdatedList = () => {
     };
 
     fetchEvents();
-  }, []);
+  }, [selectedDate]);
 
   const listStyles = {
     container: {
       marginTop: '20px',
-      width:'300px'
+      width: '300px',
     },
     listItem: {
       marginBottom: '10px',
@@ -39,6 +54,10 @@ const UpdatedList = () => {
   };
 
   const displayProducts = showAll ? events : events.slice(0, 5);
+
+  if (events.length === 0) {
+    return null; // If no events, do not display the component
+  }
 
   return (
     <div style={listStyles.container}>
