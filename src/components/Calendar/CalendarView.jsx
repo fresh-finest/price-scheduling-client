@@ -3,13 +3,14 @@ import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import DatePicker from "react-datepicker";
-import { IoAddSharp } from "react-icons/io5";
-import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
 import "react-datepicker/dist/react-datepicker.css";
-import { ButtonGroup, Button, Modal } from "react-bootstrap";
+import { Button, Modal, DropdownButton, Dropdown, ButtonGroup } from "react-bootstrap";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
 import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
+import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
+import { IoAddSharp } from "react-icons/io5";
+
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
@@ -21,6 +22,8 @@ const CalendarView = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const [moreEvents, setMoreEvents] = useState([]); // State to store additional events
+  const [showMoreModal, setShowMoreModal] = useState(false); // State to control more events modal\
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -45,6 +48,9 @@ const CalendarView = () => {
   const handleCloseViewModal = () => {
     setShowViewModal(false);
   };
+  const handleCloseMoreModal = () => {
+    setShowMoreModal(false);
+  };
 
   const handleUpdatePrice = () => {
     setShowOptionModal(false);
@@ -65,49 +71,74 @@ const CalendarView = () => {
     const calendarElement = document.querySelector('.rbc-calendar');
     const boundingRect = calendarElement.getBoundingClientRect();
 
-    const top = slotInfo.box.y - boundingRect.top - 30;
-    const left = slotInfo.box.x - boundingRect.left - 60;
+    const modalWidth = 400; 
+    const modalHeight = 200; 
+
+    let top = slotInfo.box.y - boundingRect.top - 30;
+    let left = slotInfo.box.x - boundingRect.left - 60;
+    
+
+    // if (left + modalWidth > boundingRect.width) {
+    //   left = boundingRect.width - modalWidth - 50; 
+    // }
+  
+
+    if (top + modalHeight > boundingRect.height) {
+      top = boundingRect.height - modalHeight - 10; 
+    }
 
     setSelectedDate(slotInfo.start); // Set the selected date when slot is selected
     setSelectedEvent(slotInfo);
     setModalPosition({
       top: top,
-      left: left,
+      left:left,
     });
     setShowOptionModal(true);
   };
 
+  const goToPreviousDate = () => {
+    const newDate = moment(selectedDate).subtract(1, view === Views.MONTH ? 'month' : 'week').toDate();
+    setSelectedDate(newDate);
+  };
+
+  const goToNextDate = () => {
+    const newDate = moment(selectedDate).add(1, view === Views.MONTH ? 'month' : 'week').toDate();
+    setSelectedDate(newDate);
+  };
+
+  const handleMoreEventsClick = (eventsForDay) => {
+    setMoreEvents(eventsForDay);
+    setShowMoreModal(true);
+  };
+
   return (
-    <div style={{ padding: "20px", marginTop: "50px"}}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "10px",
-        }}
-      >
+    <div style={{ padding: "20px", marginTop: "20px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+        {/* Left: Previous, Today, Next Buttons */}
         <ButtonGroup>
-          <Button
-            variant="secondary"
-            onClick={() => handleViewChange(Views.MONTH)}
-          >
-            Month
+          <Button variant="outline-primary" onClick={goToPreviousDate}>
+            &lt;
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => handleViewChange(Views.WEEK)}
-          >
-            Week
+          <Button variant="outline-primary" onClick={() => handleNavigate(new Date())}>
+            Today
+          </Button>
+          <Button variant="outline-primary" onClick={goToNextDate}>
+            &gt;
           </Button>
         </ButtonGroup>
-        <DatePicker
-          selected={selectedDate}
-          onChange={handleDateChange}
-          showMonthYearPicker
-          dateFormat="MM/yyyy"
-          className="form-control"
-        />
+
+        {/* Center: Month and Year */}
+        <h3 style={{ margin: 0 }}>
+          {moment(selectedDate).format("MMMM YYYY")}
+        </h3>
+
+        {/* Right: Dropdown for Views */}
+        <DropdownButton id="dropdown-basic-button" title={view.charAt(0).toUpperCase() + view.slice(1)}>
+          <Dropdown.Item onClick={() => handleViewChange(Views.MONTH)}>Month</Dropdown.Item>
+          <Dropdown.Item onClick={() => handleViewChange(Views.WEEK)}>Week</Dropdown.Item>
+        </DropdownButton>
       </div>
+
       <Calendar
         localizer={localizer}
         events={events}
@@ -120,13 +151,31 @@ const CalendarView = () => {
         selectable
         onSelectSlot={handleSelectSlot}
         onClickDay={handleDateClick}
-        style={{ height: "calc(100vh - 120px)" }}
+        style={{ height: "calc(100vh - 160px)", fontSize: '16px', borderRadius: '10px' }}
+        dayPropGetter={(date) => {
+          const today = new Date();
+          if (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+          ) {
+            return { style: { backgroundColor: '#eaf6ff' } }; // Highlight today's date
+          }
+        }}
+        components={{
+          toolbar: () => null, // Disable the default toolbar
+        }}
+
+        onDrillDown={(date, view) => handleNavigate(date, view)}
+        onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
       />
+
       <UpdateSchedulePrice
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         event={selectedEvent}
       />
+
       <Modal
         show={showOptionModal}
         onHide={handleCloseOptionModal}
@@ -146,6 +195,26 @@ const CalendarView = () => {
             <IoAddSharp />
           </Button>
           {selectedDate && <ViewUpdatedListModal selectedDate={selectedDate} />}
+        </Modal.Body>
+      </Modal>
+      <Modal show={showMoreModal} onHide={handleCloseMoreModal}
+       style={{
+          top: `${modalPosition.top}px`,
+          left: `${modalPosition.left}px`,
+          position: "fixed",
+          width: '300px',
+          margin: 0
+        }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>More Events</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ul>
+            {moreEvents.map((event, index) => (
+              <li key={index}>{event.title}</li>
+            ))}
+          </ul>
         </Modal.Body>
       </Modal>
     </div>

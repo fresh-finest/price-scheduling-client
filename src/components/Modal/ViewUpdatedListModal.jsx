@@ -34,7 +34,7 @@ const UpdatedList = ({ selectedDate }) => {
   const listStyles = {
     container: {
       marginTop: '20px',
-      width: '300px',
+      width: '350px',
       maxHeight: '300px', // Set the maximum height for the container
       overflowY: 'auto',   // Enable vertical scrolling
       border: '1px solid #ccc',

@@ -14,3 +14,37 @@
   background-color: rgba(0, 123, 255, 0.3); /* Adjust the color and opacity as needed */
   transition: background-color 0.3s ease;
 }
+
+.rbc-calendar {
+  font-family: 'Arial, sans-serif';
+  border: none;
+}
+
+.rbc-header {
+  padding: 10px;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+  text-align: center;
+}
+
+.rbc-day-bg {
+  border: 1px solid #e6e6e6;
+}
+
+.rbc-date-cell {
+  padding: 10px;
+  font-weight: bold;
+}
+
+.rbc-event {
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 2px;
+}
+
+.rbc-today {
+  background-color: #eaf6ff;
+}
