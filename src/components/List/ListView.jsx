@@ -182,7 +182,7 @@ const ListView = () => {
         <Col md={4} style={{ paddingLeft: '0px', marginTop: '20px', paddingRight: '20px' }}>
           {selectedProduct ? (
             <div style={{ marginTop: "35px" }}>
-              <ProductDetailView product={selectedProduct} listing={selectedListing} />
+              <ProductDetailView product={selectedProduct} listing={selectedListing} asin={selectedAsin} />
             </div>
           ) : (
             <div style={{ paddingTop: '10px' }}>

@@ -1,8 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from 'react-bootstrap';
 
-const ProductDetailView = ({ product,listing }) => {
+const ProductDetailView = ({ product,listing, asin}) => {
 
+  const [priceSchedule,setPriceSchedule] = useState([]);
+
+
+  const [error, setError] = useState(null);
+
+  console.log("asin: "+asin)
+  const getData  = async()=>{
+    const response = await fetch(`http://localhost:3000/api/schedule/${asin}`,{
+      method:"GET"
+    });
+    const data = await response.json();
+    setPriceSchedule(data.result);
+  }
+  useEffect(() => {
+    getData();
+  }, []);
+
+  
+  console.log("len: "+priceSchedule.length)
+  console.log(priceSchedule);
   const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
   console.log(price);
   const detailStyles = {
@@ -20,6 +40,8 @@ const ProductDetailView = ({ product,listing }) => {
     title: {
       fontSize: '16px', // Slightly larger for emphasis
       marginBottom: '15px',
+      textAlign:'left',
+      marginLeft:'5px'
     },
     info: {
       marginBottom: '10px',
@@ -50,7 +72,7 @@ const ProductDetailView = ({ product,listing }) => {
           <strong>SKU:</strong> {product?.AttributeSets[0]?.Model}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>, SIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
+          <strong>, ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
           <strong>,  Price:</strong> ${price?.Amount}
@@ -66,6 +88,20 @@ const ProductDetailView = ({ product,listing }) => {
         <Card.Text style={detailStyles.info}>
           <strong>BSR:</strong> {product?.SalesRankings[0]?.Rank}
         </Card.Text>
+
+        <div>
+      <h2>Schedule Details</h2>
+      {priceSchedule.length > 0 ? (
+        <div>
+          {priceSchedule.map(sc => (
+            <p key={sc._id}>{new Date(sc.startDate).toLocaleString()} - {new Date(sc.endDate).toLocaleString()}</p>
+          ))}
+        </div>
+      ) : (
+        <p>No schedule available for this ASIN.</p>
+      )}
+    </div>
+
       </Card.Body>
     </Card>
    </div>

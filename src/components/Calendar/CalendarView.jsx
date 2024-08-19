@@ -151,7 +151,7 @@ const CalendarView = () => {
         selectable
         onSelectSlot={handleSelectSlot}
         onClickDay={handleDateClick}
-        style={{ height: "calc(100vh - 20px)",width:"100%", fontSize: '16px', borderRadius: '10px' }}
+        style={{ height: "calc(100vh - 160px)",width:"100%", fontSize: '16px', borderRadius: '10px' }}
         dayPropGetter={(date) => {
           const today = new Date();
           if (
