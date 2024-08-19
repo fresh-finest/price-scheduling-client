@@ -92,7 +92,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
           <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
           <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
           </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft:"40px" }}>
               
               <Card.Text style={detailStyles.info}>
                 <strong>ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
@@ -101,7 +101,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
                 <strong>, SKU:</strong> {product?.AttributeSets[0]?.Model}
               </Card.Text>
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft:"40px" }}>
             <Card.Text style={detailStyles.info}>
                 <strong>Price:</strong> ${price?.Amount}
               </Card.Text>
@@ -123,7 +123,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
               <tbody>
                 {priceSchedule.map((sc) => (
                   <tr key={sc._id}>
-                    <td>{new Date(sc.startDate).toLocaleString()}</td>
+                    <td>{new Date(sc.startDate).toLocaleString()} <span style={{color:"green"}}>Changed Price: ${sc.price}</span></td>
                     <td>{new Date(sc.endDate).toLocaleString()}</td>
                   </tr>
                 ))}

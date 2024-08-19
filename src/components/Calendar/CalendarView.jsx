@@ -191,7 +191,7 @@ const CalendarView = () => {
           <Modal.Title>Options</Modal.Title>
         </Modal.Header>
         <Modal.Body >
-          <Button variant="primary" onClick={handleUpdatePrice}>
+          <Button style={{backgroundColor:"#50C878"}} onClick={handleUpdatePrice}>
           <MdOutlineAdd />
           </Button>
           {selectedDate && <ViewUpdatedListModal selectedDate={selectedDate} />}

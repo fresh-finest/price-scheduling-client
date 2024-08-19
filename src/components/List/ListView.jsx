@@ -163,7 +163,7 @@ const ListView = () => {
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.itemName}</td>
                       <td>${item.price}</td>
                       <td>
-                        <Button onClick={() => handleUpdate(item.asin1)}>
+                        <Button style={{backgroundColor:"#50C878"}} onClick={() => handleUpdate(item.asin1)}>
                         <MdOutlineAdd />
                         </Button>
                       </td>
@@ -178,7 +178,7 @@ const ListView = () => {
         </Col>
         <Col md={4} style={{ paddingLeft: '0px', marginTop: '20px', paddingRight: '20px' }}>
           {selectedProduct ? (
-            <div style={{ marginTop: "35px" }}>
+            <div style={{ marginTop: "35px", position:'fixed',width:"400px"}}>
               <ProductDetailView product={selectedProduct} listing={selectedListing} asin={selectedAsin} />
             </div>
           ) : (
