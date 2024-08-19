@@ -163,7 +163,7 @@ const ListView = () => {
                       <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.itemName}</td>
                       <td>${item.price}</td>
                       <td>
-                        <Button variant="primary" onClick={() => handleUpdate(item.asin1)}>
+                        <Button onClick={() => handleUpdate(item.asin1)}>
                         <MdOutlineAdd />
                         </Button>
                       </td>
