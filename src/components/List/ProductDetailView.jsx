@@ -1,24 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Card } from 'react-bootstrap';
+import { Card, Table } from 'react-bootstrap';
 
-const ProductDetailView = ({ product,listing, asin}) => {
-
-  const [priceSchedule,setPriceSchedule] = useState([]);
+const ProductDetailView = ({ product, listing, asin }) => {
+  const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState(null);
 
-  // console.log("asin: "+asin)
-  // const getData  = async()=>{
-  //   const response = await fetch(`https://dps-server-b829cf5871b7.herokuapp.com/api/schedule/${asin}`,{
-  //     method:"GET"
-  //   });
-  //   const data = await response.json();
-  //   setPriceSchedule(data.result);
-  // }
-  // useEffect(() => {
-  //   getData();
-  // }, []);
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
@@ -59,94 +46,95 @@ const ProductDetailView = ({ product,listing, asin}) => {
   if (loading) {
     return <div>Loading...</div>;
   }
-  
-  console.log("len: "+priceSchedule.length)
-  console.log(priceSchedule);
+
   const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
-  console.log(price);
+
   const detailStyles = {
+    container: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+    },
     image: {
       width: '90px',
       maxHeight: '90px',
       objectFit: 'contain',
       marginBottom: '10px',
+      marginRight: '20px',
     },
     card: {
-      padding: '15px',
+      padding: '20px',
       boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
       width: '100%',
     },
     title: {
-      fontSize: '16px', // Slightly larger for emphasis
+      fontSize: '16px',
       marginBottom: '15px',
-      textAlign:'left',
-      marginLeft:'5px'
+      textAlign: 'left',
     },
     info: {
-      marginBottom: '10px',
       fontSize: '14px',
+      marginBottom: '5px',
+      marginleft:"10px"
     },
-    tag: {
-      display: 'inline-block',
-      backgroundColor: '#00c0ef',
-      color: '#fff',
-      padding: '4px 10px',
-      borderRadius: '12px',
-      fontSize: '12px',
-      marginRight: '8px',
-    }
+    table: {
+      marginTop: '20px',
+      width: '100%',
+    },
   };
 
   return (
-   <div style={{position:'fixed', width:"450px"}}>
-     <Card style={detailStyles.card}>
-      
-      <Card.Body>
-      <div style={{display:"flex", alignItem:"center"}}>
-      <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
-      <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
-      </div>
-      <Card.Text style={detailStyles.info}>
-          <strong>BSR:</strong> {product?.SalesRankings[0]?.Rank}
-        </Card.Text>
-        <div style={{display:"flex",marginLeft:"50px", alignContent:'center'}}>
-        <div style={{display:"flex", flexDirection:'row', alignContent:'center'}}>
-        <Card.Text style={detailStyles.info}>
-          <strong>SKU:</strong> {product?.AttributeSets[0]?.Model}
-        </Card.Text>
-        <Card.Text style={detailStyles.info}>
-          <strong>, ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
-        </Card.Text>
-        <Card.Text style={detailStyles.info}>
-          <strong>,  Price:</strong> ${price?.Amount}
-        </Card.Text>
-        </div>
-        </div>
-        {/* Additional Information */}
-        {/* <Card.Text style={detailStyles.info}>
-          <strong>Brand:</strong> {product?.AttributeSets[0]?.Brand}
-        </Card.Text>
-        <Card.Text style={detailStyles.info}>
-          <strong>Manufacturer:</strong> {product?.AttributeSets[0]?.Manufacturer}
-        </Card.Text> */}
-        
+    <div style={{ width: "100%" }}>
+      <Card style={detailStyles.card}>
+        <Card.Body>
+          <div >
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+          <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
+          <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
+          </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+              
+              <Card.Text style={detailStyles.info}>
+                <strong>ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
+              </Card.Text>
+              <Card.Text style={detailStyles.info}>
+                <strong>, SKU:</strong> {product?.AttributeSets[0]?.Model}
+              </Card.Text>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <Card.Text style={detailStyles.info}>
+                <strong>Price:</strong> ${price?.Amount}
+              </Card.Text>
+              <Card.Text style={detailStyles.info}>
+                <strong>,  BSR:</strong> {product?.SalesRankings[0]?.Rank}
+              </Card.Text>
+            </div>
+          </div>
 
-        <div>
-      <h2>Schedule Details</h2>
-      {priceSchedule.length > 0 ? (
-        <div>
-          {priceSchedule.map(sc => (
-            <p key={sc._id}>{new Date(sc.startDate).toLocaleString()} - {new Date(sc.endDate).toLocaleString()}</p>
-          ))}
-        </div>
-      ) : (
-        <p>No schedule available for this ASIN.</p>
-      )}
+          <h4 style={{ marginTop: '20px',fontWeight:"bold" }}>Schedule Details</h4>
+          {priceSchedule.length > 0 ? (
+            <Table striped bordered hover size="sm" style={detailStyles.table}>
+              <thead>
+                <tr>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {priceSchedule.map((sc) => (
+                  <tr key={sc._id}>
+                    <td>{new Date(sc.startDate).toLocaleString()}</td>
+                    <td>{new Date(sc.endDate).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p>No schedule available for this ASIN.</p>
+          )}
+        </Card.Body>
+      </Card>
     </div>
-
-      </Card.Body>
-    </Card>
-   </div>
   );
 };
 
