@@ -10,7 +10,7 @@ const ProductDetailView = ({ product,listing, asin}) => {
 
   console.log("asin: "+asin)
   const getData  = async()=>{
-    const response = await fetch(`http://localhost:3000/api/schedule/${asin}`,{
+    const response = await fetch(`https://dps-server-b829cf5871b7.herokuapp.com/api/schedule/${asin}`,{
       method:"GET"
     });
     const data = await response.json();
