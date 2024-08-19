@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Table, Container, Row, Col, Form, InputGroup, Spinner } from 'react-bootstrap';
 import { Button } from "react-bootstrap";
 import { useQuery } from 'react-query';
-import { IoAddSharp } from "react-icons/io5";
+import { MdOutlineAdd } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from 'axios';
 import './ListView.css';
@@ -164,7 +164,7 @@ const ListView = () => {
                       <td>${item.price}</td>
                       <td>
                         <Button variant="primary" onClick={() => handleUpdate(item.asin1)}>
-                          <IoAddSharp />
+                        <MdOutlineAdd />
                         </Button>
                       </td>
                     </tr>

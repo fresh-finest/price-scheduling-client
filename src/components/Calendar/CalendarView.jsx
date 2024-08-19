@@ -9,7 +9,7 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
 import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
 import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
-import { IoAddSharp } from "react-icons/io5";
+import { MdOutlineAdd } from "react-icons/md";
 
 const localizer = momentLocalizer(moment);
 
@@ -192,7 +192,7 @@ const CalendarView = () => {
         </Modal.Header>
         <Modal.Body >
           <Button variant="primary" onClick={handleUpdatePrice}>
-            <IoAddSharp />
+          <MdOutlineAdd />
           </Button>
           {selectedDate && <ViewUpdatedListModal selectedDate={selectedDate} />}
         </Modal.Body>
