@@ -5,25 +5,22 @@ const UpdatedList = ({ selectedDate }) => {
   const [events, setEvents] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-// https://dps-server-b829cf5871b7.herokuapp.com
-  console.log(selectedDate);
+
   useEffect(() => {
     const fetchEvents = async () => {
       if (!selectedDate) return;
 
       try {
-        // Format the selectedDate to the format accepted by the API
-        // const formattedDate = selectedDate.toISOString().split('T')[0];
+        // Adjust the date to local time before sending it to the API
         const localDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-
       
         // Fetch events filtered by the selected date from the backend
-        const response = await axios.get('https://dps-server-b829cf5871b7.herokuapp.com/api/schedule', {
+        const response = await axios.get('http://localhost:3000/api/schedule', {
           params: {
             startDate: localDate,
           },
         });
-        // console.log("response:"+response)
+
         console.log("Response data:", response.data);
         setEvents(response.data.result);
       } catch (error) {
@@ -38,6 +35,11 @@ const UpdatedList = ({ selectedDate }) => {
     container: {
       marginTop: '20px',
       width: '300px',
+      maxHeight: '300px', // Set the maximum height for the container
+      overflowY: 'auto',   // Enable vertical scrolling
+      border: '1px solid #ccc',
+      borderRadius: '5px',
+      padding: '10px',
     },
     listItem: {
       marginBottom: '10px',
@@ -66,7 +68,9 @@ const UpdatedList = ({ selectedDate }) => {
       <ul>
         {displayProducts.map((product, index) => (
           <li key={index} style={listStyles.listItem}>
-            <strong>SKU:</strong> {product.sku} - <strong>Price:</strong> ${product.price}
+            <strong>SKU:</strong> {product.sku} - <strong>Price:</strong> ${product.price}<br />
+            <strong>Start Time:</strong> {new Date(product.startDate).toLocaleString()}<br />
+            <strong>End Time:</strong> {new Date(product.endDate).toLocaleString()}
           </li>
         ))}
       </ul>
