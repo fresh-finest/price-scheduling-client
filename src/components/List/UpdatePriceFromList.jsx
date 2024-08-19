@@ -51,6 +51,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [price, setPrice] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [indefiniteEndDate, setIndefiniteEndDate] = useState(false); // New state for indefinite end date
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -68,6 +69,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     setPrice('');
     setStartDate(new Date());
     setEndDate(new Date());
+    setIndefiniteEndDate(false); // Reset the checkbox
     setSuccessMessage('');
     setErrorMessage('');
   };
@@ -87,14 +89,14 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await schedulePriceUpdate(sku, currentPrice, price, startDate, endDate);
+      await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
-      const scheduleResponse = await saveSchedule(sku, price, startDate, endDate);
+      const scheduleResponse = await saveSchedule(sku, price, startDate, indefiniteEndDate ? null : endDate);
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
-        end: endDate,
+        end: indefiniteEndDate ? null : endDate,
         allDay: false,
       });
 
@@ -110,8 +112,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const schedulePriceUpdate = async (sku, originalPrice, newPrice, startDate, endDate) => {
     const now = new Date();
     const delayStart = startDate - now;
-    const delayEnd = endDate - now;
 
+    // Schedule the price update at the start date
     if (delayStart > 0) {
       setTimeout(async () => {
         try {
@@ -131,16 +133,20 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
       }
     }
 
-    if (delayEnd > 0) {
-      setTimeout(async () => {
-        try {
-          console.log("Price is getting reverted...");
-          await updateProductPrice(sku, originalPrice);
-          console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
-        } catch (error) {
-          console.error('Error reverting to original price:', error);
-        }
-      }, delayEnd);
+    // Schedule the price revert at the end date if endDate is provided
+    if (endDate) {
+      const delayEnd = endDate - now;
+      if (delayEnd > 0) {
+        setTimeout(async () => {
+          try {
+            console.log("Price is getting reverted...");
+            await updateProductPrice(sku, originalPrice);
+            console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
+          } catch (error) {
+            console.error('Error reverting to original price:', error);
+          }
+        }, delayEnd);
+      }
     }
   };
 
@@ -163,23 +169,11 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
           <Form onSubmit={handleSubmit}>
-          <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
+            <Form.Group controlId="formAsin" style={modalStyles.formControl}>
               <Form.Label>ASIN: {asin}</Form.Label>
-              {/* <Form.Control
-                type="text"
-                placeholder="Current price will be auto-filled"
-                value={asin}
-                readOnly
-              /> */}
             </Form.Group>
             <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
-              {/* <Form.Control
-                type="number"
-                placeholder="Current price will be auto-filled"
-                value={currentPrice}
-                readOnly
-              /> */}
             </Form.Group>
             <Form.Group controlId="formPrice" style={modalStyles.formControl}>
               <Form.Label>New Price</Form.Label>
@@ -192,7 +186,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
               />
             </Form.Group>
             <Form.Group controlId="formStartDate" style={modalStyles.formControl}>
-              <Form.Label>Start Date and Time </Form.Label>
+              <Form.Label>Start Date and Time</Form.Label>
               <DatePicker
                 selected={startDate}
                 onChange={(date) => setStartDate(date)}
@@ -202,17 +196,27 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
-              <Form.Label>End Date and Time </Form.Label>
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                className="form-control"
-                required
+            <Form.Group controlId="formIndefiniteEndDate" style={modalStyles.formControl}>
+              <Form.Check
+                type="checkbox"
+                label="Untill I change."
+                checked={indefiniteEndDate}
+                onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
               />
             </Form.Group>
+            {!indefiniteEndDate && (
+              <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
+                <Form.Label>End Date and Time</Form.Label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  className="form-control"
+                  required={!indefiniteEndDate} // Only required if not indefinite
+                />
+              </Form.Group>
+            )}
             <Button variant="primary" type="submit">
               Schedule Price Update
             </Button>

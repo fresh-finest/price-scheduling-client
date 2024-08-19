@@ -13,7 +13,7 @@ export const PriceScheduleProvider = ({ children }) => {
       const response = await axios.get(`${BASE_URL}/api/schedule`);
       console.log("schedule data:"+response)
       const schedules = response.data.result.map(schedule => ({
-        title: `SKU: ${schedule.sku} - $${schedule.price}`,
+        title: `ASIN: ${schedule?.asin} - $${schedule.price}`,
         start: new Date(schedule.startDate),
         end: new Date(schedule.endDate),
         allDay: false
