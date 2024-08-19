@@ -106,7 +106,11 @@ const ProductDetailView = ({ product,listing, asin}) => {
       <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
       <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
       </div>
-        <div style={{display:"flex"}}>
+      <Card.Text style={detailStyles.info}>
+          <strong>BSR:</strong> {product?.SalesRankings[0]?.Rank}
+        </Card.Text>
+        <div style={{display:"flex",marginLeft:"50px", alignContent:'center'}}>
+        <div style={{display:"flex", flexDirection:'row', alignContent:'center'}}>
         <Card.Text style={detailStyles.info}>
           <strong>SKU:</strong> {product?.AttributeSets[0]?.Model}
         </Card.Text>
@@ -117,6 +121,7 @@ const ProductDetailView = ({ product,listing, asin}) => {
           <strong>,  Price:</strong> ${price?.Amount}
         </Card.Text>
         </div>
+        </div>
         {/* Additional Information */}
         {/* <Card.Text style={detailStyles.info}>
           <strong>Brand:</strong> {product?.AttributeSets[0]?.Brand}
@@ -124,9 +129,7 @@ const ProductDetailView = ({ product,listing, asin}) => {
         <Card.Text style={detailStyles.info}>
           <strong>Manufacturer:</strong> {product?.AttributeSets[0]?.Manufacturer}
         </Card.Text> */}
-        <Card.Text style={detailStyles.info}>
-          <strong>BSR:</strong> {product?.SalesRankings[0]?.Rank}
-        </Card.Text>
+        
 
         <div>
       <h2>Schedule Details</h2>
