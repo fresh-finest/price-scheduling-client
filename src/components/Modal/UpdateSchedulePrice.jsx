@@ -33,16 +33,17 @@ const updateProductPrice = async (sku, value) => {
     throw error;
   }
 };
+
 const saveSchedule = async (asin, sku, price, startDate, endDate) => {
-    try {
-      const response = await axios.post(`${BASE_URL}/api/schedule`, {asin, sku, price: parseFloat(price), startDate, endDate });
-      return response.data;
-    } catch (error) {
-      console.error('Error saving schedule:', error.response ? error.response.data : error.message);
-      throw error;
-    }
-  };
-  
+  try {
+    const response = await axios.post(`${BASE_URL}/api/schedule`, { asin, sku, price: parseFloat(price), startDate, endDate });
+    return response.data;
+  } catch (error) {
+    console.error('Error saving schedule:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
 const UpdatePrice = ({ show, onClose }) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [asin, setAsin] = useState('');
@@ -51,6 +52,7 @@ const UpdatePrice = ({ show, onClose }) => {
   const [price, setPrice] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [indefiniteEndDate, setIndefiniteEndDate] = useState(false); // New state for indefinite end date
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -68,6 +70,7 @@ const UpdatePrice = ({ show, onClose }) => {
     setPrice('');
     setStartDate(new Date());
     setEndDate(new Date());
+    setIndefiniteEndDate(false); // Reset the checkbox
     setSuccessMessage('');
     setErrorMessage('');
   };
@@ -91,25 +94,17 @@ const UpdatePrice = ({ show, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // First, schedule the price update and the revert to original price
-      await schedulePriceUpdate(sku, currentPrice, price, startDate, endDate);
+      // First, schedule the price update
+      await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
       // Log the scheduling in MongoDB
-    //   await axios.post(`${BASE_URL}/api/schedule`, {
-    //     sku,
-    //     newPrice: price,
-    //     originalPrice: currentPrice,
-    //     startDate,
-    //     endDate,
-    //   });
-
-    const scheduleResponse = await saveSchedule(asin, sku, price, startDate, endDate);
+      await saveSchedule(asin, sku, price, startDate, indefiniteEndDate ? null : endDate);
 
       // Add event to the context
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
-        end: endDate,
+        end: indefiniteEndDate ? null : endDate,
         allDay: false,
       });
 
@@ -130,13 +125,12 @@ const UpdatePrice = ({ show, onClose }) => {
   const schedulePriceUpdate = async (sku, originalPrice, newPrice, startDate, endDate) => {
     const now = new Date();
     const delayStart = startDate - now;
-    const delayEnd = endDate - now;
 
     // Schedule the price update at the start date
     if (delayStart > 0) {
       setTimeout(async () => {
         try {
-            console.log("Price is getting updating.")
+          console.log("Price is getting updated.");
           await updateProductPrice(sku, newPrice);
           console.log(`Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
         } catch (error) {
@@ -152,17 +146,20 @@ const UpdatePrice = ({ show, onClose }) => {
       }
     }
 
-    // Schedule the price revert at the end date
-    if (delayEnd > 0) {
-      setTimeout(async () => {
-        try {
-            console.log("Price is getting reverting...");
-          await updateProductPrice(sku, originalPrice);
-          console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
-        } catch (error) {
-          console.error('Error reverting to original price:', error);
-        }
-      }, delayEnd);
+    // Schedule the price revert at the end date if endDate is provided
+    if (endDate) {
+      const delayEnd = endDate - now;
+      if (delayEnd > 0) {
+        setTimeout(async () => {
+          try {
+            console.log("Price is getting reverted...");
+            await updateProductPrice(sku, originalPrice);
+            console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
+          } catch (error) {
+            console.error('Error reverting to original price:', error);
+          }
+        }, delayEnd);
+      }
     }
   };
 
@@ -197,12 +194,6 @@ const UpdatePrice = ({ show, onClose }) => {
             </Form.Group>
             <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
-              {/* <Form.Control
-                type="number"
-                placeholder="Current price will be auto-filled"
-                value={currentPrice}
-                readOnly
-              /> */}
             </Form.Group>
             <Form.Group controlId="formPrice" style={modalStyles.formControl}>
               <Form.Label>New Price</Form.Label>
@@ -225,17 +216,27 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
-              <Form.Label>End Date and Time</Form.Label>
-              <DatePicker
-                selected={endDate}
-                onChange={(date) => setEndDate(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                className="form-control"
-                required
+            <Form.Group controlId="formIndefiniteEndDate" style={modalStyles.formControl}>
+              <Form.Check
+                type="checkbox"
+                label="Untill I change it."
+                checked={indefiniteEndDate}
+                onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
               />
             </Form.Group>
+            {!indefiniteEndDate && (
+              <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
+                <Form.Label>End Date and Time</Form.Label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  className="form-control"
+                  required={!indefiniteEndDate} // Only required if not indefinite
+                />
+              </Form.Group>
+            )}
             <Button variant="primary" type="submit" style={modalStyles.button}>
               Schedule Price Update
             </Button>

@@ -38,9 +38,6 @@ const ListView = () => {
       const responseone = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`);
       const responsetwo = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`);
   
-      console.log('Response One:', responseone); // Log the full response
-      console.log('Response Two:', responsetwo.data); // Log the full response
-  
       setSelectedProduct(responseone.data.payload);
       setSelectedListing(responsetwo.data); // Make sure this is defined
       setSelectedAsin(asin);

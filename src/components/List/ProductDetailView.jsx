@@ -39,7 +39,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
     }
 
     return () => {
-      controller.abort(); // Cleanup function to cancel the request if the component unmounts or asin changes
+      controller.abort(); 
     };
   }, [asin]); // Dependency array includes asin
 
