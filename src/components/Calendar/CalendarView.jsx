@@ -84,7 +84,7 @@ const CalendarView = () => {
   
 
     if (top + modalHeight > boundingRect.height) {
-      top = boundingRect.height - modalHeight - 10; 
+      top = boundingRect.height - modalHeight - 90; 
     }
 
     setSelectedDate(slotInfo.start); // Set the selected date when slot is selected
@@ -151,7 +151,7 @@ const CalendarView = () => {
         selectable
         onSelectSlot={handleSelectSlot}
         onClickDay={handleDateClick}
-        style={{ height: "calc(100vh - 160px)", fontSize: '16px', borderRadius: '10px' }}
+        style={{ height: "calc(100vh - 20px)",width:"100%", fontSize: '16px', borderRadius: '10px' }}
         dayPropGetter={(date) => {
           const today = new Date();
           if (

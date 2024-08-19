@@ -23,6 +23,7 @@ const fetchProducts = async ({ queryKey }) => {
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [columnWidths, setColumnWidths] = useState([80,80,300,60,80]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,13 +35,20 @@ const ListView = () => {
 
   const handleProductSelect = async (asin) => {
     try {
-      const response = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`);
-      setSelectedProduct(response.data.payload);
+      const responseone = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`);
+      const responsetwo = await axios.get(`https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`);
+  
+      console.log('Response One:', responseone); // Log the full response
+      console.log('Response Two:', responsetwo.data); // Log the full response
+  
+      setSelectedProduct(responseone.data.payload);
+      setSelectedListing(responsetwo.data); // Make sure this is defined
       setSelectedAsin(asin);
     } catch (error) {
       console.error('Error fetching product details:', error.message);
     }
   };
+  
 
   const handleUpdate = (asin) => {
     setSelectedAsin(asin);
@@ -174,7 +182,7 @@ const ListView = () => {
         <Col md={4} style={{ paddingLeft: '0px', marginTop: '20px', paddingRight: '20px' }}>
           {selectedProduct ? (
             <div style={{ marginTop: "35px" }}>
-              <ProductDetailView product={selectedProduct} />
+              <ProductDetailView product={selectedProduct} listing={selectedListing} />
             </div>
           ) : (
             <div style={{ paddingTop: '10px' }}>

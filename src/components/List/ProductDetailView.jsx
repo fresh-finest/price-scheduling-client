@@ -1,11 +1,14 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 
-const ProductDetailView = ({ product }) => {
+const ProductDetailView = ({ product,listing }) => {
+
+  const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
+  console.log(price);
   const detailStyles = {
     image: {
-      width: '100%',
-      maxHeight: '200px',
+      width: '90px',
+      maxHeight: '90px',
       objectFit: 'contain',
       marginBottom: '10px',
     },
@@ -16,7 +19,6 @@ const ProductDetailView = ({ product }) => {
     },
     title: {
       fontSize: '16px', // Slightly larger for emphasis
-      fontWeight: 'bold',
       marginBottom: '15px',
     },
     info: {
@@ -37,27 +39,32 @@ const ProductDetailView = ({ product }) => {
   return (
    <div style={{position:'fixed', width:"450px"}}>
      <Card style={detailStyles.card}>
-      <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
+      
       <Card.Body>
-        <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
+      <div style={{display:"flex", alignItem:"center"}}>
+      <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
+      <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
+      </div>
+        <div style={{display:"flex"}}>
         <Card.Text style={detailStyles.info}>
           <strong>SKU:</strong> {product?.AttributeSets[0]?.Model}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
+          <strong>, SIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
-          <strong>Price:</strong> ${product?.AttributeSets[0]?.ListPrice?.Amount}
+          <strong>,  Price:</strong> ${price?.Amount}
         </Card.Text>
+        </div>
         {/* Additional Information */}
-        <Card.Text style={detailStyles.info}>
+        {/* <Card.Text style={detailStyles.info}>
           <strong>Brand:</strong> {product?.AttributeSets[0]?.Brand}
         </Card.Text>
         <Card.Text style={detailStyles.info}>
           <strong>Manufacturer:</strong> {product?.AttributeSets[0]?.Manufacturer}
-        </Card.Text>
+        </Card.Text> */}
         <Card.Text style={detailStyles.info}>
-          <strong>Ranking:</strong> #{product?.SalesRankings[0]?.Rank} in {product?.SalesRankings[0]?.ProductCategoryId}
+          <strong>BSR:</strong> {product?.SalesRankings[0]?.Rank}
         </Card.Text>
       </Card.Body>
     </Card>

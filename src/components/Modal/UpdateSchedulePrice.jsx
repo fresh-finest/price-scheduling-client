@@ -33,7 +33,7 @@ const updateProductPrice = async (sku, value) => {
     throw error;
   }
 };
-const saveSchedule = async (sku, price, startDate, endDate) => {
+const saveSchedule = async (asin, sku, price, startDate, endDate) => {
     try {
       const response = await axios.post(`${BASE_URL}/api/schedule`, { sku, price: parseFloat(price), startDate, endDate });
       return response.data;
@@ -103,7 +103,7 @@ const UpdatePrice = ({ show, onClose }) => {
     //     endDate,
     //   });
 
-    const scheduleResponse = await saveSchedule(sku, price, startDate, endDate);
+    const scheduleResponse = await saveSchedule(asin, sku, price, startDate, endDate);
 
       // Add event to the context
       addEvent({
