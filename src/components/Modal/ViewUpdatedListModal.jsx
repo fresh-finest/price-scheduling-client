@@ -5,7 +5,7 @@ const UpdatedList = ({ selectedDate }) => {
   const [events, setEvents] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
+// https://dps-server-b829cf5871b7.herokuapp.com
   console.log(selectedDate);
   useEffect(() => {
     const fetchEvents = async () => {
@@ -18,7 +18,7 @@ const UpdatedList = ({ selectedDate }) => {
 
       
         // Fetch events filtered by the selected date from the backend
-        const response = await axios.get('http://localhost:3000/api/schedule', {
+        const response = await axios.get('https://dps-server-b829cf5871b7.herokuapp.com/api/schedule', {
           params: {
             startDate: localDate,
           },
