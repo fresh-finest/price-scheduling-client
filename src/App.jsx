@@ -8,6 +8,8 @@ import Login from './pages/Auth/Login';
 import PrivateRoute from './pages/Auth/PrivateRoute';
 import NotFound from './pages/NotFound';
 import History from './pages/History';
+import ManageUserByAdmin from './pages/ManageUserByAdmin';
+
 
 function App() {
   return (
@@ -33,6 +35,12 @@ function App() {
            element={
           <PrivateRoute>
              <History />
+          </PrivateRoute>
+           } />
+           <Route path="/manage"
+           element={
+          <PrivateRoute allowedRoles={['admin']}>
+             <ManageUserByAdmin />
           </PrivateRoute>
            } />
          <Route path="*" element={<NotFound />} />
