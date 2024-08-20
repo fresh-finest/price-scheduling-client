@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Table, Form, InputGroup, Spinner, Container } from "react-bootstrap";
 import axios from "axios";
 
+
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
+
+
 export default function HistoryView() {
   const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,7 +15,7 @@ export default function HistoryView() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/schedule");
+        const response = await axios.get(`${BASE_URL}/api/schedule`);
         setData(response.data.result);
         setLoading(false);
       } catch (err) {

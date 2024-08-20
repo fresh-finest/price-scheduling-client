@@ -4,6 +4,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
 
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
 
@@ -34,9 +35,9 @@ const updateProductPrice = async (sku, value) => {
   }
 };
 
-const saveSchedule = async (asin, sku, price, currentPrice, startDate, endDate) => {
+const saveSchedule = async (userName, asin, sku, price, currentPrice, startDate, endDate) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, {asin, sku, price: parseFloat(price),currentPrice, startDate, endDate });
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {userName, asin, sku, price: parseFloat(price),currentPrice, startDate, endDate });
     return response.data;
   } catch (error) {
     console.error('Error saving schedule:', error.response ? error.response.data : error.message);
@@ -55,6 +56,13 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const { currentUser } = useSelector((state) => state.user);
+  
+  // const userName = JSON.stringify(currentUser.userName);
+  const userName = currentUser.userName;
+  
+  console.log("current user " +userName);
 
   useEffect(() => {
     if (show && asin) {
@@ -91,7 +99,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     try {
       await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
-      const scheduleResponse = await saveSchedule(asin, sku, price, currentPrice, startDate, indefiniteEndDate ? null : endDate);
+      const scheduleResponse = await saveSchedule(userName, asin, sku, price, currentPrice, startDate, indefiniteEndDate ? null : endDate);
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,
