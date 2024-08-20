@@ -104,6 +104,7 @@ export default function HistoryView() {
             <th>SKU</th>
             <th>Start Date</th>
             <th>End Date</th>
+            <th>Changed By</th>
           </tr>
         </thead>
         <tbody>
@@ -130,6 +131,7 @@ export default function HistoryView() {
                     <span style={{color:"red"}}>Until Changed</span>
                   )}
                 </td>
+                <td>{item.userName}</td>
               </tr>
             ))
           ) : (
