@@ -44,6 +44,7 @@ function Header() {
           <Nav className="me-auto">
             <Nav.Link as={NavLink} to="/list" style={{ color: 'white' }}>List</Nav.Link>
             <Nav.Link as={NavLink} to="/calendar" style={{ color: 'white' }}>Calendar View</Nav.Link>
+            <Nav.Link as={NavLink} to="/history" style={{ color: 'white' }}>History</Nav.Link>
           </Nav>
           <Nav>
             {/* <Nav.Link as={NavLink} to="/" style={{ color: 'white' }}>Logout</Nav.Link>
