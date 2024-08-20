@@ -34,9 +34,9 @@ const updateProductPrice = async (sku, value) => {
   }
 };
 
-const saveSchedule = async (sku, price, startDate, endDate) => {
+const saveSchedule = async (asin, sku, price, currentPrice, startDate, endDate) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, { sku, price: parseFloat(price), startDate, endDate });
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {asin, sku, price: parseFloat(price),currentPrice, startDate, endDate });
     return response.data;
   } catch (error) {
     console.error('Error saving schedule:', error.response ? error.response.data : error.message);
@@ -91,7 +91,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     try {
       await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
-      const scheduleResponse = await saveSchedule(sku, price, startDate, indefiniteEndDate ? null : endDate);
+      const scheduleResponse = await saveSchedule(asin, sku, price, currentPrice, startDate, indefiniteEndDate ? null : endDate);
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,

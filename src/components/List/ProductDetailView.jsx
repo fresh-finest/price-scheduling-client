@@ -124,7 +124,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
                 {priceSchedule.map((sc) => (
                   <tr key={sc._id}>
                     <td>{new Date(sc.startDate).toLocaleString()} <span style={{color:"green"}}>Changed Price: ${sc.price}</span></td>
-                    <td>{new Date(sc.endDate).toLocaleString()}</td>
+                    <td>{new Date(sc.endDate).toLocaleString()} <span style={{color:"green"}}>Reverted Price: ${sc?.currentPrice}</span></td>
                   </tr>
                 ))}
               </tbody>
