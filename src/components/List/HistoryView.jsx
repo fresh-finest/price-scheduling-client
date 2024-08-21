@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Table, Form, InputGroup, Spinner, Container, Row, Col } from "react-bootstrap";
 import axios from "axios";
-
+import './HistoryView.css'
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
 // const BASE_URL = 'http://localhost:3000';
-
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
@@ -18,7 +17,7 @@ export default function HistoryView() {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/user`);
-        setUsers(response.data.result); // Assuming the response is an array of users
+        setUsers(response.data.result); 
       } catch (err) {
         console.error("Error fetching users:", err);
       }
@@ -49,7 +48,6 @@ export default function HistoryView() {
     fetchData();
   }, [selectedUser]);
 
-  console.log(selectedUser);
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -73,7 +71,7 @@ export default function HistoryView() {
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
   return (
-    <Container style={{ marginTop: "100px" }}>
+    <Container fluid style={{ marginTop: "100px" }}>
       <Row className="mb-3">
         <Col md={3}>
           <InputGroup>
@@ -82,12 +80,17 @@ export default function HistoryView() {
               placeholder="Search by ASIN or SKU..."
               value={searchTerm}
               onChange={handleSearch}
-             
+              style={{ borderRadius: '4px' }} 
             />
           </InputGroup>
         </Col>
         <Col md={3} className="text-right">
-          <Form.Control as="select" value={selectedUser} onChange={handleUserChange}>
+          <Form.Control 
+            as="select" 
+            value={selectedUser} 
+            onChange={handleUserChange}
+            style={{ borderRadius: '4px' }}
+          >
             <option value="">All Users</option>
             {users.map((user) => (
               <option key={user._id} value={user.userName}>
@@ -97,26 +100,26 @@ export default function HistoryView() {
           </Form.Control>
         </Col>
       </Row>
-      <Table bordered hover responsive>
-        <thead style={{ backgroundColor: "#f0f0f0" }}>
+      <Table bordered hover responsive style={{ width: '90%', tableLayout: 'fixed' }}>
+        <thead style={{ backgroundColor: '#f0f0f0', color: '#333', fontFamily: 'Arial, sans-serif', fontSize: '14px' }}>
           <tr>
-            <th>Image</th>
-            <th>ASIN</th>
-            <th>SKU</th>
-            <th>Title</th>
-            <th>Start Date</th>
-            <th>End Date</th>
-            <th>Changed By</th>
+            <th style={{ width: "80px" }}>Image</th>
+            <th style={{ width: "300px" }}>Product Details</th>
+            <th style={{ width: "120px" }}>Start Date</th>
+            <th style={{ width: "120px" }}>End Date</th>
+            <th style={{ width: "90px" }}>Changed By</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody style={{ fontSize: '12px', fontFamily: 'Arial, sans-serif', lineHeight: '1.5' }}>
           {filteredData.length > 0 ? (
             filteredData.map((item) => (
-              <tr key={item._id}>
-              <td><img src={item?.imageURL}  alt=""/></td>
-                <td>{item.asin}</td>
-                <td>{item.sku}</td>
-                <td  >{item.title}</td>
+              <tr key={item._id} style={{ height: '50px' }}>
+                <td><img src={item?.imageURL} alt="" style={{ width: "80px", height: "80px", objectFit: "cover" }} /></td>
+                <td style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}
+                <div>
+                  <span className="bubble-text">{item.asin}</span>  <span className="bubble-text">{item.sku}</span> 
+                </div>
+                </td>
                 <td>
                   {new Date(item.startDate).toLocaleString()}{" "}
                   <p style={{ color: "green" }}>Changed Price: ${item.price}</p>
@@ -132,15 +135,15 @@ export default function HistoryView() {
                       )}
                     </>
                   ) : (
-                    <span style={{color:"red"}}>Until Changed</span>
+                    <span style={{ color: "red" }}>Until Changed</span>
                   )}
                 </td>
-                <td>{item.userName} <p>{item?.createdAt}</p></td>
+                <td>{item.userName} <p>{new Date(item?.createdAt).toLocaleString()}</p></td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="text-center">
+              <td colSpan="7" className="text-center">
                 No data found
               </td>
             </tr>

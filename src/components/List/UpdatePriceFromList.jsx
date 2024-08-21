@@ -69,7 +69,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
 
   const [title, setTitle] = useState('');
   const [imageURL, setImageUrl] = useState('');
-  
+
   const { currentUser } = useSelector((state) => state.user);
   
   // const userName = JSON.stringify(currentUser.userName);
@@ -101,6 +101,11 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
       const productDetails = data.payload[0].Product.Offers[0];
       setSku(productDetails.SellerSKU);
       setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+
+      const additionalData = await fetchProductAdditionalDetails(asin);
+        setTitle(additionalData.payload.AttributeSets[0].Title);
+        setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+
     } catch (error) {
       setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
       console.error('Error fetching product details:', error);

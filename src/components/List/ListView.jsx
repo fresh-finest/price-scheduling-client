@@ -283,7 +283,7 @@ const ListView = () => {
                           >
                             {item.asin1}
                           </span>{" "}
-                          <span className="bubble-text">{item.sellerSku}</span>
+                          <span className="bubble-text">{item.sellerSku}</span>{" "}
                           <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"? "FBM":"FBA"}
                           </span>{" "}

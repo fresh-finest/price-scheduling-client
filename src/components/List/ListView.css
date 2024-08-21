@@ -58,7 +58,7 @@ th {
   background-color: #EEF1FB; /* The light blue background color */
   color: #64748B; /* The color of the text */
   padding: 5px 10px; /* Adjust padding for bubble effect */
-  border-radius: 20px; /* Make the edges rounded */
+ 
   font-weight: bold; /* Make the text bold if needed */
   display: inline-block; /* Ensure it doesn't expand to full width */
   font-family: 'Arial', sans-serif; /* Ensure the font matches */
