@@ -1,10 +1,10 @@
 .bubble-text {
-    background-color: #EEF1FB; /* The light blue background color */
+    background-color: #eef1fb80; /* The light blue background color */
     color: #64748B; /* The color of the text */
-    padding: 5px 10px; /* Adjust padding for bubble effect */
+    /* padding: 5px 10px;  */
    
-    font-weight: bold; /* Make the text bold if needed */
     display: inline-block; /* Ensure it doesn't expand to full width */
     font-family: 'Arial', sans-serif; /* Ensure the font matches */
-    font-size: 14px; /* Adjust font size as needed */
+    font-size: 12px; /* Adjust font size as needed */
+    border:1 px solid black;
   }

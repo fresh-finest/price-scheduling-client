@@ -115,7 +115,8 @@ const ListView = () => {
     (product) =>
       product.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.asin1?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sellerSku?.toLowerCase().includes(searchTerm.toLowerCase())
+      product.sellerSku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.status?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const copyToClipboard = () => {
@@ -276,7 +277,7 @@ const ListView = () => {
                         }}
                       >
                         {item.itemName}
-                        <div>
+                        <div className="details">
                           <span
                             onClick={copyToClipboard}
                             className="bubble-text"
@@ -285,9 +286,9 @@ const ListView = () => {
                           </span>{" "}
                           <span className="bubble-text">{item.sellerSku}</span>{" "}
                           <span className="bubble-text">
-                            {item.fulfillmentChannel === "DEFAULT"? "FBM":"FBA"}
+                            {item.fulfillmentChannel === "DEFAULT"? "FBM":"FBA"} : {item.quantity}
                           </span>{" "}
-                          <span className="bubble-text">{item.quantity}</span>
+                          {/* <span className="bubble-text">{item.quantity}</span> */}
                         </div>
                       </td>
                       <td>${item.price}</td>
