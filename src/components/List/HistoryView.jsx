@@ -7,6 +7,8 @@ import {
   Container,
   Row,
   Col,
+  Button,
+  Modal,
 } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
@@ -22,8 +24,11 @@ export default function HistoryView() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [startDate, setStartDate] = useState(null); // State for start date
-  const [endDate, setEndDate] = useState(null); // State for end date
+  const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
+  const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
+  const [editingItem, setEditingItem] = useState(null); // The item being edited
+  const [editStartDate, setEditStartDate] = useState(null); // Editing start date
+  const [editEndDate, setEditEndDate] = useState(null); // Editing end date
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -39,32 +44,31 @@ export default function HistoryView() {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const url = selectedUser
-          ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-          : `${BASE_URL}/api/schedule`;
-        const response = await axios.get(url);
-
-        // Sort data by createdAt in descending order
-        const sortedData = response.data.result.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-
-        setData(sortedData);
-      } catch (err) {
-        setError(
-          "Error fetching data: " +
-            (err.response ? err.response.data.message : err.message)
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, [selectedUser]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const url = selectedUser
+        ? `${BASE_URL}/api/schedule/${selectedUser}/list`
+        : `${BASE_URL}/api/schedule`;
+      const response = await axios.get(url);
+
+      const sortedData = response.data.result.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setData(sortedData);
+    } catch (err) {
+      setError(
+        "Error fetching data: " +
+          (err.response ? err.response.data.message : err.message)
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -74,10 +78,41 @@ export default function HistoryView() {
     setSelectedUser(e.target.value);
   };
 
-  const handleDateChange = (dates) => {
+  const handleFilterDateChange = (dates) => {
     const [start, end] = dates;
-    setStartDate(start);
-    setEndDate(end);
+    setFilterStartDate(start);
+    setFilterEndDate(end);
+  };
+
+  const handleEditClick = (item) => {
+    setEditingItem(item);
+    setEditStartDate(new Date(item.startDate));
+    setEditEndDate(item.endDate ? new Date(item.endDate) : null);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!editingItem) return;
+
+    try {
+      const updatedItem = {
+        startDate: editStartDate,
+        endDate: editEndDate,
+      };
+
+      await axios.put(`${BASE_URL}/api/schedule/${editingItem._id}`, updatedItem);
+
+      setData((prevData) =>
+        prevData.map((item) =>
+          item._id === editingItem._id
+            ? { ...item, startDate: editStartDate, endDate: editEndDate }
+            : item
+        )
+      );
+
+      setEditingItem(null);
+    } catch (err) {
+      console.error("Error updating schedule:", err);
+    }
   };
 
   const formatDateTime = (dateString) => {
@@ -100,12 +135,12 @@ export default function HistoryView() {
     )
     .filter((item) => {
       const itemDate = new Date(item.createdAt);
-      if (startDate && endDate) {
-        return itemDate >= startDate && itemDate <= endDate;
-      } else if (startDate) {
-        return itemDate >= startDate;
-      } else if (endDate) {
-        return itemDate <= endDate;
+      if (filterStartDate && filterEndDate) {
+        return itemDate >= filterStartDate && itemDate <= filterEndDate;
+      } else if (filterStartDate) {
+        return itemDate >= filterStartDate;
+      } else if (filterEndDate) {
+        return itemDate <= filterEndDate;
       }
       return true;
     });
@@ -149,10 +184,10 @@ export default function HistoryView() {
         </Col>
         <Col md={6} className="text-right">
           <DatePicker
-            selected={startDate}
-            onChange={handleDateChange}
-            startDate={startDate}
-            endDate={endDate}
+            selected={filterStartDate}
+            onChange={handleFilterDateChange}
+            startDate={filterStartDate}
+            endDate={filterEndDate}
             selectsRange
             isClearable
             placeholderText="Select a date range"
@@ -180,6 +215,7 @@ export default function HistoryView() {
             <th style={{ width: "300px" }}>Product Details</th>
             <th style={{ width: "200px" }}>Duration</th>
             <th style={{ width: "90px" }}>Changed By</th>
+            <th style={{ width: "100px" }}>Actions</th>
           </tr>
         </thead>
         <tbody
@@ -272,6 +308,14 @@ export default function HistoryView() {
                   {item.userName}{" "}
                   <p>{formatDateTime(item?.createdAt)}</p>
                 </td>
+                <td>
+                  <Button
+                    style={{backgroundColor:"GrayText", width:"90px"}}
+                    onClick={() => handleEditClick(item)}
+                  >
+                    Edit
+                  </Button>
+                </td>
               </tr>
             ))
           ) : (
@@ -283,6 +327,48 @@ export default function HistoryView() {
           )}
         </tbody>
       </Table>
+
+      {editingItem && (
+        <Modal show={true} onHide={() => setEditingItem(null)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Edit Duration</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group controlId="formEditStartDate">
+                <Form.Label>Start Date and Time</Form.Label>
+                <DatePicker
+                  selected={editStartDate}
+                  onChange={(date) => setEditStartDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  className="form-control"
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formEditEndDate">
+                <Form.Label>End Date and Time</Form.Label>
+                <DatePicker
+                  selected={editEndDate}
+                  onChange={(date) => setEditEndDate(date)}
+                  showTimeSelect
+                  dateFormat="Pp"
+                  className="form-control"
+                  required
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setEditingItem(null)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSaveChanges}>
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </Container>
   );
 }
