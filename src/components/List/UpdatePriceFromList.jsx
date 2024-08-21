@@ -18,6 +18,16 @@ const fetchProductDetails = async (asin) => {
   }
 };
 
+const fetchProductAdditionalDetails = async (asin) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/details/${asin}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching additional product details:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
 const updateProductPrice = async (sku, value) => {
   try {
     console.log(`Attempting to update price for SKU: ${sku} to value: ${value}`);
@@ -35,9 +45,9 @@ const updateProductPrice = async (sku, value) => {
   }
 };
 
-const saveSchedule = async (userName, asin, sku, price, currentPrice, startDate, endDate) => {
+const saveSchedule = async (userName,  asin, sku, title, price, currentPrice,imageURL, startDate, endDate) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, {userName, asin, sku, price: parseFloat(price),currentPrice, startDate, endDate });
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {userName, asin, sku,title, price: parseFloat(price),currentPrice,imageURL, startDate, endDate });
     return response.data;
   } catch (error) {
     console.error('Error saving schedule:', error.response ? error.response.data : error.message);
@@ -57,6 +67,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const [title, setTitle] = useState('');
+  const [imageURL, setImageUrl] = useState('');
+  
   const { currentUser } = useSelector((state) => state.user);
   
   // const userName = JSON.stringify(currentUser.userName);
@@ -99,7 +112,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     try {
       await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
-      const scheduleResponse = await saveSchedule(userName, asin, sku, price, currentPrice, startDate, indefiniteEndDate ? null : endDate);
+       await saveSchedule(userName, asin, sku, title, price, currentPrice, imageURL,startDate, indefiniteEndDate ? null : endDate);
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,

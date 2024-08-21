@@ -100,8 +100,10 @@ export default function HistoryView() {
       <Table bordered hover responsive>
         <thead style={{ backgroundColor: "#f0f0f0" }}>
           <tr>
+            <th>Image</th>
             <th>ASIN</th>
             <th>SKU</th>
+            <th>Title</th>
             <th>Start Date</th>
             <th>End Date</th>
             <th>Changed By</th>
@@ -111,8 +113,10 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item) => (
               <tr key={item._id}>
+              <td><img src={item?.imageURL}  alt=""/></td>
                 <td>{item.asin}</td>
                 <td>{item.sku}</td>
+                <td  >{item.title}</td>
                 <td>
                   {new Date(item.startDate).toLocaleString()}{" "}
                   <p style={{ color: "green" }}>Changed Price: ${item.price}</p>
@@ -131,7 +135,7 @@ export default function HistoryView() {
                     <span style={{color:"red"}}>Until Changed</span>
                   )}
                 </td>
-                <td>{item.userName}</td>
+                <td>{item.userName} <p>{item?.createdAt}</p></td>
               </tr>
             ))
           ) : (

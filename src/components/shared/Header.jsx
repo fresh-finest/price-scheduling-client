@@ -51,8 +51,9 @@ function Header() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={NavLink} to="/list" style={{ color: 'white' }}>List</Nav.Link>
+           
             <Nav.Link as={NavLink} to="/calendar" style={{ color: 'white' }}>Calendar View</Nav.Link>
+            <Nav.Link as={NavLink} to="/list" style={{ color: 'white' }}>List</Nav.Link>
             <Nav.Link as={NavLink} to="/history" style={{ color: 'white' }}>History</Nav.Link>
             {adminRole && (
             <nav>

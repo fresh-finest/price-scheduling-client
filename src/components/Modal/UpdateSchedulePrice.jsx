@@ -11,15 +11,21 @@ const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
 // const BASE_URL ='http://localhost:3000'
 
 const fetchProductDetails = async (asin) => {
-
-
-  
-
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching product details:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
+
+const fetchProductAdditionalDetails = async (asin) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/details/${asin}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching additional product details:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
@@ -41,15 +47,17 @@ const updateProductPrice = async (sku, value) => {
   }
 };
 
-const saveSchedule = async (userName, asin, sku, price, currentPrice, startDate, endDate) => {
+const saveSchedule = async (userName,  asin, sku, title, price, currentPrice,imageURL, startDate, endDate) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, {userName, asin, sku, price: parseFloat(price),currentPrice, startDate, endDate });
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {userName, asin, sku,title, price: parseFloat(price),currentPrice,imageURL, startDate, endDate });
     return response.data;
   } catch (error) {
     console.error('Error saving schedule:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
+
+
 
 const UpdatePrice = ({ show, onClose }) => {
   const { addEvent } = useContext(PriceScheduleContext);
@@ -65,6 +73,8 @@ const UpdatePrice = ({ show, onClose }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
+  const [title, setTitle] = useState('');
+  const [imageURL, setImageUrl] = useState('');
   const { currentUser } = useSelector((state) => state.user);
   
   // const userName = JSON.stringify(currentUser.userName);
@@ -98,12 +108,19 @@ const UpdatePrice = ({ show, onClose }) => {
         const productDetails = data.payload[0].Product.Offers[0];
         setSku(productDetails.SellerSKU);
         setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+
+        const additionalData = await fetchProductAdditionalDetails(asinValue);
+        setTitle(additionalData.payload.AttributeSets[0].Title);
+        setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+
       } catch (error) {
         setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
         console.error('Error fetching product details:', error);
       }
     }
   };
+
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -112,7 +129,7 @@ const UpdatePrice = ({ show, onClose }) => {
       await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
       // Log the scheduling in MongoDB
-      await saveSchedule(userName, asin, sku, price, currentPrice,startDate, indefiniteEndDate ? null : endDate);
+      await saveSchedule(userName, asin, sku, title, price, currentPrice, imageURL,startDate, indefiniteEndDate ? null : endDate);
 
       // Add event to the context
       addEvent({

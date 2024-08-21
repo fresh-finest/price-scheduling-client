@@ -24,3 +24,43 @@ th {
     transform: translateY(-3px);
   }
   
+  .copy-container {
+    display: inline-block;
+    position: relative;
+    background-color: #F0F4FF;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #6F7A92;
+    user-select: none;
+}
+
+.copy-container:hover .copy-icon {
+    opacity: 1;
+}
+
+.copy-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.copy-icon::before {
+    content: "📋";
+    font-size: 14px;
+}
+.bubble-text {
+  background-color: #EEF1FB; /* The light blue background color */
+  color: #64748B; /* The color of the text */
+  padding: 5px 10px; /* Adjust padding for bubble effect */
+  border-radius: 20px; /* Make the edges rounded */
+  font-weight: bold; /* Make the text bold if needed */
+  display: inline-block; /* Ensure it doesn't expand to full width */
+  font-family: 'Arial', sans-serif; /* Ensure the font matches */
+  font-size: 14px; /* Adjust font size as needed */
+}
