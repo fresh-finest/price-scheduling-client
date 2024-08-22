@@ -99,7 +99,10 @@ export default function HistoryView() {
         endDate: editEndDate,
       };
 
-      await axios.put(`${BASE_URL}/api/schedule/${editingItem._id}`, updatedItem);
+      await axios.put(
+        `${BASE_URL}/api/schedule/${editingItem._id}`,
+        updatedItem
+      );
 
       setData((prevData) =>
         prevData.map((item) =>
@@ -127,49 +130,32 @@ export default function HistoryView() {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
-  // const filteredData = data
-  //   .filter(
-  //     (item) =>
-  //       item.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       item.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  //   )
-  //   .filter((item) => {
-  //     const itemDate = new Date(item.createdAt);
-  //     if (filterStartDate && filterEndDate) {
-  //       return itemDate >= filterStartDate && itemDate <= filterEndDate;
-  //     } else if (filterStartDate) {
-  //       return itemDate >= filterStartDate;
-  //     } else if (filterEndDate) {
-  //       return itemDate <= filterEndDate;
-  //     }
-  //     return true;
-  //   });
-  
   const filteredData = data
-  .filter(
-    (item) =>
-      item.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  .filter((item) => {
-    const itemDate = new Date(item.createdAt);
-    
-    if (filterStartDate && filterEndDate) {
-      // Adjust the end date to include the whole day
-      const adjustedEndDate = new Date(filterEndDate);
-      adjustedEndDate.setHours(23, 59, 59, 999);
-      return itemDate >= filterStartDate && itemDate <= adjustedEndDate;
-    } else if (filterStartDate) {
-      return itemDate >= filterStartDate;
-    } else if (filterEndDate) {
-      // Adjust the end date to include the whole day
-      const adjustedEndDate = new Date(filterEndDate);
-      adjustedEndDate.setHours(23, 59, 59, 999);
-      return itemDate <= adjustedEndDate;
-    }
-    return true;
-  });
+    .filter(
+      (item) =>
+        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) || // Filter by product name
+        item.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((item) => {
+      const itemDate = new Date(item.createdAt);
 
+      if (filterStartDate && filterEndDate) {
+        // Adjust the end date to include the whole day
+        const adjustedEndDate = new Date(filterEndDate);
+        adjustedEndDate.setHours(23, 59, 59, 999);
+        return itemDate >= filterStartDate && itemDate <= adjustedEndDate;
+      } else if (filterStartDate) {
+        return itemDate >= filterStartDate;
+      } else if (filterEndDate) {
+        // Adjust the end date to include the whole day
+        const adjustedEndDate = new Date(filterEndDate);
+        adjustedEndDate.setHours(23, 59, 59, 999);
+        return itemDate <= adjustedEndDate;
+      }
+      return true;
+    });
 
   if (loading)
     return (
@@ -186,7 +172,7 @@ export default function HistoryView() {
           <InputGroup>
             <Form.Control
               type="text"
-              placeholder="Search by ASIN or SKU..."
+              placeholder="Search by Product Name, ASIN or SKU..."
               value={searchTerm}
               onChange={handleSearch}
               style={{ borderRadius: "4px" }}
@@ -241,7 +227,6 @@ export default function HistoryView() {
             <th style={{ width: "300px" }}>Product Details</th>
             <th style={{ width: "200px" }}>Duration</th>
             <th style={{ width: "90px" }}>Changed By</th>
-            {/* <th style={{ width: "100px" }}>Actions</th> */}
             <th style={{ width: "60px" }}>Status</th>
           </tr>
         </thead>
@@ -332,18 +317,9 @@ export default function HistoryView() {
                 </td>
 
                 <td>
-                  {item.userName}{" "}
-                  <p>{formatDateTime(item?.createdAt)}</p>
+                  {item.userName} <p>{formatDateTime(item?.createdAt)}</p>
                 </td>
-                {/* <td>
-                  <Button
-                    style={{backgroundColor:"GrayText", width:"90px"}}
-                    onClick={() => handleEditClick(item)}
-                  >
-                    Edit
-                  </Button>
-                </td> */}
-                <td>{item?.firstChange ? "Price" : `Schedule` }</td>
+                <td>{item?.firstChange ? "Price" : `Schedule`}</td>
               </tr>
             ))
           ) : (
