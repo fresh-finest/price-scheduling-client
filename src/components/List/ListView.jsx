@@ -13,6 +13,8 @@ import { useQuery } from "react-query";
 import { MdOutlineAdd } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
+import { FaCopy, FaCheck } from "react-icons/fa"; // Import icons
+
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
@@ -41,11 +43,26 @@ const ListView = () => {
   const tableRef = useRef(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
+  const [copied, setCopied] = useState(null);
+
+
 
   const { data, error, isLoading } = useQuery(
     ["products", { page: currentPage, limit: 10 }],
     fetchProducts
   );
+
+  // const copyToClipboard = (text) => {
+  //   navigator.clipboard.writeText(text).then(
+  //     () => {
+  //       console.log("Text copied to clipboard");
+  //     },
+  //     (err) => {
+  //       console.error("Failed to copy text: ", err);
+  //     }
+  //   );
+  // };
+
 
   const handleProductSelect = async (asin) => {
     try {
@@ -119,22 +136,7 @@ const ListView = () => {
       product.status?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const copyToClipboard = () => {
-    // Create a temporary input element
-    const tempInput = document.createElement("input");
-    // Set its value to the text passed as a prop
-    tempInput.value = text;
-    // Append it to the body
-    document.body.appendChild(tempInput);
-    // Select the text inside the input
-    tempInput.select();
-    // Execute the copy command
-    document.execCommand("copy");
-    // Remove the input from the document
-    document.body.removeChild(tempInput);
-    // Optionally, provide feedback to the user
-    alert(`Text copied: ${tempInput.value}`);
-  };
+
 
   return (
     <Container fluid style={{ marginTop: "100px" }}>
@@ -279,8 +281,9 @@ const ListView = () => {
                         {item.itemName}
                         <div className="details">
                           <span
-                            onClick={copyToClipboard}
+                            // onClick={copyToClipboard(item.asin1)}
                             className="bubble-text"
+                            style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}
                           >
                             {item.asin1}
                           </span>{" "}
@@ -288,7 +291,6 @@ const ListView = () => {
                           <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"? "FBM":"FBA"} : {item.quantity}
                           </span>{" "}
-                          {/* <span className="bubble-text">{item.quantity}</span> */}
                         </div>
                       </td>
                       <td>${item.price}</td>

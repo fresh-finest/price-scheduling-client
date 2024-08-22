@@ -30,7 +30,14 @@ const fetchProductAdditionalDetails = async (asin) => {
 
 const updateProductPrice = async (sku, value) => {
   try {
+    console.log(`Attempting to update price for SKU: ${sku} to value: ${value}`);
     const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, { value: parseFloat(value) });
+    console.log('Update response:', response.data);
+
+    if (response.data.issues && response.data.issues.length > 0) {
+      console.warn('Price update issues:', response.data.issues);
+    }
+
     return response.data;
   } catch (error) {
     console.error('Error updating product price:', error.response ? error.response.data : error.message);
@@ -38,92 +45,124 @@ const updateProductPrice = async (sku, value) => {
   }
 };
 
-const saveSchedule = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate) => {
-  try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, { userName, asin, sku, title, price: parseFloat(price), currentPrice, imageURL, startDate, endDate });
-    return response.data;
-  } catch (error) {
-    console.error('Error saving schedule:', error.response ? error.response.data : error.message);
-    throw error;
-  }
-};
+  const updateSchedule = async (scheduleId, startDate, endDate) => {
+    try {
+      const response = await axios.put(`${BASE_URL}/api/schedule/${scheduleId}`, {
+        startDate,
+        endDate,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating schedule:', error.response ? error.response.data : error.message);
+      throw error;
+    }
+  };
+ 
 
-const UpdatePrice = ({ show, onClose }) => {
+const EditScheduleFromList = ({ show, onClose, asin }) => {
   const { addEvent } = useContext(PriceScheduleContext);
-  const [asin, setAsin] = useState('');
   const [sku, setSku] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [price, setPrice] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
+  const [indefiniteEndDate, setIndefiniteEndDate] = useState(false); // New state for indefinite end date
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [startTimerId, setStartTimerId] = useState(null);
-  const [endTimerId, setEndTimerId] = useState(null);
-
-  
+ const [scheduleId,setScheduleId] = useState('');
   const [title, setTitle] = useState('');
   const [imageURL, setImageUrl] = useState('');
+  const [editingItem, setEditingItem] = useState(null); // Track the item being edited
+
   const { currentUser } = useSelector((state) => state.user);
+  
   const userName = currentUser.userName;
 
+  console.log("id:"+scheduleId)
   useEffect(() => {
-    if (show) {
+    if (show && asin) {
       resetForm();
+      fetchScheduleAndProductDetails(asin);
     }
-  }, [show]);
+  }, [show, asin]);
+  // Update Schedule 
+  const fetchScheduleAndProductDetails = async (asin) => {
+    try {
+      const scheduleData = await fetchScheduleByAsin(asin);
+      console.log("data: "+scheduleData.startDate);
+      if (scheduleData && scheduleData.length > 0) {
+        const schedule = scheduleData[0];
+        setScheduleId(schedule._id);
+        setStartDate(new Date(schedule.startDate));
+        setEndDate(schedule.endDate ? new Date(schedule.endDate) : new Date());
+        setIndefiniteEndDate(!schedule.endDate);
+        setPrice(schedule.price);
+      }
+
+      const productDetails = await fetchProductDetails(asin);
+      const productInfo = productDetails.payload[0].Product.Offers[0];
+      setSku(productInfo.SellerSKU);
+      setCurrentPrice(productInfo.BuyingPrice.ListingPrice.Amount);
+
+      const additionalData = await fetchProductAdditionalDetails(asin);
+      setTitle(additionalData.payload.AttributeSets[0].Title);
+      setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+    } catch (error) {
+      setErrorMessage('Error fetching schedule or product details: ' + (error.response ? error.response.data.error : error.message));
+      console.error('Error fetching schedule or product details:', error);
+    }
+  };
+
+  //
+  
+
+  useEffect(() => {
+    if (show && asin) {
+      resetForm();
+      fetchProductDetailsByAsin(asin);
+    }
+  }, [show, asin]);
 
   const resetForm = () => {
-    setAsin('');
     setSku('');
     setCurrentPrice('');
     setPrice('');
     setStartDate(new Date());
     setEndDate(new Date());
-    setIndefiniteEndDate(false);
+    setIndefiniteEndDate(false); // Reset the checkbox
     setSuccessMessage('');
     setErrorMessage('');
-    if (startTimerId) clearTimeout(startTimerId);
-    if (endTimerId) clearTimeout(endTimerId);
   };
 
-  const handleAsinChange = async (e) => {
-    const asinValue = e.target.value;
-    setAsin(asinValue);
-    if (asinValue) {
-      try {
-        const data = await fetchProductDetails(asinValue);
-        const productDetails = data.payload[0].Product.Offers[0];
-        setSku(productDetails.SellerSKU);
-        setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+  const fetchProductDetailsByAsin = async (asin) => {
+    try {
+      const data = await fetchProductDetails(asin);
+      const productDetails = data.payload[0].Product.Offers[0];
+      setSku(productDetails.SellerSKU);
+      setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
-        const additionalData = await fetchProductAdditionalDetails(asinValue);
+      const additionalData = await fetchProductAdditionalDetails(asin);
         setTitle(additionalData.payload.AttributeSets[0].Title);
         setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
 
-      } catch (error) {
-        setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
-        console.error('Error fetching product details:', error);
-      }
+    } catch (error) {
+      setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
+      console.error('Error fetching product details:', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Schedule the price update and store the timer IDs
-      const { startTimer, endTimer } = await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
+      await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
-      // Store timer IDs in state for potential future cancellation
-      setStartTimerId(startTimer);
-      setEndTimerId(endTimer);
+      if (scheduleId) {
+        await updateSchedule(scheduleId, startDate, indefiniteEndDate ? null : endDate);
+      } else {
+        throw new Error('Schedule ID not found');
+      }
 
-      // Log the scheduling in MongoDB
-      await saveSchedule(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate);
-
-      // Add event to the context
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
@@ -143,14 +182,12 @@ const UpdatePrice = ({ show, onClose }) => {
   const schedulePriceUpdate = async (sku, originalPrice, newPrice, startDate, endDate) => {
     const now = new Date();
     const delayStart = startDate - now;
-    const delayEnd = endDate ? endDate - now : null;
-    let startTimer = null;
-    let endTimer = null;
 
     // Schedule the price update at the start date
     if (delayStart > 0) {
-      startTimer = setTimeout(async () => {
+      setTimeout(async () => {
         try {
+          console.log("Price is getting updated.");
           await updateProductPrice(sku, newPrice);
           console.log(`Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
         } catch (error) {
@@ -167,25 +204,50 @@ const UpdatePrice = ({ show, onClose }) => {
     }
 
     // Schedule the price revert at the end date if endDate is provided
-    if (endDate && delayEnd > 0) {
-      endTimer = setTimeout(async () => {
-        try {
-          await updateProductPrice(sku, originalPrice);
-          console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
-        } catch (error) {
-          console.error('Error reverting to original price:', error);
-        }
-      }, delayEnd);
+    if (endDate) {
+      const delayEnd = endDate - now;
+      if (delayEnd > 0) {
+        setTimeout(async () => {
+          try {
+            console.log("Price is getting reverted...");
+            await updateProductPrice(sku, originalPrice);
+            console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
+          } catch (error) {
+            console.error('Error reverting to original price:', error);
+          }
+        }, delayEnd);
+      }
     }
-
-    return { startTimer, endTimer };
   };
 
-  const handleCancel = () => {
-    if (startTimerId) clearTimeout(startTimerId);
-    if (endTimerId) clearTimeout(endTimerId);
-    setSuccessMessage(`Price update for SKU ${sku} has been canceled.`);
-    onClose();
+  const fetchScheduleByAsin = async (asin) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+      return response.data.result;
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
+      throw error;
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (!scheduleId) return;
+
+    try {
+      const updatedItem = {
+        startDate,
+        endDate: indefiniteEndDate ? null : endDate,
+      };
+
+      await updateSchedule(scheduleId, startDate, indefiniteEndDate ? null : endDate);
+
+      setSuccessMessage(`Price schedule updated successfully for SKU: ${sku}`);
+      setShowSuccessModal(true);
+      onClose();
+    } catch (err) {
+      setErrorMessage('Error updating price schedule: ' + err.message);
+      console.error("Error updating schedule:", err);
+    }
   };
 
   const modalStyles = {
@@ -201,21 +263,14 @@ const UpdatePrice = ({ show, onClose }) => {
     <>
       <Modal show={show} onHide={onClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Update Scheduled Price</Modal.Title>
+          <Modal.Title>Update Schedule Price</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formAsin" style={modalStyles.formControl}>
-              <Form.Label>ASIN</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter ASIN"
-                value={asin}
-                onChange={handleAsinChange}
-                required
-              />
+              <Form.Label>ASIN: {asin}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
@@ -244,7 +299,7 @@ const UpdatePrice = ({ show, onClose }) => {
             <Form.Group controlId="formIndefiniteEndDate" style={modalStyles.formControl}>
               <Form.Check
                 type="checkbox"
-                label="Until I change it."
+                label="Untill I change."
                 checked={indefiniteEndDate}
                 onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
               />
@@ -258,17 +313,14 @@ const UpdatePrice = ({ show, onClose }) => {
                   showTimeSelect
                   dateFormat="Pp"
                   className="form-control"
-                  required={!indefiniteEndDate}
+                  required={!indefiniteEndDate} // Only required if not indefinite
                 />
               </Form.Group>
             )}
-            <Button variant="primary" type="submit" style={modalStyles.button}>
-              Schedule Price Update
+            <Button  style={{width:"50%", backgroundColor:"black"}} type="submit">
+              Update Price
             </Button>
           </Form>
-          <Button variant="danger" onClick={handleCancel} style={{ ...modalStyles.button, marginTop: '15px' }}>
-            Cancel Price Update
-          </Button>
         </Modal.Body>
       </Modal>
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
@@ -280,4 +332,4 @@ const UpdatePrice = ({ show, onClose }) => {
   );
 };
 
-export default UpdatePrice;
+export default EditScheduleFromList;

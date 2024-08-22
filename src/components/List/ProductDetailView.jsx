@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Table } from 'react-bootstrap';
+import { Card, Table, Button } from 'react-bootstrap';
+import UpdatePriceFromList from './UpdatePriceFromList'; // Assuming it's in the same directory
+import EditScheduleFromList from './EditScheduleFromList';
 
 const ProductDetailView = ({ product, listing, asin }) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editSchedule, setEditSchedule] = useState(null); // Track which schedule is being edited
 
   useEffect(() => {
     const controller = new AbortController();
@@ -23,7 +26,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
         }
 
         const data = await response.json();
-        setPriceSchedule(data.result || []); // Ensure data is an array
+        setPriceSchedule(data.result || []); 
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error("Error fetching data:", err);
@@ -41,7 +44,15 @@ const ProductDetailView = ({ product, listing, asin }) => {
     return () => {
       controller.abort(); 
     };
-  }, [asin]); // Dependency array includes asin
+  }, [asin]);
+
+  const handleEdit = (schedule) => {
+    setEditSchedule(schedule); // Set the schedule to be edited
+  };
+
+  const handleClose = () => {
+    setEditSchedule(null); // Close the edit modal
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -118,6 +129,7 @@ const ProductDetailView = ({ product, listing, asin }) => {
                 <tr>
                   <th>Start Date</th>
                   <th>End Date</th>
+                  <th>Update</th>
                 </tr>
               </thead>
               <tbody>
@@ -138,6 +150,11 @@ const ProductDetailView = ({ product, listing, asin }) => {
                     <span style={{color:"red"}}>Until Changed</span>
                   )}
                 </td>
+                    <td>
+                      <Button variant="secondary" style={{marginTop:"20px"}} onClick={() => handleEdit(sc)}>
+                        Update 
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -147,6 +164,15 @@ const ProductDetailView = ({ product, listing, asin }) => {
           )}
         </Card.Body>
       </Card>
+
+      {editSchedule && (
+        <EditScheduleFromList
+          show={!!editSchedule}
+          onClose={handleClose}
+          asin={asin}
+          existingSchedule={editSchedule}
+        />
+      )}
     </div>
   );
 };

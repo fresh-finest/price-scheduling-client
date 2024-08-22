@@ -243,8 +243,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 />
               </Form.Group>
             )}
-            <Button variant="primary" type="submit">
-              Schedule Price Update
+            <Button  style={{width:"50%", backgroundColor:"black"}} type="submit">
+              Update Price
             </Button>
           </Form>
         </Modal.Body>

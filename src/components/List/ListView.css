@@ -73,7 +73,7 @@ th {
   display: inline-block; /* Ensure it doesn't expand to full width */
   font-family: 'Arial', sans-serif; /* Ensure the font matches */
   font-size: 12px; /* Adjust font size as needed */
-  margin-left: 2px;
+  margin-right: 10px;
 }
 .details {
   
