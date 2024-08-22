@@ -141,7 +141,7 @@ const ListView = () => {
       <Row>
         <Col md={8} style={{ paddingRight: "20px" }}>
           {/* Search bar with fixed position */}
-          <div style={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white", padding: "10px", borderBottom: "1px solid #ccc" }}>
+          <div style={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white",  borderBottom: "1px solid #ccc" }}>
             <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
               <Form.Control
                 type="text"
@@ -160,7 +160,7 @@ const ListView = () => {
                 hover
                 responsive
                 ref={tableRef}
-                style={{ width: "100%", tableLayout: "fixed", marginTop: "30px" }}
+                style={{ width: "100%", tableLayout: "fixed", marginTop:"5px"}}
               >
                 <thead
                   style={{
@@ -329,7 +329,7 @@ const ListView = () => {
         >
           {selectedProduct ? (
             <div
-              style={{ marginTop: "35px", position: "fixed", width: "460px" }}
+              style={{ marginTop: "100px", position: "fixed", width: "460px" }}
             >
               <ProductDetailView
                 product={selectedProduct}
