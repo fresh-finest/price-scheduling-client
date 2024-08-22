@@ -13,8 +13,6 @@ import { useQuery } from "react-query";
 import { MdOutlineAdd } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
-import { FaCopy, FaCheck } from "react-icons/fa"; // Import icons
-
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
@@ -43,41 +41,38 @@ const ListView = () => {
   const tableRef = useRef(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
-  const [copied, setCopied] = useState(null);
-
-
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null); // Track the selected row index
 
   const { data, error, isLoading } = useQuery(
     ["products", { page: currentPage, limit: 10 }],
     fetchProducts
   );
 
-  // const copyToClipboard = (text) => {
-  //   navigator.clipboard.writeText(text).then(
-  //     () => {
-  //       console.log("Text copied to clipboard");
-  //     },
-  //     (err) => {
-  //       console.error("Failed to copy text: ", err);
-  //     }
-  //   );
-  // };
+  // Handle product selection and highlight row
+  const handleProductSelect = async (asin, index) => {
+    if (selectedRowIndex === index) {
+      // If the row is already selected, deselect it
+      setSelectedRowIndex(null);
+      setSelectedProduct(null);
+      setSelectedListing(null);
+      setSelectedAsin("");
+    } else {
+      // Select the new row and fetch product details
+      try {
+        const responseone = await axios.get(
+          `https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`
+        );
+        const responsetwo = await axios.get(
+          `https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`
+        );
 
-
-  const handleProductSelect = async (asin) => {
-    try {
-      const responseone = await axios.get(
-        `https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`
-      );
-      const responsetwo = await axios.get(
-        `https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`
-      );
-
-      setSelectedProduct(responseone.data.payload);
-      setSelectedListing(responsetwo.data); // Make sure this is defined
-      setSelectedAsin(asin);
-    } catch (error) {
-      console.error("Error fetching product details:", error.message);
+        setSelectedProduct(responseone.data.payload);
+        setSelectedListing(responsetwo.data);
+        setSelectedAsin(asin);
+        setSelectedRowIndex(index); // Highlight the selected row
+      } catch (error) {
+        console.error("Error fetching product details:", error.message);
+      }
     }
   };
 
@@ -136,10 +131,8 @@ const ListView = () => {
       product.status?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
-
   return (
-    <Container fluid style={{ marginTop: "100px" }}>
+    <Container fluid >
       <UpdatePriceFromList
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
@@ -147,15 +140,19 @@ const ListView = () => {
       />
       <Row>
         <Col md={8} style={{ paddingRight: "20px" }}>
-          <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
-            <Form.Control
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearch}
-              style={{ borderRadius: "4px" }}
-            />
-          </InputGroup>
+          {/* Search bar with fixed position */}
+          <div style={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white", padding: "10px", borderBottom: "1px solid #ccc" }}>
+            <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
+              <Form.Control
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearch}
+                style={{ borderRadius: "4px" ,marginTop:"100px" }}
+              />
+            </InputGroup>
+          </div>
+
           {filteredProducts.length > 0 ? (
             <>
               <Table
@@ -163,7 +160,7 @@ const ListView = () => {
                 hover
                 responsive
                 ref={tableRef}
-                style={{ width: "100%", tableLayout: "fixed" }}
+                style={{ width: "100%", tableLayout: "fixed", marginTop: "30px" }}
               >
                 <thead
                   style={{
@@ -193,7 +190,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(0, e)}
                       />
                     </th>
-                    
+
                     <th
                       style={{
                         width: `${columnWidths[1]}px`,
@@ -266,11 +263,16 @@ const ListView = () => {
                   {filteredProducts.map((item, index) => (
                     <tr
                       key={index}
-                      onClick={() => handleProductSelect(item.asin1)}
-                      style={{ cursor: "pointer", height: "40px" }}
+                      onClick={() => handleProductSelect(item.asin1, index)}
+                      style={{
+                        cursor: "pointer",
+                        height: "40px",
+                        backgroundColor:
+                          selectedRowIndex === index ? "#d3d3d3" : "white", // Highlight selected row
+                      }}
                     >
                       <td>{item.status}</td>
-                      
+
                       <td
                         style={{
                           whiteSpace: "nowrap",
@@ -281,15 +283,21 @@ const ListView = () => {
                         {item.itemName}
                         <div className="details">
                           <span
-                            // onClick={copyToClipboard(item.asin1)}
                             className="bubble-text"
-                            style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}
+                            style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
                           >
                             {item.asin1}
                           </span>{" "}
                           <span className="bubble-text">{item.sellerSku}</span>{" "}
                           <span className="bubble-text">
-                            {item.fulfillmentChannel === "DEFAULT"? "FBM":"FBA"} : {item.quantity}
+                            {item.fulfillmentChannel === "DEFAULT"
+                              ? "FBM"
+                              : "FBA"}{" "}
+                            : {item.quantity}
                           </span>{" "}
                         </div>
                       </td>
