@@ -215,7 +215,8 @@ export default function HistoryView() {
             <th style={{ width: "300px" }}>Product Details</th>
             <th style={{ width: "200px" }}>Duration</th>
             <th style={{ width: "90px" }}>Changed By</th>
-            <th style={{ width: "100px" }}>Actions</th>
+            {/* <th style={{ width: "100px" }}>Actions</th> */}
+            <th style={{ width: "100px" }}>Status</th>
           </tr>
         </thead>
         <tbody
@@ -308,14 +309,15 @@ export default function HistoryView() {
                   {item.userName}{" "}
                   <p>{formatDateTime(item?.createdAt)}</p>
                 </td>
-                <td>
+                {/* <td>
                   <Button
                     style={{backgroundColor:"GrayText", width:"90px"}}
                     onClick={() => handleEditClick(item)}
                   >
                     Edit
                   </Button>
-                </td>
+                </td> */}
+                <td>{item?.firstChange ? "Price Changed" : `Schedule Changed ` }</td>
               </tr>
             ))
           ) : (

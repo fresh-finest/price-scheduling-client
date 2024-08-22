@@ -45,11 +45,13 @@ const updateProductPrice = async (sku, value) => {
   }
 };
 
-  const updateSchedule = async (scheduleId, startDate, endDate) => {
+const updateSchedule = async (scheduleId, startDate, endDate,userName) => {
     try {
       const response = await axios.put(`${BASE_URL}/api/schedule/${scheduleId}`, {
         startDate,
         endDate,
+        userName,
+        firstChange:false
       });
       return response.data;
     } catch (error) {
@@ -59,7 +61,7 @@ const updateProductPrice = async (sku, value) => {
   };
  
 
-const EditScheduleFromList = ({ show, onClose, asin }) => {
+const EditScheduleFromList = ({ show, onClose, asin, existingSchedule}) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
@@ -79,61 +81,34 @@ const EditScheduleFromList = ({ show, onClose, asin }) => {
   
   const userName = currentUser.userName;
 
-  console.log("id:"+scheduleId)
+  console.log("data:"+existingSchedule.endDate);
   useEffect(() => {
-    if (show && asin) {
-      resetForm();
-      fetchScheduleAndProductDetails(asin);
+    if (show && existingSchedule) {
+      setStartDate(new Date(existingSchedule.startDate));
+      setEndDate(existingSchedule.endDate ? new Date(existingSchedule.endDate) : new Date());
+      setIndefiniteEndDate(!existingSchedule.endDate);
     }
-  }, [show, asin]);
-  // Update Schedule 
-  const fetchScheduleAndProductDetails = async (asin) => {
-    try {
-      const scheduleData = await fetchScheduleByAsin(asin);
-      console.log("data: "+scheduleData.startDate);
-      if (scheduleData && scheduleData.length > 0) {
-        const schedule = scheduleData[0];
-        setScheduleId(schedule._id);
-        setStartDate(new Date(schedule.startDate));
-        setEndDate(schedule.endDate ? new Date(schedule.endDate) : new Date());
-        setIndefiniteEndDate(!schedule.endDate);
-        setPrice(schedule.price);
-      }
-
-      const productDetails = await fetchProductDetails(asin);
-      const productInfo = productDetails.payload[0].Product.Offers[0];
-      setSku(productInfo.SellerSKU);
-      setCurrentPrice(productInfo.BuyingPrice.ListingPrice.Amount);
-
-      const additionalData = await fetchProductAdditionalDetails(asin);
-      setTitle(additionalData.payload.AttributeSets[0].Title);
-      setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-    } catch (error) {
-      setErrorMessage('Error fetching schedule or product details: ' + (error.response ? error.response.data.error : error.message));
-      console.error('Error fetching schedule or product details:', error);
-    }
-  };
-
-  //
+  }, [show, existingSchedule]);
   
 
   useEffect(() => {
     if (show && asin) {
-      resetForm();
+    //   resetForm();
       fetchProductDetailsByAsin(asin);
+      setPrice(existingSchedule.price);
     }
   }, [show, asin]);
 
-  const resetForm = () => {
-    setSku('');
-    setCurrentPrice('');
-    setPrice('');
-    setStartDate(new Date());
-    setEndDate(new Date());
-    setIndefiniteEndDate(false); // Reset the checkbox
-    setSuccessMessage('');
-    setErrorMessage('');
-  };
+//   const resetForm = () => {
+//     setSku('');
+//     setCurrentPrice('');
+//     setPrice('');
+//     setStartDate(new Date());
+//     setEndDate(new Date());
+//     setIndefiniteEndDate(false); 
+//     setSuccessMessage('');
+//     setErrorMessage('');
+//   };
 
   const fetchProductDetailsByAsin = async (asin) => {
     try {
@@ -157,11 +132,8 @@ const EditScheduleFromList = ({ show, onClose, asin }) => {
     try {
       await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
 
-      if (scheduleId) {
-        await updateSchedule(scheduleId, startDate, indefiniteEndDate ? null : endDate);
-      } else {
-        throw new Error('Schedule ID not found');
-      }
+      await updateSchedule(existingSchedule._id, startDate, indefiniteEndDate ? null : endDate,userName);
+
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,
@@ -276,14 +248,14 @@ const EditScheduleFromList = ({ show, onClose, asin }) => {
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formPrice" style={modalStyles.formControl}>
-              <Form.Label>New Price</Form.Label>
-              <Form.Control
+              <Form.Label>Changed to : {existingSchedule.price} </Form.Label>
+              {/* <Form.Control
                 type="number"
-                placeholder="Enter New Price"
+                placeholder={existingSchedule.price}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 required
-              />
+              /> */}
             </Form.Group>
             <Form.Group controlId="formStartDate" style={modalStyles.formControl}>
               <Form.Label>Start Date and Time</Form.Label>
