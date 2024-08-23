@@ -77,7 +77,7 @@ const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, curre
 };
 
 
-const UpdatePriceFromList = ({ show, onClose, asin }) => {
+const UpdatePriceFromList = ({ show, onClose, asin}) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
@@ -94,10 +94,11 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
 
   const { currentUser } = useSelector((state) => state.user);
   
+  console.log("sku from list:"+sku);
   // const userName = JSON.stringify(currentUser.userName);
   const userName = currentUser.userName;
   
-  console.log("current user " +userName);
+  console.log("current user "+userName);
 
   useEffect(() => {
     if (show && asin) {

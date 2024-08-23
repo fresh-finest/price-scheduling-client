@@ -3,12 +3,14 @@ import { Card, Table, Button } from 'react-bootstrap';
 
 import EditScheduleFromList from './EditScheduleFromList';
 
-const ProductDetailView = ({ product, listing, asin }) => {
+const ProductDetailView = ({ product, listing, asin, sku}) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null); // Track which schedule is being edited
 
+
+  console.log("sku:"+sku);
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
@@ -110,11 +112,13 @@ const ProductDetailView = ({ product, listing, asin }) => {
               </Card.Text>
               <Card.Text style={detailStyles.info}>
                 <strong>, SKU:</strong> {product?.AttributeSets[0]?.Model}
+                {/* <strong>, SKU:</strong> {sku} */}
               </Card.Text>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft:"40px" }}>
             <Card.Text style={detailStyles.info}>
                 <strong>Price:</strong> ${price?.Amount}
+                {/* <strong>Price:</strong> ${price} */}
               </Card.Text>
               <Card.Text style={detailStyles.info}>
                 <strong>,  BSR:</strong> {product?.SalesRankings[0]?.Rank}

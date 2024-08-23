@@ -38,6 +38,8 @@ const ListView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnWidths, setColumnWidths] = useState([80, 350, 60, 80]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedSku,setSelectedSku] = useState('');
+  const [selectedPrice,setSelectedPrice]= useState('');
   const tableRef = useRef(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
@@ -49,13 +51,14 @@ const ListView = () => {
   );
 
   // Handle product selection and highlight row
-  const handleProductSelect = async (asin, index) => {
+  const handleProductSelect = async (asin,sku,price, index) => {
     if (selectedRowIndex === index) {
       // If the row is already selected, deselect it
       setSelectedRowIndex(null);
       setSelectedProduct(null);
       setSelectedListing(null);
       setSelectedAsin("");
+      setSelectedSku("")
     } else {
       // Select the new row and fetch product details
       try {
@@ -69,15 +72,19 @@ const ListView = () => {
         setSelectedProduct(responseone.data.payload);
         setSelectedListing(responsetwo.data);
         setSelectedAsin(asin);
-        setSelectedRowIndex(index); // Highlight the selected row
+        setSelectedSku(sku);
+        setSelectedPrice(price);
+        setSelectedRowIndex(index); 
+        // Highlight the selected row
       } catch (error) {
         console.error("Error fetching product details:", error.message);
       }
     }
   };
 
-  const handleUpdate = (asin) => {
+  const handleUpdate = (asin,sku) => {
     setSelectedAsin(asin);
+    setSelectedSku(sku);
     setShowUpdateModal(true);
   };
 
@@ -137,6 +144,7 @@ const ListView = () => {
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
+        // sku={selectedSku}
       />
       <Row>
         <Col md={8} style={{ paddingRight: "20px" }}>
@@ -263,7 +271,7 @@ const ListView = () => {
                   {filteredProducts.map((item, index) => (
                     <tr
                       key={index}
-                      onClick={() => handleProductSelect(item.asin1, index)}
+                      onClick={() => handleProductSelect(item.asin1,item.sellerSku, item.price, index)}
                       style={{
                         cursor: "pointer",
                         height: "40px",
@@ -305,7 +313,7 @@ const ListView = () => {
                       <td>
                         <Button
                           style={{ backgroundColor: "#50C878" }}
-                          onClick={() => handleUpdate(item.asin1)}
+                          onClick={() => handleUpdate(item.asin1,item.sellerSku)}
                         >
                           <MdOutlineAdd />
                         </Button>
@@ -335,6 +343,8 @@ const ListView = () => {
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}
+                // sku={selectedSku}
+                // price={selectedPrice}
               />
             </div>
           ) : (
