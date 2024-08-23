@@ -144,7 +144,6 @@ const ListView = () => {
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
-        // sku={selectedSku}
       />
       <Row>
         <Col md={8} style={{ paddingRight: "20px" }}>
