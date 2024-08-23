@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
-import UpdatePriceFromList from './UpdatePriceFromList'; // Assuming it's in the same directory
+
 import EditScheduleFromList from './EditScheduleFromList';
 
 const ProductDetailView = ({ product, listing, asin }) => {

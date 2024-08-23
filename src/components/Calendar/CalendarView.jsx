@@ -7,7 +7,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Button, Modal, DropdownButton, Dropdown, ButtonGroup } from "react-bootstrap";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
-import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
+import ScheduleUpdate from "../Modal/SchdeuleUpdate";
 import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
 import { MdOutlineAdd } from "react-icons/md";
 
@@ -170,7 +170,7 @@ const CalendarView = () => {
         onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
       />
 
-      <UpdateSchedulePrice
+      <ScheduleUpdate
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         event={selectedEvent}

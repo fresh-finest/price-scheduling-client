@@ -5,8 +5,10 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
+import { current } from '@reduxjs/toolkit';
 
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
+// const BASE_URL ='http://localhost:3000'
 
 const fetchProductDetails = async (asin) => {
   try {
@@ -28,38 +30,17 @@ const fetchProductAdditionalDetails = async (asin) => {
   }
 };
 
-const updateProductPrice = async (sku, value) => {
+
+
+
+
+const updateSchedule = async (scheduleId, startDate, endDate, price,currentPrice, userName) => {
   try {
-    console.log(`Attempting to update price for SKU: ${sku} to value: ${value}`);
-    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, { value: parseFloat(value) });
-    console.log('Update response:', response.data);
-
-    if (response.data.issues && response.data.issues.length > 0) {
-      console.warn('Price update issues:', response.data.issues);
-    }
-
-    return response.data;
-  } catch (error) {
-    console.error('Error updating product price:', error.response ? error.response.data : error.message);
-    throw error;
-  }
-};
-
-const deleteSchedule = async (scheduleId) => {
-  try {
-    const response = await axios.delete(`${BASE_URL}/api/schedule/${scheduleId}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting schedule:', error.response ? error.response.data : error.message);
-    throw error;
-  }
-};
-
-const updateSchedule = async (scheduleId, startDate, endDate, userName) => {
-  try {
-    const response = await axios.put(`${BASE_URL}/api/schedule/${scheduleId}`, {
+    const response = await axios.put(`${BASE_URL}/api/schedule/change/${scheduleId}`, {
       startDate,
       endDate,
+      price,
+      currentPrice,
       userName,
       firstChange: false
     });
@@ -69,9 +50,18 @@ const updateSchedule = async (scheduleId, startDate, endDate, userName) => {
     throw error;
   }
 };
+const deleteSchedule = async (scheduleId) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/api/schedule/change/${scheduleId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting schedule:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
 
 const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
-  const { addEvent } = useContext(PriceScheduleContext);
+  const { addEvent,removeEvent} = useContext(PriceScheduleContext);
   const [sku, setSku] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [price, setPrice] = useState('');
@@ -85,7 +75,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const [title, setTitle] = useState('');
   const [imageURL, setImageUrl] = useState('');
   const [editingItem, setEditingItem] = useState(null);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false); // State for confirmation modal
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false); 
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -127,9 +117,9 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
-
-      await updateSchedule(existingSchedule._id, startDate, indefiniteEndDate ? null : endDate, userName);
+    
+      
+      await updateSchedule(existingSchedule._id, startDate, indefiniteEndDate ? null : endDate, price, existingSchedule.currentPrice, userName);
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,
@@ -147,48 +137,10 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
     }
   };
 
-  const schedulePriceUpdate = async (sku, originalPrice, newPrice, startDate, endDate) => {
-    const now = new Date();
-    const delayStart = startDate - now;
-
-    if (delayStart > 0) {
-      setTimeout(async () => {
-        try {
-          console.log("Price is getting updated.");
-          await updateProductPrice(sku, newPrice);
-          console.log(`Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
-        } catch (error) {
-          console.error('Error updating to new price:', error);
-        }
-      }, delayStart);
-    } else {
-      try {
-        await updateProductPrice(sku, newPrice);
-        console.log(`Price updated to ${newPrice} immediately for SKU ${sku}`);
-      } catch (error) {
-        console.error('Error updating to new price:', error);
-      }
-    }
-
-    if (endDate) {
-      const delayEnd = endDate - now;
-      if (delayEnd > 0) {
-        setTimeout(async () => {
-          try {
-            console.log("Price is getting reverted...");
-            await updateProductPrice(sku, originalPrice);
-            console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
-          } catch (error) {
-            console.error('Error reverting to original price:', error);
-          }
-        }, delayEnd);
-      }
-    }
-  };
-
   const handleDelete = async () => {
     try {
       await deleteSchedule(existingSchedule._id);
+      removeEvent(existingSchedule._id); 
       setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
       onClose();

@@ -11,12 +11,13 @@ export const PriceScheduleProvider = ({ children }) => {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/api/schedule`);
-      console.log("schedule data:"+response)
+      console.log("schedule data:", response);
       const schedules = response.data.result.map(schedule => ({
         title: `ASIN: ${schedule?.asin} - $${schedule.price}`,
         start: new Date(schedule.startDate),
         end: new Date(schedule.endDate),
-        allDay: false
+        allDay: false,
+        id: schedule._id // Add ID for removal reference
       }));
       setEvents(schedules);
     } catch (error) {
@@ -28,12 +29,16 @@ export const PriceScheduleProvider = ({ children }) => {
     setEvents((prevEvents) => [...prevEvents, event]);
   };
 
+  const removeEvent = (eventId) => {
+    setEvents((prevEvents) => prevEvents.filter(event => event.id !== eventId));
+  };
+
   useEffect(() => {
     fetchEvents();
   }, []);
 
   return (
-    <PriceScheduleContext.Provider value={{ events, addEvent }}>
+    <PriceScheduleContext.Provider value={{ events, addEvent, removeEvent }}>
       {children}
     </PriceScheduleContext.Provider>
   );
