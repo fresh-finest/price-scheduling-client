@@ -3,12 +3,15 @@ import { Table, Form, Button, Modal, Container } from 'react-bootstrap';
 import axios from 'axios';
 
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
+// const BASE_URL = 'http://localhost:3000';
 
 function ManageUser() {
     const [users, setUsers] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newUser, setNewUser] = useState({ userName: '', email: '', password: '', designation: '', role: 'user', permissions: { read: true, write: false } });
     const [editingUser, setEditingUser] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
 
     useEffect(() => {
         fetchUsers();
@@ -65,6 +68,22 @@ function ManageUser() {
         }
     };
 
+    const handleDeleteUser = (userId) => {
+        setUserToDelete(userId);
+        setShowConfirmModal(true);
+    };
+
+    const confirmDeleteUser = async () => {
+        try {
+            await axios.delete(`${BASE_URL}/api/user/${userToDelete}`);
+            fetchUsers(); // Refresh the user list
+            setShowConfirmModal(false);
+            setUserToDelete(null);
+        } catch (err) {
+            console.error("Error deleting user:", err);
+        }
+    };
+
     const handleSubmit = async () => {
         try {
             if (editingUser) {
@@ -84,7 +103,7 @@ function ManageUser() {
     return (
         <Container style={{ marginTop: "100px" }}>
             <div style={{display:"flex",justifyContent:"flex-end"}}>
-            <Button onClick={() => handleShowModal()} style={{width:"25%", backgroundColor:"black"}} >Add New User</Button>
+                <Button onClick={() => handleShowModal()} style={{width:"25%", backgroundColor:"black"}} >Add New User</Button>
             </div>
             <Table bordered hover responsive style={{ marginTop: '20px' }}>
                 <thead>
@@ -94,6 +113,7 @@ function ManageUser() {
                         <th>Email</th>
                         <th>Role</th>
                         <th>Permissions</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -115,20 +135,21 @@ function ManageUser() {
                             <td>
                                 <Form.Check
                                     type="checkbox"
-                                    label="Read"
-                                    name="read"
-                                    checked={user.permissions.read}
-                                    onChange={(e) => handlePermissionChange(e, user)}
-                                    disabled={user.role === 'admin'}
-                                />
-                                <Form.Check
-                                    type="checkbox"
                                     label="Write"
                                     name="write"
                                     checked={user.permissions.write}
                                     onChange={(e) => handlePermissionChange(e, user)}
                                     disabled={user.role === 'admin'}
                                 />
+                            </td>
+                            <td>
+                                <Button
+                                    variant="danger"
+                                    onClick={() => handleDeleteUser(user._id)}
+                                    disabled={user.role === 'admin'}
+                                >
+                                    Delete
+                                </Button>
                             </td>
                         </tr>
                     ))}
@@ -194,14 +215,6 @@ function ManageUser() {
                         <Form.Group controlId="permissions">
                             <Form.Check
                                 type="checkbox"
-                                label="Read"
-                                name="read"
-                                checked={newUser.permissions.read}
-                                onChange={(e) => setNewUser({ ...newUser, permissions: { ...newUser.permissions, read: e.target.checked } })}
-                                disabled={newUser.role === 'admin'}
-                            />
-                            <Form.Check
-                                type="checkbox"
                                 label="Write"
                                 name="write"
                                 checked={newUser.permissions.write}
@@ -210,13 +223,29 @@ function ManageUser() {
                             />
                         </Form.Group>
                         <div style={{display:"flex",justifyContent:"center"}}>
-                        <Button onClick={handleSubmit} style={{width:"25%", backgroundColor:"black"}}>
-                            {editingUser ? 'Update User' : 'Create User'}
-                        </Button>
+                            <Button onClick={handleSubmit} style={{width:"25%", backgroundColor:"black"}}>
+                                {editingUser ? 'Update User' : 'Create User'}
+                            </Button>
                         </div>
-                        
                     </Form>
                 </Modal.Body>
+            </Modal>
+
+            <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Deletion</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to delete this user? This action cannot be undone.
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={confirmDeleteUser}>
+                        Delete
+                    </Button>
+                </Modal.Footer>
             </Modal>
         </Container>
     );

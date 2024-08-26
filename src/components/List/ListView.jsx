@@ -337,7 +337,7 @@ const ListView = () => {
               </Table>
             </div>
           ) : (
-            <p>No products found.</p>
+            <p>Loading....</p>
           )}
         </Col>
         <Col
