@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   Table,
   Container,
@@ -7,8 +7,8 @@ import {
   Form,
   InputGroup,
   Spinner,
+  Button,
 } from "react-bootstrap";
-import { Button } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { MdOutlineAdd } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
@@ -16,84 +16,81 @@ import axios from "axios";
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
-const fetchProducts = async ({ queryKey }) => {
-  const [_key, { page, limit }] = queryKey;
-  try {
-    const response = await axios.get(
-      `https://all-product-list-5fffc5e9c5f7.herokuapp.com/fetch-all-listings`,
-      {
-        params: { page, limit },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch products:", error.message);
-    throw new Error("Failed to fetch products");
-  }
+// Fetch products function
+const fetchProducts = async () => {
+  const response = await axios.get("https://all-product-list-5fffc5e9c5f7.herokuapp.com/fetch-all-listings");
+  return response.data;
 };
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [columnWidths, setColumnWidths] = useState([80, 350, 60, 80]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSku,setSelectedSku] = useState('');
-  const [selectedPrice,setSelectedPrice]= useState('');
-  const tableRef = useRef(null);
+  const [columnWidths, setColumnWidths] = useState([100, 400, 100, 150]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null); // Track the selected row index
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
-  const { data, error, isLoading } = useQuery(
-    ["products", { page: currentPage, limit: 10 }],
-    fetchProducts
-  );
+  const { data, error, isLoading } = useQuery("products", fetchProducts, {
+    onSuccess: (data) => {
+      setFilteredProducts(data.listings);
+    },
+  });
 
-  // Handle product selection and highlight row
-  const handleProductSelect = async (asin,sku,price, index) => {
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    if (data) {
+      const filtered = data.listings.filter(
+        (product) =>
+          product.itemName?.toLowerCase().includes(value.toLowerCase()) ||
+          product.asin1?.toLowerCase().includes(value.toLowerCase()) ||
+          product.sellerSku?.toLowerCase().includes(value.toLowerCase()) ||
+          product.status?.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    }
+  };
+
+  const handleProductSelect = async (asin, index) => {
     if (selectedRowIndex === index) {
-      // If the row is already selected, deselect it
       setSelectedRowIndex(null);
       setSelectedProduct(null);
       setSelectedListing(null);
       setSelectedAsin("");
-      setSelectedSku("")
     } else {
-      // Select the new row and fetch product details
       try {
-        const responseone = await axios.get(
-          `https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`
-        );
-        const responsetwo = await axios.get(
-          `https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`
-        );
+        const [responseone, responsetwo] = await Promise.all([
+          axios.get(
+            `https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`
+          ),
+          axios.get(
+            `https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`
+          ),
+        ]);
 
         setSelectedProduct(responseone.data.payload);
         setSelectedListing(responsetwo.data);
         setSelectedAsin(asin);
-        setSelectedSku(sku);
-        setSelectedPrice(price);
-        setSelectedRowIndex(index); 
-        // Highlight the selected row
+        setSelectedRowIndex(index);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
       }
     }
   };
 
-  const handleUpdate = (asin,sku) => {
-    setSelectedAsin(asin);
-    setSelectedSku(sku);
-    setShowUpdateModal(true);
+  const handleUpdate = (asin, e) => {
+    e.stopPropagation(); // Prevent row click from being triggered
+    if (asin) {
+      setSelectedAsin(asin);
+      setShowUpdateModal(true);
+    } else {
+      console.error("ASIN is not provided. Modal will not open.");
+    }
   };
 
   const handleCloseUpdateModal = () => {
     setShowUpdateModal(false);
-  };
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
   };
 
   const handleResize = (index, event) => {
@@ -118,10 +115,6 @@ const ListView = () => {
     document.addEventListener("mouseup", stopDrag);
   };
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
   if (isLoading)
     return (
       <p style={{ marginTop: "100px" }}>
@@ -130,16 +123,8 @@ const ListView = () => {
     );
   if (error) return <p style={{ marginTop: "100px" }}>{error.message}</p>;
 
-  const filteredProducts = data.organizedData.filter(
-    (product) =>
-      product.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.asin1?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sellerSku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.status?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
-    <Container fluid >
+    <Container fluid>
       <UpdatePriceFromList
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
@@ -147,27 +132,39 @@ const ListView = () => {
       />
       <Row>
         <Col md={8} style={{ paddingRight: "20px" }}>
-          {/* Search bar with fixed position */}
-          <div style={{ position: "sticky", top: 0, zIndex: 1000, backgroundColor: "white",  borderBottom: "1px solid #ccc" }}>
+          <div
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1000,
+              backgroundColor: "white",
+              borderBottom: "1px solid #ccc",
+            }}
+          >
             <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
               <Form.Control
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
-                onChange={handleSearch}
-                style={{ borderRadius: "4px" ,marginTop:"100px" }}
+                onChange={(e) => handleSearch(e.target.value)}
+                style={{ borderRadius: "4px", marginTop: "100px" }}
               />
             </InputGroup>
           </div>
 
           {filteredProducts.length > 0 ? (
-            <>
+            <div
+              style={{
+                overflowY: "scroll",
+                maxHeight: "calc(100vh - 250px)",
+                marginTop: "5px",
+              }}
+            >
               <Table
                 bordered
                 hover
                 responsive
-                ref={tableRef}
-                style={{ width: "100%", tableLayout: "fixed", marginTop:"5px"}}
+                style={{ width: "100%", tableLayout: "fixed" }}
               >
                 <thead
                   style={{
@@ -175,6 +172,9 @@ const ListView = () => {
                     color: "#333",
                     fontFamily: "Arial, sans-serif",
                     fontSize: "14px",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 100,
                   }}
                 >
                   <tr>
@@ -270,21 +270,27 @@ const ListView = () => {
                   {filteredProducts.map((item, index) => (
                     <tr
                       key={index}
-                      onClick={() => handleProductSelect(item.asin1,item.sellerSku, item.price, index)}
+                      onClick={() => handleProductSelect(item.asin1, index)}
                       style={{
                         cursor: "pointer",
                         height: "40px",
-                        backgroundColor:
-                          selectedRowIndex === index ? "#d3d3d3" : "white", // Highlight selected row
+                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#ccc",
                       }}
                     >
-                      <td>{item.status}</td>
+                      <td style={{
+                        cursor: "pointer",
+                        height: "40px",
+                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                      }} >{item.status}</td>
 
                       <td
                         style={{
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
+                          cursor: "pointer",
+                        height: "40px",
+                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
                         {item.itemName}
@@ -308,11 +314,19 @@ const ListView = () => {
                           </span>{" "}
                         </div>
                       </td>
-                      <td>${item.price}</td>
+                      <td style={{  whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "pointer",
+                        height: "40px",
+                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",}}  >${item.price}</td>
                       <td>
                         <Button
-                          style={{ backgroundColor: "#50C878" }}
-                          onClick={() => handleUpdate(item.asin1,item.sellerSku)}
+                          style={{
+                            backgroundColor: "#50C878",
+                            width: "50px",
+                          }}
+                          onClick={(e) => handleUpdate(item.asin1, e)}
                         >
                           <MdOutlineAdd />
                         </Button>
@@ -321,7 +335,7 @@ const ListView = () => {
                   ))}
                 </tbody>
               </Table>
-            </>
+            </div>
           ) : (
             <p>No products found.</p>
           )}
@@ -342,8 +356,6 @@ const ListView = () => {
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}
-                // sku={selectedSku}
-                // price={selectedPrice}
               />
             </div>
           ) : (

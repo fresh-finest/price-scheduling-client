@@ -79,3 +79,6 @@ th {
   
   text-align: left;
 }
+.selected-row {
+  background-color: #553838 !important;
+}

@@ -34,9 +34,11 @@ const fetchProductAdditionalDetails = async (asin) => {
 
 
 
-const updateSchedule = async (scheduleId, startDate, endDate, price,currentPrice, userName) => {
+const updateSchedule = async (asin,scheduleId, startDate, endDate, price,currentPrice, userName) => {
   try {
     const response = await axios.put(`${BASE_URL}/api/schedule/change/${scheduleId}`, {
+      asin,
+      scheduleId,
       startDate,
       endDate,
       price,
@@ -119,7 +121,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
     try {
     
       
-      await updateSchedule(existingSchedule._id, startDate, indefiniteEndDate ? null : endDate, price, existingSchedule.currentPrice, userName);
+      await updateSchedule(asin,existingSchedule._id, startDate, indefiniteEndDate ? null : endDate, price, existingSchedule.currentPrice, userName);
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,

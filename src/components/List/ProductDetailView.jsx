@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
-
 import EditScheduleFromList from './EditScheduleFromList';
 
-const ProductDetailView = ({ product, listing, asin, sku}) => {
+const ProductDetailView = ({ product, listing, asin, sku }) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null); // Track which schedule is being edited
 
 
-  console.log("sku:"+sku);
+  const formatDateTime = (dateString) => {
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    };
+    return new Date(dateString).toLocaleString("en-US", options);
+  };
+
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
@@ -96,6 +106,8 @@ const ProductDetailView = ({ product, listing, asin, sku}) => {
     },
   };
 
+  const now = new Date();
+
   return (
     <div style={{ width: "100%" }}>
       <Card style={detailStyles.card}>
@@ -137,30 +149,37 @@ const ProductDetailView = ({ product, listing, asin, sku}) => {
                 </tr>
               </thead>
               <tbody>
-                {priceSchedule.map((sc) => (
-                  <tr key={sc._id}>
-                    <td style={{width:"200px"}}>{new Date(sc.startDate).toLocaleString()} <span style={{color:"green"}}>Changed Price: ${sc.price}</span></td>
-                    <td style={{width:"200px"}}>
-                  {sc.endDate ? (
-                    < >
-                      {new Date(sc.endDate).toLocaleString()}
-                      {sc.currentPrice && (
-                        <p style={{color: "green" }}>
-                          Reverted Price: ${sc.currentPrice}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <span style={{color:"red"}}>Until Changed</span>
-                  )}
-                </td>
-                    <td>
-                      <Button variant="secondary" style={{marginTop:"20px"}} onClick={() => handleEdit(sc)}>
-                        Update 
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {priceSchedule
+                  .filter(sc => sc.status !== 'deleted') // Exclude deleted schedules
+                  .map((sc) => (
+                    <tr key={sc._id}>
+                      <td style={{width:"200px"}}>{formatDateTime(sc.startDate)} <span style={{color:"green"}}>Changed Price: ${sc.price}</span></td>
+                      <td style={{width:"200px"}}>
+                    {sc.endDate ? (
+                      < >
+                        {(formatDateTime(sc.endDate))}
+                        {sc.currentPrice && (
+                          <p style={{color: "green" }}>
+                            Reverted Price: ${sc.currentPrice}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{color:"red"}}>Until Changed</span>
+                    )}
+                  </td>
+                      <td>
+                        <Button 
+                          variant="secondary" 
+                          style={{marginTop:"20px"}} 
+                          onClick={() => handleEdit(sc)}
+                          disabled={sc.endDate && new Date(sc.endDate) < now} // Disable button if endDate is in the past
+                        >
+                          Update 
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </Table>
           ) : (

@@ -7,15 +7,14 @@ import {
   Container,
   Row,
   Col,
-  Button,
-  Modal,
 } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 
-const BASE_URL = "https://dps-server-b829cf5871b7.herokuapp.com";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://dps-server-b829cf5871b7.herokuapp.com"
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
@@ -26,9 +25,6 @@ export default function HistoryView() {
   const [error, setError] = useState(null);
   const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
-  const [editingItem, setEditingItem] = useState(null); // The item being edited
-  const [editStartDate, setEditStartDate] = useState(null); // Editing start date
-  const [editEndDate, setEditEndDate] = useState(null); // Editing end date
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -48,16 +44,18 @@ export default function HistoryView() {
   }, [selectedUser]);
 
   const fetchData = async () => {
+
+    const url = selectedUser
+    ? `${BASE_URL}/api/schedule/${selectedUser}/list`
+    : `${BASE_URL}/api/history`;
     setLoading(true);
     try {
-      const url = selectedUser
-        ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-        : `${BASE_URL}/api/schedule`;
+      // const response = await axios.get(`${BASE_URL}/api/history`);
       const response = await axios.get(url);
+      const sortedData = Array.isArray(response.data.result)
+      ? response.data.result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      : [];
 
-      const sortedData = response.data.result.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
 
       setData(sortedData);
     } catch (err) {
@@ -84,40 +82,6 @@ export default function HistoryView() {
     setFilterEndDate(end);
   };
 
-  const handleEditClick = (item) => {
-    setEditingItem(item);
-    setEditStartDate(new Date(item.startDate));
-    setEditEndDate(item.endDate ? new Date(item.endDate) : null);
-  };
-
-  const handleSaveChanges = async () => {
-    if (!editingItem) return;
-
-    try {
-      const updatedItem = {
-        startDate: editStartDate,
-        endDate: editEndDate,
-      };
-
-      await axios.put(
-        `${BASE_URL}/api/schedule/${editingItem._id}`,
-        updatedItem
-      );
-
-      setData((prevData) =>
-        prevData.map((item) =>
-          item._id === editingItem._id
-            ? { ...item, startDate: editStartDate, endDate: editEndDate }
-            : item
-        )
-      );
-
-      setEditingItem(null);
-    } catch (err) {
-      console.error("Error updating schedule:", err);
-    }
-  };
-
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -130,29 +94,55 @@ export default function HistoryView() {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
+  const getDisplayData = (item) => {
+    if (item.action === "updated") {
+      return item.updatedState || item.previousState || {};
+    }
+    return item;
+  };
+
   const filteredData = data
-    .filter(
-      (item) =>
-        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) || // Filter by product name
-        item.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
     .filter((item) => {
-      const itemDate = new Date(item.createdAt);
+      const displayData = getDisplayData(item);
+      return (
+        displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    })
+    .filter((item) => {
+      const displayData = getDisplayData(item);
+      const itemStartDate = displayData.startDate
+        ? new Date(displayData.startDate)
+        : null;
+      const itemEndDate = displayData.endDate
+        ? new Date(displayData.endDate)
+        : null;
 
       if (filterStartDate && filterEndDate) {
-        // Adjust the end date to include the whole day
         const adjustedEndDate = new Date(filterEndDate);
         adjustedEndDate.setHours(23, 59, 59, 999);
-        return itemDate >= filterStartDate && itemDate <= adjustedEndDate;
+        return (
+          (itemStartDate &&
+            itemStartDate >= filterStartDate &&
+            itemStartDate <= adjustedEndDate) ||
+          (itemEndDate &&
+            itemEndDate >= filterStartDate &&
+            itemEndDate <= adjustedEndDate)
+        );
       } else if (filterStartDate) {
-        return itemDate >= filterStartDate;
+        return (
+          (itemStartDate && itemStartDate >= filterStartDate) ||
+          (itemEndDate && itemEndDate >= filterStartDate)
+        );
       } else if (filterEndDate) {
-        // Adjust the end date to include the whole day
         const adjustedEndDate = new Date(filterEndDate);
         adjustedEndDate.setHours(23, 59, 59, 999);
-        return itemDate <= adjustedEndDate;
+        return (
+          (itemStartDate && itemStartDate <= adjustedEndDate) ||
+          (itemEndDate && itemEndDate <= adjustedEndDate)
+        );
       }
       return true;
     });
@@ -227,7 +217,7 @@ export default function HistoryView() {
             <th style={{ width: "300px" }}>Product Details</th>
             <th style={{ width: "200px" }}>Duration</th>
             <th style={{ width: "90px" }}>Changed By</th>
-            <th style={{ width: "60px" }}>Status</th>
+            <th style={{ width: "60px" }}>Action</th>
           </tr>
         </thead>
         <tbody
@@ -238,55 +228,50 @@ export default function HistoryView() {
           }}
         >
           {filteredData.length > 0 ? (
-            filteredData.map((item) => (
-              <tr key={item._id} style={{ height: "50px" }}>
-                <td>
-                  <img
-                    src={item?.imageURL}
-                    alt=""
+            filteredData.map((item) => {
+              const displayData = getDisplayData(item);
+
+              return (
+                <tr key={item._id} style={{ height: "50px" }}>
+                  <td>
+                    <img
+                      src={displayData?.imageURL || "placeholder-image-url"}
+                      alt=""
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </td>
+                  <td
                     style={{
-                      width: "80px",
-                      height: "80px",
-                      objectFit: "cover",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
-                  />
-                </td>
-                <td
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {item.title}
-                  <div>
-                    <span className="bubble-text">{item.asin}</span>{" "}
-                    <span className="bubble-text">{item.sku}</span>
-                  </div>
-                </td>
-                <td>
-                  <div>
-                    <span>
-                      {formatDateTime(item.startDate)} --
-                      {item.endDate ? (
-                        <>
-                          {formatDateTime(item.endDate)}
-                          {item.currentPrice && (
-                            <p
-                              style={{
-                                margin: 0,
-                                color: "green",
-                                textAlign: "right",
-                                marginRight: "50px",
-                              }}
-                            >
-                              ${item.currentPrice}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <span>No End Date</span>
+                  >
+                    {displayData?.title || "N/A"}
+                    <div>
+                      <span className="bubble-text">
+                        {displayData?.asin || "N/A"}
+                      </span>{" "}
+                      <span className="bubble-text">
+                        {displayData?.sku || "N/A"}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                      {/* <span>
+                        {displayData?.startDate
+                          ? formatDateTime(displayData.startDate)
+                          : "N/A"}{" "}
+                        --{" "}
+                        {displayData?.endDate
+                          ? formatDateTime(displayData.endDate)
+                          : "No End Date"}
+                        {displayData?.currentPrice && (
                           <p
                             style={{
                               margin: 0,
@@ -295,33 +280,89 @@ export default function HistoryView() {
                               marginRight: "50px",
                             }}
                           >
-                            Until Change
+                            ${displayData.currentPrice}
                           </p>
-                        </>
-                      )}
-                      <div style={{ position: "relative" }}>
-                        <p
-                          style={{
-                            color: "green",
-                            position: "absolute",
-                            left: "50px",
-                            bottom: "0px",
-                            margin: 0,
-                          }}
-                        >
-                          ${item.price}
-                        </p>
-                      </div>
-                    </span>
-                  </div>
-                </td>
-
-                <td>
-                  {item.userName} <p>{formatDateTime(item?.createdAt)}</p>
-                </td>
-                <td>{item?.firstChange ? "Price" : `Schedule`}</td>
-              </tr>
-            ))
+                        )}
+                        <div style={{ position: "relative" }}>
+                          <p
+                            style={{
+                              color: "green",
+                              position: "absolute",
+                              left: "50px",
+                              bottom: "0px",
+                              margin: 0,
+                            }}
+                          >
+                            ${displayData?.price || "N/A"}
+                          </p>
+                        </div>
+                      </span> */}
+                      <span>
+                        {displayData?.startDate
+                          ? formatDateTime(displayData.startDate)
+                          : "N/A"}{" "}
+                        --{" "}
+                        {displayData?.endDate ? (
+                          formatDateTime(displayData.endDate)
+                        ) : (
+                          <span style={{ color: "blue" }}>No End Date</span>
+                        )}
+                        {displayData?.endDate ? (
+                          displayData?.currentPrice && (
+                            <p
+                              style={{
+                                margin: 0,
+                                color: "green",
+                                textAlign: "right",
+                                marginRight: "50px",
+                              }}
+                            >
+                              ${displayData.currentPrice}
+                            </p>
+                          )
+                        ) : (
+                          <p
+                            style={{
+                              margin: 0,
+                              color: "orange",
+                              textAlign: "right",
+                              marginRight: "50px",
+                            }}
+                          >
+                            Until Changed
+                          </p>
+                        )}
+                        <div style={{ position: "relative" }}>
+                          <p
+                            style={{
+                              color: "green",
+                              position: "absolute",
+                              left: "50px",
+                              bottom: "0px",
+                              margin: 0,
+                            }}
+                          >
+                            ${displayData?.price || "N/A"}
+                          </p>
+                        </div>
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    {item.userName} <p>{formatDateTime(item.timestamp)}</p>
+                  </td>
+                  <td>
+                    {item.action === "deleted" ? (
+                      <span style={{ color: "red" }}>Deleted</span>
+                    ) : item.action === "updated" ? (
+                      <span style={{ color: "orange" }}>Updated</span>
+                    ) : (
+                      <span>Created</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
               <td colSpan="7" className="text-center">
@@ -331,48 +372,6 @@ export default function HistoryView() {
           )}
         </tbody>
       </Table>
-
-      {editingItem && (
-        <Modal show={true} onHide={() => setEditingItem(null)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Edit Duration</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group controlId="formEditStartDate">
-                <Form.Label>Start Date and Time</Form.Label>
-                <DatePicker
-                  selected={editStartDate}
-                  onChange={(date) => setEditStartDate(date)}
-                  showTimeSelect
-                  dateFormat="Pp"
-                  className="form-control"
-                  required
-                />
-              </Form.Group>
-              <Form.Group controlId="formEditEndDate">
-                <Form.Label>End Date and Time</Form.Label>
-                <DatePicker
-                  selected={editEndDate}
-                  onChange={(date) => setEditEndDate(date)}
-                  showTimeSelect
-                  dateFormat="Pp"
-                  className="form-control"
-                  required
-                />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setEditingItem(null)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleSaveChanges}>
-              Save Changes
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
     </Container>
   );
 }
