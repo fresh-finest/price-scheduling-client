@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
+import axios from 'axios';
+
 import EditScheduleFromList from './EditScheduleFromList';
+
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
 
 const ProductDetailView = ({ product, listing, asin, sku }) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
@@ -28,10 +32,16 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
     const getData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`https://dps-server-b829cf5871b7.herokuapp.com/api/schedule/${asin}`, {
-          method: "GET",
-          signal,
-        });
+        const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+        const sortedData = response.data.result.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setPriceSchedule(sortedData);
+        setUsers(response.data.result);
+        // const response = await fetch(`https://dps-server-b829cf5871b7.herokuapp.com/api/schedule/${asin}`, {
+        //   method: "GET",
+        //   signal,
+        // });
 
         if (!response.ok) {
           throw new Error(`Error fetching data: ${response.statusText}`);
