@@ -11,7 +11,7 @@ function ResetPassword() {
     const token = searchParams.get('token'); // Extract the token from the URL query params
     const emailFromUrl = searchParams.get('email'); // Extract the email from the URL query params
     const [email, setEmail] = useState(emailFromUrl || ''); // Use the email from the URL or empty if not present
-    const [username, setUsername] = useState('');
+    const [userName, setUserName] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [error, setError] = useState('');
@@ -37,7 +37,7 @@ function ResetPassword() {
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/reset-password`, {
                 token,  // Pass the token in the request body
-                username,
+                userName,
                 newPassword,
                 confirmNewPassword,
                 email,
@@ -80,8 +80,8 @@ function ResetPassword() {
                         type="text"
                         className="form-control"
                         placeholder='Enter Your Name'
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
                         required
                     />
                 </div>
