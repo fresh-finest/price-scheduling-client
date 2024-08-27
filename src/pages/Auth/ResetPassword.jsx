@@ -37,10 +37,11 @@ function ResetPassword() {
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/reset-password`, {
                 token,  // Pass the token in the request body
+                username,
                 newPassword,
                 confirmNewPassword,
                 email,
-                username
+                
             });
 
             setSuccess(response.data.message);
