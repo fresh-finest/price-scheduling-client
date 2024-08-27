@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Table, Form, Button, Modal, Container } from 'react-bootstrap';
 import axios from 'axios';
 
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
 // const BASE_URL = 'http://localhost:3000';
-
+const BASE_URL ='https://dps-server-b829cf5871b7.herokuapp.com'
 function ManageUser() {
     const [users, setUsers] = useState([]);
     const [showModal, setShowModal] = useState(false);
-    const [newUser, setNewUser] = useState({ userName: '', email: '', password: '', designation: '', role: 'user', permissions: { read: true, write: false } });
+    const [newUser, setNewUser] = useState({
+        email: '',
+        role: 'user',
+        permissions: { read: true, write: false }
+    });
     const [editingUser, setEditingUser] = useState(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
@@ -29,9 +32,17 @@ function ManageUser() {
     const handleShowModal = (user = null) => {
         if (user) {
             setEditingUser(user);
-            setNewUser(user);
+            setNewUser({
+                email: user.email,
+                role: user.role,
+                permissions: user.permissions
+            });
         } else {
-            setNewUser({ userName: '', email: '', password: '', designation: '', role: 'user', permissions: { read: true, write: false } });
+            setNewUser({
+                email: '',
+                role: 'user',
+                permissions: { read: true, write: false }
+            });
         }
         setShowModal(true);
     };
@@ -90,8 +101,9 @@ function ManageUser() {
                 // Update existing user
                 await axios.patch(`${BASE_URL}/api/user/${editingUser._id}`, newUser);
             } else {
-                // Create new user
-                await axios.post(`${BASE_URL}/api/user`, newUser);
+                // Send invitation
+                const response = await axios.post(`${BASE_URL}/api/user/invite`, newUser);
+                console.log(response.data); // Handle the response as needed
             }
             fetchUsers();
             handleCloseModal();
@@ -109,7 +121,6 @@ function ManageUser() {
                 <thead>
                     <tr>
                         <th>Image</th>
-                        <th>Username</th>
                         <th>Email</th>
                         <th>Role</th>
                         <th>Permissions</th>
@@ -120,7 +131,6 @@ function ManageUser() {
                     {users.map(user => (
                         <tr key={user._id}>
                             <td><img src={user.avatar} alt="avatar" style={{ width: '50px', height: '50px', borderRadius: '50%' }} /></td>
-                            <td>{user.userName}</td>
                             <td>{user.email}</td>
                             <td>
                                 <Form.Control
@@ -158,19 +168,10 @@ function ManageUser() {
 
             <Modal show={showModal} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{editingUser ? 'Edit User' : 'Add User'}</Modal.Title>
+                    <Modal.Title>{editingUser ? 'Edit User' : 'Invite User'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
-                        <Form.Group controlId="userName">
-                            <Form.Label>Username</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="userName"
-                                value={newUser.userName}
-                                onChange={handleInputChange}
-                            />
-                        </Form.Group>
                         <Form.Group controlId="email">
                             <Form.Label>Email</Form.Label>
                             <Form.Control
@@ -180,26 +181,7 @@ function ManageUser() {
                                 onChange={handleInputChange}
                             />
                         </Form.Group>
-                        {!editingUser && (
-                            <Form.Group controlId="password">
-                                <Form.Label>Password</Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    name="password"
-                                    value={newUser.password}
-                                    onChange={handleInputChange}
-                                />
-                            </Form.Group>
-                        )}
-                        <Form.Group controlId="designation">
-                            <Form.Label>Designation</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="designation"
-                                value={newUser.designation}
-                                onChange={handleInputChange}
-                            />
-                        </Form.Group>
+                        
                         <Form.Group controlId="role">
                             <Form.Label>Role</Form.Label>
                             <Form.Control
@@ -224,7 +206,7 @@ function ManageUser() {
                         </Form.Group>
                         <div style={{display:"flex",justifyContent:"center"}}>
                             <Button onClick={handleSubmit} style={{width:"25%", backgroundColor:"black"}}>
-                                {editingUser ? 'Update User' : 'Create User'}
+                                {editingUser ? 'Update User' : 'Invite User'}
                             </Button>
                         </div>
                     </Form>

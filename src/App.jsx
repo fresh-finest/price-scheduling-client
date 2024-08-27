@@ -9,6 +9,7 @@ import PrivateRoute from './pages/Auth/PrivateRoute';
 import NotFound from './pages/NotFound';
 import History from './pages/History';
 import ManageUserByAdmin from './pages/ManageUserByAdmin';
+import ResetPassword from './pages/Auth/ResetPassword';
 
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
              <ManageUserByAdmin />
           </PrivateRoute>
            } />
+           <Route path="/reset-password" element={<ResetPassword/>}/>
          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
