@@ -120,7 +120,7 @@ function ManageUser() {
             <Table bordered hover responsive style={{ marginTop: '20px' }}>
                 <thead>
                     <tr>
-                        <th>Image</th>
+                        <th>User Name</th>
                         <th>Email</th>
                         <th>Role</th>
                         <th>Permissions</th>
@@ -130,7 +130,9 @@ function ManageUser() {
                 <tbody>
                     {users.map(user => (
                         <tr key={user._id}>
-                            <td><img src={user.avatar} alt="avatar" style={{ width: '50px', height: '50px', borderRadius: '50%' }} /></td>
+                            {/* <td><img src={user.avatar} alt="avatar" style={{ width: '50px', height: '50px', borderRadius: '50%' }} /></td>
+                             */}
+                             <td>{user.userName ? user.userName : (<span style={{color:"red"}}>Not Accepted</span>)}</td>
                             <td>{user.email}</td>
                             <td>
                                 <Form.Control

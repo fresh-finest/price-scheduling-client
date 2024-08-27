@@ -13,6 +13,7 @@ import { useQuery } from "react-query";
 import { MdOutlineAdd } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
+import { useSelector } from 'react-redux';
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
@@ -31,6 +32,11 @@ const ListView = () => {
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
+
+  const { currentUser } = useSelector((state) => state.user);
+
+  const userName = currentUser?.userName || '';
+  console.log("role:"+currentUser.role+"write: "+currentUser.permissions.write+"username:"+userName);
 
   const { data, error, isLoading } = useQuery("products", fetchProducts, {
     onSuccess: (data) => {
@@ -327,6 +333,8 @@ const ListView = () => {
                             width: "50px",
                           }}
                           onClick={(e) => handleUpdate(item.asin1, e)}
+
+                          disabled={(!currentUser?.permissions?.write)}
                         >
                           <MdOutlineAdd />
                         </Button>

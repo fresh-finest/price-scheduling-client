@@ -72,8 +72,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [imageURL, setImageUrl] = useState('');
   const { currentUser } = useSelector((state) => state.user);
 
-
   const userName = currentUser?.userName || '';
+  // console.log("role:"+currentUser.role+"write: "+currentUser.permissions.read+"username:"+userName);
 
 
   useEffect(() => {
