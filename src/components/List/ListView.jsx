@@ -79,7 +79,7 @@ const ListView = () => {
     let filtered = products;
 
     if (onlyScheduled) {
-      const scheduledAsins = scheduled.map(item => item.asin);
+      const scheduledAsins = scheduled.filter(item=>item.status !== "deleted").map(item => item.asin);
       filtered = products.filter(product => scheduledAsins.includes(product.asin1));
     }
 
@@ -226,7 +226,7 @@ const ListView = () => {
               style={{ borderRadius: "4px", marginTop: "100px",backgroundColor:"#5AB36D",border:"none"}}
               onClick={handleToggleFilter}
             >
-              {filterScheduled ? "Show All" : "Show Scheduled Only"}
+              {filterScheduled ? "Show All" : "Scheduled"}
             </Button>
           </div>
 
