@@ -77,9 +77,14 @@ const ListView = () => {
   // Handle filtering of products
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
+    const now = new Date();
 
     if (onlyScheduled) {
-      const scheduledAsins = scheduled.filter(item=>item.status !== "deleted").map(item => item.asin);
+      const scheduledAsins = scheduled
+        .filter(item => item.status !== "deleted" && (item.endDate ==null || (!item.endDate || new Date(item.endDate) >= now)) )
+        //&& (item.endDate ==null && (!item.endDate || new Date(item.endDate) > now))
+        .map(item => item.asin);
+
       filtered = products.filter(product => scheduledAsins.includes(product.asin1));
     }
 
@@ -222,7 +227,6 @@ const ListView = () => {
               />
             </InputGroup>
             <Button
-              // variant={filterScheduled ? "primary" : "outline-primary"}
               style={{ borderRadius: "4px", marginTop: "100px",backgroundColor:"#5AB36D",border:"none"}}
               onClick={handleToggleFilter}
             >
@@ -452,7 +456,11 @@ const ListView = () => {
               </Table>
             </div>
           ) : (
-            <p>Loading....</p>
+            filterScheduled && (
+              <p style={{ marginTop: "20px", color: "#888", textAlign: "center" }}>
+                There is no active schedule.
+              </p>
+            )
           )}
         </Col>
         <Col

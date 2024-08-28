@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
 // const BASE_URL ='http://localhost:3000'
 
-
+// Fetch product details function (provided in your original code)
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -21,7 +21,7 @@ const fetchProductDetails = async (asin) => {
   }
 };
 
-
+// Fetch additional product details function (provided in your original code)
 const fetchProductAdditionalDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/details/${asin}`);
@@ -32,6 +32,16 @@ const fetchProductAdditionalDetails = async (asin) => {
   }
 };
 
+// Fetch existing schedules for an ASIN
+const fetchExistingSchedules = async (asin) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/schedule`);
+    return response.data.result.filter(schedule => schedule.asin === asin);
+  } catch (error) {
+    console.error('Error fetching existing schedules:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+};
 
 const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate) => {
   try {
@@ -66,25 +76,23 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [existingSchedules, setExistingSchedules] = useState([]);
 
   const [title, setTitle] = useState('');
   const [imageURL, setImageUrl] = useState('');
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || '';
-  // console.log("role:"+currentUser.role+"write: "+currentUser.permissions.read+"username:"+userName);
-
 
   useEffect(() => {
     if (show && asin) {
       resetForm();
       fetchProductDetailsByAsin(asin);
+      fetchSchedules(asin);
     } else if (show && !asin) {
       onClose();  // Close the modal if asin is not provided
     }
   }, [show, asin]);
-
 
   const resetForm = () => {
     setSku('');
@@ -97,6 +105,14 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     setErrorMessage('');
   };
 
+  const fetchSchedules = async (asin) => {
+    try {
+      const schedules = await fetchExistingSchedules(asin);
+      setExistingSchedules(schedules);
+    } catch (error) {
+      setErrorMessage('Error fetching existing schedules.');
+    }
+  };
 
   const fetchProductDetailsByAsin = async (asin) => {
     setLoading(true);
@@ -136,6 +152,22 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         return;
       }
 
+      // Check for overlapping schedules
+      const overlappingSchedule = existingSchedules.find(schedule => {
+        const existingStart = new Date(schedule.startDate);
+        const existingEnd = new Date(schedule.endDate || startDate); // if no endDate, treat as ongoing
+        return (
+          (startDate >= existingStart && startDate <= existingEnd) || // new start is within existing range
+          (endDate && endDate >= existingStart && endDate <= existingEnd) || // new end is within existing range
+          (startDate <= existingStart && (endDate ? endDate >= existingEnd : true)) // new range completely overlaps existing
+        );
+      });
+
+      if (overlappingSchedule) {
+        setErrorMessage('Cannot create a schedule during an existing scheduled period.');
+        setLoading(false);
+        return;
+      }
 
       await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate);
 

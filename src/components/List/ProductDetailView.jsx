@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
-// import { GrUpdate } from "react-icons/gr";
 import { LuPencilLine } from "react-icons/lu";
 import axios from 'axios';
 import { useSelector } from 'react-redux';
@@ -18,7 +17,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || '';
-  // console.log("role:"+currentUser.role+"write: "+currentUser.permissions.write+"username:"+userName);
+
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -43,11 +42,6 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         setPriceSchedule(sortedData);
-        // setUsers(response.data.result);
-        // const response = await fetch(`https://dps-server-b829cf5871b7.herokuapp.com/api/schedule/${asin}`, {
-        //   method: "GET",
-        //   signal,
-        // });
 
         if (!response.ok) {
           throw new Error(`Error fetching data: ${response.statusText}`);
@@ -114,11 +108,18 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
     info: {
       fontSize: '14px',
       marginBottom: '5px',
-      marginleft:"10px"
+      marginLeft: "10px"
     },
-    table: {
+    tableContainer: {
       marginTop: '20px',
       width: '100%',
+      maxHeight: '420px', // Set a max height for the table container
+      overflowY: 'scroll', // Enable vertical scrolling
+      overflowX: 'hidden',
+    },
+    table: {
+      width: '100%',
+      marginBottom: 0,
     },
   };
 
@@ -128,76 +129,74 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
     <div style={{ width: "100%" }}>
       <Card style={detailStyles.card}>
         <Card.Body>
-          <div >
-          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-          <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
-          <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
-          </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft:"40px" }}>
-              
+          <div>
+            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+              <Card.Img variant="top" src={product?.AttributeSets[0]?.SmallImage?.URL} style={detailStyles.image} />
+              <Card.Title style={detailStyles.title}>{product?.AttributeSets[0]?.Title}</Card.Title>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft: "40px" }}>
               <Card.Text style={detailStyles.info}>
                 <strong>ASIN:</strong> {product?.Identifiers?.MarketplaceASIN.ASIN}
               </Card.Text>
               <Card.Text style={detailStyles.info}>
                 <strong>, SKU:</strong> {product?.AttributeSets[0]?.Model}
-                {/* <strong>, SKU:</strong> {sku} */}
               </Card.Text>
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft:"40px" }}>
-            <Card.Text style={detailStyles.info}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', marginLeft: "40px" }}>
+              <Card.Text style={detailStyles.info}>
                 <strong>Price:</strong> ${price?.Amount}
-                {/* <strong>Price:</strong> ${price} */}
               </Card.Text>
               <Card.Text style={detailStyles.info}>
-                <strong>,  BSR:</strong> {product?.SalesRankings[0]?.Rank}
+                <strong>, BSR:</strong> {product?.SalesRankings[0]?.Rank}
               </Card.Text>
             </div>
           </div>
 
-          <h4 style={{ marginTop: '20px',fontWeight:"bold" }}>Schedule Details</h4>
+          <h4 style={{ marginTop: '20px', fontWeight: "bold" }}>Schedule Details</h4>
           {priceSchedule.length > 0 ? (
-            <Table striped bordered hover size="sm" style={detailStyles.table}>
-              <thead>
-                <tr>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Update</th>
-                </tr>
-              </thead>
-              <tbody>
-                {priceSchedule
-                  .filter(sc => sc.status !== 'deleted') 
-                  .map((sc) => (
-                    <tr key={sc._id}>
-                      <td style={{width:"200px"}}>{formatDateTime(sc.startDate)} <span style={{color:"green"}}>Changed Price: ${sc.price}</span></td>
-                      <td style={{width:"200px"}}>
-                    {sc.endDate ? (
-                      < >
-                        {(formatDateTime(sc.endDate))}
-                        {sc.currentPrice && (
-                          <p style={{color: "green" }}>
-                            Reverted Price: ${sc.currentPrice}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <span style={{color:"red"}}>Until Changed</span>
-                    )}
-                  </td>
-                      <td>
-                        <Button 
-                          // variant="secondary" 
-                          style={{marginTop:"20px",backgroundColor:"#5AB36D",border:"none"}} 
-                          onClick={() => handleEdit(sc)}
-                          disabled={(sc.endDate!=null && ((sc.endDate && new Date(sc.endDate)) < now))||(!currentUser?.permissions?.write)} // Disable button if endDate is in the past
-                        >
-                         <LuPencilLine />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </Table>
+            <div style={detailStyles.tableContainer}>
+              <Table striped bordered hover size="sm" style={detailStyles.table}>
+                <thead>
+                  <tr>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Update</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priceSchedule
+                    .filter(sc => sc.status !== 'deleted') 
+                    .map((sc) => (
+                      <tr key={sc._id}>
+                        <td style={{ width: "200px" }}>{formatDateTime(sc.startDate)} <span style={{ color: "green" }}>Changed Price: ${sc.price}</span></td>
+                        <td style={{ width: "200px" }}>
+                          {sc.endDate ? (
+                            <>
+                              {(formatDateTime(sc.endDate))}
+                              {sc.currentPrice && (
+                                <p style={{ color: "green" }}>
+                                  Reverted Price: ${sc.currentPrice}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <span style={{ color: "red" }}>Until Changed</span>
+                          )}
+                        </td>
+                        <td>
+                          <Button 
+                            style={{ marginTop: "20px", backgroundColor: "#5AB36D", border: "none" }} 
+                            onClick={() => handleEdit(sc)}
+                            disabled={(sc.endDate != null && ((sc.endDate && new Date(sc.endDate)) < now)) || (!currentUser?.permissions?.write)} // Disable button if endDate is in the past
+                          >
+                            <LuPencilLine />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </Table>
+            </div>
           ) : (
             <p>No schedule available for this ASIN.</p>
           )}
