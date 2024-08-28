@@ -10,7 +10,7 @@ import {
   Button,
 } from "react-bootstrap";
 import { useQuery } from "react-query";
-import { MdOutlineAdd } from "react-icons/md";
+import { MdOutlineAdd, MdContentCopy } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from 'react-redux';
@@ -119,6 +119,16 @@ const ListView = () => {
 
     document.addEventListener("mousemove", doDrag);
     document.addEventListener("mouseup", stopDrag);
+  };
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text)
+      // .then(() => {
+      //   alert('Copied to clipboard: ' + text);
+      // })
+      .catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
   };
 
   if (isLoading)
@@ -309,9 +319,29 @@ const ListView = () => {
                               alignItems: "center",
                             }}
                           >
-                            {item.asin1}
+                            {item.asin1}{" "}
+                            <MdContentCopy
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(item.asin1);
+                              }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
+                            />
                           </span>{" "}
-                          <span className="bubble-text">{item.sellerSku}</span>{" "}
+                          <span className="bubble-text"  style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }} >
+                            {item.sellerSku}{" "}
+                            <MdContentCopy
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(item.sellerSku);
+                              }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
+                            />
+                          </span>{" "}
                           <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"
                               ? "FBM"
@@ -333,7 +363,6 @@ const ListView = () => {
                             width: "50px",
                           }}
                           onClick={(e) => handleUpdate(item.asin1, e)}
-
                           disabled={(!currentUser?.permissions?.write)}
                         >
                           <MdOutlineAdd />
