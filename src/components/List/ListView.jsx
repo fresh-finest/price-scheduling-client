@@ -10,7 +10,7 @@ import {
   Button,
 } from "react-bootstrap";
 import { useQuery } from "react-query";
-import { MdOutlineAdd, MdContentCopy } from "react-icons/md";
+import { MdOutlineAdd, MdContentCopy, MdCheck } from "react-icons/md";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from 'react-redux';
@@ -32,6 +32,8 @@ const ListView = () => {
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
+  const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -121,11 +123,17 @@ const ListView = () => {
     document.addEventListener("mouseup", stopDrag);
   };
 
-  const handleCopy = (text) => {
+  const handleCopy = (text, type, index) => {
     navigator.clipboard.writeText(text)
-      // .then(() => {
-      //   alert('Copied to clipboard: ' + text);
-      // })
+      .then(() => {
+        if (type === 'asin') {
+          setCopiedAsinIndex(index);
+          setTimeout(() => setCopiedAsinIndex(null), 2000);
+        } else if (type === 'sku') {
+          setCopiedSkuIndex(index);
+          setTimeout(() => setCopiedSkuIndex(null), 2000);
+        }
+      })
       .catch(err => {
         console.error('Failed to copy text: ', err);
       });
@@ -320,27 +328,39 @@ const ListView = () => {
                             }}
                           >
                             {item.asin1}{" "}
-                            <MdContentCopy
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCopy(item.asin1);
-                              }}
-                              style={{ marginLeft: "5px", cursor: "pointer" }}
-                            />
+                            {copiedAsinIndex === index ? (
+                              <MdCheck
+                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
+                              />
+                            ) : (
+                              <MdContentCopy
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(item.asin1, 'asin', index);
+                                }}
+                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                              />
+                            )}
                           </span>{" "}
-                          <span className="bubble-text"  style={{
+                          <span className="bubble-text" style={{
                               cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
                             }} >
                             {item.sellerSku}{" "}
-                            <MdContentCopy
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCopy(item.sellerSku);
-                              }}
-                              style={{ marginLeft: "5px", cursor: "pointer" }}
-                            />
+                            {copiedSkuIndex === index ? (
+                              <MdCheck
+                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
+                              />
+                            ) : (
+                              <MdContentCopy
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(item.sellerSku, 'sku', index);
+                                }}
+                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                              />
+                            )}
                           </span>{" "}
                           <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"
