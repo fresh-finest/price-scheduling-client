@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
-import { GrUpdate } from "react-icons/gr";
-
+// import { GrUpdate } from "react-icons/gr";
+import { LuPencilLine } from "react-icons/lu";
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
@@ -191,7 +191,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                           onClick={() => handleEdit(sc)}
                           disabled={(sc.endDate!=null && ((sc.endDate && new Date(sc.endDate)) < now))||(!currentUser?.permissions?.write)} // Disable button if endDate is in the past
                         >
-                         <GrUpdate />
+                         <LuPencilLine />
                         </Button>
                       </td>
                     </tr>
