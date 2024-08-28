@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
+import { GrUpdate } from "react-icons/gr";
+
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
@@ -184,12 +186,12 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                   </td>
                       <td>
                         <Button 
-                          variant="secondary" 
-                          style={{marginTop:"20px"}} 
+                          // variant="secondary" 
+                          style={{marginTop:"20px",backgroundColor:"#5AB36D",border:"none"}} 
                           onClick={() => handleEdit(sc)}
-                          disabled={(sc.endDate && new Date(sc.endDate)) < now||(!currentUser?.permissions?.write)} // Disable button if endDate is in the past
+                          disabled={(sc.endDate!=null && ((sc.endDate && new Date(sc.endDate)) < now))||(!currentUser?.permissions?.write)} // Disable button if endDate is in the past
                         >
-                          Update 
+                         <GrUpdate />
                         </Button>
                       </td>
                     </tr>

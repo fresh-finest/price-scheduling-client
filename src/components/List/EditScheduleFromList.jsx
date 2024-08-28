@@ -177,7 +177,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formPrice" style={{ marginBottom: '15px' }}>
-              <Form.Label>Changed to : {existingSchedule.price}</Form.Label>
+              <Form.Label>Changed to : ${existingSchedule.price}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formStartDate" style={{ marginBottom: '15px' }}>
               <Form.Label>Start Date and Time</Form.Label>

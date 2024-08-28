@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Container,
@@ -11,16 +11,26 @@ import {
 } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { MdOutlineAdd, MdContentCopy, MdCheck } from "react-icons/md";
+import { IoMdAdd } from "react-icons/io";
+
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from 'react-redux';
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
+const BASE_URL ='https://dps-server-b829cf5871b7.herokuapp.com'
+
 // Fetch products function
 const fetchProducts = async () => {
   const response = await axios.get("https://all-product-list-5fffc5e9c5f7.herokuapp.com/fetch-all-listings");
   return response.data;
+};
+
+// Fetch scheduled data function
+const fetchScheduledData = async () => {
+  const response = await axios.get(`${BASE_URL}/api/schedule`);
+  return response.data.result;
 };
 
 const ListView = () => {
@@ -34,30 +44,63 @@ const ListView = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [scheduledData, setScheduledData] = useState([]);
+  const [filterScheduled, setFilterScheduled] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || '';
   console.log("role:"+currentUser.role+"write: "+currentUser.permissions.write+"username:"+userName);
 
-  const { data, error, isLoading } = useQuery("products", fetchProducts, {
+  // Fetch products
+  const { data: productData, error, isLoading } = useQuery("products", fetchProducts, {
     onSuccess: (data) => {
       setFilteredProducts(data.listings);
     },
   });
 
+  // Fetch scheduled data
+  useEffect(() => {
+    const getScheduledData = async () => {
+      const result = await fetchScheduledData();
+      setScheduledData(result);
+    };
+    getScheduledData();
+  }, []);
+
+  // Handle search
   const handleSearch = (value) => {
     setSearchTerm(value);
-    if (data) {
-      const filtered = data.listings.filter(
-        (product) =>
-          product.itemName?.toLowerCase().includes(value.toLowerCase()) ||
-          product.asin1?.toLowerCase().includes(value.toLowerCase()) ||
-          product.sellerSku?.toLowerCase().includes(value.toLowerCase()) ||
-          product.status?.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredProducts(filtered);
+    filterProducts(productData?.listings || [], scheduledData, filterScheduled, value);
+  };
+
+  // Handle filtering of products
+  const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
+    let filtered = products;
+
+    if (onlyScheduled) {
+      const scheduledAsins = scheduled.map(item => item.asin);
+      filtered = products.filter(product => scheduledAsins.includes(product.asin1));
     }
+
+    if (searchValue) {
+      filtered = filtered.filter(
+        (product) =>
+          product.itemName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          product.asin1?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          product.sellerSku?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          product.status?.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(filtered);
+  };
+
+  // Toggle filter between all products and scheduled products
+  const handleToggleFilter = () => {
+    const newFilterScheduled = !filterScheduled;
+    setFilterScheduled(newFilterScheduled);
+    filterProducts(productData?.listings || [], scheduledData, newFilterScheduled, searchTerm);
   };
 
   const handleProductSelect = async (asin, index) => {
@@ -158,14 +201,18 @@ const ListView = () => {
         <Col md={8} style={{ paddingRight: "20px" }}>
           <div
             style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               position: "sticky",
               top: 0,
               zIndex: 1000,
               backgroundColor: "white",
               borderBottom: "1px solid #ccc",
+              padding: "10px 0",
             }}
           >
-            <InputGroup className="mb-3" style={{ maxWidth: "300px" }}>
+            <InputGroup className="mb-3" style={{ maxWidth: "200px" }}>
               <Form.Control
                 type="text"
                 placeholder="Search..."
@@ -174,6 +221,13 @@ const ListView = () => {
                 style={{ borderRadius: "4px", marginTop: "100px" }}
               />
             </InputGroup>
+            <Button
+              // variant={filterScheduled ? "primary" : "outline-primary"}
+              style={{ borderRadius: "4px", marginTop: "100px",backgroundColor:"#5AB36D",border:"none"}}
+              onClick={handleToggleFilter}
+            >
+              {filterScheduled ? "Show All" : "Show Scheduled Only"}
+            </Button>
           </div>
 
           {filteredProducts.length > 0 ? (
@@ -379,13 +433,17 @@ const ListView = () => {
                       <td>
                         <Button
                           style={{
-                            backgroundColor: "#50C878",
-                            width: "50px",
+                            backgroundColor:"#5AB36D",
+                          
+                            paddingLeft:"20px",
+                            paddingRight:"20px",
+                            border:"none"
+                            
                           }}
                           onClick={(e) => handleUpdate(item.asin1, e)}
                           disabled={(!currentUser?.permissions?.write)}
                         >
-                          <MdOutlineAdd />
+                         <IoMdAdd />
                         </Button>
                       </td>
                     </tr>
