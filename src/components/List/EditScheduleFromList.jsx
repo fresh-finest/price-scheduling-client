@@ -78,6 +78,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const [imageURL, setImageUrl] = useState('');
   const [editingItem, setEditingItem] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false); 
+  const [showPriceInput, setShowPriceInput] = useState(false); // New state variable for controlling price input visibility
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -160,6 +161,11 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
     setShowConfirmationModal(false);
   };
 
+  const handleSetPriceClick = () => {
+    setShowPriceInput(!showPriceInput); // Show the price input field when the button is clicked
+  };
+
+
   return (
     <>
       <Modal show={show} onHide={onClose}>
@@ -179,6 +185,25 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
             <Form.Group controlId="formPrice" style={{ marginBottom: '15px' }}>
               <Form.Label>Changed to : ${existingSchedule.price}</Form.Label>
             </Form.Group>
+            <Button
+              variant="success"
+              style={{ width: "40%", marginBottom: "15px" }}
+              onClick={handleSetPriceClick}
+            >
+              Set Price
+            </Button>
+            {showPriceInput && (
+              <Form.Group controlId="formNewPrice" style={{ marginBottom: '15px' }}>
+                <Form.Label>New Price</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Enter New Price"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                />
+              </Form.Group>
+            )}
             <Form.Group controlId="formStartDate" style={{ marginBottom: '15px' }}>
               <Form.Label>Start Date and Time</Form.Label>
               <DatePicker
