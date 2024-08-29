@@ -6,7 +6,7 @@ import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
+const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com'
 
 const fetchProductDetails = async (asin) => {
   try {

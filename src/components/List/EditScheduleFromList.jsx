@@ -7,7 +7,7 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { current } from '@reduxjs/toolkit';
 
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com';
+const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
 // const BASE_URL ='http://localhost:3000'
 
 const fetchProductDetails = async (asin) => {
