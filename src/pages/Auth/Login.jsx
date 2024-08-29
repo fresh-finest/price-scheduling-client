@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { signInFailure, signInStart, signInSuccess } from '../../redux/user/userSlice';
 
-const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 
 
 const Login = () => {
@@ -28,7 +28,7 @@ const Login = () => {
     try {
       dispatch(signInStart);
 
-      const res = await fetch("http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com/api/auth/signin",{
+      const res = await fetch("https://dps-server-b829cf5871b7.herokuapp.com/api/auth/signin",{
         method:"POST",
         headers:{
           "Content-Type": "application/json",
