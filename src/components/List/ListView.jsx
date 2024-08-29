@@ -19,7 +19,7 @@ import { useSelector } from 'react-redux';
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
-const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com'
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 
 // Fetch products function
 const fetchProducts = async () => {

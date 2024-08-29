@@ -14,7 +14,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 
 export default function HistoryView() {
   const [data, setData] = useState([]);

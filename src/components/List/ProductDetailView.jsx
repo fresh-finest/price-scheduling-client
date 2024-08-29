@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 
 import EditScheduleFromList from './EditScheduleFromList';
 
-const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com'
+const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 
 const ProductDetailView = ({ product, listing, asin, sku }) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
