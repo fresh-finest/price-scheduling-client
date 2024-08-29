@@ -16,6 +16,17 @@ import "./HistoryView.css";
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 
+
+const daysOptions = [
+  { label: 'Sun', value: 0 },
+  { label: 'Mon', value: 1 },
+  { label: 'Tues', value: 2 },
+  { label: 'Wed', value: 3 },
+  { label: 'Thurs', value: 4 },
+  { label: 'Fri', value: 5 },
+  { label: 'Sat', value: 6 },
+];
+
 export default function HistoryView() {
   const [data, setData] = useState([]);
   const [users, setUsers] = useState([]);
@@ -94,12 +105,21 @@ export default function HistoryView() {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
+  
+
   const getDisplayData = (item) => {
     if (item.action === "updated") {
       return item.updatedState || item.previousState || {};
     }
     return item;
   };
+
+  const getDayLabels = (daysOfWeek) => {
+    return daysOfWeek
+      .map((day) => daysOptions.find((option) => option.value === day)?.label)
+      .join(', ');
+  };
+
 
   const filteredData = data
     .filter((item) => {
@@ -230,6 +250,9 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item) => {
               const displayData = getDisplayData(item);
+              const daysLabel = displayData?.weekly
+                ? getDayLabels(displayData.daysOfWeek)
+                : '';
 
               return (
                 <tr key={item._id} style={{ height: "50px" }}>
@@ -261,9 +284,9 @@ export default function HistoryView() {
                       </span>
                     </div>
                   </td>
-                  <td>
+                  {/* <td>
                     <div>
-                      {/* <span>
+                      <span>
                         {displayData?.startDate
                           ? formatDateTime(displayData.startDate)
                           : "N/A"}{" "}
@@ -296,7 +319,7 @@ export default function HistoryView() {
                             ${displayData?.price || "N/A"}
                           </p>
                         </div>
-                      </span> */}
+                      </span> 
                       <span>
                         {displayData?.startDate
                           ? formatDateTime(displayData.startDate)
@@ -346,6 +369,81 @@ export default function HistoryView() {
                           </p>
                         </div>
                       </span>
+                    </div>
+                  </td>*/}
+                  <td>
+                    <div>
+                      {displayData?.weekly ? (
+                        <>
+                          <span style={{ color: "blue" }}>
+                            Repeats Weekly on {daysLabel}
+                          </span>
+                          {displayData?.currentPrice && (
+                            <p
+                              style={{
+                                margin: 0,
+                                color: "green",
+                                textAlign: "right",
+                                marginRight: "50px",
+                              }}
+                            >
+                              ${displayData.currentPrice}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <span>
+                            {displayData?.startDate
+                              ? formatDateTime(displayData.startDate)
+                              : "N/A"}{" "}
+                            --{" "}
+                            {displayData?.endDate ? (
+                              formatDateTime(displayData.endDate)
+                            ) : (
+                              <span style={{ color: "blue" }}>No End Date</span>
+                            )}
+                          </span>
+                          {displayData?.endDate ? (
+                            displayData?.currentPrice && (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  color: "green",
+                                  textAlign: "right",
+                                  marginRight: "50px",
+                                }}
+                              >
+                                ${displayData.currentPrice}
+                              </p>
+                            )
+                          ) : (
+                            <p
+                              style={{
+                                margin: 0,
+                                color: "orange",
+                                textAlign: "right",
+                                marginRight: "50px",
+                              }}
+                            >
+                              Until Changed
+                            </p>
+                          )}
+                        </>
+                      )}
+                      <div style={{ position: "relative" }}>
+                        <p
+                          style={{
+                            color: "green",
+                            position: "absolute",
+                            left: "50px",
+                            bottom: "0px",
+                            margin: 0,
+                          }}
+                        >
+                          ${displayData?.price || "N/A"}
+                        </p>
+                      </div>
                     </div>
                   </td>
                   <td>

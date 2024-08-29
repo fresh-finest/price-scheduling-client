@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com/',
+        target: 'http://your-insecure-server.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),

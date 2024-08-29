@@ -20,10 +20,10 @@ import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-
+const BASE_URL_LIST = 'https://price-scheduling-server-2.onrender.com';
 // Fetch products function
 const fetchProducts = async () => {
-  const response = await axios.get(`${BASE_URL}/fetch-all-listings`);
+  const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
   return response.data;
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Modal, Button, Form, Alert, Spinner } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
+import { MultiSelect } from 'react-multi-select-component'; 
 import 'react-datepicker/dist/react-datepicker.css';
 import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
 import axios from 'axios';
@@ -43,7 +44,27 @@ const fetchExistingSchedules = async (asin) => {
   }
 };
 
-const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate) => {
+// const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate) => {
+//   try {
+//     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
+//       userName,
+//       asin,
+//       sku,
+//       title,
+//       price: parseFloat(price),
+//       currentPrice,
+//       imageURL,
+//       startDate,
+//       endDate
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error saving schedule and queuing jobs:', error.response ? error.response.data : error.message);
+//     throw error;
+//   }
+// };
+
+const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate, weekly = false, daysOfWeek = []) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
       userName,
@@ -54,7 +75,9 @@ const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, curre
       currentPrice,
       imageURL,
       startDate,
-      endDate
+      endDate,
+      weekly, // Include weekly flag
+      daysOfWeek, // Include days of the week for weekly scheduling
     });
     return response.data;
   } catch (error) {
@@ -62,6 +85,7 @@ const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, curre
     throw error;
   }
 };
+
 
 
 const UpdatePriceFromList = ({ show, onClose, asin }) => {
@@ -77,12 +101,25 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [existingSchedules, setExistingSchedules] = useState([]);
-
+  const [weekly, setWeekly] = useState(false); 
+  const [daysOfWeek, setDaysOfWeek] = useState([]); 
   const [title, setTitle] = useState('');
   const [imageURL, setImageUrl] = useState('');
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || '';
+
+
+  const daysOptions = [
+    { label: 'Monday', value: 1 },
+    { label: 'Tuesday', value: 2 },
+    { label: 'Wednesday', value: 3 },
+    { label: 'Thursday', value: 4 },
+    { label: 'Friday', value: 5 },
+    { label: 'Saturday', value: 6 },
+    { label: 'Sunday', value: 0 },
+  ];
+
 
   useEffect(() => {
     if (show && asin) {
@@ -169,7 +206,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         return;
       }
 
-      await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate);
+      // await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate);
+      await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate, weekly, daysOfWeek.map(day => day.value));
 
 
       addEvent({
@@ -202,13 +240,13 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
           <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formAsin" style={{ marginBottom: '15px' }}>
+            <Form.Group controlId="formAsin">
               <Form.Label>ASIN: {asin || 'Not available'}</Form.Label>
             </Form.Group>
-            <Form.Group controlId="formCurrentPrice" style={{ marginBottom: '15px' }}>
+            <Form.Group controlId="formCurrentPrice">
               <Form.Label>Current Price: ${currentPrice || 'Not available'}</Form.Label>
             </Form.Group>
-            <Form.Group controlId="formPrice" style={{ marginBottom: '15px' }}>
+            <Form.Group controlId="formPrice">
               <Form.Label>New Price</Form.Label>
               <Form.Control
                 type="number"
@@ -219,47 +257,71 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 disabled={loading}
               />
             </Form.Group>
-            <Form.Group controlId="formStartDate" style={{ marginBottom: '15px' }}>
-              <Form.Label>Start Date and Time</Form.Label>
-              <DatePicker
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                className="form-control"
-                required
-                disabled={loading}
-              />
-            </Form.Group>
-            <Form.Group controlId="formIndefiniteEndDate" style={{ marginBottom: '15px' }}>
+            <Form.Group controlId="formWeekly">
               <Form.Check
                 type="checkbox"
-                label="Until I change."
-                checked={indefiniteEndDate}
-                onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
+                label="Repeat Weekly"
+                checked={weekly}
+                onChange={() => setWeekly(!weekly)}
                 disabled={loading}
               />
             </Form.Group>
-            {!indefiniteEndDate && (
-              <Form.Group controlId="formEndDate" style={{ marginBottom: '15px' }}>
-                <Form.Label>End Date and Time</Form.Label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  showTimeSelect
-                  dateFormat="Pp"
-                  className="form-control"
-                  required={!indefiniteEndDate}
-                  disabled={loading}
+            {weekly && (
+              <Form.Group controlId="formDaysOfWeek">
+                <Form.Label>Select Days</Form.Label>
+                <MultiSelect
+                  options={daysOptions}
+                  value={daysOfWeek}
+                  onChange={setDaysOfWeek}
+                  labelledBy="Select"
                 />
               </Form.Group>
             )}
+            {!weekly && (
+              <>
+                <Form.Group controlId="formStartDate">
+                  <Form.Label>Start Date and Time</Form.Label>
+                  <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    showTimeSelect
+                    dateFormat="Pp"
+                    className="form-control"
+                    required
+                    disabled={loading}
+                  />
+                </Form.Group>
+                <Form.Group controlId="formIndefiniteEndDate">
+                  <Form.Check
+                    type="checkbox"
+                    label="Until I change."
+                    checked={indefiniteEndDate}
+                    onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
+                    disabled={loading}
+                  />
+                </Form.Group>
+                {!indefiniteEndDate && (
+                  <Form.Group controlId="formEndDate">
+                    <Form.Label>End Date and Time</Form.Label>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      showTimeSelect
+                      dateFormat="Pp"
+                      className="form-control"
+                      required={!indefiniteEndDate}
+                      disabled={loading}
+                    />
+                  </Form.Group>
+                )}
+              </>
+            )}
             <Button
-              style={{ width: "50%", backgroundColor: "black" }}
+              style={{ width: "100%", backgroundColor: "black" }}
               type="submit"
               disabled={loading}
             >
-              Update Price
+              {weekly ? 'Schedule Weekly Price Update' : 'Update Price'}
             </Button>
           </Form>
         </Modal.Body>

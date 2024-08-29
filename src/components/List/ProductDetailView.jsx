@@ -8,6 +8,16 @@ import EditScheduleFromList from './EditScheduleFromList';
 
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 
+const daysOptions = [
+  { label: 'Sun', value: 0 },
+  { label: 'Mon', value: 1 },
+  { label: 'Tues', value: 2 },
+  { label: 'Wed', value: 3 },
+  { label: 'Thurs', value: 4 },
+  { label: 'Fri', value: 5 },
+  { label: 'Sat', value: 6 },
+];
+
 const ProductDetailView = ({ product, listing, asin, sku }) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +38,12 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
       hour12: true,
     };
     return new Date(dateString).toLocaleString("en-US", options);
+  };
+
+  const getDayLabels = (daysOfWeek) => {
+    return daysOfWeek
+      .map((day) => daysOptions.find((option) => option.value === day)?.label)
+      .join(', ');
   };
 
   useEffect(() => {
@@ -168,21 +184,31 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                     .filter(sc => sc.status !== 'deleted') 
                     .map((sc) => (
                       <tr key={sc._id}>
-                        <td style={{ width: "200px" }}>{formatDateTime(sc.startDate)} <span style={{ color: "green" }}>Changed Price: ${sc.price}</span></td>
-                        <td style={{ width: "200px" }}>
-                          {sc.endDate ? (
-                            <>
-                              {(formatDateTime(sc.endDate))}
-                              {sc.currentPrice && (
-                                <p style={{ color: "green" }}>
-                                  Reverted Price: ${sc.currentPrice}
-                                </p>
+                        {sc.weekly ? (
+                          <>
+                            <td style={{ width: "200px" }} colSpan={2}>
+                              Weekly on {getDayLabels(sc.daysOfWeek)} <div style={{display:"flex",justifyContent: "space-between", marginRight:"20px",marginLeft:"20px"}}><p style={{ color: "green" }}>  ${sc.price}</p> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ width: "200px" }}>{formatDateTime(sc.startDate)} <span style={{ color: "green" }}>Changed Price: ${sc.price}</span></td>
+                            <td style={{ width: "200px" }}>
+                              {sc.endDate ? (
+                                <>
+                                  {(formatDateTime(sc.endDate))}
+                                  {sc.currentPrice && (
+                                    <p style={{ color: "green" }}>
+                                      Reverted Price: ${sc.currentPrice}
+                                    </p>
+                                  )}
+                                </>
+                              ) : (
+                                <span style={{ color: "red" }}>Until Changed</span>
                               )}
-                            </>
-                          ) : (
-                            <span style={{ color: "red" }}>Until Changed</span>
-                          )}
-                        </td>
+                            </td>
+                          </>
+                        )}
                         <td>
                           <Button 
                             style={{ marginTop: "20px", backgroundColor: "#5AB36D", border: "none" }} 
