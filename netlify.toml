@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/api/*"
+  to = "http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com/:splat"
+  status = 200
+  force = true
