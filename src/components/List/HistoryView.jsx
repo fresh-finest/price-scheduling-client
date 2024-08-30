@@ -10,6 +10,8 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
+import { MdContentCopy, MdCheck } from "react-icons/md";
+
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 
@@ -47,6 +49,8 @@ export default function HistoryView() {
   const [error, setError] = useState(null);
   const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
+  const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
+  const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -116,7 +120,22 @@ export default function HistoryView() {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
-  
+  const handleCopy = (text, type, index) => {
+    console.log("text: "+text+"type: "+type+"index: "+index)
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        if (type === 'asin') {
+          setCopiedAsinIndex(index);
+          setTimeout(() => setCopiedAsinIndex(null), 2000);
+        } else if (type === 'sku') {
+          setCopiedSkuIndex(index);
+          setTimeout(() => setCopiedSkuIndex(null), 2000);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+  };
 
   const getDisplayData = (item) => {
     if (item.action === "updated") {
@@ -259,7 +278,7 @@ export default function HistoryView() {
           }}
         >
           {filteredData.length > 0 ? (
-            filteredData.map((item) => {
+            filteredData.map((item,index) => {
               const displayData = getDisplayData(item);
               const daysLabel = displayData?.weekly
                 ? getDayLabels(displayData.daysOfWeek)
@@ -287,11 +306,45 @@ export default function HistoryView() {
                   >
                     {displayData?.title || "N/A"}
                     <div>
-                      <span className="bubble-text">
+                      <span className="bubble-text" style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}>
                         {displayData?.asin || "N/A"}
+                        {copiedAsinIndex === index ? (
+                              <MdCheck
+                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
+                              />
+                            ) : (
+                              <MdContentCopy
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(displayData.asin, 'asin', index);
+                                }}
+                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                              />
+                            )}
                       </span>{" "}
-                      <span className="bubble-text">
+                      <span className="bubble-text"  style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }} >
                         {displayData?.sku || "N/A"}
+                        {copiedSkuIndex === index ? (
+                              <MdCheck
+                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
+                              />
+                            ) : (
+                              <MdContentCopy
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(displayData.sku, 'sku', index);
+                                }}
+                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                              />
+                            )}
                       </span>
                     </div>
                   </td>

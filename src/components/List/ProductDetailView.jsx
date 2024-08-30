@@ -181,7 +181,8 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                 </thead>
                 <tbody>
                   {priceSchedule
-                    .filter(sc => sc.status !== 'deleted') 
+                    .filter(sc =>  sc.status !== 'deleted' &&(sc.weekly || sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)))
+
                     .map((sc) => (
                       <tr key={sc._id}>
                         {sc.weekly ? (
@@ -213,7 +214,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                           <Button 
                             style={{ marginTop: "20px", backgroundColor: "#5AB36D", border: "none" }} 
                             onClick={() => handleEdit(sc)}
-                            disabled={(sc.endDate != null && ((sc.endDate && new Date(sc.endDate)) < now)) || (!currentUser?.permissions?.write)} // Disable button if endDate is in the past
+                            disabled={!sc.weekly && (sc.endDate != null && ((sc.endDate && new Date(sc.endDate)) < now)) || (!currentUser?.permissions?.write)} // Disable button if endDate is in the past
                           >
                             <LuPencilLine />
                           </Button>

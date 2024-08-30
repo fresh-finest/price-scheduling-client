@@ -81,7 +81,16 @@ const ListView = () => {
 
     if (onlyScheduled) {
       const scheduledAsins = scheduled
-        .filter(item => item.status !== "deleted" && (item.endDate ==null || (!item.endDate || new Date(item.endDate) >= now)) )
+        // .filter(item => item.status !== "deleted" && (!item.weekly &&(item.endDate ==null || (!item.endDate || new Date(item.endDate) >= now))))
+        .filter(item => 
+          item.status !== "deleted" && 
+          (
+            item.weekly || 
+            item.endDate === null || 
+            (item.endDate && new Date(item.endDate) >= now)
+          )
+        )
+        
         //&& (item.endDate ==null && (!item.endDate || new Date(item.endDate) > now))
         .map(item => item.asin);
 
