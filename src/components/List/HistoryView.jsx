@@ -72,7 +72,7 @@ export default function HistoryView() {
     : `${BASE_URL}/api/history`;
     setLoading(true);
     try {
-      // const response = await axios.get(`${BASE_URL}/api/history`);
+     
       const response = await axios.get(url);
       const sortedData = Array.isArray(response.data.result)
       ? response.data.result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
