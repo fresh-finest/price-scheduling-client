@@ -17,7 +17,7 @@ import "./HistoryView.css";
 
 // const BASE_URL = "http://localhost:3000";
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://34.205.73.65:3000`;
+const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://3.84.27.16:3000`;
 
 // Example API call
 fetch(`${BASE_URL}/api/history`)
