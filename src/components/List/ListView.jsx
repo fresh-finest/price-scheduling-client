@@ -20,7 +20,8 @@ import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
 const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL_LIST = 'https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://34.205.73.65:3000';
+// const BASE_URL_LIST = 'https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://34.205.73.65:3000';
+const BASE_URL_LIST='https://price-scheduling-server-2.onrender.com/fetch-all-listings'
 // Fetch products function
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -45,7 +46,7 @@ const ListView = () => {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
-  const [filterScheduled, setFilterScheduled] = useState(false);
+  const [filterScheduled, setFilterScheduled] = useState(true);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -60,13 +61,24 @@ const ListView = () => {
   });
 
   // Fetch scheduled data
+  // useEffect(() => {
+  //   const getScheduledData = async () => {
+  //     const result = await fetchScheduledData();
+  //     setScheduledData(result);
+  //   };
+  //   getScheduledData();
+  // }, []);
+
   useEffect(() => {
     const getScheduledData = async () => {
       const result = await fetchScheduledData();
       setScheduledData(result);
+      if (productData) {
+        filterProducts(productData.listings, result, filterScheduled, searchTerm);
+      }
     };
     getScheduledData();
-  }, []);
+  }, [productData]);
 
   // Handle search
   const handleSearch = (value) => {
