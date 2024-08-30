@@ -15,7 +15,7 @@ import "./HistoryView.css";
 
 // const BASE_URL = "http://localhost:3000";
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL = 'http://34.205.73.65:3000'
+const BASE_URL = `https://cors-anywhere.herokuapp.com/http://34.205.73.65:3000`
 
 
 const daysOptions = [
