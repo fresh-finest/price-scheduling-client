@@ -14,7 +14,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+const BASE_URL = 'http://dps-server-env.eba-u8kmqnfs.us-east-1.elasticbeanstalk.com'
 
 
 const daysOptions = [
