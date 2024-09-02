@@ -1,15 +1,14 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { Modal, Button, Form, Alert, Spinner } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import { MultiSelect } from 'react-multi-select-component'; 
-import 'react-datepicker/dist/react-datepicker.css';
-import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import axios from 'axios';
-import { useSelector } from 'react-redux';
+import React, { useState, useContext, useEffect } from "react";
+import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import { MultiSelect } from "react-multi-select-component";
+import "react-datepicker/dist/react-datepicker.css";
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
-
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-// const BASE_URL ='http://localhost:3000'
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+const BASE_URL = "http://localhost:3000";
 
 // Fetch product details function (provided in your original code)
 const fetchProductDetails = async (asin) => {
@@ -17,7 +16,10 @@ const fetchProductDetails = async (asin) => {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching product details:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
@@ -28,7 +30,10 @@ const fetchProductAdditionalDetails = async (asin) => {
     const response = await axios.get(`${BASE_URL}/details/${asin}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching additional product details:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching additional product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
@@ -37,9 +42,12 @@ const fetchProductAdditionalDetails = async (asin) => {
 const fetchExistingSchedules = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/api/schedule`);
-    return response.data.result.filter(schedule => schedule.asin === asin);
+    return response.data.result.filter((schedule) => schedule.asin === asin);
   } catch (error) {
-    console.error('Error fetching existing schedules:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching existing schedules:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
@@ -64,7 +72,21 @@ const fetchExistingSchedules = async (asin) => {
 //   }
 // };
 
-const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate, weekly = false, daysOfWeek = []) => {
+const saveScheduleAndQueueJobs = async (
+  userName,
+  asin,
+  sku,
+  title,
+  price,
+  currentPrice,
+  imageURL,
+  startDate,
+  endDate,
+  weekly = false,
+  daysOfWeek = [],
+  monthly = false,
+  datesOfMonth = []
+) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
       userName,
@@ -78,48 +100,56 @@ const saveScheduleAndQueueJobs = async (userName, asin, sku, title, price, curre
       endDate,
       weekly, // Include weekly flag
       daysOfWeek, // Include days of the week for weekly scheduling
+      monthly,
+      datesOfMonth,
     });
     return response.data;
   } catch (error) {
-    console.error('Error saving schedule and queuing jobs:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error saving schedule and queuing jobs:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
-
-
 const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const { addEvent } = useContext(PriceScheduleContext);
-  const [sku, setSku] = useState('');
-  const [currentPrice, setCurrentPrice] = useState('');
-  const [price, setPrice] = useState('');
+  const [sku, setSku] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [existingSchedules, setExistingSchedules] = useState([]);
-  const [weekly, setWeekly] = useState(false); 
-  const [daysOfWeek, setDaysOfWeek] = useState([]); 
-  const [title, setTitle] = useState('');
-  const [imageURL, setImageUrl] = useState('');
+  const [weekly, setWeekly] = useState(false);
+  const [daysOfWeek, setDaysOfWeek] = useState([]);
+  const [monthly, setMonthly] = useState(false);
+  const [datesOfMonth, setDatesOfMonth] = useState([]);
+  const [title, setTitle] = useState("");
+  const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
 
-  const userName = currentUser?.userName || '';
-
+  const userName = currentUser?.userName || "";
 
   const daysOptions = [
-    { label: 'Monday', value: 1 },
-    { label: 'Tuesday', value: 2 },
-    { label: 'Wednesday', value: 3 },
-    { label: 'Thursday', value: 4 },
-    { label: 'Friday', value: 5 },
-    { label: 'Saturday', value: 6 },
-    { label: 'Sunday', value: 0 },
+    { label: "Monday", value: 1 },
+    { label: "Tuesday", value: 2 },
+    { label: "Wednesday", value: 3 },
+    { label: "Thursday", value: 4 },
+    { label: "Friday", value: 5 },
+    { label: "Saturday", value: 6 },
+    { label: "Sunday", value: 0 },
   ];
 
+  const datesOptions = Array.from({ length: 31 }, (_, i) => ({
+    label: `${i+1}`,
+    value: i + 1,
+  }));
 
   useEffect(() => {
     if (show && asin) {
@@ -127,19 +157,19 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
       fetchProductDetailsByAsin(asin);
       fetchSchedules(asin);
     } else if (show && !asin) {
-      onClose();  // Close the modal if asin is not provided
+      onClose(); // Close the modal if asin is not provided
     }
   }, [show, asin]);
 
   const resetForm = () => {
-    setSku('');
-    setCurrentPrice('');
-    setPrice('');
+    setSku("");
+    setCurrentPrice("");
+    setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
     setIndefiniteEndDate(false);
-    setSuccessMessage('');
-    setErrorMessage('');
+    setSuccessMessage("");
+    setErrorMessage("");
   };
 
   const fetchSchedules = async (asin) => {
@@ -147,7 +177,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
       const schedules = await fetchExistingSchedules(asin);
       setExistingSchedules(schedules);
     } catch (error) {
-      setErrorMessage('Error fetching existing schedules.');
+      setErrorMessage("Error fetching existing schedules.");
     }
   };
 
@@ -160,55 +190,77 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         setSku(productDetails.SellerSKU);
         setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
-
         const additionalData = await fetchProductAdditionalDetails(asin);
-        if (additionalData && additionalData.payload && additionalData.payload.AttributeSets[0]) {
+        if (
+          additionalData &&
+          additionalData.payload &&
+          additionalData.payload.AttributeSets[0]
+        ) {
           setTitle(additionalData.payload.AttributeSets[0].Title);
           setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
         } else {
-          setErrorMessage('Failed to fetch additional product details.');
+          setErrorMessage("Failed to fetch additional product details.");
         }
       } else {
-        setErrorMessage('Failed to fetch product details.');
+        setErrorMessage("Failed to fetch product details.");
       }
     } catch (error) {
-      setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
+      setErrorMessage(
+        "Error fetching product details: " +
+          (error.response ? error.response.data.error : error.message)
+      );
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (!userName || !asin || !sku || !price || !startDate) {
-        setErrorMessage('All fields are required to update the price.');
+        setErrorMessage("All fields are required to update the price.");
         setLoading(false);
         return;
       }
 
       // Check for overlapping schedules
-      const overlappingSchedule = existingSchedules.find(schedule => {
+      const overlappingSchedule = existingSchedules.find((schedule) => {
         const existingStart = new Date(schedule.startDate);
         const existingEnd = new Date(schedule.endDate || startDate); // if no endDate, treat as ongoing
         return (
           (startDate >= existingStart && startDate <= existingEnd) || // new start is within existing range
           (endDate && endDate >= existingStart && endDate <= existingEnd) || // new end is within existing range
-          (startDate <= existingStart && (endDate ? endDate >= existingEnd : true)) // new range completely overlaps existing
+          (startDate <= existingStart &&
+            (endDate ? endDate >= existingEnd : true)) // new range completely overlaps existing
         );
       });
 
       if (overlappingSchedule) {
-        setErrorMessage('Cannot create a schedule during an existing scheduled period.');
+        setErrorMessage(
+          "Cannot create a schedule during an existing scheduled period."
+        );
         setLoading(false);
         return;
       }
 
       // await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate);
-      await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate, weekly, daysOfWeek.map(day => day.value));
-
+      // await saveScheduleAndQueueJobs(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate, weekly, daysOfWeek.map(day => day.value));
+      await saveScheduleAndQueueJobs(
+        userName,
+        asin,
+        sku,
+        title,
+        price,
+        currentPrice,
+        imageURL,
+        startDate,
+        indefiniteEndDate ? null : endDate,
+        weekly,
+        daysOfWeek.map((day) => day.value),
+        monthly,
+        datesOfMonth.map((date) => date.value)
+      );
 
       addEvent({
         title: `SKU: ${sku} - $${price}`,
@@ -217,17 +269,18 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         allDay: false,
       });
 
-
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
       onClose();
     } catch (error) {
-      setErrorMessage('Error scheduling price update: ' + (error.response ? error.response.data.error : error.message));
+      setErrorMessage(
+        "Error scheduling price update: " +
+          (error.response ? error.response.data.error : error.message)
+      );
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <>
@@ -241,10 +294,12 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
           {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formAsin">
-              <Form.Label>ASIN: {asin || 'Not available'}</Form.Label>
+              <Form.Label>ASIN: {asin || "Not available"}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formCurrentPrice">
-              <Form.Label>Current Price: ${currentPrice || 'Not available'}</Form.Label>
+              <Form.Label>
+                Current Price: ${currentPrice || "Not available"}
+              </Form.Label>
             </Form.Group>
             <Form.Group controlId="formPrice">
               <Form.Label>New Price</Form.Label>
@@ -263,7 +318,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 label="Repeat Weekly"
                 checked={weekly}
                 onChange={() => setWeekly(!weekly)}
-                disabled={loading}
+                disabled={loading || monthly}
               />
             </Form.Group>
             {weekly && (
@@ -277,10 +332,33 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 />
               </Form.Group>
             )}
-            {!weekly && (
+
+            <Form.Group controlId="formMonthly">
+              <Form.Check
+                type="checkbox"
+                label="Repeat Monthly"
+                checked={monthly}
+                onChange={() => setMonthly(!monthly)}
+                disabled={loading || weekly}
+              />
+            </Form.Group>
+            {monthly && (
+              <Form.Group controlId="formDatesOfMonth">
+                <Form.Label>Selects Dates</Form.Label>
+                <MultiSelect
+                options={datesOptions}
+                value={datesOfMonth}
+                onChange={setDatesOfMonth}
+                labelledBy="Select"
+                />
+              </Form.Group>
+            )}
+            {!weekly && !monthly &&(
               <>
                 <Form.Group controlId="formStartDate">
-                  <Form.Label>Start Date and Time</Form.Label>
+                  <Form.Label style={{
+                      marginRight:"20px"
+                    }} >Start Date and Time</Form.Label>
                   <DatePicker
                     selected={startDate}
                     onChange={(date) => setStartDate(date)}
@@ -289,6 +367,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                     className="form-control"
                     required
                     disabled={loading}
+                    
                   />
                 </Form.Group>
                 <Form.Group controlId="formIndefiniteEndDate">
@@ -302,7 +381,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 </Form.Group>
                 {!indefiniteEndDate && (
                   <Form.Group controlId="formEndDate">
-                    <Form.Label>End Date and Time</Form.Label>
+                    <Form.Label style={{
+                      marginRight:"25px"
+                    }} >End Date and Time</Form.Label>
                     <DatePicker
                       selected={endDate}
                       onChange={(date) => setEndDate(date)}
@@ -317,11 +398,12 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
               </>
             )}
             <Button
-              style={{ width: "100%", backgroundColor: "black" }}
+              style={{ width: "100%", backgroundColor: "black",marginTop:"30px" }}
               type="submit"
               disabled={loading}
             >
-              {weekly ? 'Schedule Weekly Price Update' : 'Update Price'}
+              {weekly ? 'Weekly Update' : monthly ? 'Monthly Update Price' : 'Update Price'}
+
             </Button>
           </Form>
         </Modal.Body>

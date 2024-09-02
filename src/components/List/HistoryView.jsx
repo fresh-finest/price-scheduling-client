@@ -17,7 +17,7 @@ import "./HistoryView.css";
 
 // const BASE_URL = "http://localhost:3000";
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://3.84.27.16:3000`;
+const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
 // Example API call
 fetch(`${BASE_URL}/api/history`)
@@ -39,6 +39,40 @@ const daysOptions = [
   { label: 'Fri', value: 5 },
   { label: 'Sat', value: 6 },
 ];
+
+const datesOptions =[
+  {label: '1st', value:1},
+  {label:'2nd', value:2},
+  {label: '3rd', value:3},
+  {label:'4th', value:4},
+  {label: '5th', value:5},
+  {label:'6th', value:6},
+  {label: '7th', value:7},
+  {label:'8th', value:8},
+  {label: '9th', value:9},
+  {label:'10th', value:10},
+  {label: '11th', value:11},
+  {label:'12th', value:12},
+  {label: '13th', value:13},
+  {label:'14th', value:14},
+  {label: '15th', value:15},
+  {label:'16th', value:16},
+  {label: '17th', value:17},
+  {label:'18th', value:18},
+  {label: '19th', value:19},
+  {label:'20th', value:20},
+  {label: '21st', value:21},
+  {label:'22th', value:22},
+  {label: '23th', value:23},
+  {label:'24th', value:24},
+  {label: '25th', value:25},
+  {label:'26th', value:26},
+  {label:'27th', value:27},
+  {label: '28th', value:28},
+  {label:'29th', value:29},
+  {label: '30th', value:30},
+  {label:'31st', value:31},  
+]
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
@@ -150,6 +184,11 @@ export default function HistoryView() {
       .join(', ');
   };
 
+  const getDateLabels = (datesOfMonth) => {
+    return datesOfMonth
+      .map((date) => datesOptions.find((option) => option.value === date)?.label)
+      .join(', ');
+  };
 
   const filteredData = data
     .filter((item) => {
@@ -283,6 +322,9 @@ export default function HistoryView() {
               const daysLabel = displayData?.weekly
                 ? getDayLabels(displayData.daysOfWeek)
                 : '';
+              const datesLabel = displayData?.monthly
+                ? getDateLabels(displayData?.datesOfMonth)
+                :' ';
 
               return (
                 <tr key={item._id} style={{ height: "50px" }}>
@@ -441,6 +483,24 @@ export default function HistoryView() {
                         <>
                           <span style={{ color: "blue" }}>
                             Repeats Weekly on {daysLabel}
+                          </span>
+                          {displayData?.currentPrice && (
+                            <p
+                              style={{
+                                margin: 0,
+                                color: "green",
+                                textAlign: "right",
+                                marginRight: "50px",
+                              }}
+                            >
+                              ${displayData.currentPrice}
+                            </p>
+                          )}
+                        </>
+                      ) :displayData?.monthly ? (
+                        <>
+                          <span style={{ color: "blue" }}>
+                            Repeats Monthly on {datesLabel}
                           </span>
                           {displayData?.currentPrice && (
                             <p
