@@ -8,7 +8,9 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
+
 
 // Fetch product details function (provided in your original code)
 const fetchProductDetails = async (asin) => {

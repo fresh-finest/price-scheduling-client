@@ -19,7 +19,11 @@ import { useSelector } from 'react-redux';
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 //http://3.84.27.16:3000/fetch-all-listings
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+// const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+// const BASE_URL ='http://localhost:3000'
+const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
+
 const BASE_URL_LIST = 'https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000';
 // const BASE_URL_LIST='https://price-scheduling-server-2.onrender.com'
 // Fetch products function
@@ -140,10 +144,10 @@ const ListView = () => {
       try {
         const [responseone, responsetwo] = await Promise.all([
           axios.get(
-            `https://dps-server-b829cf5871b7.herokuapp.com/details/${asin}`
+            `${BASE_URL}/details/${asin}`
           ),
           axios.get(
-            `https://dps-server-b829cf5871b7.herokuapp.com/product/${asin}`
+            `${BASE_URL}/product/${asin}`
           ),
         ]);
 

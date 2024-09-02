@@ -28,7 +28,7 @@ const Login = () => {
     try {
       dispatch(signInStart);
 
-      const res = await fetch("https://dps-server-b829cf5871b7.herokuapp.com/api/auth/signin",{
+      const res = await fetch("https://price-scheduling-server-2.onrender.com/api/auth/signin",{
         method:"POST",
         headers:{
           "Content-Type": "application/json",
