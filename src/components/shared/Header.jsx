@@ -14,7 +14,9 @@ import {
 } from "../../redux/user/userSlice";
 // const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
 
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+
 function Header() {
 
   
@@ -33,7 +35,7 @@ function Header() {
   const handleSignOut = async () => {
     try {
       dispatch(signOutUserStart());
-      const res = await fetch("https://dps-server-b829cf5871b7.herokuapp.com/api/auth/logout");
+      const res = await fetch(`${BASE_URL}/api/auth/logout`);
       const data = await res.json();
       if (data.success === false) {
         signOutUserFailure(data.message);
