@@ -223,7 +223,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                 </thead>
                 <tbody>
                   {priceSchedule
-                    .filter(sc =>  sc.status !== 'deleted' &&(sc.weekly  || sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)))
+                    .filter(sc =>  sc.status !== 'deleted' &&(sc.weekly ||sc.monthly  || sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)))
 
                     .map((sc) => (
                       <tr key={sc._id}>
@@ -231,6 +231,12 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                           <>
                             <td style={{ width: "200px" }} colSpan={2}>
                               Weekly on {getDayLabels(sc.daysOfWeek)} <div style={{display:"flex",justifyContent: "space-between", marginRight:"20px",marginLeft:"20px"}}><p style={{ color: "green" }}>  ${sc.price}</p> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
+                            </td>
+                          </>
+                        ) : sc.monthly ? (
+                          <>
+                            <td style={{ width: "200px" }} colSpan={2}>
+                              Monthly on {getDateLabels(sc.datesOfMonth)} <div style={{ display: "flex", justifyContent: "space-between", marginRight: "20px", marginLeft: "20px" }}><p style={{ color: "green" }}>  ${sc.price}</p> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
                             </td>
                           </>
                         ) : (
@@ -256,7 +262,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                           <Button 
                             style={{ marginTop: "20px", backgroundColor: "#5AB36D", border: "none" }} 
                             onClick={() => handleEdit(sc)}
-                            disabled={!sc.weekly  && (sc.endDate != null && ((sc.endDate && new Date(sc.endDate)) < now)) || (!currentUser?.permissions?.write)} // Disable button if endDate is in the past
+                            disabled={!sc.weekly && !sc.monthly && (sc.endDate != null && ((sc.endDate && new Date(sc.endDate)) < now)) || (!currentUser?.permissions?.write)} // Disable button if endDate is in the past
                           >
                             <LuPencilLine />
                           </Button>
