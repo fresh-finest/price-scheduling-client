@@ -230,13 +230,13 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                         {sc.weekly ? (
                           <>
                             <td style={{ width: "200px" }} colSpan={2}>
-                              Weekly on {getDayLabels(sc.daysOfWeek)} <div style={{display:"flex",justifyContent: "space-between", marginRight:"20px",marginLeft:"20px"}}><p style={{ color: "green" }}>  ${sc.price}</p> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
+                              Weekly on {getDayLabels(sc.daysOfWeek)} <div style={{display:"flex",justifyContent: "space-between", marginRight:"20px",marginLeft:"20px"}}><div style={{ color: "green" }}>  ${sc.price}</div> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
                             </td>
                           </>
                         ) : sc.monthly ? (
                           <>
                             <td style={{ width: "200px" }} colSpan={2}>
-                              Monthly on {getDateLabels(sc.datesOfMonth)} <div style={{ display: "flex", justifyContent: "space-between", marginRight: "20px", marginLeft: "20px" }}><p style={{ color: "green" }}>  ${sc.price}</p> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
+                              Monthly on {getDateLabels(sc.datesOfMonth)} <div style={{ display: "flex", justifyContent: "space-between", marginRight: "20px", marginLeft: "20px" }}><div style={{ color: "green" }}>  ${sc.price}</div> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
                             </td>
                           </>
                         ) : (
@@ -247,9 +247,9 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                 <>
                                   {(formatDateTime(sc.endDate))}
                                   {sc.currentPrice && (
-                                    <p style={{ color: "green" }}>
+                                    <div style={{ color: "green" }}>
                                       Reverted Price: ${sc.currentPrice}
-                                    </p>
+                                    </div>
                                   )}
                                 </>
                               ) : (

@@ -21,9 +21,9 @@ import ProductDetailView from "./ProductDetailView";
 //http://3.84.27.16:3000/fetch-all-listings
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 // const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL ='http://localhost:3000'
 // const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
-const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+// const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
 
 const BASE_URL_LIST = 'https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000';
@@ -135,7 +135,7 @@ const ListView = () => {
     setFilterScheduled(newFilterScheduled);
     filterProducts(productData?.listings || [], scheduledData, newFilterScheduled, searchTerm);
   };
-
+/*
   const handleProductSelect = async (asin, index) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
@@ -161,7 +161,34 @@ const ListView = () => {
         console.error("Error fetching product details:", error.message);
       }
     }
-  };
+  };*/
+
+const handleProductSelect = async (asin, index) => {
+  if (selectedRowIndex === index) {
+    // Deselect if the same row is clicked
+    setSelectedRowIndex(null);
+    setSelectedProduct(null);
+    setSelectedListing(null);
+    setSelectedAsin("");
+  } else {
+    setSelectedRowIndex(index);
+    setSelectedAsin(asin);
+
+    try {
+      // Optimized API calls using Promise.all
+      const [responseOne, responseTwo] = await Promise.all([
+        axios.get(`${BASE_URL}/details/${asin}`),
+        axios.get(`${BASE_URL}/product/${asin}`)
+      ]);
+
+      setSelectedProduct(responseOne.data.payload);
+      setSelectedListing(responseTwo.data);
+    } catch (error) {
+      console.error("Error fetching product details:", error.message);
+      // Consider adding a fallback or retry mechanism here
+    }
+  }
+};
 
   const handleUpdate = (asin, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
@@ -217,11 +244,11 @@ const ListView = () => {
 
   if (isLoading)
     return (
-      <p style={{ marginTop: "100px" }}>
+      <div style={{ marginTop: "100px" }}>
         <Spinner animation="border" /> Loading...
-      </p>
+      </div>
     );
-  if (error) return <p style={{ marginTop: "100px" }}>{error.message}</p>;
+  if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
   return (
     <Container fluid>
@@ -485,9 +512,9 @@ const ListView = () => {
             </div>
           ) : (
             filterScheduled && (
-              <p style={{ marginTop: "20px", color: "#888", textAlign: "center" }}>
+              <div style={{ marginTop: "20px", color: "#888", textAlign: "center" }}>
                 There is no active schedule.
-              </p>
+              </div>
             )
           )}
         </Col>
