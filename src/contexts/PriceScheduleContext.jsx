@@ -3,7 +3,9 @@ import axios from 'axios';
 
 export const PriceScheduleContext = createContext();
 
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+
 
 export const PriceScheduleProvider = ({ children }) => {
   const [events, setEvents] = useState([]);

@@ -6,7 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { signInFailure, signInStart, signInSuccess } from '../../redux/user/userSlice';
 
-const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+
 
 
 const Login = () => {
@@ -28,7 +30,7 @@ const Login = () => {
     try {
       dispatch(signInStart);
 
-      const res = await fetch("https://price-scheduling-server-2.onrender.com/api/auth/signin",{
+      const res = await fetch(`${BASE_URL}/api/auth/signin`,{
         method:"POST",
         headers:{
           "Content-Type": "application/json",
