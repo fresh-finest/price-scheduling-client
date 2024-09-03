@@ -21,10 +21,10 @@ import ProductDetailView from "./ProductDetailView";
 //http://3.84.27.16:3000/fetch-all-listings
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 // const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
-const BASE_URL ='http://localhost:3000'
+// const BASE_URL ='http://localhost:3000'
 // const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
-// const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
+const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
 const BASE_URL_LIST = 'https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000';
 // const BASE_URL_LIST='https://price-scheduling-server-2.onrender.com'
