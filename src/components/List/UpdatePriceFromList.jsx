@@ -7,8 +7,8 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
-const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
-
+// const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -112,6 +112,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
 
   const userName = currentUser?.userName || "";
 
+  const [weeklyExists, setWeeklyExists] = useState(false);
+  const [monthlyExists, setMonthlyExists] = useState(false);
+
   const daysOptions = [
     { label: "Monday", value: 1 },
     { label: "Tuesday", value: 2 },
@@ -133,7 +136,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
       fetchProductDetailsByAsin(asin);
       fetchSchedules(asin);
     } else if (show && !asin) {
-      onClose(); // Close the modal if asin is not provided
+      onClose();
     }
   }, [show, asin]);
 
@@ -146,35 +149,24 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     setIndefiniteEndDate(false);
     setSuccessMessage("");
     setErrorMessage("");
-    setWeekly(false);
-    setMonthly(false);
-    setDaysOfWeek([]);
-    setDatesOfMonth([]);
   };
 
   const fetchSchedules = async (asin) => {
     try {
       const schedules = await fetchExistingSchedules(asin);
       setExistingSchedules(schedules);
-      const nonDeletedWeekly = schedules.find(
-        (schedule) => schedule.weekly && schedule.status !== "deleted"
-      );
-      const nonDeletedMonthly = schedules.find(
-        (schedule) => schedule.monthly && schedule.status !== "deleted"
-      );
 
-      if (nonDeletedWeekly) {
-        setWeekly(true);
-        setDaysOfWeek(nonDeletedWeekly.daysOfWeek);
-      }
-      if (nonDeletedMonthly) {
-        setMonthly(true);
-        setDatesOfMonth(nonDeletedMonthly.datesOfMonth);
-      }
+      const hasWeekly = schedules.some((schedule) => schedule.weekly);
+      const hasMonthly = schedules.some((schedule) => schedule.monthly);
+
+      setWeeklyExists(hasWeekly);
+      setMonthlyExists(hasMonthly);
+      
     } catch (error) {
       setErrorMessage("Error fetching existing schedules.");
     }
   };
+
   const fetchProductDetailsByAsin = async (asin) => {
     setLoading(true);
     try {
@@ -208,7 +200,6 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -219,25 +210,22 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         return;
       }
 
-      // Check if a conflicting schedule already exists
-      if (
-        weekly &&
-        existingSchedules.some(
-          (schedule) => schedule.weekly && schedule.status !== "deleted"
-        )
-      ) {
-        setErrorMessage("A weekly schedule already exists for this ASIN.");
-        setLoading(false);
-        return;
-      }
+      // Check for overlapping schedules
+      const overlappingSchedule = existingSchedules.find((schedule) => {
+        const existingStart = new Date(schedule.startDate);
+        const existingEnd = new Date(schedule.endDate || startDate); // if no endDate, treat as ongoing
+        return (
+          (startDate >= existingStart && startDate <= existingEnd) || // new start is within existing range
+          (endDate && endDate >= existingStart && endDate <= existingEnd) || // new end is within existing range
+          (startDate <= existingStart &&
+            (endDate ? endDate >= existingEnd : true)) // new range completely overlaps existing
+        );
+      });
 
-      if (
-        monthly &&
-        existingSchedules.some(
-          (schedule) => schedule.monthly && schedule.status !== "deleted"
-        )
-      ) {
-        setErrorMessage("A monthly schedule already exists for this ASIN.");
+      if (overlappingSchedule) {
+        setErrorMessage(
+          "Cannot create a schedule during an existing scheduled period."
+        );
         setLoading(false);
         return;
       }
@@ -308,141 +296,97 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 disabled={loading}
               />
             </Form.Group>
-
+            <Form.Group controlId="formWeekly">
+              <Form.Check
+                type="checkbox"
+                label="Repeat Weekly"
+                checked={weekly}
+                onChange={() => setWeekly(!weekly)}
+                disabled={loading || monthly || weeklyExists}
+              />
+            </Form.Group>
             {weekly && (
-              <>
-                <Alert variant="info">Weekly Schedule Exists</Alert>
-                <Form.Group controlId="formDaysOfWeek">
-                  <Form.Label>Scheduled Weekly on:</Form.Label>
-                  <div>
-                    {daysOfWeek
-                      .map((day) =>
-                        daysOptions.find((option) => option.value === day)
-                      )
-                      .map((option) => option.label)
-                      .join(", ")}
-                  </div>
-                </Form.Group>
-              </>
+              <Form.Group controlId="formDaysOfWeek">
+                <Form.Label>Select Days</Form.Label>
+                <MultiSelect
+                  options={daysOptions}
+                  value={daysOfWeek}
+                  onChange={setDaysOfWeek}
+                  labelledBy="Select"
+                />
+              </Form.Group>
             )}
 
+            <Form.Group controlId="formMonthly">
+              <Form.Check
+                type="checkbox"
+                label="Repeat Monthly"
+                checked={monthly}
+                onChange={() => setMonthly(!monthly)}
+                disabled={loading || weekly || monthlyExists}
+              />
+            </Form.Group>
             {monthly && (
-              <>
-                <Alert variant="info">Monthly Schedule Exists</Alert>
-                <Form.Group controlId="formDatesOfMonth">
-                  <Form.Label>Scheduled Monthly on:</Form.Label>
-                  <div>
-                    {datesOfMonth
-                      .map((date) =>
-                        datesOptions.find((option) => option.value === date)
-                      )
-                      .map((option) => option.label)
-                      .join(", ")}
-                  </div>
-                </Form.Group>
-              </>
+              <Form.Group controlId="formDatesOfMonth">
+                <Form.Label>Selects Dates</Form.Label>
+                <MultiSelect
+                  options={datesOptions}
+                  value={datesOfMonth}
+                  onChange={setDatesOfMonth}
+                  labelledBy="Select"
+                />
+              </Form.Group>
             )}
-
             {!weekly && !monthly && (
               <>
-                <Form.Group controlId="formWeekly">
-                  <Form.Check
-                    type="checkbox"
-                    label="Repeat Weekly"
-                    checked={weekly}
-                    onChange={() => setWeekly(!weekly)}
-                    disabled={loading || monthly}
+                <Form.Group controlId="formStartDate">
+                  <Form.Label style={{ marginRight: "20px" }}>
+                    Start Date and Time
+                  </Form.Label>
+                  <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    showTimeSelect
+                    dateFormat="Pp"
+                    className="form-control"
+                    required
+                    disabled={loading}
                   />
                 </Form.Group>
-                {weekly && (
-                  <Form.Group controlId="formDaysOfWeek">
-                    <Form.Label>Select Days</Form.Label>
-                    <MultiSelect
-                      options={daysOptions}
-                      value={daysOfWeek}
-                      onChange={setDaysOfWeek}
-                      labelledBy="Select"
+                <Form.Group controlId="formIndefiniteEndDate">
+                  <Form.Check
+                    type="checkbox"
+                    label="Until I change."
+                    checked={indefiniteEndDate}
+                    onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
+                    disabled={loading}
+                  />
+                </Form.Group>
+                {!indefiniteEndDate && (
+                  <Form.Group controlId="formEndDate">
+                    <Form.Label style={{ marginRight: "25px" }}>
+                      End Date and Time
+                    </Form.Label>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      showTimeSelect
+                      dateFormat="Pp"
+                      className="form-control"
+                      required={!indefiniteEndDate}
+                      disabled={loading}
                     />
                   </Form.Group>
                 )}
-
-                <Form.Group controlId="formMonthly">
-                  <Form.Check
-                    type="checkbox"
-                    label="Repeat Monthly"
-                    checked={monthly}
-                    onChange={() => setMonthly(!monthly)}
-                    disabled={loading || weekly}
-                  />
-                </Form.Group>
-                {monthly && (
-                  <Form.Group controlId="formDatesOfMonth">
-                    <Form.Label>Select Dates</Form.Label>
-                    <MultiSelect
-                      options={datesOptions}
-                      value={datesOfMonth}
-                      onChange={setDatesOfMonth}
-                      labelledBy="Select"
-                    />
-                  </Form.Group>
-                )}
-
-                {!weekly && !monthly && (
-                  <>
-                    <Form.Group controlId="formStartDate">
-                      <Form.Label>Start Date and Time</Form.Label>
-                      <DatePicker
-                        selected={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        showTimeSelect
-                        dateFormat="Pp"
-                        className="form-control"
-                        required
-                        disabled={loading}
-                      />
-                    </Form.Group>
-                    <Form.Group controlId="formIndefiniteEndDate">
-                      <Form.Check
-                        type="checkbox"
-                        label="Until I change."
-                        checked={indefiniteEndDate}
-                        onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
-                        disabled={loading}
-                      />
-                    </Form.Group>
-                    {!indefiniteEndDate && (
-                      <Form.Group controlId="formEndDate">
-                        <Form.Label>End Date and Time</Form.Label>
-                        <DatePicker
-                          selected={endDate}
-                          onChange={(date) => setEndDate(date)}
-                          showTimeSelect
-                          dateFormat="Pp"
-                          className="form-control"
-                          required={!indefiniteEndDate}
-                          disabled={loading}
-                        />
-                      </Form.Group>
-                    )}
-                  </>
-                )}
-                <Button
-                  style={{
-                    width: "100%",
-                    backgroundColor: "black",
-                    marginTop: "30px",
-                  }}
-                  type="submit"
-                  disabled={loading}
-                >
-                  {weekly
-                    ? "Weekly Update"
-                    : monthly
-                    ? "Monthly Update Price"
-                    : "Update Price"}
-                </Button>
               </>
             )}
+            <Button
+              style={{ width: "100%", backgroundColor: "black", marginTop: "30px" }}
+              type="submit"
+              disabled={loading}
+            >
+              {weekly ? 'Weekly Update' : monthly ? 'Monthly Update Price' : 'Update Price'}
+            </Button>
           </Form>
         </Modal.Body>
       </Modal>
