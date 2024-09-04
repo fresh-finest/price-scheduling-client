@@ -18,23 +18,19 @@ import axios from "axios";
 import { useSelector } from 'react-redux';
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
-//http://3.84.27.16:3000/fetch-all-listings
-// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-// const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+
 // const BASE_URL ='http://localhost:3000'
-// const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
 
 const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
 const BASE_URL_LIST = 'https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000';
-// const BASE_URL_LIST='http://localhost:3000'
-// Fetch products function
+
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
   return response.data;
 };
 
-// Fetch scheduled data function
+
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
   return response.data.result;
@@ -52,28 +48,22 @@ const ListView = () => {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
-  const [filterScheduled, setFilterScheduled] = useState(true);
+  const [filterScheduled, setFilterScheduled] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || '';
   console.log("role:"+currentUser.role+"write: "+currentUser.permissions.write+"username:"+userName);
 
-  // Fetch products
+
   const { data: productData, error, isLoading } = useQuery("products", fetchProducts, {
     onSuccess: (data) => {
-      setFilteredProducts(data.listings);
+      if (!filterScheduled) {
+        setFilteredProducts(data.listings); 
+      }
     },
   });
 
-  // Fetch scheduled data
-  // useEffect(() => {
-  //   const getScheduledData = async () => {
-  //     const result = await fetchScheduledData();
-  //     setScheduledData(result);
-  //   };
-  //   getScheduledData();
-  // }, []);
 
   useEffect(() => {
     const getScheduledData = async () => {
@@ -86,20 +76,20 @@ const ListView = () => {
     getScheduledData();
   }, [productData]);
 
-  // Handle search
+ 
   const handleSearch = (value) => {
     setSearchTerm(value);
     filterProducts(productData?.listings || [], scheduledData, filterScheduled, value);
   };
 
-  // Handle filtering of products
+  
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
     const now = new Date();
 
     if (onlyScheduled) {
       const scheduledAsins = scheduled
-        // .filter(item => item.status !== "deleted" && (!item.weekly &&(item.endDate ==null || (!item.endDate || new Date(item.endDate) >= now))))
+       
         .filter(item => 
           item.status !== "deleted" && 
           (
@@ -110,7 +100,7 @@ const ListView = () => {
           )
         )
         
-        //&& (item.endDate ==null && (!item.endDate || new Date(item.endDate) > now))
+       
         .map(item => item.asin);
 
       filtered = products.filter(product => scheduledAsins.includes(product.asin1));
@@ -129,7 +119,7 @@ const ListView = () => {
     setFilteredProducts(filtered);
   };
 
-  // Toggle filter between all products and scheduled products
+ 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
@@ -165,7 +155,7 @@ const ListView = () => {
 
 const handleProductSelect = async (asin, index) => {
   if (selectedRowIndex === index) {
-    // Deselect if the same row is clicked
+    
     setSelectedRowIndex(null);
     setSelectedProduct(null);
     setSelectedListing(null);
@@ -175,7 +165,7 @@ const handleProductSelect = async (asin, index) => {
     setSelectedAsin(asin);
 
     try {
-      // Optimized API calls using Promise.all
+      
       const [responseOne, responseTwo] = await Promise.all([
         axios.get(`${BASE_URL}/details/${asin}`),
         axios.get(`${BASE_URL}/product/${asin}`)
@@ -185,21 +175,42 @@ const handleProductSelect = async (asin, index) => {
       setSelectedListing(responseTwo.data);
     } catch (error) {
       console.error("Error fetching product details:", error.message);
-      // Consider adding a fallback or retry mechanism here
+      
     }
   }
 };
-
+/*
   const handleUpdate = (asin, e) => {
-    e.stopPropagation(); // Prevent row click from being triggered
+    e.stopPropagation(); 
     if (asin) {
       setSelectedAsin(asin);
       setShowUpdateModal(true);
+      setSelectedProduct(product);
     } else {
       console.error("ASIN is not provided. Modal will not open.");
     }
   };
+*/
+ // Fetch product details when Update Price button is clicked
+ const handleUpdate = async (asin,index, e) => {
+  e.stopPropagation(); // Prevent row click from being triggered
 
+  if (!asin) {
+    console.error("ASIN is not provided. Modal will not open.");
+    return;
+  }
+
+  try {
+    setSelectedAsin(asin);
+    setShowUpdateModal(true);
+    setSelectedRowIndex(index);
+    // Fetch product details and set the selected product
+    const response = await axios.get(`${BASE_URL}/details/${asin}`);
+    setSelectedProduct(response.data.payload);
+  } catch (error) {
+    console.error("Error fetching product details:", error.message);
+  }
+};
   const handleCloseUpdateModal = () => {
     setShowUpdateModal(false);
   };
@@ -489,17 +500,19 @@ const handleProductSelect = async (asin, index) => {
                           cursor: "pointer",
                         height: "40px",
                         backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",}}  >${item.price}</td>
-                      <td>
+                      <td style={{backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",}} >
                         <Button
+                        
                           style={{
                             backgroundColor:"#5AB36D",
                           
                             paddingLeft:"20px",
                             paddingRight:"20px",
-                            border:"none"
+                            border:"none",
+                            // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                             
                           }}
-                          onClick={(e) => handleUpdate(item.asin1, e)}
+                          onClick={(e) => handleUpdate(item.asin1,index, e)}
                           disabled={(!currentUser?.permissions?.write)}
                         >
                          <IoMdAdd />
