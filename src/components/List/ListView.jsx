@@ -209,6 +209,8 @@ const handleProductSelect = async (asin, index) => {
     // Fetch product details and set the selected product
     const response = await axios.get(`${BASE_URL}/details/${asin}`);
     setSelectedProduct(response.data.payload);
+    const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
+    setSelectedListing(response2.data);
   } catch (error) {
     console.error("Error fetching product details:", error.message);
   }
