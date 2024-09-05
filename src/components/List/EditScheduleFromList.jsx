@@ -7,57 +7,13 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { current } from "@reduxjs/toolkit";
-
+import {daysOptions,datesOptions} from "../../utils/staticValue";
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 // const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
 
 // const BASE_URL ='http://localhost:3000'
 const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
-
-const daysOptions = [
-  { label: 'Sun', value: 0 },
-  { label: 'Mon', value: 1 },
-  { label: 'Tues', value: 2 },
-  { label: 'Wed', value: 3 },
-  { label: 'Thurs', value: 4 },
-  { label: 'Fri', value: 5 },
-  { label: 'Sat', value: 6 },
-];
-
-const datesOptions = [
-  { label: '1st', value: 1 },
-  { label: '2nd', value: 2 },
-  { label: '3rd', value: 3 },
-  { label: '4th', value: 4 },
-  { label: '5th', value: 5 },
-  { label: '6th', value: 6 },
-  { label: '7th', value: 7 },
-  { label: '8th', value: 8 },
-  { label: '9th', value: 9 },
-  { label: '10th', value: 10 },
-  { label: '11th', value: 11 },
-  { label: '12th', value: 12 },
-  { label: '13th', value: 13 },
-  { label: '14th', value: 14 },
-  { label: '15th', value: 15 },
-  { label: '16th', value: 16 },
-  { label: '17th', value: 17 },
-  { label: '18th', value: 18 },
-  { label: '19th', value: 19 },
-  { label: '20th', value: 20 },
-  { label: '21st', value: 21 },
-  { label: '22nd', value: 22 },
-  { label: '23rd', value: 23 },
-  { label: '24th', value: 24 },
-  { label: '25th', value: 25 },
-  { label: '26th', value: 26 },
-  { label: '27th', value: 27 },
-  { label: '28th', value: 28 },
-  { label: '29th', value: 29 },
-  { label: '30th', value: 30 },
-  { label: '31st', value: 31 },
-];
 
 const fetchProductDetails = async (asin) => {
   try {
@@ -96,7 +52,9 @@ const updateSchedule = async (
   weekly,
   daysOfWeek,
   monthly,
-  datesOfMonth
+  datesOfMonth,
+  startTime,
+  endTime
 ) => {
   try {
     const response = await axios.put(
@@ -113,6 +71,8 @@ const updateSchedule = async (
         daysOfWeek,
         monthly,
         datesOfMonth,
+        startTime,
+        endTime,
         firstChange: false,
       }
     );
@@ -159,6 +119,8 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const [datesOfMonth, setDatesOfMonth] = useState(
     existingSchedule.datesOfMonth || []
   );
+  const [startTime,setStartTime] = useState(new Date());
+  const [endTime,setEndTime] = useState(new Date());
   const [scheduleType, setScheduleType] = useState(''); 
   const [scheduleId, setScheduleId] = useState("");
   const [title, setTitle] = useState("");
@@ -181,6 +143,8 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
           : new Date()
       );
       setIndefiniteEndDate(!existingSchedule.endDate);
+      setStartTime(new Date());
+      setEndTime(new  Date());
       // setWeekly(existingSchedule.weekly);
       // setDaysOfWeek(existingSchedule.daysOfWeek);
       // setMonthly(existingSchedule.monthly);
@@ -251,6 +215,8 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
         datesOfMonth: scheduleType === 'monthly' ? datesOfMonth : [],
         weekly: scheduleType === 'weekly',
         monthly: scheduleType === 'monthly',
+        startTime:startTime.toTimeString().slice(0, 5),
+        endTime:endTime.toTimeString().slice(0, 5)
       };
 
       await axios.put(`${BASE_URL}/api/schedule/change/${existingSchedule._id}`, updateData);
@@ -390,6 +356,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
               </>
             )}
             {scheduleType === 'weekly' && (
+              <>
               <Form.Group controlId="formDaysOfWeek" style={{ marginBottom: '15px' }}>
                 <Form.Label>Update Weekly on</Form.Label>
                 <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
@@ -408,8 +375,36 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
                   <strong>Selected Days:</strong> {daysOfWeek.map(day => daysOptions.find(opt => opt.value === day)?.label).join(', ')}
                 </div>
               </Form.Group>
+              <Form.Group controlId="formWeeklyStartTime">
+                <Form.Label>Start Time</Form.Label>
+                <DatePicker
+                  selected={startTime}
+                  onChange={(time) => setStartTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formWeeklyEndTime">
+                <Form.Label>End Time</Form.Label>
+                <DatePicker
+                  selected={endTime}
+                  onChange={(time) => setEndTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+              </>
             )}
             {scheduleType === 'monthly' && (
+              <>
               <Form.Group controlId="formDatesOfMonth" style={{ marginBottom: '15px' }}>
                 <Form.Label>Update Monthly on</Form.Label>
                 <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
@@ -428,6 +423,33 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
                   <strong>Selected Dates:</strong> {datesOfMonth.map(date => datesOptions.find(opt => opt.value === date)?.label).join(', ')}
                 </div>
               </Form.Group>
+              <Form.Group controlId="formMonthlyStartTime">
+                <Form.Label>Start Time</Form.Label>
+                <DatePicker
+                  selected={startTime}
+                  onChange={(time) => setStartTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formMonthlyEndTime">
+                <Form.Label>End Time</Form.Label>
+                <DatePicker
+                  selected={endTime}
+                  onChange={(time) => setEndTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+              </>
             )}
             <Button style={{ width: "40%", backgroundColor: "black" }} type="submit">
               Update Schedule

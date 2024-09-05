@@ -47,7 +47,7 @@ export default function HistoryView() {
 
   const baseUrl = useSelector((state)=>state.baseUrl.baseUrl);
 
-console.log(baseUrl);
+// console.log(baseUrl);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -447,6 +447,7 @@ console.log(baseUrl);
                           <span style={{ color: "blue" }}>
                             Repeats Weekly on {daysLabel}
                           </span>
+                          <p>{displayData.startTime}-{displayData.endTime}</p>
                           {displayData?.currentPrice && (
                             <p
                               style={{
@@ -465,6 +466,7 @@ console.log(baseUrl);
                           <span style={{ color: "blue" }}>
                             Repeats Monthly on {datesLabel}
                           </span>
+                          <p>{displayData.startTime}-{displayData.endTime}</p>
                           {displayData?.currentPrice && (
                             <p
                               style={{

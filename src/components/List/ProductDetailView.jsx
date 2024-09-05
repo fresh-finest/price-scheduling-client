@@ -188,13 +188,24 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                         {sc.weekly ? (
                           <>
                             <td style={{ width: "200px" }} colSpan={2}>
-                              Weekly on {getDayLabels(sc.daysOfWeek)} <div style={{display:"flex",justifyContent: "space-between", marginRight:"20px",marginLeft:"20px"}}><div style={{ color: "green" }}>  ${sc.price}</div> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
+                              Weekly on {getDayLabels(sc.daysOfWeek)} <div style={{ marginRight:"20px",marginLeft:"20px"}}>
+
+                             <p>{sc.startTime}-{sc.endTime}</p>
+                             <p style={{display:"flex",justifyContent: "space-between"}}>
+                             <span style={{ color: "green" }}>    ${sc.price}</span> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span>
+                             </p>
+                            </div>
                             </td>
                           </>
                         ) : sc.monthly ? (
                           <>
                             <td style={{ width: "200px" }} colSpan={2}>
-                              Monthly on {getDateLabels(sc.datesOfMonth)} <div style={{ display: "flex", justifyContent: "space-between", marginRight: "20px", marginLeft: "20px" }}><div style={{ color: "green" }}>  ${sc.price}</div> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span></div>
+                              Monthly on {getDateLabels(sc.datesOfMonth)} <div style={{  marginRight: "20px", marginLeft: "20px" }}>
+                              <p>{sc.startTime}-{sc.endTime}</p>
+                              <p style={{display:"flex",justifyContent: "space-between"}}>
+                             <span style={{ color: "green" }}>    ${sc.price}</span> { } <span style={{ color: "green" }}> ${sc.currentPrice}</span>
+                             </p>
+                             </div>
                             </td>
                           </>
                         ) : (

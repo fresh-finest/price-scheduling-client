@@ -6,7 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
-
+import{daysOptions,datesOptions} from "../../utils/staticValue"
 const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 // const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
@@ -61,7 +61,9 @@ const saveScheduleAndQueueJobs = async (
   weekly = false,
   daysOfWeek = [],
   monthly = false,
-  datesOfMonth = []
+  datesOfMonth = [],
+  startTime,
+  endTime
 ) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
@@ -78,6 +80,8 @@ const saveScheduleAndQueueJobs = async (
       daysOfWeek,
       monthly,
       datesOfMonth,
+      startTime,
+      endTime
     });
     return response.data;
   } catch (error) {
@@ -106,6 +110,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [daysOfWeek, setDaysOfWeek] = useState([]);
   const [monthly, setMonthly] = useState(false);
   const [datesOfMonth, setDatesOfMonth] = useState([]);
+  const [startTime,setStartTime] = useState(new Date());
+  const [endTime,setEndTime] = useState(new Date());
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
@@ -115,20 +121,12 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [weeklyExists, setWeeklyExists] = useState(false);
   const [monthlyExists, setMonthlyExists] = useState(false);
 
-  const daysOptions = [
-    { label: "Monday", value: 1 },
-    { label: "Tuesday", value: 2 },
-    { label: "Wednesday", value: 3 },
-    { label: "Thursday", value: 4 },
-    { label: "Friday", value: 5 },
-    { label: "Saturday", value: 6 },
-    { label: "Sunday", value: 0 },
-  ];
+ 
 
-  const datesOptions = Array.from({ length: 31 }, (_, i) => ({
-    label: `${i + 1}`,
-    value: i + 1,
-  }));
+  // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
+  //   label: `${i + 1}`,
+  //   value: i + 1,
+  // }));
 
   useEffect(() => {
     if (show && asin) {
@@ -146,6 +144,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
+    setStartTime(new Date());
+    setEndTime(new Date());
     setIndefiniteEndDate(false);
     setSuccessMessage("");
     setErrorMessage("");
@@ -156,8 +156,8 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
       const schedules = await fetchExistingSchedules(asin);
       setExistingSchedules(schedules);
 
-      const hasWeekly = schedules.some((schedule) => schedule.weekly);
-      const hasMonthly = schedules.some((schedule) => schedule.monthly);
+      const hasWeekly = schedules.some((schedule) => schedule.weekly && schedule.status !="deleted");
+      const hasMonthly = schedules.some((schedule) => schedule.monthly && schedule.status !="deleted");
 
       setWeeklyExists(hasWeekly);
       setMonthlyExists(hasMonthly);
@@ -204,7 +204,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!userName || !asin || !sku || !price || !startDate) {
+      if (!userName || !asin || !sku || !price || !startDate || !startTime || !endTime) {
         setErrorMessage("All fields are required to update the price.");
         setLoading(false);
         return;
@@ -212,15 +212,19 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
 
       // Check for overlapping schedules
       const overlappingSchedule = existingSchedules.find((schedule) => {
+        console.log(schedule.status);
+        if (schedule.status === "deleted") return false;
+
         const existingStart = new Date(schedule.startDate);
-        const existingEnd = new Date(schedule.endDate || startDate); // if no endDate, treat as ongoing
+        const existingEnd = new Date(schedule.endDate || startDate);
         return (
-          (startDate >= existingStart && startDate <= existingEnd) || // new start is within existing range
-          (endDate && endDate >= existingStart && endDate <= existingEnd) || // new end is within existing range
+          (startDate >= existingStart && startDate <= existingEnd) ||
+          (endDate && endDate >= existingStart && endDate <= existingEnd) ||
           (startDate <= existingStart &&
-            (endDate ? endDate >= existingEnd : true)) // new range completely overlaps existing
+            (endDate ? endDate >= existingEnd : true))
         );
       });
+      console.log(overlappingSchedule);
 
       if (overlappingSchedule) {
         setErrorMessage(
@@ -243,7 +247,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         weekly,
         daysOfWeek.map((day) => day.value),
         monthly,
-        datesOfMonth.map((date) => date.value)
+        datesOfMonth.map((date) => date.value),
+        startTime.toTimeString().slice(0, 5), 
+        endTime.toTimeString().slice(0, 5),   
       );
 
       addEvent({
@@ -306,8 +312,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
               />
             </Form.Group>
             {weekly && (
+            <>
               <Form.Group controlId="formDaysOfWeek">
-                <Form.Label>Select Days</Form.Label>
+                <Form.Label>Repeat Weekly on</Form.Label>
                 <MultiSelect
                   options={daysOptions}
                   value={daysOfWeek}
@@ -315,7 +322,34 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                   labelledBy="Select"
                 />
               </Form.Group>
-            )}
+              <Form.Group controlId="formWeeklyStartTime">
+                <Form.Label>Start Time</Form.Label>
+                <DatePicker
+                  selected={startTime}
+                  onChange={(time) => setStartTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formWeeklyEndTime">
+                <Form.Label>End Time</Form.Label>
+                <DatePicker
+                  selected={endTime}
+                  onChange={(time) => setEndTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+            </>
+          )}
 
             <Form.Group controlId="formMonthly">
               <Form.Check
@@ -327,8 +361,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
               />
             </Form.Group>
             {monthly && (
+            <>
               <Form.Group controlId="formDatesOfMonth">
-                <Form.Label>Selects Dates</Form.Label>
+                <Form.Label>Repeat Monthly on</Form.Label>
                 <MultiSelect
                   options={datesOptions}
                   value={datesOfMonth}
@@ -336,7 +371,34 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                   labelledBy="Select"
                 />
               </Form.Group>
-            )}
+              <Form.Group controlId="formMonthlyStartTime">
+                <Form.Label>Start Time</Form.Label>
+                <DatePicker
+                  selected={startTime}
+                  onChange={(time) => setStartTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+              <Form.Group controlId="formMonthlyEndTime">
+                <Form.Label>End Time</Form.Label>
+                <DatePicker
+                  selected={endTime}
+                  onChange={(time) => setEndTime(time)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="form-control"
+                />
+              </Form.Group>
+            </>
+          )}
             {!weekly && !monthly && (
               <>
                 <Form.Group controlId="formStartDate">
