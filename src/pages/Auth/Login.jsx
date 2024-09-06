@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { signInFailure, signInStart, signInSuccess } from '../../redux/user/userSlice';
 
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+const BASE_URL = `https://api.priceobo.com`;
 
 
 

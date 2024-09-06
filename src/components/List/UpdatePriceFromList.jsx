@@ -7,7 +7,8 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import{daysOptions,datesOptions} from "../../utils/staticValue"
-const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+
+const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
@@ -323,7 +324,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 />
               </Form.Group>
               <Form.Group controlId="formWeeklyStartTime">
-                <Form.Label>Start Time</Form.Label>
+                <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
                 <DatePicker
                   selected={startTime}
                   onChange={(time) => setStartTime(time)}
@@ -336,7 +337,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 />
               </Form.Group>
               <Form.Group controlId="formWeeklyEndTime">
-                <Form.Label>End Time</Form.Label>
+                <Form.Label style={{ marginRight: "25px" }}>End Time</Form.Label>
                 <DatePicker
                   selected={endTime}
                   onChange={(time) => setEndTime(time)}
@@ -372,7 +373,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 />
               </Form.Group>
               <Form.Group controlId="formMonthlyStartTime">
-                <Form.Label>Start Time</Form.Label>
+                <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
                 <DatePicker
                   selected={startTime}
                   onChange={(time) => setStartTime(time)}
@@ -385,7 +386,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
                 />
               </Form.Group>
               <Form.Group controlId="formMonthlyEndTime">
-                <Form.Label>End Time</Form.Label>
+                <Form.Label style={{ marginRight: "25px" }}>End Time</Form.Label>
                 <DatePicker
                   selected={endTime}
                   onChange={(time) => setEndTime(time)}
