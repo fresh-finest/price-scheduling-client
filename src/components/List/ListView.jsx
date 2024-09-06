@@ -23,9 +23,9 @@ import ProductDetailView from "./ProductDetailView";
 
 const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
-// const BASE_URL_LIST =  `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
+const BASE_URL_LIST =  `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 // const BASE_URL_LIST='http://localhost:3000';
-const BASE_URL_LIST = 'https://price-scheduling-server-2.onrender.com'
+// const BASE_URL_LIST = 'https://price-scheduling-server-2.onrender.com'
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
