@@ -209,8 +209,8 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       const updateData = {
         startDate,
         endDate: indefiniteEndDate ? null : endDate,
-        price,
-        currentPrice,
+        price: parseFloat(price),  // Ensure price is a number
+        currentPrice: parseFloat(currentPrice),  // Ensure currentPrice is a number
         userName,
         daysOfWeek: scheduleType === 'weekly' ? daysOfWeek : [],
         datesOfMonth: scheduleType === 'monthly' ? datesOfMonth : [],

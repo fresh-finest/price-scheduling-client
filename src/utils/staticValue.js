@@ -1,12 +1,12 @@
 // Days of the Week Options
 export const daysOptions = [
-    { label: 'Sun', value: 1 },
-    { label: 'Mon', value: 2 },
-    { label: 'Tues', value: 3 },
-    { label: 'Wed', value: 4 },
-    { label: 'Thurs', value: 5 },
-    { label: 'Fri', value: 6 },
-    { label: 'Sat', value: 7 },
+    { label: 'Sun', value: 0 },
+    { label: 'Mon', value: 1 },
+    { label: 'Tues', value: 2 },
+    { label: 'Wed', value: 3 },
+    { label: 'Thurs', value: 4 },
+    { label: 'Fri', value: 5 },
+    { label: 'Sat', value: 6 },
   ];
   
   // Dates of the Month Options

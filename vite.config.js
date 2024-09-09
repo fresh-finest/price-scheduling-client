@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/url': {
-        target: 'http://100.26.185.72:3000',
+        target: 'https://api.priceobo.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/url/, ''),
