@@ -15,13 +15,17 @@ import { MdContentCopy, MdCheck } from "react-icons/md";
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
-import { daysOptions,datesOptions } from "../../utils/staticValue";
+import { daysOptions, datesOptions } from "../../utils/staticValue";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
-
-
+function addHoursToTime(timeString, hoursToAdd) {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
+  const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
+  return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+}
 
 // fetch(`${BASE_URL}/api/history`)
 //   .then(response => response.json())
@@ -31,8 +35,6 @@ const BASE_URL = `https://api.priceobo.com`;
 //   .catch(error => {
 //     console.error('Error:', error);
 //   });
-
-
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
@@ -46,9 +48,9 @@ export default function HistoryView() {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
 
-  const baseUrl = useSelector((state)=>state.baseUrl.baseUrl);
+  const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
-// console.log(baseUrl);
+  // console.log(baseUrl);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -68,18 +70,17 @@ export default function HistoryView() {
   }, [selectedUser]);
 
   const fetchData = async () => {
-
     const url = selectedUser
-    ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-    : `${BASE_URL}/api/history`;
+      ? `${BASE_URL}/api/schedule/${selectedUser}/list`
+      : `${BASE_URL}/api/history`;
     setLoading(true);
     try {
-     
       const response = await axios.get(url);
       const sortedData = Array.isArray(response.data.result)
-      ? response.data.result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      : [];
-
+        ? response.data.result.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          )
+        : [];
 
       setData(sortedData);
     } catch (err) {
@@ -119,19 +120,20 @@ export default function HistoryView() {
   };
 
   const handleCopy = (text, type, index) => {
-    console.log("text: "+text+"type: "+type+"index: "+index)
-    navigator.clipboard.writeText(text)
+    console.log("text: " + text + "type: " + type + "index: " + index);
+    navigator.clipboard
+      .writeText(text)
       .then(() => {
-        if (type === 'asin') {
+        if (type === "asin") {
           setCopiedAsinIndex(index);
           setTimeout(() => setCopiedAsinIndex(null), 2000);
-        } else if (type === 'sku') {
+        } else if (type === "sku") {
           setCopiedSkuIndex(index);
           setTimeout(() => setCopiedSkuIndex(null), 2000);
         }
       })
-      .catch(err => {
-        console.error('Failed to copy text: ', err);
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
       });
   };
 
@@ -145,13 +147,15 @@ export default function HistoryView() {
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
       .map((day) => daysOptions.find((option) => option.value === day)?.label)
-      .join(', ');
+      .join(", ");
   };
 
   const getDateLabels = (datesOfMonth) => {
     return datesOfMonth
-      .map((date) => datesOptions.find((option) => option.value === date)?.label)
-      .join(', ');
+      .map(
+        (date) => datesOptions.find((option) => option.value === date)?.label
+      )
+      .join(", ");
   };
 
   const filteredData = data
@@ -281,14 +285,14 @@ export default function HistoryView() {
           }}
         >
           {filteredData.length > 0 ? (
-            filteredData.map((item,index) => {
+            filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
               const daysLabel = displayData?.weekly
                 ? getDayLabels(displayData.daysOfWeek)
-                : '';
+                : "";
               const datesLabel = displayData?.monthly
                 ? getDateLabels(displayData?.datesOfMonth)
-                :' ';
+                : " ";
 
               return (
                 <tr key={item._id} style={{ height: "50px" }}>
@@ -312,45 +316,59 @@ export default function HistoryView() {
                   >
                     {displayData?.title || "N/A"}
                     <div>
-                      <span className="bubble-text" style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}>
+                      <span
+                        className="bubble-text"
+                        style={{
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
                         {displayData?.asin || "N/A"}
                         {copiedAsinIndex === index ? (
-                              <MdCheck
-                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
-                              />
-                            ) : (
-                              <MdContentCopy
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(displayData.asin, 'asin', index);
-                                }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
-                              />
-                            )}
-                      </span>{" "}
-                      <span className="bubble-text"  style={{
+                          <MdCheck
+                            style={{
+                              marginLeft: "5px",
                               cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }} >
+                              color: "green",
+                            }}
+                          />
+                        ) : (
+                          <MdContentCopy
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopy(displayData.asin, "asin", index);
+                            }}
+                            style={{ marginLeft: "5px", cursor: "pointer" }}
+                          />
+                        )}
+                      </span>{" "}
+                      <span
+                        className="bubble-text"
+                        style={{
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
                         {displayData?.sku || "N/A"}
                         {copiedSkuIndex === index ? (
-                              <MdCheck
-                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
-                              />
-                            ) : (
-                              <MdContentCopy
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(displayData.sku, 'sku', index);
-                                }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
-                              />
-                            )}
+                          <MdCheck
+                            style={{
+                              marginLeft: "5px",
+                              cursor: "pointer",
+                              color: "green",
+                            }}
+                          />
+                        ) : (
+                          <MdContentCopy
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopy(displayData.sku, "sku", index);
+                            }}
+                            style={{ marginLeft: "5px", cursor: "pointer" }}
+                          />
+                        )}
                       </span>
                     </div>
                   </td>
@@ -448,7 +466,15 @@ export default function HistoryView() {
                           <span style={{ color: "blue" }}>
                             Repeats Weekly on {daysLabel}
                           </span>
-                          <p>{displayData.startTime}-{displayData.endTime}</p>
+                          <p>
+                            {displayData.startTime
+                              ? addHoursToTime(displayData.startTime, 6)
+                              : "Invalid start time"}{" "}
+                            -
+                            {displayData.endTime
+                              ? addHoursToTime(displayData.endTime, 6)
+                              : "Invalid end time"}
+                          </p>
                           {displayData?.currentPrice && (
                             <p
                               style={{
@@ -462,12 +488,20 @@ export default function HistoryView() {
                             </p>
                           )}
                         </>
-                      ) :displayData?.monthly ? (
+                      ) : displayData?.monthly ? (
                         <>
                           <span style={{ color: "blue" }}>
                             Repeats Monthly on {datesLabel}
                           </span>
-                          <p>{displayData.startTime}-{displayData.endTime}</p>
+                          <p>
+                            {displayData.startTime
+                              ? addHoursToTime(displayData.startTime, 6)
+                              : "Invalid start time"}{" "}
+                            -
+                            {displayData.endTime
+                              ? addHoursToTime(displayData.endTime, 6)
+                              : "Invalid end time"}
+                          </p>
                           {displayData?.currentPrice && (
                             <p
                               style={{
