@@ -6,9 +6,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import moment from 'moment-timezone';
+
 import{daysOptions,datesOptions} from "../../utils/staticValue"
 
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = 'https://api.priceobo.com';
 // const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
@@ -201,6 +203,11 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     }
   };
 
+  // Convert time to UTC before sending to backend
+const convertTimeToUtc = (time) => {
+  return moment(time).utc().format("HH:mm");
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -210,6 +217,10 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         setLoading(false);
         return;
       }
+
+       // Convert startTime and endTime to UTC
+       const utcStartTime = convertTimeToUtc(startTime);
+       const utcEndTime = convertTimeToUtc(endTime);
 
       // Check for overlapping schedules
       const overlappingSchedule = existingSchedules.find((schedule) => {
@@ -249,8 +260,10 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         daysOfWeek.map((day) => day.value),
         monthly,
         datesOfMonth.map((date) => date.value),
-        startTime.toTimeString().slice(0, 5), 
-        endTime.toTimeString().slice(0, 5),   
+        utcStartTime,
+        utcEndTime
+        //startTime.toTimeString().slice(0, 5), 
+        //endTime.toTimeString().slice(0, 5),   
       );
 
       addEvent({
