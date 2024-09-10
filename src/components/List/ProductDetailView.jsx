@@ -10,8 +10,14 @@ import { daysOptions, datesOptions } from "../../utils/staticValue";
 
 const BASE_URL = `https://api.priceobo.com`;
 
-
 // const BASE_URL ='http://localhost:3000'
+
+function addHoursToTime(timeString, hoursToAdd) {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
+  const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
+  return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+}
 
 const ProductDetailView = ({ product, listing, asin, sku }) => {
   const [priceSchedule, setPriceSchedule] = useState([]);
@@ -249,7 +255,8 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                 }}
                               >
                                 <p>
-                                  {sc.startTime}-{sc.endTime}
+                                  {addHoursToTime(sc.startTime, 6)} -{" "}
+                                  {addHoursToTime(sc.endTime, 6)}
                                 </p>
                                 <p
                                   style={{
