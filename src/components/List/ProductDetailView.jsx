@@ -288,7 +288,8 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                 }}
                               >
                                 <p>
-                                  {sc.startTime}-{sc.endTime}
+                                  {addHoursToTime(sc.startTime, 6)} -{" "}
+                                  {addHoursToTime(sc.endTime, 6)}
                                 </p>
                                 <p
                                   style={{
