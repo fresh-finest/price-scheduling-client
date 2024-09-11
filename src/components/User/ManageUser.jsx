@@ -3,7 +3,6 @@ import { Table, Form, Button, Modal, Container } from 'react-bootstrap';
 import axios from 'axios';
 
 // const BASE_URL = 'http://localhost:3000';
-// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 const BASE_URL = `https://api.priceobo.com`;
 
 function ManageUser() {

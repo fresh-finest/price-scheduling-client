@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-const BASE_URL = 'http://localhost:3000';
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = 'http://localhost:3000';
+const BASE_URL = `https://api.priceobo.com`;
 
 
 function ResetPassword() {
