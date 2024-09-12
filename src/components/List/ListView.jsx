@@ -15,7 +15,7 @@ import { IoMdAdd } from "react-icons/io";
 
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
@@ -24,14 +24,12 @@ import ProductDetailView from "./ProductDetailView";
 const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL_LIST =  `https://api.priceobo.com`;
-// const BASE_URL_LIST='http://localhost:3000';
-
+// const BASE_URL_LIST = "http://localhost:3000";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
   return response.data;
 };
-
 
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
@@ -42,7 +40,7 @@ const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [columnWidths, setColumnWidths] = useState([100, 400, 100, 150]);
+  const [columnWidths, setColumnWidths] = useState([80,80, 350, 80, 110]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
@@ -54,58 +52,75 @@ const ListView = () => {
 
   const { currentUser } = useSelector((state) => state.user);
 
-  const userName = currentUser?.userName || '';
-  console.log("role:"+currentUser.role+"write: "+currentUser.permissions.write+"username:"+userName);
+  const userName = currentUser?.userName || "";
+  console.log(
+    "role:" +
+      currentUser.role +
+      "write: " +
+      currentUser.permissions.write +
+      "username:" +
+      userName
+  );
 
-
-  const { data: productData, error, isLoading } = useQuery("products", fetchProducts, {
+  const {
+    data: productData,
+    error,
+    isLoading,
+  } = useQuery("products", fetchProducts, {
     onSuccess: (data) => {
       if (!filterScheduled) {
-        setFilteredProducts(data.listings); 
+        setFilteredProducts(data.listings);
       }
     },
   });
-
 
   useEffect(() => {
     const getScheduledData = async () => {
       const result = await fetchScheduledData();
       setScheduledData(result);
       if (productData) {
-        filterProducts(productData.listings, result, filterScheduled, searchTerm);
+        filterProducts(
+          productData.listings,
+          result,
+          filterScheduled,
+          searchTerm
+        );
       }
     };
     getScheduledData();
   }, [productData]);
 
- 
   const handleSearch = (value) => {
     setSearchTerm(value);
-    filterProducts(productData?.listings || [], scheduledData, filterScheduled, value);
+    filterProducts(
+      productData?.listings || [],
+      scheduledData,
+      filterScheduled,
+      value
+    );
   };
 
-  
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
     const now = new Date();
 
     if (onlyScheduled) {
       const scheduledAsins = scheduled
-       
-        .filter(item => 
-          item.status !== "deleted" && 
-          (
-            item.weekly || 
-            item.monthly ||
-            item.endDate === null || 
-            (item.endDate && new Date(item.endDate) >= now)
-          )
-        )
-        
-       
-        .map(item => item.asin);
 
-      filtered = products.filter(product => scheduledAsins.includes(product.asin1));
+        .filter(
+          (item) =>
+            item.status !== "deleted" &&
+            (item.weekly ||
+              item.monthly ||
+              item.endDate === null ||
+              (item.endDate && new Date(item.endDate) >= now))
+        )
+
+        .map((item) => item.asin);
+
+      filtered = products.filter((product) =>
+        scheduledAsins.includes(product.asin1)
+      );
     }
 
     if (searchValue) {
@@ -113,7 +128,9 @@ const ListView = () => {
         (product) =>
           product.itemName?.toLowerCase().includes(searchValue.toLowerCase()) ||
           product.asin1?.toLowerCase().includes(searchValue.toLowerCase()) ||
-          product.sellerSku?.toLowerCase().includes(searchValue.toLowerCase()) ||
+          product.sellerSku
+            ?.toLowerCase()
+            .includes(searchValue.toLowerCase()) ||
           product.status?.toLowerCase().includes(searchValue.toLowerCase())
       );
     }
@@ -121,13 +138,17 @@ const ListView = () => {
     setFilteredProducts(filtered);
   };
 
- 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
-    filterProducts(productData?.listings || [], scheduledData, newFilterScheduled, searchTerm);
+    filterProducts(
+      productData?.listings || [],
+      scheduledData,
+      newFilterScheduled,
+      searchTerm
+    );
   };
-/*
+  /*
   const handleProductSelect = async (asin, index) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
@@ -155,33 +176,30 @@ const ListView = () => {
     }
   };*/
 
-const handleProductSelect = async (asin, index) => {
-  if (selectedRowIndex === index) {
-    
-    setSelectedRowIndex(null);
-    setSelectedProduct(null);
-    setSelectedListing(null);
-    setSelectedAsin("");
-  } else {
-    setSelectedRowIndex(index);
-    setSelectedAsin(asin);
+  const handleProductSelect = async (asin, index) => {
+    if (selectedRowIndex === index) {
+      setSelectedRowIndex(null);
+      setSelectedProduct(null);
+      setSelectedListing(null);
+      setSelectedAsin("");
+    } else {
+      setSelectedRowIndex(index);
+      setSelectedAsin(asin);
 
-    try {
-      
-      const [responseOne, responseTwo] = await Promise.all([
-        axios.get(`${BASE_URL}/details/${asin}`),
-        axios.get(`${BASE_URL}/product/${asin}`)
-      ]);
+      try {
+        const [responseOne, responseTwo] = await Promise.all([
+          axios.get(`${BASE_URL}/details/${asin}`),
+          axios.get(`${BASE_URL}/product/${asin}`),
+        ]);
 
-      setSelectedProduct(responseOne.data.payload);
-      setSelectedListing(responseTwo.data);
-    } catch (error) {
-      console.error("Error fetching product details:", error.message);
-      
+        setSelectedProduct(responseOne.data.payload);
+        setSelectedListing(responseTwo.data);
+      } catch (error) {
+        console.error("Error fetching product details:", error.message);
+      }
     }
-  }
-};
-/*
+  };
+  /*
   const handleUpdate = (asin, e) => {
     e.stopPropagation(); 
     if (asin) {
@@ -193,28 +211,28 @@ const handleProductSelect = async (asin, index) => {
     }
   };
 */
- // Fetch product details when Update Price button is clicked
- const handleUpdate = async (asin,index, e) => {
-  e.stopPropagation(); // Prevent row click from being triggered
+  // Fetch product details when Update Price button is clicked
+  const handleUpdate = async (asin, index, e) => {
+    e.stopPropagation(); // Prevent row click from being triggered
 
-  if (!asin) {
-    console.error("ASIN is not provided. Modal will not open.");
-    return;
-  }
+    if (!asin) {
+      console.error("ASIN is not provided. Modal will not open.");
+      return;
+    }
 
-  try {
-    setSelectedAsin(asin);
-    setShowUpdateModal(true);
-    setSelectedRowIndex(index);
-    // Fetch product details and set the selected product
-    const response = await axios.get(`${BASE_URL}/details/${asin}`);
-    setSelectedProduct(response.data.payload);
-    const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
-    setSelectedListing(response2.data);
-  } catch (error) {
-    console.error("Error fetching product details:", error.message);
-  }
-};
+    try {
+      setSelectedAsin(asin);
+      setShowUpdateModal(true);
+      setSelectedRowIndex(index);
+      // Fetch product details and set the selected product
+      const response = await axios.get(`${BASE_URL}/details/${asin}`);
+      setSelectedProduct(response.data.payload);
+      const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
+      setSelectedListing(response2.data);
+    } catch (error) {
+      console.error("Error fetching product details:", error.message);
+    }
+  };
   const handleCloseUpdateModal = () => {
     setShowUpdateModal(false);
   };
@@ -242,18 +260,19 @@ const handleProductSelect = async (asin, index) => {
   };
 
   const handleCopy = (text, type, index) => {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard
+      .writeText(text)
       .then(() => {
-        if (type === 'asin') {
+        if (type === "asin") {
           setCopiedAsinIndex(index);
           setTimeout(() => setCopiedAsinIndex(null), 2000);
-        } else if (type === 'sku') {
+        } else if (type === "sku") {
           setCopiedSkuIndex(index);
           setTimeout(() => setCopiedSkuIndex(null), 2000);
         }
       })
-      .catch(err => {
-        console.error('Failed to copy text: ', err);
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
       });
   };
 
@@ -297,7 +316,12 @@ const handleProductSelect = async (asin, index) => {
               />
             </InputGroup>
             <Button
-              style={{ borderRadius: "4px", marginTop: "100px",backgroundColor:"#5AB36D",border:"none"}}
+              style={{
+                borderRadius: "4px",
+                marginTop: "100px",
+                backgroundColor: "#5AB36D",
+                border: "none",
+              }}
               onClick={handleToggleFilter}
             >
               {filterScheduled ? "Show All" : "Scheduled"}
@@ -330,9 +354,28 @@ const handleProductSelect = async (asin, index) => {
                   }}
                 >
                   <tr>
-                    <th
+                  <th
                       style={{
                         width: `${columnWidths[0]}px`,
+                        position: "relative",
+                      }}
+                    >
+                      Image
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(0, e)}
+                      />
+                    </th>
+                    <th
+                      style={{
+                        width: `${columnWidths[1]}px`,
                         position: "relative",
                       }}
                     >
@@ -346,13 +389,13 @@ const handleProductSelect = async (asin, index) => {
                           top: "0",
                           cursor: "col-resize",
                         }}
-                        onMouseDown={(e) => handleResize(0, e)}
+                        onMouseDown={(e) => handleResize(1, e)}
                       />
                     </th>
 
                     <th
                       style={{
-                        width: `${columnWidths[1]}px`,
+                        width: `${columnWidths[2]}px`,
                         position: "relative",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -360,25 +403,6 @@ const handleProductSelect = async (asin, index) => {
                       }}
                     >
                       Product details
-                      <div
-                        style={{
-                          width: "5px",
-                          height: "100%",
-                          position: "absolute",
-                          right: "0",
-                          top: "0",
-                          cursor: "col-resize",
-                        }}
-                        onMouseDown={(e) => handleResize(1, e)}
-                      />
-                    </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[2]}px`,
-                        position: "relative",
-                      }}
-                    >
-                      Price
                       <div
                         style={{
                           width: "5px",
@@ -397,7 +421,7 @@ const handleProductSelect = async (asin, index) => {
                         position: "relative",
                       }}
                     >
-                      Update Price
+                      Price
                       <div
                         style={{
                           width: "5px",
@@ -408,6 +432,25 @@ const handleProductSelect = async (asin, index) => {
                           cursor: "col-resize",
                         }}
                         onMouseDown={(e) => handleResize(3, e)}
+                      />
+                    </th>
+                    <th
+                      style={{
+                        width: `${columnWidths[4]}px`,
+                        position: "relative",
+                      }}
+                    >
+                      Update Price
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(4, e)}
                       />
                     </th>
                   </tr>
@@ -426,14 +469,31 @@ const handleProductSelect = async (asin, index) => {
                       style={{
                         cursor: "pointer",
                         height: "40px",
-                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#ccc",
+                        backgroundColor:
+                          selectedRowIndex === index ? "#d3d3d3" : "#ccc",
                       }}
                     >
-                      <td style={{
-                        cursor: "pointer",
-                        height: "40px",
-                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",
-                      }} >{item.status}</td>
+                     <td
+                        style={{
+                          cursor: "pointer",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
+                      <img style={{height:"50px", width:"50px"}} src={item.imageUrl} alt="No image" />
+                        
+                      </td>
+                      <td
+                        style={{
+                          cursor: "pointer",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
+                        {item.status}
+                      </td>
 
                       <td
                         style={{
@@ -441,8 +501,9 @@ const handleProductSelect = async (asin, index) => {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           cursor: "pointer",
-                        height: "40px",
-                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
                         {item.itemName}
@@ -458,33 +519,44 @@ const handleProductSelect = async (asin, index) => {
                             {item.asin1}{" "}
                             {copiedAsinIndex === index ? (
                               <MdCheck
-                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
+                                style={{
+                                  marginLeft: "5px",
+                                  cursor: "pointer",
+                                  color: "green",
+                                }}
                               />
                             ) : (
                               <MdContentCopy
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCopy(item.asin1, 'asin', index);
+                                  handleCopy(item.asin1, "asin", index);
                                 }}
                                 style={{ marginLeft: "5px", cursor: "pointer" }}
                               />
                             )}
                           </span>{" "}
-                          <span className="bubble-text" style={{
+                          <span
+                            className="bubble-text"
+                            style={{
                               cursor: "pointer",
                               display: "inline-flex",
                               alignItems: "center",
-                            }} >
+                            }}
+                          >
                             {item.sellerSku}{" "}
                             {copiedSkuIndex === index ? (
                               <MdCheck
-                                style={{ marginLeft: "5px", cursor: "pointer", color: "green" }}
+                                style={{
+                                  marginLeft: "5px",
+                                  cursor: "pointer",
+                                  color: "green",
+                                }}
                               />
                             ) : (
                               <MdContentCopy
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCopy(item.sellerSku, 'sku', index);
+                                  handleCopy(item.sellerSku, "sku", index);
                                 }}
                                 style={{ marginLeft: "5px", cursor: "pointer" }}
                               />
@@ -494,32 +566,47 @@ const handleProductSelect = async (asin, index) => {
                             {item.fulfillmentChannel === "DEFAULT"
                               ? "FBM"
                               : "FBA"}{" "}
-                            : {item.quantity}
-                          </span>{" "}
+                            :{" "}
+                            {item?.fulfillableQuantity != null &&
+                            item?.pendingTransshipmentQuantity != null
+                              ? item.fulfillableQuantity +
+                                item.pendingTransshipmentQuantity
+                              : "N/A"}
+                          </span>
                         </div>
                       </td>
-                      <td style={{  whiteSpace: "nowrap",
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           cursor: "pointer",
-                        height: "40px",
-                        backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",}}  >${item.price}</td>
-                      <td style={{backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#fff",}} >
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
+                        ${item.price}
+                      </td>
+                      <td
+                        style={{
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
                         <Button
-                        
                           style={{
-                            backgroundColor:"#5AB36D",
-                          
-                            paddingLeft:"20px",
-                            paddingRight:"20px",
-                            border:"none",
+                            backgroundColor: "#5AB36D",
+
+                            paddingLeft: "20px",
+                            paddingRight: "20px",
+                            border: "none",
                             // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
-                            
                           }}
-                          onClick={(e) => handleUpdate(item.asin1,index, e)}
-                          disabled={(!currentUser?.permissions?.write)}
+                          onClick={(e) => handleUpdate(item.asin1, index, e)}
+                          disabled={!currentUser?.permissions?.write}
                         >
-                         <IoMdAdd />
+                          <IoMdAdd />
                         </Button>
                       </td>
                     </tr>
@@ -529,7 +616,13 @@ const handleProductSelect = async (asin, index) => {
             </div>
           ) : (
             filterScheduled && (
-              <div style={{ marginTop: "20px", color: "#888", textAlign: "center" }}>
+              <div
+                style={{
+                  marginTop: "20px",
+                  color: "#888",
+                  textAlign: "center",
+                }}
+              >
                 There is no active schedule.
               </div>
             )
