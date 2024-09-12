@@ -20,6 +20,11 @@ function addHoursToTime(timeString, hoursToAdd) {
 }
 
 const ProductDetailView = ({ product, listing, asin, sku }) => {
+  console.log("Product:", JSON.stringify(product, null, 2));
+
+  if (!product.AttributeSets) {
+    return <p>Product data is not available for this ASIN.</p>;
+  }
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,7 +34,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
 
   console.log(asin);
   const userName = currentUser?.userName || "";
-
+  
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -156,11 +161,12 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
   };
 
   const now = new Date();
-
+ 
   return (
     <div style={{ width: "100%" }}>
       <Card style={detailStyles.card}>
         <Card.Body>
+        
           <div>
             <div style={{ display: "flex", alignItems: "flex-start" }}>
               <Card.Img
@@ -181,7 +187,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
             >
               <Card.Text style={detailStyles.info}>
                 <strong>ASIN:</strong>{" "}
-                {product?.Identifiers?.MarketplaceASIN.ASIN}
+                {product?.Identifiers?.MarketplaceASIN?.ASIN}
               </Card.Text>
               <Card.Text style={detailStyles.info}>
                 {sellerSKU ? (
@@ -206,16 +212,16 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
               <Card.Text style={detailStyles.info}>
                 <strong>BSR:</strong>{" "}
                 {product?.SalesRankings?.[0]?.Rank
-                  ? product.SalesRankings[0].Rank
+                  ? product?.SalesRankings[0]?.Rank
                   : "N/A"}
               </Card.Text>
             </div>
           </div>
-
+        
           <h4 style={{ marginTop: "20px", fontWeight: "bold" }}>
             Schedule Details
           </h4>
-          {priceSchedule.length > 0 ? (
+          { priceSchedule.length > 0 ? (
             <div style={detailStyles.tableContainer}>
               <Table
                 striped

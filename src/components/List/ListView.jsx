@@ -19,6 +19,8 @@ import { useSelector } from "react-redux";
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
+import noImage from "../../assets/images/noimage.png"
+
 // const BASE_URL ='http://localhost:3000'
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -481,7 +483,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
-                      <img style={{height:"50px", width:"50px"}} src={item.imageUrl} alt="No image" />
+                      <img style={{height:"50px", width:"50px"}} src={item?.imageUrl? item.imageUrl : noImage} alt="" />
                         
                       </td>
                       <td
@@ -569,8 +571,8 @@ const ListView = () => {
                             :{" "}
                             {item?.fulfillableQuantity != null &&
                             item?.pendingTransshipmentQuantity != null
-                              ? item.fulfillableQuantity +
-                                item.pendingTransshipmentQuantity
+                              ? item?.fulfillableQuantity +
+                                item?.pendingTransshipmentQuantity
                               : "N/A"}
                           </span>
                         </div>
@@ -586,7 +588,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
-                        ${item.price}
+                        ${item?.price}
                       </td>
                       <td
                         style={{
@@ -636,7 +638,7 @@ const ListView = () => {
             paddingRight: "20px",
           }}
         >
-          {selectedProduct ? (
+          {selectedProduct && selectedListing && selectedAsin ? (
             <div
               style={{ marginTop: "100px", position: "fixed", width: "460px" }}
             >
