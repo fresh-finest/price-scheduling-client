@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback  } from "react";
 import {
   Table,
   Container,
@@ -16,6 +16,8 @@ import { IoMdAdd } from "react-icons/io";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { debounce } from "lodash";
+
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
@@ -92,15 +94,37 @@ const ListView = () => {
     getScheduledData();
   }, [productData]);
 
-  const handleSearch = (value) => {
-    setSearchTerm(value);
-    filterProducts(
-      productData?.listings || [],
-      scheduledData,
-      filterScheduled,
-      value
-    );
+  const debouncedFilterProducts = useCallback(
+    debounce((value) => {
+      filterProducts(productData?.listings || [], scheduledData, filterScheduled, value);
+    }, 300),
+    [productData, scheduledData, filterScheduled]
+  );
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value); // Update search term immediately in the input
+    debouncedFilterProducts(value); // Apply debounced filtering
   };
+
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      const value = event.target.value || "";
+      setSearchTerm(value);
+      filterProducts(productData?.listings || [], scheduledData, filterScheduled, value); // Immediate filtering on Enter press
+    }
+  };
+  // const handleSearch = (value) => {
+  //   setSearchTerm(value);
+  //   filterProducts(
+  //     productData?.listings || [],
+  //     scheduledData,
+  //     filterScheduled,
+  //     value
+  //   );
+  // };
+  
+
+
 
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
@@ -313,7 +337,9 @@ const ListView = () => {
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
+                // onChange={(e) => handleSearch(e.target.value)}
+                onChange={handleSearch}
+                onKeyDown={handleKeyPress}
                 style={{ borderRadius: "4px", marginTop: "100px" }}
               />
             </InputGroup>
