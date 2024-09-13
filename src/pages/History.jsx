@@ -1,14 +1,14 @@
-import React from 'react'
-import Header from '../components/shared/Header'
-import HistoryView from '../components/List/HistoryView'
+import React from "react";
+import Header from "../components/shared/Header";
+import HistoryView from "../components/List/HistoryView";
 
 function History() {
   return (
     <div>
-    <Header/>
-    <HistoryView/>
+      {/* <Header/> */}
+      <HistoryView />
     </div>
-  )
+  );
 }
 
-export default History
+export default History;
