@@ -1,14 +1,14 @@
-import React from 'react'
-import Header from '../components/shared/Header'
-import ListView from '../components/List/ListView'
+import React from "react";
+import Header from "../components/shared/Header";
+import ListView from "../components/List/ListView";
 
 function List() {
   return (
     <div>
-    <Header/>
-    <ListView/>
+      {/* <Header/> */}
+      <ListView />
     </div>
-  )
+  );
 }
 
-export default List
+export default List;
