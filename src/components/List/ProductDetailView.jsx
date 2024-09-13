@@ -20,7 +20,7 @@ function addHoursToTime(timeString, hoursToAdd) {
 }
 
 const ProductDetailView = ({ product, listing, asin, sku }) => {
-  console.log("Product:", JSON.stringify(product, null, 2));
+ 
 
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
@@ -116,8 +116,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
   const sellerSKU = offer?.SellerSKU;
   const amount = product?.AttributeSets[0]?.ListPrice?.Amount;
 
-  console.log("Price:", price);
-  console.log("SellerSKU:", sellerSKU);
+
 
   const detailStyles = {
     container: {

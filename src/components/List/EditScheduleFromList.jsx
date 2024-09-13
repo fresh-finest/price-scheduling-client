@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import moment from 'moment-timezone';
 import { current } from "@reduxjs/toolkit";
 import {daysOptions,datesOptions} from "../../utils/staticValue";
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
@@ -44,30 +45,35 @@ const fetchProductAdditionalDetails = async (asin) => {
 
 const updateSchedule = async (
   asin,
+  sku,
   scheduleId,
   startDate,
   endDate,
   price,
   currentPrice,
   userName,
+  imageURL,
   weekly,
-  daysOfWeek,
+  daysOfWeek=[],
   monthly,
-  datesOfMonth,
+  datesOfMonth=[],
   startTime,
   endTime
 ) => {
   try {
+    console.log("day+week"+daysOfWeek+datesOfMonth);
     const response = await axios.put(
       `${BASE_URL}/api/schedule/change/${scheduleId}`,
       {
         asin,
+        sku,
         scheduleId,
         startDate,
         endDate,
         price,
         currentPrice,
         userName,
+        imageURL,
         weekly,
         daysOfWeek,
         monthly,
@@ -78,6 +84,7 @@ const updateSchedule = async (
       }
     );
     return response.data;
+    
   } catch (error) {
     console.error(
       "Error updating schedule:",
@@ -166,7 +173,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
     if (show && asin) {
       fetchProductDetailsByAsin(asin);
       setPrice(existingSchedule.price);
-      // setCurrentPrice(existingSchedule.currentPrice);
+      setCurrentPrice(existingSchedule.currentPrice);
     }
   }, [show, asin]);
 
@@ -188,38 +195,71 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       console.error("Error fetching product details:", error);
     }
   };
+  const convertTimeToUtc = (time) => {
+    return moment(time).utc().format("HH:mm");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+
+      const utcStartTime = convertTimeToUtc(startTime);
+      const utcEndTime = convertTimeToUtc(endTime);
+      
+
+      if (!indefiniteEndDate && endDate < startDate) {
+        setErrorMessage("End Date cannot be earlier than Start Date.");
+        // setLoading(false);
+        return;
+      }
+      if (endTime < startTime) {
+        setErrorMessage("End time cannot be earlier than Start time.");
+        // setLoading(false);
+        return;
+      }
+
       // await updateSchedule(
       //   asin,
+      //   sku,
       //   existingSchedule._id,
       //   startDate,
       //   indefiniteEndDate ? null : endDate,
       //   price,
-      //   existingSchedule.currentPrice,
+      //   currentPrice,
       //   userName,
+      //   imageURL,
       //   weekly,
       //   daysOfWeek.map(day=>day.value),
       //   monthly,
-      //   datesOfMonth.map(date=>date.value)
+      //   datesOfMonth.map(date=>date.value),
+      //   utcStartTime,
+      //   utcEndTime
       // );
-      // currentPrice = existingSchedule.currentPrice;
-      const updateData = {
+     
+    
+
+      // const updatedDaysOfWeek = daysOfWeek.filter(day => day).map(day => day.value || day);
+      // const updatedDatesOfMonth = datesOfMonth.filter(date => date).map(date => date.value || date);
+      // console.log("time and sinn "+asin+utcStartTime+utcEndTime);
+      const updateData = { 
         startDate,
         endDate: indefiniteEndDate ? null : endDate,
         price: parseFloat(price),  // Ensure price is a number
         currentPrice: parseFloat(currentPrice),  // Ensure currentPrice is a number
         userName,
-        daysOfWeek: scheduleType === 'weekly' ? daysOfWeek : [],
-        datesOfMonth: scheduleType === 'monthly' ? datesOfMonth : [],
+        title,
+        asin,
+        sku,
+        imageURL,
         weekly: scheduleType === 'weekly',
+        daysOfWeek: scheduleType === 'weekly' ? daysOfWeek : [],
         monthly: scheduleType === 'monthly',
-        startTime:startTime.toTimeString().slice(0, 5),
-        endTime:endTime.toTimeString().slice(0, 5)
+        datesOfMonth: scheduleType === 'monthly' ? datesOfMonth : [],
+        startTime:utcStartTime,
+        endTime:utcEndTime
       };
-
+         //startTime:startTime.toTimeString().slice(0, 5),
+        //endTime:endTime.toTimeString().slice(0, 5)
       await axios.put(`${BASE_URL}/api/schedule/change/${existingSchedule._id}`, updateData);
 
       addEvent({

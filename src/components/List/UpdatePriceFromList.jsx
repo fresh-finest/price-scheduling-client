@@ -218,6 +218,16 @@ const convertTimeToUtc = (time) => {
         return;
       }
 
+      if (!indefiniteEndDate && endDate < startDate) {
+        setErrorMessage("End Date cannot be earlier than Start Date.");
+        setLoading(false);
+        return;
+      }
+      if (endTime < startTime) {
+        setErrorMessage("End Time cannot be earlier than Start Time.");
+        setLoading(false);
+        return;
+      }
        // Convert startTime and endTime to UTC
        const utcStartTime = convertTimeToUtc(startTime);
        const utcEndTime = convertTimeToUtc(endTime);
