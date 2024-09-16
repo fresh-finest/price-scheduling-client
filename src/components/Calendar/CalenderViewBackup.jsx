@@ -4,7 +4,13 @@ import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Button, Modal, DropdownButton, Dropdown, ButtonGroup } from "react-bootstrap";
+import {
+  Button,
+  Modal,
+  DropdownButton,
+  Dropdown,
+  ButtonGroup,
+} from "react-bootstrap";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
 import ScheduleUpdate from "../Modal/SchdeuleUpdate";
@@ -68,41 +74,43 @@ const CalendarView = () => {
   };
 
   const handleSelectSlot = (slotInfo) => {
-    const calendarElement = document.querySelector('.rbc-calendar');
+    const calendarElement = document.querySelector(".rbc-calendar");
     const boundingRect = calendarElement.getBoundingClientRect();
 
-    const modalWidth = 400; 
-    const modalHeight = 200; 
+    const modalWidth = 400;
+    const modalHeight = 200;
 
     let top = slotInfo.box.y - boundingRect.top - 30;
     let left = slotInfo.box.x - boundingRect.left - 60;
-    
 
     // if (left + modalWidth > boundingRect.width) {
-    //   left = boundingRect.width - modalWidth - 50; 
+    //   left = boundingRect.width - modalWidth - 50;
     // }
-  
 
     if (top + modalHeight > boundingRect.height) {
-      top = boundingRect.height - modalHeight - 90; 
+      top = boundingRect.height - modalHeight - 90;
     }
 
     setSelectedDate(slotInfo.start); // Set the selected date when slot is selected
     setSelectedEvent(slotInfo);
     setModalPosition({
       top: top,
-      left:left,
+      left: left,
     });
     setShowOptionModal(true);
   };
 
   const goToPreviousDate = () => {
-    const newDate = moment(selectedDate).subtract(1, view === Views.MONTH ? 'month' : 'week').toDate();
+    const newDate = moment(selectedDate)
+      .subtract(1, view === Views.MONTH ? "month" : "week")
+      .toDate();
     setSelectedDate(newDate);
   };
 
   const goToNextDate = () => {
-    const newDate = moment(selectedDate).add(1, view === Views.MONTH ? 'month' : 'week').toDate();
+    const newDate = moment(selectedDate)
+      .add(1, view === Views.MONTH ? "month" : "week")
+      .toDate();
     setSelectedDate(newDate);
   };
 
@@ -113,13 +121,23 @@ const CalendarView = () => {
 
   return (
     <div style={{ padding: "20px", marginTop: "20px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+        }}
+      >
         {/* Left: Previous, Today, Next Buttons */}
         <ButtonGroup>
           <Button variant="outline-primary" onClick={goToPreviousDate}>
             &lt;
           </Button>
-          <Button variant="outline-primary" onClick={() => handleNavigate(new Date())}>
+          <Button
+            variant="outline-primary"
+            onClick={() => handleNavigate(new Date())}
+          >
             Today
           </Button>
           <Button variant="outline-primary" onClick={goToNextDate}>
@@ -133,9 +151,16 @@ const CalendarView = () => {
         </h3>
 
         {/* Right: Dropdown for Views */}
-        <DropdownButton id="dropdown-basic-button" title={view.charAt(0).toUpperCase() + view.slice(1)}>
-          <Dropdown.Item onClick={() => handleViewChange(Views.MONTH)}>Month</Dropdown.Item>
-          <Dropdown.Item onClick={() => handleViewChange(Views.WEEK)}>Week</Dropdown.Item>
+        <DropdownButton
+          id="dropdown-basic-button"
+          title={view.charAt(0).toUpperCase() + view.slice(1)}
+        >
+          <Dropdown.Item onClick={() => handleViewChange(Views.MONTH)}>
+            Month
+          </Dropdown.Item>
+          <Dropdown.Item onClick={() => handleViewChange(Views.WEEK)}>
+            Week
+          </Dropdown.Item>
         </DropdownButton>
       </div>
 
@@ -151,7 +176,12 @@ const CalendarView = () => {
         selectable
         onSelectSlot={handleSelectSlot}
         onClickDay={handleDateClick}
-        style={{ height: "calc(100vh - 160px)",width:"100%", fontSize: '16px', borderRadius: '10px' }}
+        style={{
+          height: "calc(100vh - 160px)",
+          width: "100%",
+          fontSize: "16px",
+          borderRadius: "10px",
+        }}
         dayPropGetter={(date) => {
           const today = new Date();
           if (
@@ -159,13 +189,12 @@ const CalendarView = () => {
             date.getMonth() === today.getMonth() &&
             date.getFullYear() === today.getFullYear()
           ) {
-            return { style: { backgroundColor: '#eaf6ff' } }; // Highlight today's date
+            return { style: { backgroundColor: "#eaf6ff" } }; // Highlight today's date
           }
         }}
         components={{
           toolbar: () => null, // Disable the default toolbar
         }}
-
         onDrillDown={(date, view) => handleNavigate(date, view)}
         onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
       />
@@ -183,27 +212,32 @@ const CalendarView = () => {
           top: `${modalPosition.top}px`,
           left: `${modalPosition.left}px`,
           position: "fixed",
-          width: '400px',
-          margin: 0
+          width: "400px",
+          margin: 0,
         }}
       >
         <Modal.Header closeButton>
           <Modal.Title>Options</Modal.Title>
         </Modal.Header>
-        <Modal.Body >
-          <Button style={{backgroundColor:"#50C878"}} onClick={handleUpdatePrice}>
-          <MdOutlineAdd />
+        <Modal.Body>
+          <Button
+            style={{ backgroundColor: "#50C878" }}
+            onClick={handleUpdatePrice}
+          >
+            <MdOutlineAdd />
           </Button>
           {selectedDate && <ViewUpdatedListModal selectedDate={selectedDate} />}
         </Modal.Body>
       </Modal>
-      <Modal show={showMoreModal} onHide={handleCloseMoreModal}
-       style={{
+      <Modal
+        show={showMoreModal}
+        onHide={handleCloseMoreModal}
+        style={{
           top: `${modalPosition.top}px`,
           left: `${modalPosition.left}px`,
           position: "fixed",
-          width: '300px',
-          margin: 0
+          width: "300px",
+          margin: 0,
         }}
       >
         <Modal.Header closeButton>

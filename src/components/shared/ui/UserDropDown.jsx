@@ -21,6 +21,7 @@ import {
   signOutUserStart,
   signOutUserSuccess,
 } from "@/redux/user/userSlice";
+import { useSelector } from "react-redux";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -28,10 +29,10 @@ const UserDropdown = ({ open }) => {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { currentUser } = useSelector((state) => state.user);
   const userInfo = {
-    userName: "John Doe",
-    email: "johndoe@gmail.com",
+    userName: currentUser.userName,
+    email: currentUser.email,
   };
 
   const handleSignOut = async () => {
@@ -71,10 +72,12 @@ const UserDropdown = ({ open }) => {
           <span className="flex items-center">
             {/* <FaUserCircle className="mr-2 text-xl text-blue-600" /> */}
             <p className="bg-blue-600 text-white rounded-full flex justify-center items-center w-8  h-8 mr-1 ">
-              <span className="text-base ">JD</span>
+              <span className="text-base ">
+                {currentUser?.userName.substring(0, 1)}
+              </span>
             </p>
             {/* <FaUserCircle className="mr-2 text-xl text-blue-600" /> */}
-            {open && <span>John Doe</span>}
+            {open && <span>{currentUser?.userName}</span>}
           </span>
           {open && <FaChevronUp className="ml-2 h-3 w-3 shrink-0 opacity-50" />}
         </Button>
