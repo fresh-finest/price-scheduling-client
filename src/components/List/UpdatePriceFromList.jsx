@@ -62,11 +62,11 @@ const saveScheduleAndQueueJobs = async (
   startDate,
   endDate,
   weekly = false,
-  daysOfWeek = [],
+  // daysOfWeek = [],
+  weeklyTimeSlots={},
   monthly = false,
-  datesOfMonth = [],
-  startTime,
-  endTime
+  // datesOfMonth = [],
+  monthlyTimeSlots={}
 ) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
@@ -80,11 +80,11 @@ const saveScheduleAndQueueJobs = async (
       startDate,
       endDate,
       weekly,
-      daysOfWeek,
+      // daysOfWeek,
+      weeklyTimeSlots,
       monthly,
-      datesOfMonth,
-      startTime,
-      endTime
+      // datesOfMonth,
+      monthlyTimeSlots
     });
     return response.data;
   } catch (error) {
@@ -113,8 +113,10 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [daysOfWeek, setDaysOfWeek] = useState([]);
   const [monthly, setMonthly] = useState(false);
   const [datesOfMonth, setDatesOfMonth] = useState([]);
-  const [startTime,setStartTime] = useState(new Date());
-  const [endTime,setEndTime] = useState(new Date());
+  // const [startTime,setStartTime] = useState(new Date());
+  // const [endTime,setEndTime] = useState(new Date());
+  const [weeklyTimeSlots,setWeeklyTimeSlots] = useState({});
+  const [monthlyTimeSlots,setMonthlyTimeSlots]= useState({});
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
@@ -147,11 +149,83 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
-    setStartTime(new Date());
-    setEndTime(new Date());
+    // setStartTime(new Date());
+    // setEndTime(new Date());
     setIndefiniteEndDate(false);
     setSuccessMessage("");
     setErrorMessage("");
+    setWeeklyTimeSlots({});
+    setMonthlyTimeSlots({});
+  };
+
+  const addWeeklyTimeSlot = (day) => {
+    setWeeklyTimeSlots((prevSlots) => ({
+      ...prevSlots,
+      [day]: [...(prevSlots[day] || []), { startTime: new Date(), endTime: new Date() }],
+    }));
+  };
+
+  // Function to handle adding time slots for monthly dates
+  const addMonthlyTimeSlot = (date) => {
+    setMonthlyTimeSlots((prevSlots) => ({
+      ...prevSlots,
+      [date]: [...(prevSlots[date] || []), { startTime: new Date(), endTime: new Date() }],
+    }));
+  };
+
+
+  const removeTimeSlot = (scheduleType, identifier, index) => {
+    if (scheduleType === 'weekly') {
+      setWeeklyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
+      }));
+    } else if (scheduleType === 'monthly') {
+      setMonthlyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  const handleTimeChange = (scheduleType,identifier, index, key, value)=>{
+    if(scheduleType === 'weekly'){
+      setWeeklyTimeSlots((prevSlots)=>{
+        const newSlots = [...(prevSlots[identifier]|| [])];
+        newSlots[index][key] = value;
+        return {...prevSlots, [identifier]: newSlots};
+      })
+    } else if(scheduleType === 'monthly'){
+      setMonthlyTimeSlots((prevSlots)=>{
+        const newSlots = [...(prevSlots[identifier] || [])];
+        newSlots[index][key] = value;
+        return {...prevSlots, [identifier]: newSlots};
+      })
+    }
+  }
+
+  const validateTimeSlots = () => {
+    // Check weekly slots
+    for (const day in weeklyTimeSlots) {
+      for (const slot of weeklyTimeSlots[day]) {
+        if (slot.startTime >= slot.endTime) {
+          setErrorMessage(`For day ${day}, start time must be earlier than end time.`);
+          return false;
+        }
+      }
+    }
+
+    // Check monthly slots
+    for (const date in monthlyTimeSlots) {
+      for (const slot of monthlyTimeSlots[date]) {
+        if (slot.startTime >= slot.endTime) {
+          setErrorMessage(`For date ${date}, start time must be earlier than end time.`);
+          return false;
+        }
+      }
+    }
+
+    return true;
   };
 
   const fetchSchedules = async (asin) => {
@@ -212,8 +286,13 @@ const convertTimeToUtc = (time) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!userName || !asin || !sku || !price || !startDate || !startTime || !endTime) {
+      if (!userName || !asin || !sku || !price ) {
         setErrorMessage("All fields are required to update the price.");
+        setLoading(false);
+        return;
+      }
+
+      if (!validateTimeSlots()) {
         setLoading(false);
         return;
       }
@@ -223,14 +302,14 @@ const convertTimeToUtc = (time) => {
         setLoading(false);
         return;
       }
-      if (endTime < startTime) {
-        setErrorMessage("End Time cannot be earlier than Start Time.");
-        setLoading(false);
-        return;
-      }
+      // if (endTime < startTime) {
+      //   setErrorMessage("End Time cannot be earlier than Start Time.");
+      //   setLoading(false);
+      //   return;
+      // }
        // Convert startTime and endTime to UTC
-       const utcStartTime = convertTimeToUtc(startTime);
-       const utcEndTime = convertTimeToUtc(endTime);
+      //  const utcStartTime = convertTimeToUtc(startTime);
+      //  const utcEndTime = convertTimeToUtc(endTime);
 
       // Check for overlapping schedules
       const overlappingSchedule = existingSchedules.find((schedule) => {
@@ -256,6 +335,69 @@ const convertTimeToUtc = (time) => {
         return;
       }
 
+      const weeklySlotsInUtc = {};
+      const monthlySlotsInUtc = {};
+  
+      if (weekly) {
+        for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+          weeklySlotsInUtc[day] = timeSlots.map(({ startTime, endTime }) => ({
+            startTime: convertTimeToUtc(startTime),
+            endTime: convertTimeToUtc(endTime),
+          }));
+        }
+      }
+  
+      if (monthly) {
+        for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
+          monthlySlotsInUtc[date] = timeSlots.map(({ startTime, endTime }) => ({
+            startTime: convertTimeToUtc(startTime),
+            endTime: convertTimeToUtc(endTime),
+          }));
+        }
+      }
+
+     /* if (weekly) {
+        for (const [day, timeSlots] of Object.entries(weeklySlots)) {
+          for (const { startTime, endTime } of timeSlots) {
+            if (!startTime || !endTime) {
+              setErrorMessage("Start time and end time are required for each weekly time slot.");
+              setLoading(false);
+              return;
+            }
+            if (endTime < startTime) {
+              setErrorMessage("End time cannot be earlier than start time.");
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }*/
+
+      // for (const date in monthlyTimeSlots){
+      //   monthlyTimeSlots[date] = monthlyTimeSlots[date].map((slot)=>({
+      //     startTime: convertTimeToUtc(slot.startTime),
+      //     endTime: convertTimeToUtc(slot.endTime),
+      //   }))
+      // }
+      // await saveScheduleAndQueueJobs(
+      //   userName,
+      //   asin,
+      //   sku,
+      //   title,
+      //   price,
+      //   currentPrice,
+      //   imageURL,
+      //   startDate,
+      //   indefiniteEndDate ? null : endDate,
+      //   weekly,
+      //   daysOfWeek.map((day) => day.value),
+      //   monthly,
+      //   datesOfMonth.map((date) => date.value),
+      //   utcStartTime,
+      //   utcEndTime
+        
+      // );
+      console.log("weekly:", JSON.stringify(weeklySlotsInUtc, null, 2));
       await saveScheduleAndQueueJobs(
         userName,
         asin,
@@ -267,15 +409,13 @@ const convertTimeToUtc = (time) => {
         startDate,
         indefiniteEndDate ? null : endDate,
         weekly,
-        daysOfWeek.map((day) => day.value),
+       // daysOfWeek.map((day) => day.value),
+        weeklySlotsInUtc,
         monthly,
-        datesOfMonth.map((date) => date.value),
-        utcStartTime,
-        utcEndTime
-        //startTime.toTimeString().slice(0, 5), 
-        //endTime.toTimeString().slice(0, 5),   
+        // datesOfMonth.map((date) => date.value),
+        monthlySlotsInUtc
       );
-
+      console.log("weekly:"+weeklySlotsInUtc);
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
@@ -346,7 +486,41 @@ const convertTimeToUtc = (time) => {
                   labelledBy="Select"
                 />
               </Form.Group>
-              <Form.Group controlId="formWeeklyStartTime">
+              {daysOfWeek.map((day) => (
+                  <div key={day.value}>
+                    <h5>{day.label}</h5>
+                    {weeklyTimeSlots[day.value]?.map((slot, index) => (
+                      <div key={index} className="d-flex mb-2">
+                        <DatePicker
+                          selected={slot.startTime}
+                          onChange={(time) => handleTimeChange('weekly', day.value, index, 'startTime', time)}
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="Start"
+                          dateFormat="h:mm aa"
+                          className="form-control me-2"
+                        />
+                        <DatePicker
+                          selected={slot.endTime}
+                          onChange={(time) => handleTimeChange('weekly', day.value, index, 'endTime', time)}
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="End"
+                          dateFormat="h:mm aa"
+                          className="form-control"
+                        />
+                        <Button variant="danger" onClick={() => removeTimeSlot('weekly', day.value, index)} className="ms-2">
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button onClick={() => addWeeklyTimeSlot(day.value)}>Add Time Slot</Button>
+                  </div>
+                ))}
+
+              {/* <Form.Group controlId="formWeeklyStartTime">
                 <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
                 <DatePicker
                   selected={startTime}
@@ -371,7 +545,7 @@ const convertTimeToUtc = (time) => {
                   dateFormat="h:mm aa"
                   className="form-control"
                 />
-              </Form.Group>
+              </Form.Group> */}
             </>
           )}
 
@@ -395,7 +569,40 @@ const convertTimeToUtc = (time) => {
                   labelledBy="Select"
                 />
               </Form.Group>
-              <Form.Group controlId="formMonthlyStartTime">
+              {datesOfMonth.map((date) => (
+                  <div key={date.value}>
+                    <h5>Date: {date.label}</h5>
+                    {monthlyTimeSlots[date.value]?.map((slot, index) => (
+                      <div key={index} className="d-flex mb-2">
+                        <DatePicker
+                          selected={slot.startTime}
+                          onChange={(time) => handleTimeChange('monthly', date.value, index, 'startTime', time)}
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="Start"
+                          dateFormat="h:mm aa"
+                          className="form-control me-2"
+                        />
+                        <DatePicker
+                          selected={slot.endTime}
+                          onChange={(time) => handleTimeChange('monthly', date.value, index, 'endTime', time)}
+                          showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="End"
+                          dateFormat="h:mm aa"
+                          className="form-control"
+                        />
+                        <Button variant="danger" onClick={() => removeTimeSlot('monthly', date.value, index)} className="ms-2">
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button onClick={() => addMonthlyTimeSlot(date.value)}>Add Time Slot</Button>
+                  </div>
+                ))}
+              {/* <Form.Group controlId="formMonthlyStartTime">
                 <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
                 <DatePicker
                   selected={startTime}
@@ -420,7 +627,7 @@ const convertTimeToUtc = (time) => {
                   dateFormat="h:mm aa"
                   className="form-control"
                 />
-              </Form.Group>
+              </Form.Group> */}
             </>
           )}
             {!weekly && !monthly && (

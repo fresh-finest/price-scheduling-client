@@ -20,6 +20,13 @@ import { daysOptions, datesOptions } from "../../utils/staticValue";
 
 const BASE_URL = `https://api.priceobo.com`;
 
+const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dateNames = [
+  "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th",
+  "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th", "20th",
+  "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st"
+];
+
 function addHoursToTime(timeString, hoursToAdd) {
   const [hours, minutes] = timeString.split(":").map(Number);
   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
@@ -27,14 +34,28 @@ function addHoursToTime(timeString, hoursToAdd) {
   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
 }
 
-// fetch(`${BASE_URL}/api/history`)
-//   .then(response => response.json())
-//   .then(data => {
-//     console.log(data);
-//   })
-//   .catch(error => {
-//     console.error('Error:', error);
-//   });
+const getDayLabelFromNumber = (dayNumber) => {
+  return dayNames[dayNumber] || "";
+};
+const getDateLabelFromNumber = (dateNumber) => {
+  return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
+};
+const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false) => {
+  if (!timeSlots || Object.keys(timeSlots).length === 0) {
+    return <p>No time slots available</p>; // Add this check to handle undefined or null timeSlots
+  }
+  return Object.entries(timeSlots).map(([key, slots]) => (
+    <div key={key}>
+      <strong>{isWeekly ? getDayLabelFromNumber(Number(key)) : getDateLabelFromNumber(Number(key)) }</strong>
+      {slots.map((slot, index) => (
+        <p key={index}>
+          {addHoursToTime(slot.startTime, addHours)} -{" "}
+          {addHoursToTime(slot.endTime, addHours)}
+        </p>
+      ))}
+    </div>
+  ));
+};
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
@@ -287,12 +308,15 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
-              const daysLabel = displayData?.weekly
+              {/* const daysLabel = displayData?.weekly
                 ? getDayLabels(displayData.daysOfWeek)
                 : "";
               const datesLabel = displayData?.monthly
                 ? getDateLabels(displayData?.datesOfMonth)
-                : " ";
+                : " "; */}
+                const weeklyLabel = displayData?.weekly ? displayTimeSlotsWithDayLabels(displayData?.weeklyTimeSlots, 6, true) : null;
+                const monthlyLabel = displayData?.monthly ? displayTimeSlotsWithDayLabels(displayData?.monthlyTimeSlots, 6, false) : null;
+
 
               return (
                 <tr key={item._id} style={{ height: "50px" }}>
@@ -464,9 +488,9 @@ export default function HistoryView() {
                       {displayData?.weekly ? (
                         <>
                           <span style={{ color: "blue" }}>
-                            Repeats Weekly on {daysLabel}
+                            Repeats Weekly on {weeklyLabel}
                           </span>
-                          <p>
+                          {/* <p>
                             {displayData.startTime
                               ? addHoursToTime(displayData.startTime, 6)
                               : "Invalid start time"}{" "}
@@ -474,7 +498,7 @@ export default function HistoryView() {
                             {displayData.endTime
                               ? addHoursToTime(displayData.endTime, 6)
                               : "Invalid end time"}
-                          </p>
+                          </p> */}
                           {displayData?.currentPrice && (
                             <p
                               style={{
@@ -491,9 +515,9 @@ export default function HistoryView() {
                       ) : displayData?.monthly ? (
                         <>
                           <span style={{ color: "blue" }}>
-                            Repeats Monthly on {datesLabel}
+                            Repeats Monthly on {monthlyLabel}
                           </span>
-                          <p>
+                          {/* <p>
                             {displayData.startTime
                               ? addHoursToTime(displayData.startTime, 6)
                               : "Invalid start time"}{" "}
@@ -501,7 +525,7 @@ export default function HistoryView() {
                             {displayData.endTime
                               ? addHoursToTime(displayData.endTime, 6)
                               : "Invalid end time"}
-                          </p>
+                          </p> */}
                           {displayData?.currentPrice && (
                             <p
                               style={{

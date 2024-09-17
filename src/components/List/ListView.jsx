@@ -27,8 +27,8 @@ import noImage from "../../assets/images/noimage.png"
 
 const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST =  `https://api.priceobo.com`;
-// const BASE_URL_LIST = "http://localhost:3000";
+// const BASE_URL_LIST =  `https://api.priceobo.com`;
+const BASE_URL_LIST = "http://localhost:3000";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
