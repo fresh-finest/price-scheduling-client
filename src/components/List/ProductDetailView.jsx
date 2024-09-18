@@ -18,12 +18,24 @@ const dateNames = [
   "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st"
 ];
 
+// function addHoursToTime(timeString, hoursToAdd) {
+//   const [hours, minutes] = timeString.split(":").map(Number);
+//   const newHours = (hours + hoursToAdd) % 24; 
+//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; 
+//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; 
+// }
 function addHoursToTime(timeString, hoursToAdd) {
+  if (!timeString || typeof timeString !== 'string') {
+    console.error("Invalid timeString:", timeString);
+    return "Invalid Time"; // Return a default value or handle it gracefully
+  }
+
   const [hours, minutes] = timeString.split(":").map(Number);
   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
 }
+
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -280,7 +292,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                           <td style={{ width: "200px" }} colSpan={2}>
                           Weekly on {Object.keys(sc.weeklyTimeSlots).map(day => getDayLabelFromNumber(day)).join(", ")}{" "}
                             {displayTimeSlotsWithDayLabels(sc.weeklyTimeSlots, 6,true)}
-                            <span style={{ color: "green" }}>
+                            {/* <span style={{ color: "green" }}>
                                     {" "}
                                     ${sc.price}
                                   </span>{" "}
@@ -288,7 +300,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                   <span style={{ color: "green" }}>
                                     {" "}
                                     ${sc.currentPrice}
-                                  </span>
+                                  </span> */}
                           </td>
                         ) : sc.monthly ? (
                           <>
@@ -296,7 +308,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                          
                           Monthly on {Object.keys(sc.monthlyTimeSlots).map(date => getDateLabelFromNumber(date)).join(", ")}{" "}
                             {displayTimeSlotsWithDayLabels(sc.monthlyTimeSlots, 6,false)}
-                            <span style={{ color: "green" }}>
+                            {/* <span style={{ color: "green" }}>
                                     {" "}
                                     ${sc.price}
                                   </span>{" "}
@@ -304,7 +316,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                   <span style={{ color: "green" }}>
                                     {" "}
                                     ${sc.currentPrice}
-                                  </span>       
+                                  </span>        */}
                             </td>
                           </>
                         ) : (

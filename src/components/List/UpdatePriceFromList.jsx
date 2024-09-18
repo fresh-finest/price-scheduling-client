@@ -161,7 +161,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const addWeeklyTimeSlot = (day) => {
     setWeeklyTimeSlots((prevSlots) => ({
       ...prevSlots,
-      [day]: [...(prevSlots[day] || []), { startTime: new Date(), endTime: new Date() }],
+      [day]: [...(prevSlots[day] || []), { startTime: new Date(), endTime: new Date(), newPrice:'' }],
     }));
   };
 
@@ -169,7 +169,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const addMonthlyTimeSlot = (date) => {
     setMonthlyTimeSlots((prevSlots) => ({
       ...prevSlots,
-      [date]: [...(prevSlots[date] || []), { startTime: new Date(), endTime: new Date() }],
+      [date]: [...(prevSlots[date] || []), { startTime: new Date(), endTime: new Date(), newPrice:''}],
     }));
   };
 
@@ -201,6 +201,22 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
         newSlots[index][key] = value;
         return {...prevSlots, [identifier]: newSlots};
       })
+    }
+  }
+
+  const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
+    if (scheduleType === 'weekly') {
+      setWeeklyTimeSlots((prevSlots) => {
+        const newSlots = [...(prevSlots[identifier] || [])];
+        newSlots[index]['newPrice'] = value;
+        return { ...prevSlots, [identifier]: newSlots };
+      });
+    } else if (scheduleType === 'monthly') {
+      setMonthlyTimeSlots((prevSlots) => {
+        const newSlots = [...(prevSlots[identifier] || [])];
+        newSlots[index]['newPrice'] = value;
+        return { ...prevSlots, [identifier]: newSlots };
+      });
     }
   }
 
@@ -286,7 +302,7 @@ const convertTimeToUtc = (time) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!userName || !asin || !sku || !price ) {
+      if (!userName || !asin || !sku ) {
         setErrorMessage("All fields are required to update the price.");
         setLoading(false);
         return;
@@ -340,18 +356,20 @@ const convertTimeToUtc = (time) => {
   
       if (weekly) {
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
-          weeklySlotsInUtc[day] = timeSlots.map(({ startTime, endTime }) => ({
+          weeklySlotsInUtc[day] = timeSlots.map(({ startTime, endTime, newPrice}) => ({
             startTime: convertTimeToUtc(startTime),
             endTime: convertTimeToUtc(endTime),
+            newPrice: parseFloat(newPrice)
           }));
         }
       }
   
       if (monthly) {
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
-          monthlySlotsInUtc[date] = timeSlots.map(({ startTime, endTime }) => ({
+          monthlySlotsInUtc[date] = timeSlots.map(({ startTime, endTime, newPrice }) => ({
             startTime: convertTimeToUtc(startTime),
             endTime: convertTimeToUtc(endTime),
+            newPrice: parseFloat(newPrice)
           }));
         }
       }
@@ -511,6 +529,13 @@ const convertTimeToUtc = (time) => {
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
+                         <Form.Control
+                           type="number"
+                           placeholder="Enter New Price"
+                           value={slot.newPrice}
+                           onChange={(e) => handleTimeSlotPriceChange('weekly', day.value, index, e.target.value)}
+                           className="form-control me-2"
+                         />
                         <Button variant="danger" onClick={() => removeTimeSlot('weekly', day.value, index)} className="ms-2">
                           Remove
                         </Button>
@@ -594,6 +619,13 @@ const convertTimeToUtc = (time) => {
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
+                        <Form.Control
+                           type="number"
+                           placeholder="Enter New Price"
+                           value={slot.newPrice}
+                           onChange={(e) => handleTimeSlotPriceChange('monthly', date.value, index, e.target.value)}
+                           className="form-control me-2"
+                         />
                         <Button variant="danger" onClick={() => removeTimeSlot('monthly', date.value, index)} className="ms-2">
                           Remove
                         </Button>

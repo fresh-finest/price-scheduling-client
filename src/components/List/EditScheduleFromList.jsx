@@ -7,14 +7,17 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import moment from 'moment-timezone';
-import { current } from "@reduxjs/toolkit";
 import {daysOptions,datesOptions} from "../../utils/staticValue";
-// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-// const BASE_URL = 'https://price-scheduling-server-2.onrender.com'
 
 // const BASE_URL ='http://localhost:3000'
 const BASE_URL = `https://api.priceobo.com`;
 
+const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dateNames = [
+  "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th",
+  "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th", "20th",
+  "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st"
+];
 
 
 const fetchProductDetails = async (asin) => {
@@ -54,14 +57,13 @@ const updateSchedule = async (
   userName,
   imageURL,
   weekly,
-  daysOfWeek=[],
+  weeklyTimeSlots={},
   monthly,
-  datesOfMonth=[],
-  startTime,
-  endTime
+  monthlyTimeSlots={}
+ 
 ) => {
   try {
-    console.log("day+week"+daysOfWeek+datesOfMonth);
+   
     const response = await axios.put(
       `${BASE_URL}/api/schedule/change/${scheduleId}`,
       {
@@ -75,11 +77,9 @@ const updateSchedule = async (
         userName,
         imageURL,
         weekly,
-        daysOfWeek,
+        weeklyTimeSlots,
         monthly,
-        datesOfMonth,
-        startTime,
-        endTime,
+        monthlyTimeSlots,
         firstChange: false,
       }
     );
@@ -127,6 +127,9 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const [datesOfMonth, setDatesOfMonth] = useState(
     existingSchedule.datesOfMonth || []
   );
+  const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(existingSchedule.weeklyTimeSlots || {});
+  const [monthlyTimeSlots, setMonthlyTimeSlots] = useState(existingSchedule.monthlyTimeSlots || {});
+
   const [startTime,setStartTime] = useState(new Date());
   const [endTime,setEndTime] = useState(new Date());
   const [scheduleType, setScheduleType] = useState(''); 
@@ -142,6 +145,67 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const userName = currentUser.userName;
 
   console.log("data:" + existingSchedule.endDate);
+
+  const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
+    if (newTime instanceof Date && !isNaN(newTime)) {
+      const formattedTime = formatDateToTimeString(newTime); // Format to 'HH:mm'
+      if (scheduleType === 'weekly') {
+        setWeeklyTimeSlots((prevSlots) => {
+          const updatedSlots = { ...prevSlots };
+          updatedSlots[day][index][key] = formattedTime;
+          return updatedSlots;
+        });
+      } else if (scheduleType === 'monthly') {
+        setMonthlyTimeSlots((prevSlots) => {
+          const updatedSlots = { ...prevSlots };
+          updatedSlots[day][index][key] = formattedTime;
+          return updatedSlots;
+        });
+      }
+    } else {
+      console.error("Invalid date object for time:", newTime);
+    }
+  };
+  
+  const formatDateToTimeString = (date) => {
+    if (!(date instanceof Date) && !isNaN(date)) {
+      console.error("Invalid date passed to formatDateToTimeString:", date);
+      return ''; // Return empty string or fallback value
+    }
+    
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    console.log(hours+minutes+"formated")
+    return `${hours}:${minutes}`;
+  };
+  // const convertTimeStringToDate = (timeString) => {
+  //   if (!timeString || typeof timeString !== 'string') {
+  //     console.error('Invalid timeString:', timeString);
+  //     return new Date(); 
+  //   }
+  
+  //   const [hours, minutes] = timeString.split(':').map(Number);
+  //   const now = new Date();
+  //   now.setHours(hours, minutes, 0, 0);
+  //   return now;
+  // };
+  function convertTimeStringToDate(timeString) {
+    if (timeString instanceof Date && !isNaN(timeString)) {
+      return timeString; // If it's already a valid Date object, return it as is.
+    }
+  
+    if (typeof timeString === 'string' && timeString.includes(':')) {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    }
+  
+    console.error('Invalid time string:', timeString);
+    return new Date(); // Fallback to the current date if the time is invalid.
+  }
+  
+  
   useEffect(() => {
     if (show && existingSchedule) {
       setStartDate(new Date(existingSchedule.startDate));
@@ -153,22 +217,20 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       setIndefiniteEndDate(!existingSchedule.endDate);
       setStartTime(new Date());
       setEndTime(new  Date());
-      // setWeekly(existingSchedule.weekly);
-      // setDaysOfWeek(existingSchedule.daysOfWeek);
-      // setMonthly(existingSchedule.monthly);
-      // setDatesOfMonth(existingSchedule.datesOfMonth);
+     
       if (existingSchedule.weekly) {
         setScheduleType('weekly');
-        setDaysOfWeek(existingSchedule.daysOfWeek || []);
+        setWeeklyTimeSlots(existingSchedule.weeklyTimeSlots || {});
       } else if (existingSchedule.monthly) {
         setScheduleType('monthly');
-        setDatesOfMonth(existingSchedule.datesOfMonth || []);
+        setMonthlyTimeSlots(existingSchedule.monthlyTimeSlots || {});
       } else {
         setScheduleType('one-time');
       }
     }
   }, [show, existingSchedule]);
 
+  console.log("weekly: "+JSON.stringify(weeklyTimeSlots));
   useEffect(() => {
     if (show && asin) {
       fetchProductDetailsByAsin(asin);
@@ -198,13 +260,133 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const convertTimeToUtc = (time) => {
     return moment(time).utc().format("HH:mm");
   };
+  //const handleTimeChange = (scheduleType,identifier, index, key, value)=>{
+
+    // const handleTimeSlotChange = (scheduleType,identifier, index, key, value)=>{
+    //   if(scheduleType === 'weekly'){
+    //     setWeeklyTimeSlots((prevSlots)=>{
+    //       const newSlots = [...(prevSlots[identifier]|| [])];
+    //       newSlots[index][key] = value;
+    //       return {...prevSlots, [identifier]: newSlots};
+    //     })
+    //   } else if(scheduleType === 'monthly'){
+    //     setMonthlyTimeSlots((prevSlots)=>{
+    //       const newSlots = [...(prevSlots[identifier] || [])];
+    //       newSlots[index][key] = value;
+    //       return {...prevSlots, [identifier]: newSlots};
+    //     })
+    //   }
+    // }
+   
+
+    // const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
+    //   if (scheduleType === 'weekly') {
+    //     setWeeklyTimeSlots((prevSlots) => {
+    //       const newSlots = [...(prevSlots[identifier] || [])];
+    //       newSlots[index]['newPrice'] = value;
+    //       return { ...prevSlots, [identifier]: newSlots };
+    //     });
+    //   } else if (scheduleType === 'monthly') {
+    //     setMonthlyTimeSlots((prevSlots) => {
+    //       const newSlots = [...(prevSlots[identifier] || [])];
+    //       newSlots[index]['newPrice'] = value;
+    //       return { ...prevSlots, [identifier]: newSlots };
+    //     });
+    //   }
+    // }
+    const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
+      if (scheduleType === "weekly") {
+        setWeeklyTimeSlots((prevSlots) => {
+          const updatedSlots = { ...prevSlots };
+          updatedSlots[identifier][index]["newPrice"] = value;
+          return updatedSlots;
+        });
+      } else if (scheduleType === "monthly") {
+        setMonthlyTimeSlots((prevSlots) => {
+          const updatedSlots = { ...prevSlots };
+          updatedSlots[identifier][index]["newPrice"] = value;
+          return updatedSlots;
+        });
+      }
+    };
+    
+  // const handleTimeSlotChange = (scheduleType, identifier, index, key, value) => {
+  //   console.log("Handle change:"+scheduleType+value)
+  //   if (scheduleType === "weekly") {
+  //     setWeeklyTimeSlots((prevSlots) => {
+  //       const newSlots = { ...prevSlots };
+  //       newSlots[identifier][index][key] = value;
+  //       return newSlots;
+  //     });
+  //   } else if (scheduleType === "monthly") {
+  //     setMonthlyTimeSlots((prevSlots) => {
+  //       const newSlots = { ...prevSlots };
+  //       newSlots[identifier][index][key] = value;
+  //       return newSlots;
+  //     });
+  //   }
+  // };
+
+ 
+  const handleAddTimeSlot = (scheduleType, identifier) => {
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: [...(prevSlots[identifier] || []), { startTime: new Date(), endTime: new Date(), newPrice: '' }],
+      }));
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: [...(prevSlots[identifier] || []), { startTime: new Date(), endTime: new Date(), newPrice: '' }],
+      }));
+    }
+  };
+
+  const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
+      }));
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
+      }));
+    }
+  };
+  const validateTimeSlots = () => {
+    // Check weekly slots
+    for (const day in weeklyTimeSlots) {
+      for (const slot of weeklyTimeSlots[day]) {
+        if (slot.startTime >= slot.endTime) {
+          setErrorMessage(`For day ${day}, start time must be earlier than end time.`);
+          return false;
+        }
+      }
+    }
+
+    // Check monthly slots
+    for (const date in monthlyTimeSlots) {
+      for (const slot of monthlyTimeSlots[date]) {
+        if (slot.startTime >= slot.endTime) {
+          setErrorMessage(`For date ${date}, start time must be earlier than end time.`);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
 
-      const utcStartTime = convertTimeToUtc(startTime);
-      const utcEndTime = convertTimeToUtc(endTime);
+      
+
+      // const utcStartTime = convertTimeToUtc(startTime);
+      // const utcEndTime = convertTimeToUtc(endTime);
       
 
       if (!indefiniteEndDate && endDate < startDate) {
@@ -212,12 +394,11 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
         // setLoading(false);
         return;
       }
-      if (endTime < startTime) {
-        setErrorMessage("End time cannot be earlier than Start time.");
-        // setLoading(false);
+      if (!validateTimeSlots()) {
+        setErrorMessage("Set correct time.");
         return;
       }
-
+    
       // await updateSchedule(
       //   asin,
       //   sku,
@@ -235,8 +416,29 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       //   utcStartTime,
       //   utcEndTime
       // );
-     
-    
+
+      const utcWeeklySlots = {};
+      const utcMonthlySlots = {};
+      if (weekly) {
+        for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+          utcWeeklySlots[day] = timeSlots.map(({ startTime, endTime, newPrice}) => ({
+            startTime: convertTimeToUtc(startTime),
+            endTime: convertTimeToUtc(endTime),
+            newPrice: parseFloat(newPrice)
+          }));
+        }
+      }
+  
+      if (monthly) {
+        for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
+          utcMonthlySlots[date] = timeSlots.map(({ startTime, endTime, newPrice }) => ({
+            startTime: convertTimeToUtc(startTime),
+            endTime: convertTimeToUtc(endTime),
+            newPrice: parseFloat(newPrice)
+          }));
+        }
+      }
+      console.log("weekly utc: "+ JSON.stringify(utcWeeklySlots));
 
       // const updatedDaysOfWeek = daysOfWeek.filter(day => day).map(day => day.value || day);
       // const updatedDatesOfMonth = datesOfMonth.filter(date => date).map(date => date.value || date);
@@ -252,11 +454,9 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
         sku,
         imageURL,
         weekly: scheduleType === 'weekly',
-        daysOfWeek: scheduleType === 'weekly' ? daysOfWeek : [],
+        weeklyTimeSlots: utcWeeklySlots,
         monthly: scheduleType === 'monthly',
-        datesOfMonth: scheduleType === 'monthly' ? datesOfMonth : [],
-        startTime:utcStartTime,
-        endTime:utcEndTime
+        monthlyTimeSlots: utcMonthlySlots,
       };
          //startTime:startTime.toTimeString().slice(0, 5),
         //endTime:endTime.toTimeString().slice(0, 5)
@@ -324,6 +524,32 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
         : [...prevDates, value]
     );
   };
+
+  const parseTimeString = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') {
+      // If timeString is not valid, return a default date (current date or a new Date object)
+      return new Date();
+    }
+  
+    const [hours, minutes] = timeString.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  };
+  // Utility function to convert "HH:mm" format to a Date object
+const timeStringToDate = (timeString) => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours);
+  date.setMinutes(minutes);
+  return date;
+};
+const dateToTimeString = (date) => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 
   return (
     <>
@@ -398,98 +624,133 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
             )}
             {scheduleType === 'weekly' && (
               <>
-              <Form.Group controlId="formDaysOfWeek" style={{ marginBottom: '15px' }}>
-                <Form.Label>Update Weekly on</Form.Label>
-                <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                  {daysOptions.map((day) => (
-                    <Form.Check
-                      key={day.value}
-                      type="checkbox"
-                      label={day.label}
-                      checked={daysOfWeek.includes(day.value)}
-                      onChange={() => handleDayChange(day.value)}
-                      style={{ marginBottom: '8px' }}
-                    />
+              {daysOptions.map((day) => (
+                <div key={day.value}>
+                  <Form.Label>{day.label}</Form.Label>
+                  {(weeklyTimeSlots[day.value] || []).map((slot, index) => (
+                    <div key={index} className="d-flex align-items-center mb-2">
+                    {/* <p>{convertTimeStringToDate(slot.startTime)}</p> */}
+                    <DatePicker
+                        // selected={slot.startTime ? parseTimeString(slot.startTime) : new Date()} 
+                        selected={slot.startTime ? convertTimeStringToDate(slot.startTime) : new Date()} 
+                        // selected={slot.startTime instanceof Date ? slot.startTime : new Date()}
+                        // selected={slot.startTime}
+
+                        // selected={slot.startTime}
+                        onChange={(time) =>
+                          handleTimeSlotChange("weekly", day.value, index, "startTime", time)
+                        }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Start"
+                        dateFormat="h:mm aa"
+                        className="form-control me-2"
+                      />
+                      <DatePicker
+                        //  selected={slot.endTime ? parseTimeString(slot.endTime) : new Date()}
+                        selected={slot.endTime ? convertTimeStringToDate(slot.endTime) : new Date()} 
+                        // selected={slot.endTime instanceof Date ? slot.endTime : new Date()}
+
+                        // selected={slot.endTime}
+                        // onChange={(time) =>
+                        //   handleTimeSlotChange("weekly", day.value, index, "endTime", time)
+                        // }
+                        onChange={(time) => handleTimeSlotChange("weekly", day.value, index, "endTime", time)}
+
+                        showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="End"
+                          dateFormat="h:mm aa"
+                          className="form-control me-2"
+                      />
+                      <Form.Control
+                        type="number"
+                        value={slot.newPrice}
+                        placeholder="Price"
+                        // onChange={(e) => handleTimeSlotPriceChange('monthly', date.value, index, e.target.value)}
+                        onChange={(e) =>
+                          handleTimeSlotPriceChange("weekly", day.value, index, e.target.value)
+                        }
+                        className="me-2"
+                      />
+                      <Button
+                        variant="danger"
+                        onClick={() => handleRemoveTimeSlot("weekly", day.value, index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
                   ))}
+                  <Button
+                    variant="primary"
+                    onClick={() => handleAddTimeSlot("weekly", day.value)}
+                    className="mb-3"
+                  >
+                    Add Time Slot
+                  </Button>
                 </div>
-                <div>
-                  <strong>Selected Days:</strong> {daysOfWeek.map(day => daysOptions.find(opt => opt.value === day)?.label).join(', ')}
-                </div>
-              </Form.Group>
-              <Form.Group controlId="formWeeklyStartTime">
-                <Form.Label>Start Time</Form.Label>
-                <DatePicker
-                  selected={startTime}
-                  onChange={(time) => setStartTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group>
-              <Form.Group controlId="formWeeklyEndTime">
-                <Form.Label>End Time</Form.Label>
-                <DatePicker
-                  selected={endTime}
-                  onChange={(time) => setEndTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group>
-              </>
+              ))}
+            </>
             )}
             {scheduleType === 'monthly' && (
               <>
-              <Form.Group controlId="formDatesOfMonth" style={{ marginBottom: '15px' }}>
-                <Form.Label>Update Monthly on</Form.Label>
-                <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                  {datesOptions.map((date) => (
-                    <Form.Check
-                      key={date.value}
-                      type="checkbox"
-                      label={date.label}
-                      checked={datesOfMonth.includes(date.value)}
-                      onChange={() => handleDateChange(date.value)}
-                      style={{ marginBottom: '8px' }}
-                    />
+              {datesOptions.map((date) => (
+                <div key={date.value}>
+                  <Form.Label>{date.label}</Form.Label>
+                  {(monthlyTimeSlots[date.value] || []).map((slot, index) => (
+                    <div key={index} className="d-flex align-items-center mb-2">
+                    <DatePicker
+                        selected={slot.startTime ? parseTimeString(slot.startTime) : new Date()} // Parse the time string
+                        onChange={(time) =>
+                          handleTimeSlotChange("monthly", date.value, index, "startTime", time)
+                        }
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Start"
+                        dateFormat="h:mm aa"
+                        className="form-control me-2"
+                      />
+                      <DatePicker
+                         selected={slot.endTime ? parseTimeString(slot.endTime) : new Date()} // Parse the time string
+                        onChange={(time) =>
+                          handleTimeSlotChange("monthly", date.value, index, "endTime", time)
+                        }
+                        showTimeSelect
+                          showTimeSelectOnly
+                          timeIntervals={15}
+                          timeCaption="End"
+                          dateFormat="h:mm aa"
+                          className="form-control"
+                      />
+                      <Form.Control
+                        type="number"
+                        value={slot.newPrice}
+                        placeholder="Price"
+                        onChange={(e) =>
+                          handleTimeSlotChange("monthly", date.value, index, "newPrice", e.target.value)
+                        }
+                        className="me-2"
+                      />
+                      <Button
+                        variant="danger"
+                        onClick={() => handleRemoveTimeSlot("monthly", date.value, index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
                   ))}
+                  <Button
+                    variant="primary"
+                    onClick={() => handleAddTimeSlot("monthly", date.value)}
+                    className="mb-3"
+                  >
+                    Add Time Slot
+                  </Button>
                 </div>
-                <div>
-                  <strong>Selected Dates:</strong> {datesOfMonth.map(date => datesOptions.find(opt => opt.value === date)?.label).join(', ')}
-                </div>
-              </Form.Group>
-              <Form.Group controlId="formMonthlyStartTime">
-                <Form.Label>Start Time</Form.Label>
-                <DatePicker
-                  selected={startTime}
-                  onChange={(time) => setStartTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group>
-              <Form.Group controlId="formMonthlyEndTime">
-                <Form.Label>End Time</Form.Label>
-                <DatePicker
-                  selected={endTime}
-                  onChange={(time) => setEndTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group>
+              ))}
               </>
             )}
             <Button style={{ width: "40%", backgroundColor: "black" }} type="submit">

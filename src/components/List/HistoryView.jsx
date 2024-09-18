@@ -51,6 +51,7 @@ const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false
         <p key={index}>
           {addHoursToTime(slot.startTime, addHours)} -{" "}
           {addHoursToTime(slot.endTime, addHours)}
+          {" "}New Price: {slot?.newPrice}
         </p>
       ))}
     </div>
@@ -490,15 +491,7 @@ export default function HistoryView() {
                           <span style={{ color: "blue" }}>
                             Repeats Weekly on {weeklyLabel}
                           </span>
-                          {/* <p>
-                            {displayData.startTime
-                              ? addHoursToTime(displayData.startTime, 6)
-                              : "Invalid start time"}{" "}
-                            -
-                            {displayData.endTime
-                              ? addHoursToTime(displayData.endTime, 6)
-                              : "Invalid end time"}
-                          </p> */}
+                         
                           {displayData?.currentPrice && (
                             <p
                               style={{
@@ -508,7 +501,7 @@ export default function HistoryView() {
                                 marginRight: "50px",
                               }}
                             >
-                              ${displayData.currentPrice}
+                              Will Revert to :${displayData.currentPrice} 
                             </p>
                           )}
                         </>
@@ -535,7 +528,7 @@ export default function HistoryView() {
                                 marginRight: "50px",
                               }}
                             >
-                              ${displayData.currentPrice}
+                              Will Revert to :${displayData.currentPrice}
                             </p>
                           )}
                         </>
@@ -577,9 +570,7 @@ export default function HistoryView() {
                               Until Changed
                             </p>
                           )}
-                        </>
-                      )}
-                      <div style={{ position: "relative" }}>
+                          <div style={{ position: "relative" }}>
                         <p
                           style={{
                             color: "green",
@@ -592,6 +583,22 @@ export default function HistoryView() {
                           ${displayData?.price || "N/A"}
                         </p>
                       </div>
+                        </>
+                        
+                      )}
+                      {/* <div style={{ position: "relative" }}>
+                        <p
+                          style={{
+                            color: "green",
+                            position: "absolute",
+                            left: "50px",
+                            bottom: "0px",
+                            margin: 0,
+                          }}
+                        >
+                          ${displayData?.price || "N/A"}
+                        </p>
+                      </div> */}
                     </div>
                   </td>
                   <td>
