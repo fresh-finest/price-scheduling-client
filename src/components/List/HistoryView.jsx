@@ -41,6 +41,7 @@ const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
 const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false) => {
+  console.log("history timeslots: "+timeSlots)
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Add this check to handle undefined or null timeSlots
   }
