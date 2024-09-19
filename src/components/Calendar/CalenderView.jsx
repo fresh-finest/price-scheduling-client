@@ -218,7 +218,7 @@ const CalendarView = () => {
                   variant="outline"
                   role="combobox"
                   aria-expanded={open}
-                  className="w-[150px] justify-between"
+                  className="w-[150px] justify-between px-1"
                 >
                   {value}
                   <FaChevronDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />

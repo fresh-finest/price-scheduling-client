@@ -67,11 +67,11 @@ const UserDropdown = ({ open }) => {
           variant="outline"
           role="combobox"
           aria-expanded={dropdownOpen}
-          className="w-full justify-between py-3 mt-2"
+          className="w-full justify-between py-3 mt-2 px-1"
         >
           <span className="flex items-center">
             {/* <FaUserCircle className="mr-2 text-xl text-blue-600" /> */}
-            <p className="bg-blue-600 text-white rounded-full flex justify-center items-center w-8  h-8 mr-1 ">
+            <p className="bg-blue-600 text-white rounded-full flex justify-center items-start w-7  h-7 mr-1   ">
               <span className="text-base ">
                 {currentUser?.userName.substring(0, 1)}
               </span>

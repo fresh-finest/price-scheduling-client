@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Table,
   Container,
@@ -22,9 +22,6 @@ import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
-import { ListTable } from "../ui/ListTable";
-import { ListTableBackup } from "../ui/ListTableBackup";
-import { ListTableBackup2 } from "../ui/ListTableBackup2";
 
 // const BASE_URL ='http://localhost:3000'
 
@@ -58,8 +55,6 @@ const ListView = () => {
   const [filterScheduled, setFilterScheduled] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
-
-  console.log("filtered products", filteredProducts);
 
   const userName = currentUser?.userName || "";
   console.log(
@@ -329,77 +324,60 @@ const ListView = () => {
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
   return (
-    <>
+    <Container fluid>
       <UpdatePriceFromList
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
       />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "20px",
-          // border: "1px solid red",
-          // marginTop: "30px",
-        }}
-      >
-        <div
-          style={{
-            flex: "2",
-            // paddingRight: "20px",
-          }}
-        >
+      <Row>
+        <Col md={8} style={{ paddingRight: "20px" }}>
           <div
-            style={
-              {
-                // display: "flex",
-                // justifyContent: "space-between",
-                // alignItems: "center",
-                // position: "sticky",
-                // top: 0,
-                // zIndex: 1000,
-                // backgroundColor: "white",
-                // borderBottom: "1px solid #ccc",
-                // padding: "10px 0",
-              }
-            }
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              position: "sticky",
+              top: 0,
+              zIndex: 1000,
+              backgroundColor: "white",
+              borderBottom: "1px solid #ccc",
+              padding: "10px 0",
+            }}
           >
-            {/* <InputGroup className="mb-3" style={{ maxWidth: "200px" }}>
+            <InputGroup className="mb-3" style={{ maxWidth: "200px" }}>
               <Form.Control
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
+                // onChange={(e) => handleSearch(e.target.value)}
                 onChange={handleSearch}
                 onKeyDown={handleKeyPress}
-                style={{ borderRadius: "4px", marginTop: "0px" }}
+                style={{ borderRadius: "4px", marginTop: "100px" }}
               />
-            </InputGroup> */}
-            {/* <Button
+            </InputGroup>
+            <Button
               style={{
                 borderRadius: "4px",
-                // marginTop: "100px",
+                marginTop: "100px",
                 backgroundColor: "#5AB36D",
                 border: "none",
               }}
               onClick={handleToggleFilter}
             >
               {filterScheduled ? "Show All" : "Scheduled"}
-            </Button> */}
+            </Button>
           </div>
 
           {filteredProducts.length > 0 ? (
             <div
-              className="relative"
-              style={
-                {
-                  // overflowY: "scroll",
-                  // maxHeight: "calc(100vh - 160px)",
-                  // marginTop: "5px",
-                }
-              }
+              style={{
+                overflowY: "scroll",
+                maxHeight: "calc(100vh - 250px)",
+                marginTop: "5px",
+              }}
             >
-              {/* <Table
+              <Table
                 bordered
                 hover
                 responsive
@@ -678,12 +656,7 @@ const ListView = () => {
                     </tr>
                   ))}
                 </tbody>
-              </Table> */}
-              {/* <ListTable></ListTable> */}
-              {/* <ListTableBackup></ListTableBackup> */}
-              <ListTableBackup2
-                filteredProducts={filteredProducts}
-              ></ListTableBackup2>
+              </Table>
             </div>
           ) : (
             filterScheduled && (
@@ -698,11 +671,10 @@ const ListView = () => {
               </div>
             )
           )}
-        </div>
-
-        {/* <div
+        </Col>
+        <Col
+          md={4}
           style={{
-            flex: "1",
             paddingLeft: "0px",
             marginTop: "20px",
             paddingRight: "20px",
@@ -710,11 +682,7 @@ const ListView = () => {
         >
           {selectedProduct && selectedListing && selectedAsin ? (
             <div
-              style={{
-                marginTop: "100px",
-                position: "fixed",
-                width: "460px",
-              }}
+              style={{ marginTop: "100px", position: "fixed", width: "460px" }}
             >
               <ProductDetailView
                 product={selectedProduct}
@@ -727,9 +695,9 @@ const ListView = () => {
               <h5>Select a product to see details</h5>
             </div>
           )}
-        </div> */}
-      </div>
-    </>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
