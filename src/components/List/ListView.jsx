@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback  } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Table,
   Container,
@@ -21,13 +21,13 @@ import { debounce } from "lodash";
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
-import noImage from "../../assets/images/noimage.png"
+import noImage from "../../assets/images/noimage.png";
 
 // const BASE_URL ='http://localhost:3000'
 
 const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST =  `https://api.priceobo.com`;
+const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
 
 const fetchProducts = async () => {
@@ -44,13 +44,14 @@ const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [columnWidths, setColumnWidths] = useState([80,80, 350, 80, 110]);
+  const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
   const [filterScheduled, setFilterScheduled] = useState(false);
 
@@ -96,7 +97,12 @@ const ListView = () => {
 
   const debouncedFilterProducts = useCallback(
     debounce((value) => {
-      filterProducts(productData?.listings || [], scheduledData, filterScheduled, value);
+      filterProducts(
+        productData?.listings || [],
+        scheduledData,
+        filterScheduled,
+        value
+      );
     }, 300),
     [productData, scheduledData, filterScheduled]
   );
@@ -110,7 +116,12 @@ const ListView = () => {
     if (event.key === "Enter") {
       const value = event.target.value || "";
       setSearchTerm(value);
-      filterProducts(productData?.listings || [], scheduledData, filterScheduled, value); // Immediate filtering on Enter press
+      filterProducts(
+        productData?.listings || [],
+        scheduledData,
+        filterScheduled,
+        value
+      ); // Immediate filtering on Enter press
     }
   };
   // const handleSearch = (value) => {
@@ -122,9 +133,6 @@ const ListView = () => {
   //     value
   //   );
   // };
-  
-
-
 
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
@@ -295,6 +303,9 @@ const ListView = () => {
         } else if (type === "sku") {
           setCopiedSkuIndex(index);
           setTimeout(() => setCopiedSkuIndex(null), 2000);
+        } else {
+          setCopiedfnSkuIndex(index);
+          setTimeout(() => setCopiedfnSkuIndex(null), 2000);
         }
       })
       .catch((err) => {
@@ -382,7 +393,7 @@ const ListView = () => {
                   }}
                 >
                   <tr>
-                  <th
+                    <th
                       style={{
                         width: `${columnWidths[0]}px`,
                         position: "relative",
@@ -501,7 +512,7 @@ const ListView = () => {
                           selectedRowIndex === index ? "#d3d3d3" : "#ccc",
                       }}
                     >
-                     <td
+                      <td
                         style={{
                           cursor: "pointer",
                           height: "40px",
@@ -509,8 +520,11 @@ const ListView = () => {
                             selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
-                      <img style={{height:"50px", width:"50px"}} src={item?.imageUrl? item.imageUrl : noImage} alt="" />
-                        
+                        <img
+                          style={{ height: "50px", width: "50px" }}
+                          src={item?.imageUrl ? item.imageUrl : noImage}
+                          alt=""
+                        />
                       </td>
                       <td
                         style={{
@@ -590,6 +604,37 @@ const ListView = () => {
                               />
                             )}
                           </span>{" "}
+                          <span
+                            className="bubble-text"
+                            style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {item?.fnSku ? item.fnSku : "N/A"}{" "}
+                            {item?.fnSku &&
+                              (copiedfnSkuIndex === index ? (
+                                <MdCheck
+                                  style={{
+                                    marginLeft: "5px",
+                                    cursor: "pointer",
+                                    color: "green",
+                                  }}
+                                />
+                              ) : (
+                                <MdContentCopy
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopy(item?.fnSku, "fnSku", index);
+                                  }}
+                                  style={{
+                                    marginLeft: "5px",
+                                    cursor: "pointer",
+                                  }}
+                                />
+                              ))}
+                          </span>
                           <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"
                               ? "FBM"
