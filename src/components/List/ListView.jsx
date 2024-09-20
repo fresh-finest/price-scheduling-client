@@ -683,6 +683,7 @@ const ListView = () => {
               {/* <ListTableBackup></ListTableBackup> */}
               <ListTableBackup2
                 filteredProducts={filteredProducts}
+                asin={selectedAsin}
               ></ListTableBackup2>
             </div>
           ) : (

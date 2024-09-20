@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+
+const BASE_URL = `https://api.priceobo.com`;
+
 const UpdatedList = ({ selectedDate }) => {
   const [events, setEvents] = useState([]);
   const [showAll, setShowAll] = useState(false);
@@ -15,7 +18,7 @@ const UpdatedList = ({ selectedDate }) => {
         const localDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
       
         // Fetch events filtered by the selected date from the backend
-        const response = await axios.get('http://localhost:3000/api/schedule', {
+        const response = await axios.get(`${BASE_URL}/api/schedule`, {
           params: {
             startDate: localDate,
           },

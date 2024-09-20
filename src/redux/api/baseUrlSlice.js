@@ -1,11 +1,11 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  baseUrl: `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`,
+  baseUrl: `https://api.priceobo.com`,
 };
 
 const baseUrlSlice = createSlice({
-  name: 'baseUrl',
+  name: "baseUrl",
   initialState,
   reducers: {
     setBaseUrl: (state, action) => {

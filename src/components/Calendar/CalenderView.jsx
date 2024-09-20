@@ -8,7 +8,8 @@ import { Modal, DropdownButton, Dropdown, ButtonGroup } from "react-bootstrap";
 import { Button } from "@/components/ui/button";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
-import ScheduleUpdate from "../Modal/SchdeuleUpdate";
+// import ScheduleUpdate from "../Modal/SchdeuleUpdate";
+import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
 import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
 import { MdOutlineAdd } from "react-icons/md";
 import ContainerWidth from "../shared/ui/ContainerWidth";
@@ -336,7 +337,7 @@ const CalendarView = () => {
             onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
           />
 
-          <ScheduleUpdate
+          <UpdateSchedulePrice
             show={showUpdateModal}
             onClose={handleCloseUpdateModal}
             event={selectedEvent}

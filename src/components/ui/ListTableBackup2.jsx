@@ -38,8 +38,10 @@ import {
 } from "./tooltip";
 import { ProductDetailDrawer } from "./ProductDetailDrawer";
 import { MdCheck, MdContentCopy } from "react-icons/md";
+import UpdatePriceFromList from "../List/UpdatePriceFromList";
 
 // Static column definition
+
 const columns = [
   {
     accessorKey: "status",
@@ -148,8 +150,8 @@ const columns = [
       return (
         <div className="flex flex-col">
           <h6 className="capitalize"> {shortItemName} </h6>
-          <div className="flex items-center">
-            <span className="text-xs text-[#7A748B] font-semibold">
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[#7A748B] font-semibold flex items-center">
               {asin1}{" "}
               {copiedAsinIndex === index ? (
                 <MdCheck
@@ -169,7 +171,7 @@ const columns = [
                 />
               )}
             </span>
-            <span className="text-xs text-[#7A748B] font-semibold ml-1">
+            <span className="text-xs text-[#7A748B] font-semibold ml-1 flex items-center">
               {sellerSku}{" "}
               {copiedSkuIndex === index ? (
                 <MdCheck
@@ -194,33 +196,7 @@ const columns = [
       );
     },
   },
-  // {
-  //   accessorKey: "itemName",
-  //   header: "Product Details",
-  //   cell: ({ row }) => {
-  //     const itemName = row.getValue("itemName");
-  //     const shortItemName =
-  //       itemName.split(" ").slice(0, 15).join(" ") +
-  //       (itemName.split(" ").length > 15 ? "..." : "");
 
-  //     const asin1 = row.original.asin1;
-  //     const sellerSku = row.original.sellerSku;
-
-  //     return (
-  //       <div className="flex flex-col">
-  //         <h6 className="capitalize"> {shortItemName} </h6>
-  //         <div>
-  //           <span className="text-xs text-[#7A748B] font-semibold">
-  //             {asin1}
-  //           </span>
-  //           <span className="text-xs text-[#7A748B] font-semibold ml-1">
-  //             {sellerSku}
-  //           </span>
-  //         </div>
-  //       </div>
-  //     );
-  //   },
-  // },
   {
     accessorKey: "price",
     header: "Price",
@@ -266,13 +242,43 @@ const columns = [
   {
     accessorKey: "updatePrice",
     header: "Update Price",
+
     cell: ({ row }) => {
+      const item = row.original;
+      const index = row.index;
+
+      let key;
+      const handleUpdate = async (asin, index, e) => {
+        console.log({ asin });
+        console.log({ index });
+        e.stopPropagation(); // Prevent row click from being triggered
+
+        if (!asin) {
+          console.error("ASIN is not provided. Modal will not open.");
+          return;
+        }
+
+        try {
+          // setSelectedAsin(asin);
+          key = asin;
+          // setShowUpdateModal(true);
+          // setSelectedRowIndex(index);
+          // Fetch product details and set the selected product
+        } catch (error) {
+          console.error("Error fetching product details:", error.message);
+        }
+      };
+
       return (
         <>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Button className="bg-[#0662BB] hover:bg-blue-500 transition-all duration-300 px-[20px]">
+                <Button
+                  onClick={(e) => handleUpdate(item.asin1, index, e)}
+                  // disabled={!currentUser?.permissions?.write}
+                  className="bg-[#0662BB] hover:bg-blue-500 transition-all duration-300 px-[20px]"
+                >
                   <FaPlus />
                 </Button>
               </TooltipTrigger>
@@ -285,7 +291,7 @@ const columns = [
   },
 ];
 
-export function ListTableBackup2({ filteredProducts }) {
+export function ListTableBackup2({ filteredProducts, asin }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [globalFilter, setGlobalFilter] = React.useState(""); // global filter state
@@ -295,23 +301,51 @@ export function ListTableBackup2({ filteredProducts }) {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false); // state for drawer visible
   const [selectedRowData, setSelectedRowData] = React.useState(null); //Store selected row data
 
-  const [selectedProduct, setSelectedProduct] = React.useState(null);
-  const [selectedListing, setSelectedListing] = React.useState(null);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [columnWidths, setColumnWidths] = React.useState([
-    80, 80, 350, 80, 110,
-  ]);
   const [showUpdateModal, setShowUpdateModal] = React.useState(false);
   const [selectedAsin, setSelectedAsin] = React.useState("");
-  const [selectedRowIndex, setSelectedRowIndex] = React.useState(null);
 
-  const [copiedAsinIndex, setCopiedAsinIndex] = React.useState(null);
-  const [copiedSkuIndex, setCopiedSkuIndex] = React.useState(null);
-  const [scheduledData, setScheduledData] = React.useState([]);
-  const [filterScheduled, setFilterScheduled] = React.useState(false);
+  const globalFilterFn = (row, columnIds, filterValue) => {
+    if (!filterValue) return true;
+    const { itemName, asin1, sellerSku } = row.original; // Access original data
 
-  console.log(filteredProducts);
+    return (
+      (itemName &&
+        itemName.toLowerCase().includes(filterValue.toLowerCase())) ||
+      (asin1 && asin1.toLowerCase().includes(filterValue.toLowerCase())) ||
+      (sellerSku && sellerSku.toLowerCase().includes(filterValue.toLowerCase()))
+    );
+  };
 
+  const handleRowClick = (rowId, rowData) => {
+    setSelectedRowId((prevRowId) => (prevRowId === rowId ? null : rowId));
+    setSelectedRowData(rowData);
+    setIsDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false); // Close the drawer
+    // setSelectedRowId(null); // Reset selected row
+  };
+  const handleCloseUpdateModal = () => {
+    setShowUpdateModal(false);
+  };
+  // const handleUpdate = async (asin, index, e) => {
+  //   e.stopPropagation(); // Prevent row click from being triggered
+
+  //   if (!asin) {
+  //     console.error("ASIN is not provided. Modal will not open.");
+  //     return;
+  //   }
+
+  //   try {
+  //     setSelectedAsin(asin);
+  //     setShowUpdateModal(true);
+  //     // setSelectedRowIndex(index);
+  //     // Fetch product details and set the selected product
+  //   } catch (error) {
+  //     console.error("Error fetching product details:", error.message);
+  //   }
+  // };
   const table = useReactTable({
     data: filteredProducts,
     columns, // Use static columns here
@@ -331,48 +365,17 @@ export function ListTableBackup2({ filteredProducts }) {
       columnVisibility,
       rowSelection,
     },
-    globalFilterFn: (row, columnIds, filterValue) => {
-      if (!filterValue) return true;
-      return columnIds.some((columnId) => {
-        const cellValue = row.getValue(columnId);
-        return (
-          typeof cellValue === "string" &&
-          cellValue.toLowerCase().includes(filterValue.toLowerCase())
-        );
-      });
-    },
+
+    globalFilterFn,
   });
-
-  const handleRowClick = (rowId, rowData) => {
-    setSelectedRowId((prevRowId) => (prevRowId === rowId ? null : rowId));
-    setSelectedRowData(rowData);
-    setIsDrawerOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setIsDrawerOpen(false); // Close the drawer
-    setSelectedRowId(null); // Reset selected row
-  };
-
-  const handleCopy = (text, type, index) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        if (type === "asin") {
-          setCopiedAsinIndex(index);
-          setTimeout(() => setCopiedAsinIndex(null), 2000);
-        } else if (type === "sku") {
-          setCopiedSkuIndex(index);
-          setTimeout(() => setCopiedSkuIndex(null), 2000);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  };
 
   return (
     <>
+      <UpdatePriceFromList
+        show={showUpdateModal}
+        onClose={handleCloseUpdateModal}
+        asin:key
+      />
       <div className="w-full">
         <div className="flex items-center py-4">
           <Input
@@ -381,14 +384,7 @@ export function ListTableBackup2({ filteredProducts }) {
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="max-w-64 absolute top-0 mt-[-15px]"
           />
-          {/* <Input
-          placeholder="Search..."
-          value={table.getColumn("productName")?.getFilterValue() ?? ""}
-          onChange={(event) =>
-            table.getColumn("productName")?.setFilterValue(event.target.value)
-          }
-          className="max-w-64 absolute top-0 mt-[-15px]"
-        /> */}
+
           <DropdownMenu>
             <DropdownMenuTrigger
               asChild
@@ -505,9 +501,10 @@ export function ListTableBackup2({ filteredProducts }) {
       {/* product detail sidedrawer */}
       {isDrawerOpen && (
         <ProductDetailDrawer
-          isOpen={isDrawerOpen}
-          onClose={handleDrawerClose}
+          isDrawerOpen={isDrawerOpen}
+          onDrawerClose={handleDrawerClose}
           data={selectedRowData}
+          asin={asin}
         ></ProductDetailDrawer>
       )}
     </>
