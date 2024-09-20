@@ -640,8 +640,12 @@ const ListView = () => {
                               ? "FBM"
                               : "FBA"}{" "}
                             :{" "}
-                            {item?.fulfillableQuantity != null &&
-                            item?.pendingTransshipmentQuantity != null
+                            {item.fulfillmentChannel === "DEFAULT"
+                              ? item?.quantity != null
+                                ? item.quantity
+                                : "N/A"
+                              : item?.fulfillableQuantity != null &&
+                                item?.pendingTransshipmentQuantity != null
                               ? item?.fulfillableQuantity +
                                 item?.pendingTransshipmentQuantity
                               : "N/A"}
