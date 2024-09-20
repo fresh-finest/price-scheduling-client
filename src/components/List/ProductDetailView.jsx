@@ -349,7 +349,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                           <Button
                             style={{
                               marginTop: "20px",
-                              backgroundColor: "#5AB36D",
+                              backgroundColor: "#0D6EFD",
                               border: "none",
                             }}
                             onClick={() => handleEdit(sc)}

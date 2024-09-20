@@ -13,38 +13,53 @@ import { useQuery } from "react-query";
 import { MdOutlineAdd, MdContentCopy, MdCheck } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
+
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { debounce } from "lodash";
+import { debounce, filter } from "lodash";
+
 
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
+
 import noImage from "../../assets/images/noimage.png";
+import ContainerWidth from "../shared/ui/ContainerWidth";
+
 
 // const BASE_URL ='http://localhost:3000'
 
+
 const BASE_URL = `https://api.priceobo.com`;
+
 
 const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
+
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
   return response.data;
 };
 
+
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
   return response.data.result;
 };
 
+
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
+  // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
+  const [columnWidths, setColumnWidths] = useState([
+    80, 80, 350, 80, 80, 50, 110,
+  ]);
+
+
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
@@ -55,7 +70,9 @@ const ListView = () => {
   const [scheduledData, setScheduledData] = useState([]);
   const [filterScheduled, setFilterScheduled] = useState(false);
 
+
   const { currentUser } = useSelector((state) => state.user);
+
 
   const userName = currentUser?.userName || "";
   console.log(
@@ -66,6 +83,7 @@ const ListView = () => {
       "username:" +
       userName
   );
+
 
   const {
     data: productData,
@@ -78,6 +96,7 @@ const ListView = () => {
       }
     },
   });
+
 
   useEffect(() => {
     const getScheduledData = async () => {
@@ -95,6 +114,7 @@ const ListView = () => {
     getScheduledData();
   }, [productData]);
 
+
   const debouncedFilterProducts = useCallback(
     debounce((value) => {
       filterProducts(
@@ -111,6 +131,7 @@ const ListView = () => {
     setSearchTerm(value); // Update search term immediately in the input
     debouncedFilterProducts(value); // Apply debounced filtering
   };
+
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -134,12 +155,15 @@ const ListView = () => {
   //   );
   // };
 
+
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
     const now = new Date();
 
+
     if (onlyScheduled) {
       const scheduledAsins = scheduled
+
 
         .filter(
           (item) =>
@@ -150,12 +174,15 @@ const ListView = () => {
               (item.endDate && new Date(item.endDate) >= now))
         )
 
+
         .map((item) => item.asin);
+
 
       filtered = products.filter((product) =>
         scheduledAsins.includes(product.asin1)
       );
     }
+
 
     if (searchValue) {
       filtered = filtered.filter(
@@ -169,8 +196,10 @@ const ListView = () => {
       );
     }
 
+
     setFilteredProducts(filtered);
   };
+
 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
@@ -200,6 +229,7 @@ const ListView = () => {
           ),
         ]);
 
+
         setSelectedProduct(responseone.data.payload);
         setSelectedListing(responsetwo.data);
         setSelectedAsin(asin);
@@ -209,6 +239,7 @@ const ListView = () => {
       }
     }
   };*/
+
 
   const handleProductSelect = async (asin, index) => {
     if (selectedRowIndex === index) {
@@ -220,11 +251,13 @@ const ListView = () => {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
 
+
       try {
         const [responseOne, responseTwo] = await Promise.all([
           axios.get(`${BASE_URL}/details/${asin}`),
           axios.get(`${BASE_URL}/product/${asin}`),
         ]);
+
 
         setSelectedProduct(responseOne.data.payload);
         setSelectedListing(responseTwo.data);
@@ -235,7 +268,7 @@ const ListView = () => {
   };
   /*
   const handleUpdate = (asin, e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (asin) {
       setSelectedAsin(asin);
       setShowUpdateModal(true);
@@ -249,10 +282,12 @@ const ListView = () => {
   const handleUpdate = async (asin, index, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
 
+
     if (!asin) {
       console.error("ASIN is not provided. Modal will not open.");
       return;
     }
+
 
     try {
       setSelectedAsin(asin);
@@ -271,9 +306,11 @@ const ListView = () => {
     setShowUpdateModal(false);
   };
 
+
   const handleResize = (index, event) => {
     const startX = event.clientX;
     const startWidth = columnWidths[index];
+
 
     const doDrag = (e) => {
       const newWidth = Math.max(50, startWidth + (e.clientX - startX));
@@ -284,14 +321,17 @@ const ListView = () => {
       });
     };
 
+
     const stopDrag = () => {
       document.removeEventListener("mousemove", doDrag);
       document.removeEventListener("mouseup", stopDrag);
     };
 
+
     document.addEventListener("mousemove", doDrag);
     document.addEventListener("mouseup", stopDrag);
   };
+
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
@@ -313,6 +353,7 @@ const ListView = () => {
       });
   };
 
+
   if (isLoading)
     return (
       <div style={{ marginTop: "100px" }}>
@@ -321,65 +362,68 @@ const ListView = () => {
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
+
+  console.log(filteredProducts);
+
+
   return (
-    <Container fluid>
+    <>
       <UpdatePriceFromList
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
       />
-      <Row>
-        <Col md={8} style={{ paddingRight: "20px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              position: "sticky",
-              top: 0,
-              zIndex: 1000,
-              backgroundColor: "white",
-              borderBottom: "1px solid #ccc",
-              padding: "10px 0",
-            }}
-          >
-            <InputGroup className="mb-3" style={{ maxWidth: "200px" }}>
-              <Form.Control
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                // onChange={(e) => handleSearch(e.target.value)}
-                onChange={handleSearch}
-                onKeyDown={handleKeyPress}
-                style={{ borderRadius: "4px", marginTop: "100px" }}
-              />
-            </InputGroup>
-            <Button
-              style={{
-                borderRadius: "4px",
-                marginTop: "100px",
-                backgroundColor: "#5AB36D",
-                border: "none",
-              }}
-              onClick={handleToggleFilter}
-            >
-              {filterScheduled ? "Show All" : "Scheduled"}
-            </Button>
-          </div>
 
+
+      <div>
+        <InputGroup
+          className="mb-3"
+          style={{ maxWidth: "200px", position: "absolute", top: "10px" }}
+        >
+          <Form.Control
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            // onChange={(e) => handleSearch(e.target.value)}
+            onChange={handleSearch}
+            onKeyDown={handleKeyPress}
+            style={{ borderRadius: "4px" }}
+          />
+        </InputGroup>
+
+
+        <Button
+          style={{
+            borderRadius: "4px",
+            // marginTop: "100px",
+            backgroundColor: "#0D6EFD",
+            border: "none",
+            position: "absolute ",
+            top: "10px",
+            right: "250px",
+          }}
+          onClick={handleToggleFilter}
+        >
+          {filterScheduled ? "Show All" : "Scheduled"}
+        </Button>
+      </div>
+
+
+      <Row style={{ border: "" }}>
+        <Col md={8} style={{ paddingRight: "20px" }}>
           {filteredProducts.length > 0 ? (
             <div
               style={{
                 overflowY: "scroll",
-                maxHeight: "calc(100vh - 250px)",
-                marginTop: "5px",
+                maxHeight: "calc(100vh - 120px)",
+                marginTop: "50px",
               }}
             >
               <Table
-                bordered
                 hover
                 responsive
                 style={{ width: "100%", tableLayout: "fixed" }}
+                className="listCustomTable  "
               >
                 <thead
                   style={{
@@ -399,7 +443,7 @@ const ListView = () => {
                         position: "relative",
                       }}
                     >
-                      Image
+                      Status
                       <div
                         style={{
                           width: "5px",
@@ -418,7 +462,7 @@ const ListView = () => {
                         position: "relative",
                       }}
                     >
-                      Status
+                      Image
                       <div
                         style={{
                           width: "5px",
@@ -431,6 +475,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(1, e)}
                       />
                     </th>
+
 
                     <th
                       style={{
@@ -461,6 +506,63 @@ const ListView = () => {
                       }}
                     >
                       Price
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(3, e)}
+                      />
+                    </th>
+                    <th
+                      style={{
+                        width: `${columnWidths[3]}px`,
+                        position: "relative",
+                      }}
+                    >
+                      FBA/FBM
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(3, e)}
+                      />
+                    </th>
+                    <th
+                      style={{
+                        width: `${columnWidths[3]}px`,
+                        position: "relative",
+                      }}
+                    >
+                      Channel Stock
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(3, e)}
+                      />
+                    </th>
+                    <th
+                      style={{
+                        width: `${columnWidths[3]}px`,
+                        position: "relative",
+                      }}
+                    >
+                      Sale
                       <div
                         style={{
                           width: "5px",
@@ -511,7 +613,18 @@ const ListView = () => {
                         backgroundColor:
                           selectedRowIndex === index ? "#d3d3d3" : "#ccc",
                       }}
+                      className="borderless"
                     >
+                      <td
+                        style={{
+                          cursor: "pointer",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
+                        {item.status}
+                      </td>
                       <td
                         style={{
                           cursor: "pointer",
@@ -526,16 +639,7 @@ const ListView = () => {
                           alt=""
                         />
                       </td>
-                      <td
-                        style={{
-                          cursor: "pointer",
-                          height: "40px",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
-                        }}
-                      >
-                        {item.status}
-                      </td>
+
 
                       <td
                         style={{
@@ -635,21 +739,17 @@ const ListView = () => {
                                 />
                               ))}
                           </span>
-                          <span className="bubble-text">
+                          {/* <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"
                               ? "FBM"
                               : "FBA"}{" "}
                             :{" "}
-                            {item.fulfillmentChannel === "DEFAULT"
-                              ? item?.quantity != null
-                                ? item.quantity
-                                : "N/A"
-                              : item?.fulfillableQuantity != null &&
-                                item?.pendingTransshipmentQuantity != null
+                            {item?.fulfillableQuantity != null &&
+                            item?.pendingTransshipmentQuantity != null
                               ? item?.fulfillableQuantity +
                                 item?.pendingTransshipmentQuantity
                               : "N/A"}
-                          </span>
+                          </span> */}
                         </div>
                       </td>
                       <td
@@ -667,13 +767,59 @@ const ListView = () => {
                       </td>
                       <td
                         style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "pointer",
+                          height: "40px",
                           backgroundColor:
                             selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
+                        {item.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
+                        {/* {item?.fulfillableQuantity != null &&
+                        item?.pendingTransshipmentQuantity != null
+                          ? item?.fulfillableQuantity +
+                            item?.pendingTransshipmentQuantity
+                          : "N/A"} */}
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "pointer",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
+                        {item.fulfillableQuantity}
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "pointer",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                        }}
+                      >
+                        N/A
+                      </td>
+                      <td
+                        style={{
+                          backgroundColor:
+                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                          textAlign: "left",
+                        }}
+                      >
                         <Button
                           style={{
-                            backgroundColor: "#5AB36D",
+                            backgroundColor: "#0D6EFD",
+
 
                             paddingLeft: "20px",
                             paddingRight: "20px",
@@ -710,12 +856,12 @@ const ListView = () => {
           style={{
             paddingLeft: "0px",
             marginTop: "20px",
-            paddingRight: "20px",
+            paddingRight: "0px",
           }}
         >
           {selectedProduct && selectedListing && selectedAsin ? (
             <div
-              style={{ marginTop: "100px", position: "fixed", width: "460px" }}
+              style={{ marginTop: "20px",marginRight:"10px", position: "fixed" }}
             >
               <ProductDetailView
                 product={selectedProduct}
@@ -730,8 +876,12 @@ const ListView = () => {
           )}
         </Col>
       </Row>
-    </Container>
+    </>
   );
 };
 
+
 export default ListView;
+
+
+

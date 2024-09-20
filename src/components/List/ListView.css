@@ -8,77 +8,91 @@
   background-color: transparent;
 }
 
+
 th {
   position: relative;
 }
-  
-  th .resizer:hover {
-    background-color: #ccc;
-  }
-  
-  .card {
-    transition: all 0.3s ease;
-  }
-  
-  .card:hover {
-    transform: translateY(-3px);
-  }
-  
-  .copy-container {
-    display: inline-block;
-    position: relative;
-    background-color: #F0F4FF;
-    padding: 5px 10px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    color: #6F7A92;
-    user-select: none;
+
+
+th .resizer:hover {
+  background-color: #ccc;
 }
+
+
+.card {
+  transition: all 0.3s ease;
+}
+
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+
+.copy-container {
+  display: inline-block;
+  position: relative;
+  background-color: #f0f4ff;
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #6f7a92;
+  user-select: none;
+}
+
 
 .copy-container:hover .copy-icon {
-    opacity: 1;
+  opacity: 1;
 }
+
 
 .copy-icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
 }
 
+
 .copy-icon::before {
-    content: "📋";
-    font-size: 14px;
+  content: "📋";
+  font-size: 14px;
 }
 /* .bubble-text {
   background-color: #EEF1FB;
-  color: #64748B; 
-  padding: 5px 10px; 
+  color: #64748B;
+  padding: 5px 10px;
  
-  font-weight: bold; 
-  display: inline-block; 
-  font-family: 'Arial', sans-serif; 
-  font-size: 14px; 
+  font-weight: bold;
+  display: inline-block;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
 } */
+
 
 .bubble-text {
   background-color: #eef1fb80; /* The light blue background color */
   color: #44484d; /* The color of the text */
   /* padding: 5px 10px;  */
-  font-weight: bold; 
+  font-weight: bold;
   display: inline-block; /* Ensure it doesn't expand to full width */
-  font-family: 'Arial', sans-serif; /* Ensure the font matches */
+  font-family: "Arial", sans-serif; /* Ensure the font matches */
   font-size: 12px; /* Adjust font size as needed */
   margin-right: 10px;
 }
 .details {
-  
   text-align: left;
 }
 .selected-row {
   background-color: #553838 !important;
 }
+.listCustomTable {
+  border: 1px solid lightgray;
+}
+
+
+
