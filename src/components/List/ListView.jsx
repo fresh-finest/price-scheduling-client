@@ -56,7 +56,7 @@ const ListView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 80, 50, 110,
+    80, 80, 350, 80, 80, 120, 60, 150,
   ]);
 
 
@@ -400,7 +400,7 @@ const ListView = () => {
             border: "none",
             position: "absolute ",
             top: "10px",
-            right: "250px",
+            right: "580px",
           }}
           onClick={handleToggleFilter}
         >
@@ -440,7 +440,9 @@ const ListView = () => {
                     <th
                       style={{
                         width: `${columnWidths[0]}px`,
-                        position: "relative",
+                        minWidth: "80px",
+                        // position: "relative",
+                        position: "sticky", // Sticky header
                       }}
                     >
                       Status
@@ -459,6 +461,7 @@ const ListView = () => {
                     <th
                       style={{
                         width: `${columnWidths[1]}px`,
+                        minWidth: "80px",
                         position: "relative",
                       }}
                     >
@@ -480,6 +483,7 @@ const ListView = () => {
                     <th
                       style={{
                         width: `${columnWidths[2]}px`,
+                        minWidth: "80px",
                         position: "relative",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -502,6 +506,7 @@ const ListView = () => {
                     <th
                       style={{
                         width: `${columnWidths[3]}px`,
+                        minWidth: "80px",
                         position: "relative",
                       }}
                     >
@@ -520,7 +525,8 @@ const ListView = () => {
                     </th>
                     <th
                       style={{
-                        width: `${columnWidths[3]}px`,
+                        width: `${columnWidths[4]}px`,
+                        minWidth: "80px",
                         position: "relative",
                       }}
                     >
@@ -534,31 +540,33 @@ const ListView = () => {
                           top: "0",
                           cursor: "col-resize",
                         }}
-                        onMouseDown={(e) => handleResize(3, e)}
+                        onMouseDown={(e) => handleResize(4, e)}
                       />
                     </th>
                     <th
                       style={{
-                        width: `${columnWidths[3]}px`,
+                        width: `${columnWidths[5]}px`,
+                        minWidth: "80px",
                         position: "relative",
                       }}
                     >
                       Channel Stock
                       <div
                         style={{
-                          width: "5px",
+                          width: "150px",
                           height: "100%",
                           position: "absolute",
                           right: "0",
                           top: "0",
                           cursor: "col-resize",
                         }}
-                        onMouseDown={(e) => handleResize(3, e)}
+                        onMouseDown={(e) => handleResize(5, e)}
                       />
                     </th>
                     <th
                       style={{
-                        width: `${columnWidths[3]}px`,
+                        width: `${columnWidths[6]}px`,
+                        minWidth: "80px",
                         position: "relative",
                       }}
                     >
@@ -572,12 +580,13 @@ const ListView = () => {
                           top: "0",
                           cursor: "col-resize",
                         }}
-                        onMouseDown={(e) => handleResize(3, e)}
+                        onMouseDown={(e) => handleResize(6, e)}
                       />
                     </th>
                     <th
                       style={{
-                        width: `${columnWidths[4]}px`,
+                        width: `${columnWidths[7]}px`,
+                        minWidth: "80px",
                         position: "relative",
                       }}
                     >
@@ -591,7 +600,7 @@ const ListView = () => {
                           top: "0",
                           cursor: "col-resize",
                         }}
-                        onMouseDown={(e) => handleResize(4, e)}
+                        onMouseDown={(e) => handleResize(7, e)}
                       />
                     </th>
                   </tr>
@@ -794,7 +803,17 @@ const ListView = () => {
                             selectedRowIndex === index ? "#d3d3d3" : "#fff",
                         }}
                       >
-                        {item.fulfillableQuantity}
+                        <span>
+                          {item.fulfillmentChannel === "DEFAULT"
+                            ? item?.quantity != null
+                              ? item.quantity
+                              : "N/A"
+                            : item?.fulfillableQuantity != null &&
+                              item?.pendingTransshipmentQuantity != null
+                            ? item?.fulfillableQuantity +
+                              item?.pendingTransshipmentQuantity
+                            : "N/A"}
+                        </span>
                       </td>
                       <td
                         style={{
@@ -861,7 +880,7 @@ const ListView = () => {
         >
           {selectedProduct && selectedListing && selectedAsin ? (
             <div
-              style={{ marginTop: "20px",marginRight:"10px", position: "fixed" }}
+              style={{ marginTop: "20px", position: "fixed", width: "510px" }}
             >
               <ProductDetailView
                 product={selectedProduct}
