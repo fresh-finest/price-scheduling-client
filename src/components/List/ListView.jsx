@@ -653,7 +653,7 @@ const ListView = () => {
                         width: `${columnWidths[7]}px`,
                         minWidth: "80px",
                         position: "relative",
-                        textAlign: "right",
+                        textAlign: "center",
                       }}
                     >
                       Update Price
