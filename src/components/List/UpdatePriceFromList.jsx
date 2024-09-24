@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { MultiSelect } from "react-multi-select-component";
@@ -6,11 +6,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
 
-import{daysOptions,datesOptions} from "../../utils/staticValue"
+import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-const BASE_URL = 'https://api.priceobo.com';
+const BASE_URL = "https://api.priceobo.com";
 // const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
@@ -51,7 +51,6 @@ const fetchPriceBySku = async (sku) => {
   }
 };
 
-
 const fetchExistingSchedules = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/api/schedule`);
@@ -77,10 +76,10 @@ const saveScheduleAndQueueJobs = async (
   endDate,
   weekly = false,
   // daysOfWeek = [],
-  weeklyTimeSlots={},
+  weeklyTimeSlots = {},
   monthly = false,
   // datesOfMonth = [],
-  monthlyTimeSlots={}
+  monthlyTimeSlots = {}
 ) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
@@ -98,7 +97,7 @@ const saveScheduleAndQueueJobs = async (
       weeklyTimeSlots,
       monthly,
       // datesOfMonth,
-      monthlyTimeSlots
+      monthlyTimeSlots,
     });
     return response.data;
   } catch (error) {
@@ -110,7 +109,7 @@ const saveScheduleAndQueueJobs = async (
   }
 };
 
-const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
+const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
@@ -129,8 +128,8 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
   const [datesOfMonth, setDatesOfMonth] = useState([]);
   // const [startTime,setStartTime] = useState(new Date());
   // const [endTime,setEndTime] = useState(new Date());
-  const [weeklyTimeSlots,setWeeklyTimeSlots] = useState({});
-  const [monthlyTimeSlots,setMonthlyTimeSlots]= useState({});
+  const [weeklyTimeSlots, setWeeklyTimeSlots] = useState({});
+  const [monthlyTimeSlots, setMonthlyTimeSlots] = useState({});
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
@@ -140,8 +139,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
   const [weeklyExists, setWeeklyExists] = useState(false);
   const [monthlyExists, setMonthlyExists] = useState(false);
 
- 
-  console.log("seller sku from list: "+ sku1)
+  console.log("seller sku from list: " + sku1);
 
   // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
   //   label: `${i + 1}`,
@@ -178,7 +176,10 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
   const addWeeklyTimeSlot = (day) => {
     setWeeklyTimeSlots((prevSlots) => ({
       ...prevSlots,
-      [day]: [...(prevSlots[day] || []), { startTime: new Date(), endTime: new Date(), newPrice:'' }],
+      [day]: [
+        ...(prevSlots[day] || []),
+        { startTime: new Date(), endTime: new Date(), newPrice: "" },
+      ],
     }));
   };
 
@@ -186,18 +187,20 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
   const addMonthlyTimeSlot = (date) => {
     setMonthlyTimeSlots((prevSlots) => ({
       ...prevSlots,
-      [date]: [...(prevSlots[date] || []), { startTime: new Date(), endTime: new Date(), newPrice:''}],
+      [date]: [
+        ...(prevSlots[date] || []),
+        { startTime: new Date(), endTime: new Date(), newPrice: "" },
+      ],
     }));
   };
 
-
   const removeTimeSlot = (scheduleType, identifier, index) => {
-    if (scheduleType === 'weekly') {
+    if (scheduleType === "weekly") {
       setWeeklyTimeSlots((prevSlots) => ({
         ...prevSlots,
         [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
       }));
-    } else if (scheduleType === 'monthly') {
+    } else if (scheduleType === "monthly") {
       setMonthlyTimeSlots((prevSlots) => ({
         ...prevSlots,
         [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
@@ -205,44 +208,51 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
     }
   };
 
-  const handleTimeChange = (scheduleType,identifier, index, key, value)=>{
-    if(scheduleType === 'weekly'){
-      setWeeklyTimeSlots((prevSlots)=>{
-        const newSlots = [...(prevSlots[identifier]|| [])];
-        newSlots[index][key] = value;
-        return {...prevSlots, [identifier]: newSlots};
-      })
-    } else if(scheduleType === 'monthly'){
-      setMonthlyTimeSlots((prevSlots)=>{
-        const newSlots = [...(prevSlots[identifier] || [])];
-        newSlots[index][key] = value;
-        return {...prevSlots, [identifier]: newSlots};
-      })
-    }
-  }
-
-  const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
-    if (scheduleType === 'weekly') {
+  const handleTimeChange = (scheduleType, identifier, index, key, value) => {
+    if (scheduleType === "weekly") {
       setWeeklyTimeSlots((prevSlots) => {
         const newSlots = [...(prevSlots[identifier] || [])];
-        newSlots[index]['newPrice'] = value;
+        newSlots[index][key] = value;
         return { ...prevSlots, [identifier]: newSlots };
       });
-    } else if (scheduleType === 'monthly') {
+    } else if (scheduleType === "monthly") {
       setMonthlyTimeSlots((prevSlots) => {
         const newSlots = [...(prevSlots[identifier] || [])];
-        newSlots[index]['newPrice'] = value;
+        newSlots[index][key] = value;
         return { ...prevSlots, [identifier]: newSlots };
       });
     }
-  }
+  };
+
+  const handleTimeSlotPriceChange = (
+    scheduleType,
+    identifier,
+    index,
+    value
+  ) => {
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => {
+        const newSlots = [...(prevSlots[identifier] || [])];
+        newSlots[index]["newPrice"] = value;
+        return { ...prevSlots, [identifier]: newSlots };
+      });
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => {
+        const newSlots = [...(prevSlots[identifier] || [])];
+        newSlots[index]["newPrice"] = value;
+        return { ...prevSlots, [identifier]: newSlots };
+      });
+    }
+  };
 
   const validateTimeSlots = () => {
     // Check weekly slots
     for (const day in weeklyTimeSlots) {
       for (const slot of weeklyTimeSlots[day]) {
         if (slot.startTime >= slot.endTime) {
-          setErrorMessage(`For day ${day}, start time must be earlier than end time.`);
+          setErrorMessage(
+            `For day ${day}, start time must be earlier than end time.`
+          );
           return false;
         }
       }
@@ -252,7 +262,9 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
     for (const date in monthlyTimeSlots) {
       for (const slot of monthlyTimeSlots[date]) {
         if (slot.startTime >= slot.endTime) {
-          setErrorMessage(`For date ${date}, start time must be earlier than end time.`);
+          setErrorMessage(
+            `For date ${date}, start time must be earlier than end time.`
+          );
           return false;
         }
       }
@@ -266,33 +278,37 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
       const schedules = await fetchExistingSchedules(asin);
       setExistingSchedules(schedules);
 
-      const hasWeekly = schedules.some((schedule) => schedule.weekly && schedule.status !="deleted");
-      const hasMonthly = schedules.some((schedule) => schedule.monthly && schedule.status !="deleted");
+      const hasWeekly = schedules.some(
+        (schedule) => schedule.weekly && schedule.status != "deleted"
+      );
+      const hasMonthly = schedules.some(
+        (schedule) => schedule.monthly && schedule.status != "deleted"
+      );
 
       setWeeklyExists(hasWeekly);
       setMonthlyExists(hasMonthly);
-      
     } catch (error) {
       setErrorMessage("Error fetching existing schedules.");
     }
   };
 
-  console.log("SKUUUU: "+sku)
-  
-  const fetchProductPriceBySku = async(SellerSKU)=>{
+  console.log("SKUUUU: " + sku);
+
+  const fetchProductPriceBySku = async (SellerSKU) => {
     setLoading(true);
     try {
       const priceData = await fetchPriceBySku(SellerSKU);
       setCurrentPrice(priceData?.offerAmount);
       setSku(priceData?.sku);
       console.log(`Price for SKU ${SellerSKU}:`, priceData.offerAmount);
-
     } catch (error) {
-      console.error(`Error fetching price for SKU ${SellerSKU}:`, error.message);
+      console.error(
+        `Error fetching price for SKU ${SellerSKU}:`,
+        error.message
+      );
       throw error;
     }
-
-  }
+  };
 
   const fetchProductDetailsByAsin = async (asin) => {
     setLoading(true);
@@ -328,15 +344,15 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
   };
 
   // Convert time to UTC before sending to backend
-const convertTimeToUtc = (time) => {
-  return moment(time).utc().format("HH:mm");
-};
+  const convertTimeToUtc = (time) => {
+    return moment(time).utc().format("HH:mm");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!userName || !asin || !sku ) {
+      if (!userName || !asin || !sku) {
         setErrorMessage("All fields are required to update the price.");
         setLoading(false);
         return;
@@ -357,7 +373,7 @@ const convertTimeToUtc = (time) => {
       //   setLoading(false);
       //   return;
       // }
-       // Convert startTime and endTime to UTC
+      // Convert startTime and endTime to UTC
       //  const utcStartTime = convertTimeToUtc(startTime);
       //  const utcEndTime = convertTimeToUtc(endTime);
 
@@ -387,28 +403,32 @@ const convertTimeToUtc = (time) => {
 
       const weeklySlotsInUtc = {};
       const monthlySlotsInUtc = {};
-  
+
       if (weekly) {
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
-          weeklySlotsInUtc[day] = timeSlots.map(({ startTime, endTime, newPrice}) => ({
-            startTime: convertTimeToUtc(startTime),
-            endTime: convertTimeToUtc(endTime),
-            newPrice: parseFloat(newPrice)
-          }));
-        }
-      }
-  
-      if (monthly) {
-        for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
-          monthlySlotsInUtc[date] = timeSlots.map(({ startTime, endTime, newPrice }) => ({
-            startTime: convertTimeToUtc(startTime),
-            endTime: convertTimeToUtc(endTime),
-            newPrice: parseFloat(newPrice)
-          }));
+          weeklySlotsInUtc[day] = timeSlots.map(
+            ({ startTime, endTime, newPrice }) => ({
+              startTime: convertTimeToUtc(startTime),
+              endTime: convertTimeToUtc(endTime),
+              newPrice: parseFloat(newPrice),
+            })
+          );
         }
       }
 
-     /* if (weekly) {
+      if (monthly) {
+        for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
+          monthlySlotsInUtc[date] = timeSlots.map(
+            ({ startTime, endTime, newPrice }) => ({
+              startTime: convertTimeToUtc(startTime),
+              endTime: convertTimeToUtc(endTime),
+              newPrice: parseFloat(newPrice),
+            })
+          );
+        }
+      }
+
+      /* if (weekly) {
         for (const [day, timeSlots] of Object.entries(weeklySlots)) {
           for (const { startTime, endTime } of timeSlots) {
             if (!startTime || !endTime) {
@@ -447,7 +467,7 @@ const convertTimeToUtc = (time) => {
       //   datesOfMonth.map((date) => date.value),
       //   utcStartTime,
       //   utcEndTime
-        
+
       // );
       console.log("weekly:", JSON.stringify(weeklySlotsInUtc, null, 2));
       await saveScheduleAndQueueJobs(
@@ -461,13 +481,13 @@ const convertTimeToUtc = (time) => {
         startDate,
         indefiniteEndDate ? null : endDate,
         weekly,
-       // daysOfWeek.map((day) => day.value),
+        // daysOfWeek.map((day) => day.value),
         weeklySlotsInUtc,
         monthly,
         // datesOfMonth.map((date) => date.value),
         monthlySlotsInUtc
       );
-      console.log("weekly:"+weeklySlotsInUtc);
+      console.log("weekly:" + weeklySlotsInUtc);
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
@@ -531,24 +551,32 @@ const convertTimeToUtc = (time) => {
               />
             </Form.Group>
             {weekly && (
-            <>
-              <Form.Group controlId="formDaysOfWeek">
-                <Form.Label>Repeat Weekly on</Form.Label>
-                <MultiSelect
-                  options={daysOptions}
-                  value={daysOfWeek}
-                  onChange={setDaysOfWeek}
-                  labelledBy="Select"
-                />
-              </Form.Group>
-              {daysOfWeek.map((day) => (
+              <>
+                <Form.Group controlId="formDaysOfWeek">
+                  <Form.Label>Repeat Weekly on</Form.Label>
+                  <MultiSelect
+                    options={daysOptions}
+                    value={daysOfWeek}
+                    onChange={setDaysOfWeek}
+                    labelledBy="Select"
+                  />
+                </Form.Group>
+                {daysOfWeek.map((day) => (
                   <div key={day.value}>
                     <h5>{day.label}</h5>
                     {weeklyTimeSlots[day.value]?.map((slot, index) => (
                       <div key={index} className="d-flex mb-2">
                         <DatePicker
                           selected={slot.startTime}
-                          onChange={(time) => handleTimeChange('weekly', day.value, index, 'startTime', time)}
+                          onChange={(time) =>
+                            handleTimeChange(
+                              "weekly",
+                              day.value,
+                              index,
+                              "startTime",
+                              time
+                            )
+                          }
                           showTimeSelect
                           showTimeSelectOnly
                           timeIntervals={15}
@@ -558,7 +586,15 @@ const convertTimeToUtc = (time) => {
                         />
                         <DatePicker
                           selected={slot.endTime}
-                          onChange={(time) => handleTimeChange('weekly', day.value, index, 'endTime', time)}
+                          onChange={(time) =>
+                            handleTimeChange(
+                              "weekly",
+                              day.value,
+                              index,
+                              "endTime",
+                              time
+                            )
+                          }
                           showTimeSelect
                           showTimeSelectOnly
                           timeIntervals={15}
@@ -566,23 +602,38 @@ const convertTimeToUtc = (time) => {
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
-                         <Form.Control
-                           type="number"
-                           placeholder="Enter New Price"
-                           value={slot.newPrice}
-                           onChange={(e) => handleTimeSlotPriceChange('weekly', day.value, index, e.target.value)}
-                           className="form-control me-2"
-                         />
-                        <Button variant="danger" onClick={() => removeTimeSlot('weekly', day.value, index)} className="ms-2">
+                        <Form.Control
+                          type="number"
+                          placeholder="Enter New Price"
+                          value={slot.newPrice}
+                          onChange={(e) =>
+                            handleTimeSlotPriceChange(
+                              "weekly",
+                              day.value,
+                              index,
+                              e.target.value
+                            )
+                          }
+                          className="form-control me-2"
+                        />
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            removeTimeSlot("weekly", day.value, index)
+                          }
+                          className="ms-2"
+                        >
                           Remove
                         </Button>
                       </div>
                     ))}
-                    <Button onClick={() => addWeeklyTimeSlot(day.value)}>Add Time Slot</Button>
+                    <Button onClick={() => addWeeklyTimeSlot(day.value)}>
+                      Add Time Slot
+                    </Button>
                   </div>
                 ))}
 
-              {/* <Form.Group controlId="formWeeklyStartTime">
+                {/* <Form.Group controlId="formWeeklyStartTime">
                 <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
                 <DatePicker
                   selected={startTime}
@@ -608,8 +659,8 @@ const convertTimeToUtc = (time) => {
                   className="form-control"
                 />
               </Form.Group> */}
-            </>
-          )}
+              </>
+            )}
 
             <Form.Group controlId="formMonthly">
               <Form.Check
@@ -621,24 +672,32 @@ const convertTimeToUtc = (time) => {
               />
             </Form.Group>
             {monthly && (
-            <>
-              <Form.Group controlId="formDatesOfMonth">
-                <Form.Label>Repeat Monthly on</Form.Label>
-                <MultiSelect
-                  options={datesOptions}
-                  value={datesOfMonth}
-                  onChange={setDatesOfMonth}
-                  labelledBy="Select"
-                />
-              </Form.Group>
-              {datesOfMonth.map((date) => (
+              <>
+                <Form.Group controlId="formDatesOfMonth">
+                  <Form.Label>Repeat Monthly on</Form.Label>
+                  <MultiSelect
+                    options={datesOptions}
+                    value={datesOfMonth}
+                    onChange={setDatesOfMonth}
+                    labelledBy="Select"
+                  />
+                </Form.Group>
+                {datesOfMonth.map((date) => (
                   <div key={date.value}>
                     <h5>Date: {date.label}</h5>
                     {monthlyTimeSlots[date.value]?.map((slot, index) => (
                       <div key={index} className="d-flex mb-2">
                         <DatePicker
                           selected={slot.startTime}
-                          onChange={(time) => handleTimeChange('monthly', date.value, index, 'startTime', time)}
+                          onChange={(time) =>
+                            handleTimeChange(
+                              "monthly",
+                              date.value,
+                              index,
+                              "startTime",
+                              time
+                            )
+                          }
                           showTimeSelect
                           showTimeSelectOnly
                           timeIntervals={15}
@@ -648,7 +707,15 @@ const convertTimeToUtc = (time) => {
                         />
                         <DatePicker
                           selected={slot.endTime}
-                          onChange={(time) => handleTimeChange('monthly', date.value, index, 'endTime', time)}
+                          onChange={(time) =>
+                            handleTimeChange(
+                              "monthly",
+                              date.value,
+                              index,
+                              "endTime",
+                              time
+                            )
+                          }
                           showTimeSelect
                           showTimeSelectOnly
                           timeIntervals={15}
@@ -657,21 +724,36 @@ const convertTimeToUtc = (time) => {
                           className="form-control"
                         />
                         <Form.Control
-                           type="number"
-                           placeholder="Enter New Price"
-                           value={slot.newPrice}
-                           onChange={(e) => handleTimeSlotPriceChange('monthly', date.value, index, e.target.value)}
-                           className="form-control me-2"
-                         />
-                        <Button variant="danger" onClick={() => removeTimeSlot('monthly', date.value, index)} className="ms-2">
+                          type="number"
+                          placeholder="Enter New Price"
+                          value={slot.newPrice}
+                          onChange={(e) =>
+                            handleTimeSlotPriceChange(
+                              "monthly",
+                              date.value,
+                              index,
+                              e.target.value
+                            )
+                          }
+                          className="form-control me-2"
+                        />
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            removeTimeSlot("monthly", date.value, index)
+                          }
+                          className="ms-2"
+                        >
                           Remove
                         </Button>
                       </div>
                     ))}
-                    <Button onClick={() => addMonthlyTimeSlot(date.value)}>Add Time Slot</Button>
+                    <Button onClick={() => addMonthlyTimeSlot(date.value)}>
+                      Add Time Slot
+                    </Button>
                   </div>
                 ))}
-              {/* <Form.Group controlId="formMonthlyStartTime">
+                {/* <Form.Group controlId="formMonthlyStartTime">
                 <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
                 <DatePicker
                   selected={startTime}
@@ -697,8 +779,8 @@ const convertTimeToUtc = (time) => {
                   className="form-control"
                 />
               </Form.Group> */}
-            </>
-          )}
+              </>
+            )}
             {!weekly && !monthly && (
               <>
                 <Form.Group controlId="formStartDate">
@@ -743,11 +825,19 @@ const convertTimeToUtc = (time) => {
               </>
             )}
             <Button
-              style={{ width: "100%", backgroundColor: "black", marginTop: "30px" }}
+              style={{
+                width: "100%",
+                backgroundColor: "black",
+                marginTop: "30px",
+              }}
               type="submit"
               disabled={loading}
             >
-              {weekly ? 'Weekly Update' : monthly ? 'Monthly Update Price' : 'Update Price'}
+              {weekly
+                ? "Weekly Update"
+                : monthly
+                ? "Monthly Update Price"
+                : "Update Price"}
             </Button>
           </Form>
         </Modal.Body>

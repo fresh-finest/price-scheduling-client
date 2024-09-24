@@ -76,9 +76,6 @@ th .resizer:hover {
   margin-right: 10px;
   border: 1px solid #dee2e6;
   padding: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .details {
@@ -170,4 +167,9 @@ th .resizer:hover {
 .custom-input::placeholder {
   font-size: 14px; /* Change the placeholder text size */
   color: #c8c8c8; /* You can also change the placeholder color */
+}
+
+.updatePriceBtn svg {
+  color: white !important;
+  /* background-color: red; */
 }

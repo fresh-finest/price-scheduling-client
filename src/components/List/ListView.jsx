@@ -54,6 +54,7 @@ const ListView = () => {
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedSku, setSelectedSku] = useState("");
   const [selectedPrice, setSelectedPrice] = useState("");
+  const [selectedFnSku, setSelectedFnSku] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
@@ -265,18 +266,20 @@ const ListView = () => {
     }
   };*/
 
-  const handleProductSelect = async (price, sku1, asin, index) => {
+  const handleProductSelect = async (price, sku1, asin, fnSku, index) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
       setSelectedProduct(null);
       setSelectedListing(null);
       setSelectedAsin("");
       setSelectedSku("");
+      setSelectedFnSku("");
       setSelectedPrice("");
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
       setSelectedSku(sku1);
+      setSelectedFnSku(fnSku);
       setSelectedPrice(price);
 
       try {
@@ -428,6 +431,17 @@ const ListView = () => {
             style={{ borderRadius: "0px" }}
             className="custom-input"
           />
+          {/* <InputGroup>
+            {
+              <Button
+                variant="outline-secondary"
+                onClick={() => handleSearch("")} // Clears the input field
+                style={{ borderRadius: "0px", padding: "0 10px" }}
+              >
+                ✕
+              </Button>
+            }
+          </InputGroup> */}
         </InputGroup>
 
         <Button
@@ -687,6 +701,7 @@ const ListView = () => {
                           item?.price,
                           item.sellerSku,
                           item.asin1,
+                          item.fnSku,
                           index
                         )
                       }
@@ -956,16 +971,45 @@ const ListView = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        <Button
+                        {/* <button
+                          className="text-white"
                           style={{
                             // backgroundColor: "#0D6EFD",
 
                             // paddingLeft: "20px",
                             // paddingRight: "20px",
-                            padding: "6px 12px",
+                            padding: "8px 12px",
                             border: "none",
                             backgroundColor: "#0662BB",
-                            borderRadius: "2px",
+                            borderRadius: "3px",
+
+                            // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
+                          }}
+                          onClick={(e) =>
+                            handleUpdate(
+                              item?.price,
+                              item.sellerSku,
+                              item.asin1,
+                              index,
+                              e
+                            )
+                          }
+                          disabled={!currentUser?.permissions?.write}
+                        >
+                          <IoMdAdd style={{ color: "white" }} />
+                        </button> */}
+                        <Button
+                          className="updatePriceBtn"
+                          style={{
+                            // backgroundColor: "#0D6EFD",
+
+                            // paddingLeft: "20px",
+                            // paddingRight: "20px",
+                            padding: "8px 12px",
+                            border: "none",
+                            backgroundColor: "#0662BB",
+                            borderRadius: "3px",
+
                             // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                           }}
                           onClick={(e) =>
@@ -1042,6 +1086,7 @@ const ListView = () => {
                 listing={selectedListing}
                 asin={selectedAsin}
                 sku1={selectedSku}
+                fnSku={selectedFnSku}
                 price={selectedPrice}
               />
             </div>

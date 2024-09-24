@@ -8,6 +8,8 @@ import EditScheduleFromList from "./EditScheduleFromList";
 
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
+import { MdCheck } from "react-icons/md";
+import { BsClipboardCheck } from "react-icons/bs";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -100,8 +102,7 @@ const displayTimeSlotsWithDayLabels = (
     </div>
   ));
 };
-const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
-  console.log("sk1", sku1);
+const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -109,6 +110,10 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null);
+
+  const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
+  const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -185,6 +190,26 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
     setEditSchedule(null);
   };
 
+  const handleCopy = (text, type) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        if (type === "asin") {
+          setCopiedAsinIndex(text);
+          setTimeout(() => setCopiedAsinIndex(null), 2000);
+        } else if (type === "sku") {
+          setCopiedSkuIndex(text);
+          setTimeout(() => setCopiedSkuIndex(null), 2000);
+        } else {
+          setCopiedfnSkuIndex(text);
+          setTimeout(() => setCopiedfnSkuIndex(null), 2000);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
+
   // if (loading) {
   //   return (
   //     <div
@@ -230,8 +255,8 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
       alignItems: "flex-start",
     },
     image: {
-      width: "90px",
-      maxHeight: "90px",
+      width: "50px",
+      maxHeight: "50px",
       objectFit: "contain",
       marginBottom: "10px",
       marginRight: "20px",
@@ -244,9 +269,10 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
       borderRadius: "2px",
     },
     title: {
-      fontSize: "16px",
-      marginBottom: "15px",
+      fontSize: "14px",
+      marginBottom: "10px",
       textAlign: "left",
+      fontWeight: "normal",
     },
     info: {
       fontSize: "14px",
@@ -311,8 +337,8 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                 style={{
                   display: "flex",
                   alignItems: "flex-start",
-                  margin: "10px",
-                  padding: "10px",
+                  margin: "0 10px",
+                  padding: "10px 0",
                 }}
               >
                 <Card.Img
@@ -324,7 +350,137 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                   {product?.AttributeSets[0]?.Title}
                 </Card.Title>
               </div>
-              <div
+
+              <div className="grid grid-cols-[80px_auto_auto_auto]  mx-[10px] gap-2">
+                <div className="row-span-2 bg-blue-500 text-white flex justify-center items-center ">
+                  <h2>${price}</h2>
+                </div>
+
+                <div>
+                  <span
+                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
+                    style={{
+                      cursor: "pointer",
+                      // display: "inline-flex",
+                      // alignItems: "stretch",
+                    }}
+                  >
+                    {asin}{" "}
+                    {copiedAsinIndex ? (
+                      <MdCheck
+                        style={{
+                          marginLeft: "10px",
+                          cursor: "pointer",
+                          color: "green",
+                        }}
+                      />
+                    ) : (
+                      <BsClipboardCheck
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy(asin, "asin");
+                        }}
+                        style={{
+                          marginLeft: "10px",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                        }}
+                      />
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span
+                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
+                    style={{
+                      cursor: "pointer",
+                      // display: "inline-flex",
+                      // alignItems: "stretch",
+                    }}
+                  >
+                    {sku1}{" "}
+                    {copiedSkuIndex ? (
+                      <MdCheck
+                        style={{
+                          marginLeft: "10px",
+                          cursor: "pointer",
+                          color: "green",
+                        }}
+                      />
+                    ) : (
+                      <BsClipboardCheck
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy(sku1, "sku");
+                        }}
+                        style={{
+                          marginLeft: "10px",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                        }}
+                      />
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span
+                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
+                    style={{
+                      cursor: "pointer",
+                      // display: "inline-flex",
+                      // alignItems: "stretch",
+                    }}
+                  >
+                    {fnSku}{" "}
+                    {copiedfnSkuIndex ? (
+                      <MdCheck
+                        style={{
+                          marginLeft: "10px",
+                          cursor: "pointer",
+                          color: "green",
+                        }}
+                      />
+                    ) : (
+                      <BsClipboardCheck
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy(fnSku, "fnSku");
+                        }}
+                        style={{
+                          marginLeft: "10px",
+                          cursor: "pointer",
+                          fontSize: "16px",
+                        }}
+                      />
+                    )}
+                  </span>
+                </div>
+                <div className="text-center text-xs text-[#505050]">
+                  <span>
+                    {" "}
+                    {product?.SalesRankings?.[0]?.Rank
+                      ? product?.SalesRankings[0]?.Rank
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="text-center text-xs text-[#505050]">
+                  <span>
+                    {" "}
+                    {product?.SalesRankings?.[0]?.Rank
+                      ? product?.SalesRankings[0]?.Rank
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="text-center text-xs text-[#505050]">
+                  <span>
+                    {" "}
+                    {product?.SalesRankings?.[0]?.Rank
+                      ? product?.SalesRankings[0]?.Rank
+                      : "N/A"}
+                  </span>
+                </div>
+              </div>
+              {/* <div
                 style={{
                   display: "flex",
                   alignItems: "flex-start",
@@ -332,14 +488,14 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                 }}
               >
                 <Card.Text style={detailStyles.info}>
-                  <strong>ASIN:</strong>{" "}
+                  <span>ASIN:</span>{" "}
                   {product?.Identifiers?.MarketplaceASIN?.ASIN}
                 </Card.Text>
                 <Card.Text style={detailStyles.info}>
                   <strong>SKU:</strong> {sku1}
                 </Card.Text>
-              </div>
-              <div
+              </div> */}
+              {/* <div
                 style={{
                   display: "flex",
                   alignItems: "flex-start",
@@ -355,7 +511,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                     ? product?.SalesRankings[0]?.Rank
                     : "N/A"}
                 </Card.Text>
-              </div>
+              </div> */}
 
               <hr
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
