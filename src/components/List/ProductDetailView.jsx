@@ -100,7 +100,8 @@ const displayTimeSlotsWithDayLabels = (
     </div>
   ));
 };
-const ProductDetailView = ({ product, listing, asin, sku }) => {
+const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
+  console.log("sk1", sku1);
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -111,7 +112,6 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
 
   const { currentUser } = useSelector((state) => state.user);
 
-  console.log(asin);
   const userName = currentUser?.userName || "";
 
   const formatDateTime = (dateString) => {
@@ -218,10 +218,10 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
   // }
 
   // const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
-  const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
-  const price = offer?.BuyingPrice?.ListingPrice;
-  const sellerSKU = offer?.SellerSKU;
-  const amount = product?.AttributeSets[0]?.ListPrice?.Amount;
+  // const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
+  // const price = offer?.BuyingPrice?.ListingPrice;
+  // const sellerSKU = offer?.SellerSKU;
+  // const amount = product?.AttributeSets[0]?.ListPrice?.Amount;
 
   const detailStyles = {
     container: {
@@ -336,13 +336,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                   {product?.Identifiers?.MarketplaceASIN?.ASIN}
                 </Card.Text>
                 <Card.Text style={detailStyles.info}>
-                  {sellerSKU ? (
-                    <>
-                      <strong>SKU:</strong> {sellerSKU}
-                    </>
-                  ) : (
-                    <span style={{ color: "red" }}>Currently unavailable.</span>
-                  )}
+                  <strong>SKU:</strong> {sku1}
                 </Card.Text>
               </div>
               <div
@@ -353,7 +347,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                 }}
               >
                 <Card.Text style={detailStyles.info}>
-                  <strong>Price:</strong> ${amount}
+                  <strong>Price:</strong> ${price}
                 </Card.Text>
                 <Card.Text style={detailStyles.info}>
                   <strong>BSR:</strong>{" "}

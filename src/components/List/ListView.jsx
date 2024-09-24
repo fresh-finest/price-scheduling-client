@@ -52,6 +52,8 @@ const ListView = () => {
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
+  const [selectedSku, setSelectedSku] = useState("");
+  const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
@@ -251,6 +253,8 @@ const ListView = () => {
         ]);
 
 
+
+
         setSelectedProduct(responseone.data.payload);
         setSelectedListing(responsetwo.data);
         setSelectedAsin(asin);
@@ -261,15 +265,19 @@ const ListView = () => {
     }
   };*/
 
-  const handleProductSelect = async (asin, index) => {
+  const handleProductSelect = async (price, sku1, asin, index) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
       setSelectedProduct(null);
       setSelectedListing(null);
       setSelectedAsin("");
+      setSelectedSku("");
+      setSelectedPrice("");
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
+      setSelectedSku(sku1);
+      setSelectedPrice(price);
 
       try {
         const [responseOne, responseTwo] = await Promise.all([
@@ -284,6 +292,7 @@ const ListView = () => {
       }
     }
   };
+  console.log("sku111", selectedSku);
   /*
   const handleUpdate = (asin, e) => {
     e.stopPropagation();
@@ -297,7 +306,7 @@ const ListView = () => {
   };
 */
   // Fetch product details when Update Price button is clicked
-  const handleUpdate = async (asin, index, e) => {
+  const handleUpdate = async (price, sku1, asin, index, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
 
     if (!asin) {
@@ -306,6 +315,8 @@ const ListView = () => {
     }
 
     try {
+      setSelectedPrice(price);
+      setSelectedSku(sku1);
       setSelectedAsin(asin);
       setShowUpdateModal(true);
       setSelectedRowIndex(index);
@@ -399,6 +410,7 @@ const ListView = () => {
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
+        sku1={selectedSku}
       />
 
       <div>
@@ -670,7 +682,14 @@ const ListView = () => {
                     // {filteredProducts.slice(0, 20).map((item, index) => (
                     <tr
                       key={index}
-                      onClick={() => handleProductSelect(item.asin1, index)}
+                      onClick={() =>
+                        handleProductSelect(
+                          item?.price,
+                          item.sellerSku,
+                          item.asin1,
+                          index
+                        )
+                      }
                       style={{
                         cursor: "pointer",
                         height: "40px",
@@ -949,7 +968,15 @@ const ListView = () => {
                             borderRadius: "2px",
                             // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                           }}
-                          onClick={(e) => handleUpdate(item.asin1, index, e)}
+                          onClick={(e) =>
+                            handleUpdate(
+                              item?.price,
+                              item.sellerSku,
+                              item.asin1,
+                              index,
+                              e
+                            )
+                          }
                           disabled={!currentUser?.permissions?.write}
                         >
                           <IoMdAdd />
@@ -1014,6 +1041,8 @@ const ListView = () => {
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}
+                sku1={selectedSku}
+                price={selectedPrice}
               />
             </div>
           ) : (
