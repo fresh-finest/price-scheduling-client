@@ -37,6 +37,20 @@ const fetchProductAdditionalDetails = async (asin) => {
     throw error;
   }
 };
+const fetchPriceBySku = async (sku) => {
+  try {
+    const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
+    const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching:",
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+};
+
 
 const fetchExistingSchedules = async (asin) => {
   try {
@@ -96,7 +110,7 @@ const saveScheduleAndQueueJobs = async (
   }
 };
 
-const UpdatePriceFromList = ({ show, onClose, asin }) => {
+const UpdatePriceFromList = ({ show, onClose, asin, sku1}) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
@@ -127,6 +141,7 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   const [monthlyExists, setMonthlyExists] = useState(false);
 
  
+  console.log("seller sku from list: "+ sku1)
 
   // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
   //   label: `${i + 1}`,
@@ -136,7 +151,9 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
   useEffect(() => {
     if (show && asin) {
       resetForm();
+      fetchProductPriceBySku(sku1);
       fetchProductDetailsByAsin(asin);
+
       fetchSchedules(asin);
     } else if (show && !asin) {
       onClose();
@@ -260,14 +277,31 @@ const UpdatePriceFromList = ({ show, onClose, asin }) => {
     }
   };
 
+  console.log("SKUUUU: "+sku)
+  
+  const fetchProductPriceBySku = async(SellerSKU)=>{
+    setLoading(true);
+    try {
+      const priceData = await fetchPriceBySku(SellerSKU);
+      setCurrentPrice(priceData?.offerAmount);
+      setSku(priceData?.sku);
+      console.log(`Price for SKU ${SellerSKU}:`, priceData.offerAmount);
+
+    } catch (error) {
+      console.error(`Error fetching price for SKU ${SellerSKU}:`, error.message);
+      throw error;
+    }
+
+  }
+
   const fetchProductDetailsByAsin = async (asin) => {
     setLoading(true);
     try {
       const data = await fetchProductDetails(asin);
       if (data && data.payload && data.payload[0] && data.payload[0].Product) {
         const productDetails = data.payload[0].Product.Offers[0];
-        setSku(productDetails.SellerSKU);
-        setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+        // setSku(productDetails.SellerSKU);
+        // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
         const additionalData = await fetchProductAdditionalDetails(asin);
         if (
@@ -467,6 +501,9 @@ const convertTimeToUtc = (time) => {
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formAsin">
               <Form.Label>ASIN: {asin || "Not available"}</Form.Label>
+            </Form.Group>
+            <Form.Group controlId="formSku">
+              <Form.Label>SKU: {sku1 || "Not available"}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formCurrentPrice">
               <Form.Label>

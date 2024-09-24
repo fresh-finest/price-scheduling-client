@@ -62,6 +62,8 @@ const ListView = () => {
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
+  const [selectedSku,setSelectedSku] = useState("");
+  const [selectedPrice,setSelectedPrice]= useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
@@ -241,15 +243,19 @@ const ListView = () => {
   };*/
 
 
-  const handleProductSelect = async (asin, index) => {
+  const handleProductSelect = async (price,sku1,asin, index) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
       setSelectedProduct(null);
       setSelectedListing(null);
       setSelectedAsin("");
+      setSelectedSku("");
+      setSelectedPrice("")
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
+      setSelectedSku(sku1);
+      setSelectedPrice(price);
 
 
       try {
@@ -279,7 +285,7 @@ const ListView = () => {
   };
 */
   // Fetch product details when Update Price button is clicked
-  const handleUpdate = async (asin, index, e) => {
+  const handleUpdate = async (sku1, asin, index, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
 
 
@@ -290,6 +296,7 @@ const ListView = () => {
 
 
     try {
+      setSelectedSku(sku1);
       setSelectedAsin(asin);
       setShowUpdateModal(true);
       setSelectedRowIndex(index);
@@ -365,6 +372,7 @@ const ListView = () => {
 
   console.log(filteredProducts);
 
+  console.log("selectedSKU: "+selectedSku)
 
   return (
     <>
@@ -372,6 +380,7 @@ const ListView = () => {
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
+        sku1={selectedSku}
       />
 
 
@@ -425,7 +434,7 @@ const ListView = () => {
                 style={{ width: "100%", tableLayout: "fixed" }}
                 className="listCustomTable  "
               >
-                <thead
+                 <thead
                   style={{
                     backgroundColor: "#f0f0f0",
                     color: "#333",
@@ -437,14 +446,7 @@ const ListView = () => {
                   }}
                 >
                   <tr>
-                    <th
-                      style={{
-                        width: `${columnWidths[0]}px`,
-                        minWidth: "80px",
-                        // position: "relative",
-                        position: "sticky", // Sticky header
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[0]}px`, position: "relative" }}>
                       Status
                       <div
                         style={{
@@ -458,13 +460,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(0, e)}
                       />
                     </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[1]}px`,
-                        minWidth: "80px",
-                        position: "relative",
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[1]}px`, position: "relative" }}>
                       Image
                       <div
                         style={{
@@ -478,12 +474,9 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(1, e)}
                       />
                     </th>
-
-
                     <th
                       style={{
                         width: `${columnWidths[2]}px`,
-                        minWidth: "80px",
                         position: "relative",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -503,13 +496,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(2, e)}
                       />
                     </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[3]}px`,
-                        minWidth: "80px",
-                        position: "relative",
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[3]}px`, position: "relative" }}>
                       Price
                       <div
                         style={{
@@ -523,13 +510,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(3, e)}
                       />
                     </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[4]}px`,
-                        minWidth: "80px",
-                        position: "relative",
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[4]}px`, position: "relative" }}>
                       FBA/FBM
                       <div
                         style={{
@@ -543,17 +524,11 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(4, e)}
                       />
                     </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[5]}px`,
-                        minWidth: "80px",
-                        position: "relative",
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[5]}px`, position: "relative" }}>
                       Channel Stock
                       <div
                         style={{
-                          width: "150px",
+                          width: "5px",
                           height: "100%",
                           position: "absolute",
                           right: "0",
@@ -563,13 +538,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(5, e)}
                       />
                     </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[6]}px`,
-                        minWidth: "80px",
-                        position: "relative",
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[6]}px`, position: "relative" }}>
                       Sale
                       <div
                         style={{
@@ -583,13 +552,7 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(6, e)}
                       />
                     </th>
-                    <th
-                      style={{
-                        width: `${columnWidths[7]}px`,
-                        minWidth: "80px",
-                        position: "relative",
-                      }}
-                    >
+                    <th style={{ width: `${columnWidths[7]}px`, position: "relative" }}>
                       Update Price
                       <div
                         style={{
@@ -615,7 +578,7 @@ const ListView = () => {
                   {filteredProducts.map((item, index) => (
                     <tr
                       key={index}
-                      onClick={() => handleProductSelect(item.asin1, index)}
+                      onClick={() => handleProductSelect(item?.price,item.sellerSku,item.asin1, index)}
                       style={{
                         cursor: "pointer",
                         height: "40px",
@@ -845,7 +808,7 @@ const ListView = () => {
                             border: "none",
                             // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                           }}
-                          onClick={(e) => handleUpdate(item.asin1, index, e)}
+                          onClick={(e) => handleUpdate(item.sellerSku, item.asin1, index, e)}
                           disabled={!currentUser?.permissions?.write}
                         >
                           <IoMdAdd />
@@ -880,12 +843,14 @@ const ListView = () => {
         >
           {selectedProduct && selectedListing && selectedAsin ? (
             <div
-              style={{ marginTop: "20px", position: "fixed", width: "510px" }}
+              style={{ marginTop: "20px", position: "fixed" }}
             >
               <ProductDetailView
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}
+                sku1={selectedSku}
+                price={selectedPrice}
               />
             </div>
           ) : (

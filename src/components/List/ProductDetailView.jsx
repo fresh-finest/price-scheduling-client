@@ -56,7 +56,7 @@ const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false
     </div>
   ));
 };
-const ProductDetailView = ({ product, listing, asin, sku }) => {
+const ProductDetailView = ({ product, listing, asin, sku1,price }) => {
  
 
   if (!product.AttributeSets) {
@@ -150,9 +150,9 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
   }
 
   // const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
-  const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
-  const price = offer?.BuyingPrice?.ListingPrice;
-  const sellerSKU = offer?.SellerSKU;
+  // const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
+  // const price = offer?.BuyingPrice?.ListingPrice;
+  // const sellerSKU = offer?.SellerSKU;
   const amount = product?.AttributeSets[0]?.ListPrice?.Amount;
 
 
@@ -225,16 +225,14 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
             >
               <Card.Text style={detailStyles.info}>
                 <strong>ASIN:</strong>{" "}
-                {product?.Identifiers?.MarketplaceASIN?.ASIN}
+                {/* {product?.Identifiers?.MarketplaceASIN?.ASIN}
+                 */}
+                 {asin}
               </Card.Text>
               <Card.Text style={detailStyles.info}>
-                {sellerSKU ? (
-                  <>
-                    <strong>SKU:</strong> {sellerSKU}
-                  </>
-                ) : (
-                  <span style={{ color: "red" }}>Currently unavailable.</span>
-                )}
+               
+                    <strong>SKU:</strong> {sku1}
+               
               </Card.Text>
             </div>
             <div
@@ -245,7 +243,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
               }}
             >
               <Card.Text style={detailStyles.info}>
-                <strong>Price:</strong> ${amount}
+                <strong>Price:</strong> ${price}
               </Card.Text>
               <Card.Text style={detailStyles.info}>
                 <strong>BSR:</strong>{" "}
