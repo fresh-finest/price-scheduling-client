@@ -285,7 +285,7 @@ const ListView = () => {
   };
 */
   // Fetch product details when Update Price button is clicked
-  const handleUpdate = async (sku1, asin, index, e) => {
+  const handleUpdate = async (price,sku1, asin, index, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
 
 
@@ -296,6 +296,7 @@ const ListView = () => {
 
 
     try {
+      setSelectedPrice(price);
       setSelectedSku(sku1);
       setSelectedAsin(asin);
       setShowUpdateModal(true);
@@ -808,7 +809,7 @@ const ListView = () => {
                             border: "none",
                             // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                           }}
-                          onClick={(e) => handleUpdate(item.sellerSku, item.asin1, index, e)}
+                          onClick={(e) => handleUpdate(item?.price,item.sellerSku, item.asin1, index, e)}
                           disabled={!currentUser?.permissions?.write}
                         >
                           <IoMdAdd />
