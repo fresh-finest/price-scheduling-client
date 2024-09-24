@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
+import { RiArrowLeftSLine } from "react-icons/ri";
 import { FaListUl, FaRegCalendarAlt } from "react-icons/fa";
 import { GoGear, GoHistory } from "react-icons/go";
 import { MdOutlineManageAccounts } from "react-icons/md";
@@ -25,20 +26,26 @@ const SidebarLayout = () => {
 
   return (
     <section className="relative">
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen ">
         <div className="absolute right-2 top-2">
           <AccountDropdown />
         </div>
-        <div className="flex flex-1">
+        <div className="flex flex-1 ">
           {/* Sidebar */}
           <div
             className={`bg-[#FBFBFB] h-screen p-4 relative ${
-              open ? "w-72" : "w-20"
-            } duration-300 flex flex-col sticky top-0 z-50`}
+              open ? "w-52" : "w-20"
+            } duration-300  shadow flex flex-col sticky top-0 z-50`}
           >
-            <BsArrowLeftShort
+            {/* <BsArrowLeftShort
               onClick={() => setOpen(!open)}
-              className={`bg-white text-dark-purple text-3xl rounded-full absolute -right-4 top-9 border border-blue-900 cursor-pointer ${
+              className={`bg-white text-dark-purple text-2xl rounded-full absolute -right-1 top-12 border border-blue-900 cursor-pointer ${
+                !open && "rotate-180"
+              }`}
+            /> */}
+            <RiArrowLeftSLine
+              onClick={() => setOpen(!open)}
+              className={`bg-white text-dark-purple text-[25px] rounded-full absolute -right-1 top-12 border border-blue-900 cursor-pointer  ${
                 !open && "rotate-180"
               }`}
             />
@@ -49,7 +56,7 @@ const SidebarLayout = () => {
                 <img
                   src={priceoboLogo}
                   alt="priceobo Logo"
-                  className={` w-40 h-[35px] transition-all duration-200 `}
+                  className={` w-40 h-[35px] mt-[-25px] transition-all duration-200 `}
                   // className={`duration-300 ${
                   //   !open ? "w-12 h-12" : "w-40 h-auto"
                   // }`}
@@ -64,7 +71,7 @@ const SidebarLayout = () => {
                 <img
                   src={priceoboIcon}
                   alt="Priceobo Icon"
-                  className={` w-[32px] h-[35px] transition-all duration-200 `}
+                  className={` w-[32px] h-[35px]  mt-[-25px] transition-all duration-200 `}
                   style={{ objectFit: "contain" }}
                 />
               </div>
@@ -159,7 +166,7 @@ const SidebarLayout = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 p-7">
+          <div className="flex-1 p-3">
             <Outlet />
           </div>
         </div>

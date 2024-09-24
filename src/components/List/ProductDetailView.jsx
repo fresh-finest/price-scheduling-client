@@ -7,25 +7,62 @@ import { useSelector } from "react-redux";
 import EditScheduleFromList from "./EditScheduleFromList";
 
 import { daysOptions, datesOptions } from "../../utils/staticValue";
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
 
 const BASE_URL = `https://api.priceobo.com`;
 
 // const BASE_URL ='http://localhost:3000'
-const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 const dateNames = [
-  "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th",
-  "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th", "20th",
-  "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st"
+  "1st",
+  "2nd",
+  "3rd",
+  "4th",
+  "5th",
+  "6th",
+  "7th",
+  "8th",
+  "9th",
+  "10th",
+  "11th",
+  "12th",
+  "13th",
+  "14th",
+  "15th",
+  "16th",
+  "17th",
+  "18th",
+  "19th",
+  "20th",
+  "21st",
+  "22nd",
+  "23rd",
+  "24th",
+  "25th",
+  "26th",
+  "27th",
+  "28th",
+  "29th",
+  "30th",
+  "31st",
 ];
 
 // function addHoursToTime(timeString, hoursToAdd) {
 //   const [hours, minutes] = timeString.split(":").map(Number);
-//   const newHours = (hours + hoursToAdd) % 24; 
-//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; 
-//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; 
+//   const newHours = (hours + hoursToAdd) % 24;
+//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours;
+//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`;
 // }
 function addHoursToTime(timeString, hoursToAdd) {
-  if (!timeString || typeof timeString !== 'string') {
+  if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
     return "Invalid Time"; // Return a default value or handle it gracefully
   }
@@ -36,17 +73,24 @@ function addHoursToTime(timeString, hoursToAdd) {
   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
 }
 
-
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
 };
 const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
-const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false) => {
+const displayTimeSlotsWithDayLabels = (
+  timeSlots,
+  addHours = 0,
+  isWeekly = false
+) => {
   return Object.entries(timeSlots).map(([key, slots]) => (
     <div key={key}>
-      <strong>{isWeekly ? getDayLabelFromNumber(Number(key)) : getDateLabelFromNumber(Number(key)) }</strong>
+      <strong>
+        {isWeekly
+          ? getDayLabelFromNumber(Number(key))
+          : getDateLabelFromNumber(Number(key))}
+      </strong>
       {slots.map((slot, index) => (
         <p key={index}>
           {addHoursToTime(slot.startTime, addHours)} -{" "}
@@ -57,8 +101,6 @@ const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false
   ));
 };
 const ProductDetailView = ({ product, listing, asin, sku }) => {
- 
-
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -71,7 +113,7 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
 
   console.log(asin);
   const userName = currentUser?.userName || "";
-  
+
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -83,8 +125,6 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-
- 
 
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
@@ -145,17 +185,43 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
     setEditSchedule(null);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  // if (loading) {
+  //   return (
+  //     <div
+  //       style={{
+  //         // marginTop: "100px",
+  //         paddingTop: "30px",
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         height: "85vh",
+  //         padding: "20px",
+  //         width: "100%",
+  //         boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+  //         textAlign: "center",
+  //       }}
+  //     >
+  //       {/* <Spinner animation="border" /> Loading... */}
+  //       <img
+  //         style={{ width: "30px", marginRight: "6px" }}
+  //         className="animate-pulse"
+  //         src={priceoboIcon}
+  //         alt="Priceobo Icon"
+  //       />
+  //       <br />
+
+  //       <div className="block">
+  //         <p className="text-base"> Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
   const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
   const price = offer?.BuyingPrice?.ListingPrice;
   const sellerSKU = offer?.SellerSKU;
   const amount = product?.AttributeSets[0]?.ListPrice?.Amount;
-
-
 
   const detailStyles = {
     container: {
@@ -171,9 +237,11 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
       marginRight: "20px",
     },
     card: {
-      padding: "20px",
+      // padding: "20px",
       boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+      height: "91.2vh",
       width: "100%",
+      borderRadius: "2px",
     },
     title: {
       fontSize: "16px",
@@ -189,8 +257,9 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
       marginTop: "20px",
       width: "100%",
       maxHeight: "420px", // Set a max height for the table container
-      overflowY: "scroll", // Enable vertical scrolling
+      // overflowY: "scroll", // Enable vertical scrolling
       overflowX: "hidden",
+      padding: "20px",
     },
     table: {
       width: "100%",
@@ -199,100 +268,141 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
   };
 
   const now = new Date();
- 
+
   return (
-    <div style={{ width: "100%" }}>
-      <Card style={detailStyles.card}>
-        <Card.Body>
-        
-          <div>
-            <div style={{ display: "flex", alignItems: "flex-start" }}>
-              <Card.Img
-                variant="top"
-                src={product?.AttributeSets[0]?.SmallImage?.URL}
-                style={detailStyles.image}
-              />
-              <Card.Title style={detailStyles.title}>
-                {product?.AttributeSets[0]?.Title}
-              </Card.Title>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                marginLeft: "40px",
-              }}
-            >
-              <Card.Text style={detailStyles.info}>
-                <strong>ASIN:</strong>{" "}
-                {product?.Identifiers?.MarketplaceASIN?.ASIN}
-              </Card.Text>
-              <Card.Text style={detailStyles.info}>
-                {sellerSKU ? (
-                  <>
-                    <strong>SKU:</strong> {sellerSKU}
-                  </>
-                ) : (
-                  <span style={{ color: "red" }}>Currently unavailable.</span>
-                )}
-              </Card.Text>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                marginLeft: "40px",
-              }}
-            >
-              <Card.Text style={detailStyles.info}>
-                <strong>Price:</strong> ${amount}
-              </Card.Text>
-              <Card.Text style={detailStyles.info}>
-                <strong>BSR:</strong>{" "}
-                {product?.SalesRankings?.[0]?.Rank
-                  ? product?.SalesRankings[0]?.Rank
-                  : "N/A"}
-              </Card.Text>
+    <div style={{ width: "100%", paddingTop: "10px" }}>
+      <Card style={detailStyles.card} className=" p-0">
+        {loading ? (
+          <div
+            style={{
+              // marginTop: "100px",
+              paddingTop: "30px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "90vh",
+              padding: "20px",
+              width: "100%",
+              textAlign: "center",
+            }}
+          >
+            {/* <Spinner animation="border" /> Loading... */}
+            <img
+              style={{ width: "30px", marginRight: "6px" }}
+              className="animate-pulse"
+              src={priceoboIcon}
+              alt="Priceobo Icon"
+            />
+            <br />
+
+            <div className="block">
+              <p className="text-base"> Loading...</p>
             </div>
           </div>
-        
-          <h4 style={{ marginTop: "20px", fontWeight: "bold" }}>
-            Schedule Details
-          </h4>
-          { priceSchedule.length > 0 ? (
-            <div style={detailStyles.tableContainer}>
-              <Table
-                striped
-                bordered
-                hover
-                size="sm"
-                style={detailStyles.table}
+        ) : (
+          <Card.Body className="p-0">
+            <div>
+              <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
+                <h2 className="py-[6px] text-center text-sm">
+                  Schedule Details
+                </h2>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  margin: "10px",
+                  padding: "10px",
+                }}
               >
-                <thead>
-                  <tr>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Update</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priceSchedule
-                    .filter(
-                      (sc) =>
-                        sc.status !== "deleted" &&
-                        (sc.weekly ||
-                          sc.monthly ||
-                          sc.endDate === null ||
-                          (sc.endDate && new Date(sc.endDate) >= now))
-                    )
+                <Card.Img
+                  variant="top"
+                  src={product?.AttributeSets[0]?.SmallImage?.URL}
+                  style={detailStyles.image}
+                />
+                <Card.Title style={detailStyles.title}>
+                  {product?.AttributeSets[0]?.Title}
+                </Card.Title>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  marginLeft: "40px",
+                }}
+              >
+                <Card.Text style={detailStyles.info}>
+                  <strong>ASIN:</strong>{" "}
+                  {product?.Identifiers?.MarketplaceASIN?.ASIN}
+                </Card.Text>
+                <Card.Text style={detailStyles.info}>
+                  {sellerSKU ? (
+                    <>
+                      <strong>SKU:</strong> {sellerSKU}
+                    </>
+                  ) : (
+                    <span style={{ color: "red" }}>Currently unavailable.</span>
+                  )}
+                </Card.Text>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  marginLeft: "40px",
+                }}
+              >
+                <Card.Text style={detailStyles.info}>
+                  <strong>Price:</strong> ${amount}
+                </Card.Text>
+                <Card.Text style={detailStyles.info}>
+                  <strong>BSR:</strong>{" "}
+                  {product?.SalesRankings?.[0]?.Rank
+                    ? product?.SalesRankings[0]?.Rank
+                    : "N/A"}
+                </Card.Text>
+              </div>
 
-                    .map((sc) => (
-                      <tr key={sc._id}>
-                        {sc.weekly ? (
-                          <td style={{ width: "200px" }} colSpan={2}>
-                          Weekly on {Object.keys(sc.weeklyTimeSlots).map(day => getDayLabelFromNumber(day)).join(", ")}{" "}
-                            {displayTimeSlotsWithDayLabels(sc.weeklyTimeSlots, 6,true)}
-                            {/* <span style={{ color: "green" }}>
+              <hr
+                style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
+              />
+            </div>
+
+            {priceSchedule.length > 0 ? (
+              <div style={detailStyles.tableContainer}>
+                <Table striped bordered size="sm" style={detailStyles.table}>
+                  <thead>
+                    <tr>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Update</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {priceSchedule
+                      .filter(
+                        (sc) =>
+                          sc.status !== "deleted" &&
+                          (sc.weekly ||
+                            sc.monthly ||
+                            sc.endDate === null ||
+                            (sc.endDate && new Date(sc.endDate) >= now))
+                      )
+
+                      .map((sc) => (
+                        <tr key={sc._id}>
+                          {sc.weekly ? (
+                            <td style={{ width: "200px" }} colSpan={2}>
+                              Weekly on{" "}
+                              {Object.keys(sc.weeklyTimeSlots)
+                                .map((day) => getDayLabelFromNumber(day))
+                                .join(", ")}{" "}
+                              {displayTimeSlotsWithDayLabels(
+                                sc.weeklyTimeSlots,
+                                6,
+                                true
+                              )}
+                              {/* <span style={{ color: "green" }}>
                                     {" "}
                                     ${sc.price}
                                   </span>{" "}
@@ -301,14 +411,20 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                     {" "}
                                     ${sc.currentPrice}
                                   </span> */}
-                          </td>
-                        ) : sc.monthly ? (
-                          <>
-                          <td style={{ width: "200px" }} colSpan={2}>
-                         
-                          Monthly on {Object.keys(sc.monthlyTimeSlots).map(date => getDateLabelFromNumber(date)).join(", ")}{" "}
-                            {displayTimeSlotsWithDayLabels(sc.monthlyTimeSlots, 6,false)}
-                            {/* <span style={{ color: "green" }}>
+                            </td>
+                          ) : sc.monthly ? (
+                            <>
+                              <td style={{ width: "200px" }} colSpan={2}>
+                                Monthly on{" "}
+                                {Object.keys(sc.monthlyTimeSlots)
+                                  .map((date) => getDateLabelFromNumber(date))
+                                  .join(", ")}{" "}
+                                {displayTimeSlotsWithDayLabels(
+                                  sc.monthlyTimeSlots,
+                                  6,
+                                  false
+                                )}
+                                {/* <span style={{ color: "green" }}>
                                     {" "}
                                     ${sc.price}
                                   </span>{" "}
@@ -317,62 +433,65 @@ const ProductDetailView = ({ product, listing, asin, sku }) => {
                                     {" "}
                                     ${sc.currentPrice}
                                   </span>        */}
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            <td style={{ width: "200px" }}>
-                              {formatDateTime(sc.startDate)}{" "}
-                              <span style={{ color: "green" }}>
-                                Changed Price: ${sc.price}
-                              </span>
-                            </td>
-                            <td style={{ width: "200px" }}>
-                              {sc.endDate ? (
-                                <>
-                                  {formatDateTime(sc.endDate)}
-                                  {sc.currentPrice && (
-                                    <div style={{ color: "green" }}>
-                                      Reverted Price: ${sc.currentPrice}
-                                    </div>
-                                  )}
-                                </>
-                              ) : (
-                                <span style={{ color: "red" }}>
-                                  Until Changed
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={{ width: "200px" }}>
+                                {formatDateTime(sc.startDate)}{" "}
+                                <span style={{ color: "green" }}>
+                                  Changed Price: ${sc.price}
                                 </span>
-                              )}
-                            </td>
-                          </>
-                        )}
-                        <td>
-                          <Button
-                            style={{
-                              marginTop: "20px",
-                              backgroundColor: "#5AB36D",
-                              border: "none",
-                            }}
-                            onClick={() => handleEdit(sc)}
-                            disabled={
-                              (!sc.weekly &&
-                                !sc.monthly &&
-                                sc.endDate != null &&
-                                (sc.endDate && new Date(sc.endDate)) < now) ||
-                              !currentUser?.permissions?.write
-                            } // Disable button if endDate is in the past
-                          >
-                            <LuPencilLine />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </Table>
-            </div>
-          )  : (
-            <p>No schedule available for this ASIN.</p>
-          )}
-        </Card.Body>
+                              </td>
+                              <td style={{ width: "200px" }}>
+                                {sc.endDate ? (
+                                  <>
+                                    {formatDateTime(sc.endDate)}
+                                    {sc.currentPrice && (
+                                      <div style={{ color: "green" }}>
+                                        Reverted Price: ${sc.currentPrice}
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span style={{ color: "red" }}>
+                                    Until Changed
+                                  </span>
+                                )}
+                              </td>
+                            </>
+                          )}
+                          <td>
+                            <Button
+                              style={{
+                                marginTop: "20px",
+                                backgroundColor: "#0D6EFD",
+                                border: "none",
+                              }}
+                              onClick={() => handleEdit(sc)}
+                              disabled={
+                                (!sc.weekly &&
+                                  !sc.monthly &&
+                                  sc.endDate != null &&
+                                  (sc.endDate && new Date(sc.endDate)) < now) ||
+                                !currentUser?.permissions?.write
+                              } // Disable button if endDate is in the past
+                            >
+                              <LuPencilLine />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+              </div>
+            ) : (
+              <p style={{ margin: "20px" }}>
+                No schedule available for this ASIN.
+              </p>
+            )}
+          </Card.Body>
+        )}
       </Card>
 
       {editSchedule && (

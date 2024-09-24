@@ -16,15 +16,53 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
+
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
-const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNames = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 const dateNames = [
-  "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th",
-  "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th", "20th",
-  "21st", "22nd", "23rd", "24th", "25th", "26th", "27th", "28th", "29th", "30th", "31st"
+  "1st",
+  "2nd",
+  "3rd",
+  "4th",
+  "5th",
+  "6th",
+  "7th",
+  "8th",
+  "9th",
+  "10th",
+  "11th",
+  "12th",
+  "13th",
+  "14th",
+  "15th",
+  "16th",
+  "17th",
+  "18th",
+  "19th",
+  "20th",
+  "21st",
+  "22nd",
+  "23rd",
+  "24th",
+  "25th",
+  "26th",
+  "27th",
+  "28th",
+  "29th",
+  "30th",
+  "31st",
 ];
 
 function addHoursToTime(timeString, hoursToAdd) {
@@ -40,19 +78,26 @@ const getDayLabelFromNumber = (dayNumber) => {
 const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
-const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false) => {
-  console.log("history timeslots: "+timeSlots)
+const displayTimeSlotsWithDayLabels = (
+  timeSlots,
+  addHours = 0,
+  isWeekly = false
+) => {
+  console.log("history timeslots: " + timeSlots);
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Add this check to handle undefined or null timeSlots
   }
   return Object.entries(timeSlots).map(([key, slots]) => (
     <div key={key}>
-      <strong>{isWeekly ? getDayLabelFromNumber(Number(key)) : getDateLabelFromNumber(Number(key)) }</strong>
+      <strong>
+        {isWeekly
+          ? getDayLabelFromNumber(Number(key))
+          : getDateLabelFromNumber(Number(key))}
+      </strong>
       {slots.map((slot, index) => (
         <p key={index}>
           {addHoursToTime(slot.startTime, addHours)} -{" "}
-          {addHoursToTime(slot.endTime, addHours)}
-          {" "}New Price: {slot?.newPrice}
+          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice}
         </p>
       ))}
     </div>
@@ -229,8 +274,27 @@ export default function HistoryView() {
 
   if (loading)
     return (
-      <div style={{ marginTop: "100px" }}>
-        <Spinner animation="border" /> Loading...
+      <div
+        style={{
+          marginTop: "100px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+        }}
+      >
+        {/* <Spinner animation="border" /> Loading... */}
+        <img
+          style={{ width: "40px", marginRight: "6px" }}
+          className="animate-pulse"
+          src={priceoboIcon}
+          alt="Priceobo Icon"
+        />
+        <br />
+
+        <div className="block">
+          <p className="text-xl"> Loading...</p>
+        </div>
       </div>
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
@@ -310,15 +374,28 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
-              {/* const daysLabel = displayData?.weekly
+              {
+                /* const daysLabel = displayData?.weekly
                 ? getDayLabels(displayData.daysOfWeek)
                 : "";
               const datesLabel = displayData?.monthly
                 ? getDateLabels(displayData?.datesOfMonth)
-                : " "; */}
-                const weeklyLabel = displayData?.weekly ? displayTimeSlotsWithDayLabels(displayData?.weeklyTimeSlots, 6, true) : null;
-                const monthlyLabel = displayData?.monthly ? displayTimeSlotsWithDayLabels(displayData?.monthlyTimeSlots, 6, false) : null;
-
+                : " "; */
+              }
+              const weeklyLabel = displayData?.weekly
+                ? displayTimeSlotsWithDayLabels(
+                    displayData?.weeklyTimeSlots,
+                    6,
+                    true
+                  )
+                : null;
+              const monthlyLabel = displayData?.monthly
+                ? displayTimeSlotsWithDayLabels(
+                    displayData?.monthlyTimeSlots,
+                    6,
+                    false
+                  )
+                : null;
 
               return (
                 <tr key={item._id} style={{ height: "50px" }}>
@@ -492,7 +569,7 @@ export default function HistoryView() {
                           <span style={{ color: "blue" }}>
                             Repeats Weekly on {weeklyLabel}
                           </span>
-                         
+
                           {displayData?.currentPrice && (
                             <p
                               style={{
@@ -502,7 +579,7 @@ export default function HistoryView() {
                                 marginRight: "50px",
                               }}
                             >
-                              Will Revert to :${displayData.currentPrice} 
+                              Will Revert to :${displayData.currentPrice}
                             </p>
                           )}
                         </>
@@ -572,20 +649,19 @@ export default function HistoryView() {
                             </p>
                           )}
                           <div style={{ position: "relative" }}>
-                        <p
-                          style={{
-                            color: "green",
-                            position: "absolute",
-                            left: "50px",
-                            bottom: "0px",
-                            margin: 0,
-                          }}
-                        >
-                          ${displayData?.price || "N/A"}
-                        </p>
-                      </div>
+                            <p
+                              style={{
+                                color: "green",
+                                position: "absolute",
+                                left: "50px",
+                                bottom: "0px",
+                                margin: 0,
+                              }}
+                            >
+                              ${displayData?.price || "N/A"}
+                            </p>
+                          </div>
                         </>
-                        
                       )}
                       {/* <div style={{ position: "relative" }}>
                         <p

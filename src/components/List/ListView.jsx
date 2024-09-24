@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Table,
-  Container,
-  Row,
-  Col,
   Form,
   InputGroup,
-  Spinner,
   Button,
+  Pagination,
+  Card,
 } from "react-bootstrap";
 import { useQuery } from "react-query";
-import { MdOutlineAdd, MdContentCopy, MdCheck } from "react-icons/md";
+import { MdCheck } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
 import UpdatePriceFromList from "./UpdatePriceFromList";
@@ -22,9 +20,6 @@ import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
-import { ListTable } from "../ui/ListTable";
-import { ListTableBackup } from "../ui/ListTableBackup";
-import { ListTableBackup2 } from "../ui/ListTableBackup2";
 
 // const BASE_URL ='http://localhost:3000'
 
@@ -32,6 +27,9 @@ const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
+
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -47,19 +45,25 @@ const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
+  // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
+  const [columnWidths, setColumnWidths] = useState([
+    80, 80, 350, 80, 80, 90, 80, 90,
+  ]);
+
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
   const [filterScheduled, setFilterScheduled] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 20;
 
   const { currentUser } = useSelector((state) => state.user);
-
-  console.log("filtered products", filteredProducts);
 
   const userName = currentUser?.userName || "";
   console.log(
@@ -98,6 +102,48 @@ const ListView = () => {
     };
     getScheduledData();
   }, [productData]);
+
+  // calculate paginated data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPaginationButtons = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i <= maxPagesToShow ||
+        i >= totalPages - maxPagesToShow ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        pageNumbers.push(i);
+      } else if (pageNumbers[pageNumbers.length - 1] !== "...") {
+        pageNumbers.push("...");
+      }
+    }
+
+    return pageNumbers.map((page, index) => (
+      <Pagination.Item
+        key={index}
+        active={page === currentPage}
+        onClick={() => typeof page === "number" && handlePageChange(page)}
+      >
+        {page}
+      </Pagination.Item>
+    ));
+  };
 
   const debouncedFilterProducts = useCallback(
     debounce((value) => {
@@ -204,6 +250,7 @@ const ListView = () => {
           ),
         ]);
 
+
         setSelectedProduct(responseone.data.payload);
         setSelectedListing(responsetwo.data);
         setSelectedAsin(asin);
@@ -239,7 +286,7 @@ const ListView = () => {
   };
   /*
   const handleUpdate = (asin, e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (asin) {
       setSelectedAsin(asin);
       setShowUpdateModal(true);
@@ -307,6 +354,9 @@ const ListView = () => {
         } else if (type === "sku") {
           setCopiedSkuIndex(index);
           setTimeout(() => setCopiedSkuIndex(null), 2000);
+        } else {
+          setCopiedfnSkuIndex(index);
+          setTimeout(() => setCopiedfnSkuIndex(null), 2000);
         }
       })
       .catch((err) => {
@@ -321,12 +371,27 @@ const ListView = () => {
           marginTop: "100px",
           display: "flex",
           justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
         }}
       >
-        <Spinner animation="border" variant="primary" /> Loading...
+        {/* <Spinner animation="border" /> Loading... */}
+        <img
+          style={{ width: "40px", marginRight: "6px" }}
+          className="animate-pulse"
+          src={priceoboIcon}
+          alt="Priceobo Icon"
+        />
+        <br />
+
+        <div className="block">
+          <p className="text-xl"> Loading...</p>
+        </div>
       </div>
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
+
+  console.log(filteredProducts);
 
   return (
     <>
@@ -335,95 +400,86 @@ const ListView = () => {
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
       />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "20px",
-          // border: "1px solid red",
-          // marginTop: "30px",
-        }}
-      >
-        <div
-          style={{
-            flex: "2",
-            // paddingRight: "20px",
-          }}
-        >
-          <div
-            style={
-              {
-                // display: "flex",
-                // justifyContent: "space-between",
-                // alignItems: "center",
-                // position: "sticky",
-                // top: 0,
-                // zIndex: 1000,
-                // backgroundColor: "white",
-                // borderBottom: "1px solid #ccc",
-                // padding: "10px 0",
-              }
-            }
-          >
-            {/* <InputGroup className="mb-3" style={{ maxWidth: "200px" }}>
-              <Form.Control
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearch}
-                onKeyDown={handleKeyPress}
-                style={{ borderRadius: "4px", marginTop: "0px" }}
-              />
-            </InputGroup> */}
-            {/* <Button
-              style={{
-                borderRadius: "4px",
-                // marginTop: "100px",
-                backgroundColor: "#5AB36D",
-                border: "none",
-              }}
-              onClick={handleToggleFilter}
-            >
-              {filterScheduled ? "Show All" : "Scheduled"}
-            </Button> */}
-          </div>
 
+      <div>
+        <InputGroup
+          className="mb-3"
+          style={{ maxWidth: "500px", position: "absolute", top: "10px" }}
+        >
+          <Form.Control
+            type="text"
+            placeholder="Search Title/ASIN/SKU/FNSKU"
+            value={searchTerm}
+            // onChange={(e) => handleSearch(e.target.value)}
+            onChange={handleSearch}
+            onKeyDown={handleKeyPress}
+            style={{ borderRadius: "0px" }}
+            className="custom-input"
+          />
+        </InputGroup>
+
+        <Button
+          style={{
+            borderRadius: "2px",
+            // marginTop: "100px",
+            backgroundColor: "#0D6EFD",
+            border: "none",
+            position: "absolute ",
+            top: "10px",
+            right: "545px",
+          }}
+          onClick={handleToggleFilter}
+        >
+          <span style={{ fontSize: "14px" }}>
+            {filterScheduled ? "Show All" : "Scheduled"}
+          </span>
+        </Button>
+      </div>
+
+      <section style={{ display: "flex", gap: "10px" }}>
+        <div style={{ paddingRight: "3px", width: "70%" }}>
           {filteredProducts.length > 0 ? (
             <div
-              className="relative"
-              style={
-                {
-                  // overflowY: "scroll",
-                  // maxHeight: "calc(100vh - 160px)",
-                  // marginTop: "5px",
-                }
-              }
+              className=" rounded-md "
+              style={{
+                overflowY: "auto",
+                // overflowY: "scroll",
+                // maxHeight: "calc(100vh - 20px)",
+                marginTop: "50px",
+                boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+                maxHeight: "91vh",
+              }}
             >
-              {/* <Table
-                bordered
+              <Table
                 hover
                 responsive
                 style={{ width: "100%", tableLayout: "fixed" }}
+                className="listCustomTable  "
               >
                 <thead
+                  className=""
                   style={{
-                    backgroundColor: "#f0f0f0",
-                    color: "#333",
+                    // backgroundColor: "#f0f0f0",
                     fontFamily: "Arial, sans-serif",
-                    fontSize: "14px",
+                    fontSize: "13px",
                     position: "sticky",
                     top: 0,
-                    zIndex: 100,
+                    fontWeight: 0,
                   }}
                 >
-                  <tr>
+                  <tr className="">
                     <th
+                      className="tableHeader"
                       style={{
                         width: `${columnWidths[0]}px`,
-                        position: "relative",
+                        minWidth: "80px",
+                        // position: "relative",
+                        position: "sticky", // Sticky header
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Image
+                      Status
                       <div
                         style={{
                           width: "5px",
@@ -437,12 +493,16 @@ const ListView = () => {
                       />
                     </th>
                     <th
+                      className="tableHeader"
                       style={{
                         width: `${columnWidths[1]}px`,
+                        minWidth: "80px",
                         position: "relative",
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Status
+                      Image
                       <div
                         style={{
                           width: "5px",
@@ -457,12 +517,16 @@ const ListView = () => {
                     </th>
 
                     <th
+                      className="tableHeader"
                       style={{
                         width: `${columnWidths[2]}px`,
+                        minWidth: "80px",
                         position: "relative",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
                       }}
                     >
                       Product details
@@ -479,9 +543,13 @@ const ListView = () => {
                       />
                     </th>
                     <th
+                      className="tableHeader"
                       style={{
                         width: `${columnWidths[3]}px`,
+                        minWidth: "80px",
                         position: "relative",
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
                       }}
                     >
                       Price
@@ -498,12 +566,16 @@ const ListView = () => {
                       />
                     </th>
                     <th
+                      className="tableHeader"
                       style={{
                         width: `${columnWidths[4]}px`,
+                        minWidth: "80px",
                         position: "relative",
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Update Price
+                      FBA/FBM
                       <div
                         style={{
                           width: "5px",
@@ -516,6 +588,75 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(4, e)}
                       />
                     </th>
+                    <th
+                      className="tableHeader"
+                      style={{
+                        width: `${columnWidths[5]}px`,
+                        minWidth: "80px",
+                        position: "relative",
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
+                      }}
+                    >
+                      Channel Stock
+                      <div
+                        style={{
+                          width: "150px",
+                          height: "100%",
+                          position: "absolute",
+
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(5, e)}
+                      />
+                    </th>
+                    <th
+                      className="tableHeader"
+                      style={{
+                        width: `${columnWidths[6]}px`,
+                        minWidth: "80px",
+                        position: "relative",
+                        textAlign: "center",
+                        borderRight: "2px solid #C3C6D4",
+                      }}
+                    >
+                      Sale
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(6, e)}
+                      />
+                    </th>
+                    <th
+                      className="tableHeader"
+                      style={{
+                        width: `${columnWidths[7]}px`,
+                        minWidth: "80px",
+                        position: "relative",
+                        textAlign: "right",
+                      }}
+                    >
+                      Update Price
+                      <div
+                        style={{
+                          width: "5px",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0",
+                          top: "0",
+                          cursor: "col-resize",
+                        }}
+                        onMouseDown={(e) => handleResize(7, e)}
+                      />
+                    </th>
                   </tr>
                 </thead>
                 <tbody
@@ -525,40 +666,52 @@ const ListView = () => {
                     lineHeight: "1.5",
                   }}
                 >
-                  {filteredProducts.map((item, index) => (
+                  {currentItems.map((item, index) => (
+                    // {filteredProducts.slice(0, 20).map((item, index) => (
                     <tr
                       key={index}
                       onClick={() => handleProductSelect(item.asin1, index)}
                       style={{
                         cursor: "pointer",
                         height: "40px",
+                        margin: "20px 0",
                         backgroundColor:
-                          selectedRowIndex === index ? "#d3d3d3" : "#ccc",
+                          selectedRowIndex === index ? "#F1F1F2" : "#ccc",
                       }}
+                      className="borderless spacer-row"
                     >
                       <td
                         style={{
                           cursor: "pointer",
                           height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
-                        <img
-                          style={{ height: "50px", width: "50px" }}
-                          src={item?.imageUrl ? item.imageUrl : noImage}
-                          alt=""
-                        />
+                        {item.status}
                       </td>
                       <td
                         style={{
                           cursor: "pointer",
                           height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
-                        {item.status}
+                        <img
+                          style={{
+                            height: "50px",
+                            width: "50px",
+                            margin: "0 auto",
+                            objectFit: "contain",
+                          }}
+                          src={item?.imageUrl ? item.imageUrl : noImage}
+                          alt=""
+                        />
                       </td>
 
                       <td
@@ -568,37 +721,61 @@ const ListView = () => {
                           textOverflow: "ellipsis",
                           cursor: "pointer",
                           height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
                         {item.itemName}
-                        <div className="details">
+                        <div className="details mt-[5px]">
                           <span
                             className="bubble-text"
                             style={{
                               cursor: "pointer",
                               display: "inline-flex",
-                              alignItems: "center",
+                              alignItems: "stretch",
                             }}
                           >
                             {item.asin1}{" "}
                             {copiedAsinIndex === index ? (
                               <MdCheck
                                 style={{
-                                  marginLeft: "5px",
+                                  marginLeft: "10px",
                                   cursor: "pointer",
                                   color: "green",
                                 }}
                               />
                             ) : (
-                              <MdContentCopy
+                              <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(item.asin1, "asin", index);
                                 }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                style={{
+                                  marginLeft: "10px",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                }}
                               />
+                              // <BsCopy
+                              //   onClick={(e) => {
+                              //     e.stopPropagation();
+                              //     handleCopy(item.asin1, "asin", index);
+                              //   }}
+                              //   style={{
+                              //     marginLeft: "10px",
+                              //     cursor: "pointer",
+                              //     fontSize: "13px",
+                              //   }}
+                              // />
+                              // <MdContentCopy
+                              //   onClick={(e) => {
+                              //     e.stopPropagation();
+                              //     handleCopy(item.asin1, "asin", index);
+                              //   }}
+                              //   style={{ marginLeft: "5px", cursor: "pointer" }}
+                              // />
                             )}
                           </span>{" "}
                           <span
@@ -613,22 +790,58 @@ const ListView = () => {
                             {copiedSkuIndex === index ? (
                               <MdCheck
                                 style={{
-                                  marginLeft: "5px",
+                                  marginLeft: "10px",
                                   cursor: "pointer",
                                   color: "green",
                                 }}
                               />
                             ) : (
-                              <MdContentCopy
+                              <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(item.sellerSku, "sku", index);
                                 }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                style={{
+                                  marginLeft: "10px",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                }}
                               />
                             )}
                           </span>{" "}
-                          <span className="bubble-text">
+                          <span
+                            className="bubble-text"
+                            style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {item?.fnSku ? item.fnSku : "N/A"}{" "}
+                            {item?.fnSku &&
+                              (copiedfnSkuIndex === index ? (
+                                <MdCheck
+                                  style={{
+                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    color: "green",
+                                  }}
+                                />
+                              ) : (
+                                <BsClipboardCheck
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopy(item?.fnSku, "fnSku", index);
+                                  }}
+                                  style={{
+                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                  }}
+                                />
+                              ))}
+                          </span>
+                          {/* <span className="bubble-text">
                             {item.fulfillmentChannel === "DEFAULT"
                               ? "FBM"
                               : "FBA"}{" "}
@@ -638,7 +851,7 @@ const ListView = () => {
                               ? item?.fulfillableQuantity +
                                 item?.pendingTransshipmentQuantity
                               : "N/A"}
-                          </span>
+                          </span> */}
                         </div>
                       </td>
                       <td
@@ -648,25 +861,92 @@ const ListView = () => {
                           textOverflow: "ellipsis",
                           cursor: "pointer",
                           height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
                         ${item?.price}
                       </td>
                       <td
                         style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "pointer",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#d3d3d3" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                        }}
+                      >
+                        {item.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
+                        {/* {item?.fulfillableQuantity != null &&
+                        item?.pendingTransshipmentQuantity != null
+                          ? item?.fulfillableQuantity +
+                            item?.pendingTransshipmentQuantity
+                          : "N/A"} */}
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          cursor: "pointer",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                        }}
+                      >
+                        <span>
+                          {item.fulfillmentChannel === "DEFAULT"
+                            ? item?.quantity != null
+                              ? item.quantity
+                              : "N/A"
+                            : item?.fulfillableQuantity != null &&
+                              item?.pendingTransshipmentQuantity != null
+                            ? item?.fulfillableQuantity +
+                              item?.pendingTransshipmentQuantity
+                            : "N/A"}
+                        </span>
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          cursor: "pointer",
+                          height: "40px",
+                          backgroundColor:
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                        }}
+                      >
+                        N/A
+                      </td>
+                      <td
+                        style={{
+                          backgroundColor:
+                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                          textAlign: "center",
+                          verticalAlign: "middle",
                         }}
                       >
                         <Button
                           style={{
-                            backgroundColor: "#5AB36D",
+                            // backgroundColor: "#0D6EFD",
 
-                            paddingLeft: "20px",
-                            paddingRight: "20px",
+                            // paddingLeft: "20px",
+                            // paddingRight: "20px",
+                            padding: "6px 12px",
                             border: "none",
+                            backgroundColor: "#0662BB",
+                            borderRadius: "2px",
                             // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                           }}
                           onClick={(e) => handleUpdate(item.asin1, index, e)}
@@ -678,13 +958,24 @@ const ListView = () => {
                     </tr>
                   ))}
                 </tbody>
-              </Table> */}
-              {/* <ListTable></ListTable> */}
-              {/* <ListTableBackup></ListTableBackup> */}
-              <ListTableBackup2
-                filteredProducts={filteredProducts}
-                asin={selectedAsin}
-              ></ListTableBackup2>
+              </Table>
+              <Pagination className=" flex mb-3 justify-center">
+                <Pagination.First onClick={() => handlePageChange(1)} />
+                <Pagination.Prev
+                  onClick={() =>
+                    handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
+                  }
+                />
+                {renderPaginationButtons()}
+                <Pagination.Next
+                  onClick={() =>
+                    handlePageChange(
+                      currentPage < totalPages ? currentPage + 1 : totalPages
+                    )
+                  }
+                />
+                <Pagination.Last onClick={() => handlePageChange(totalPages)} />
+              </Pagination>
             </div>
           ) : (
             filterScheduled && (
@@ -700,22 +991,24 @@ const ListView = () => {
             )
           )}
         </div>
-
-        {/* <div
+        <div
+          // className="fixed"
           style={{
-            flex: "1",
             paddingLeft: "0px",
             marginTop: "20px",
-            paddingRight: "20px",
+            paddingRight: "0px",
+            width: "32%",
+            // position: "fixed",
+            // top: "20px",
+            // right: "10px",
+            height: "93vh ",
+            // overflowX: "auto",
           }}
         >
           {selectedProduct && selectedListing && selectedAsin ? (
             <div
-              style={{
-                marginTop: "100px",
-                position: "fixed",
-                width: "460px",
-              }}
+              style={{ marginTop: "20px" }}
+              // style={{ marginTop: "20px", position: "fixed", width: "510px" }}
             >
               <ProductDetailView
                 product={selectedProduct}
@@ -724,12 +1017,37 @@ const ListView = () => {
               />
             </div>
           ) : (
-            <div style={{ paddingTop: "10px" }}>
-              <h5>Select a product to see details</h5>
+            <div
+              style={{
+                // marginTop: "20px",
+                paddingTop: "30px",
+                height: "93vh",
+                display: "flex",
+
+                // justifyContent: "center",
+                // alignItems: "center",
+              }}
+            >
+              <Card
+                style={{
+                  // padding: "20px",
+                  width: "100%",
+                  boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+                  textAlign: "center",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <p className="text-2xl flex  justify-center">
+                  <BsFillInfoSquareFill className="text-[#0D6EFD]" />
+                </p>
+                <h5 className="text-base">Select a product to see details</h5>
+              </Card>
             </div>
           )}
-        </div> */}
-      </div>
+        </div>
+      </section>
     </>
   );
 };
