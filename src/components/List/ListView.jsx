@@ -55,6 +55,8 @@ const ListView = () => {
   const [selectedSku, setSelectedSku] = useState("");
   const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedFnSku, setSelectedFnSku] = useState("");
+  const [channelStockValue, setChannelStockValue] = useState("");
+  const [fulfillmentChannel, setFulfillmentChannel] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
@@ -235,6 +237,23 @@ const ListView = () => {
       searchTerm
     );
   };
+  const handleSetChannelStockValue = (
+    fulfillmentChannel,
+    quantity,
+    fulfillableQuantity,
+    pendingTransshipmentQuantity
+  ) => {
+    const channelStock =
+      fulfillmentChannel === "DEFAULT"
+        ? quantity != null
+          ? quantity
+          : "N/A"
+        : fulfillableQuantity != null && pendingTransshipmentQuantity != null
+        ? fulfillableQuantity + pendingTransshipmentQuantity
+        : "N/A";
+
+    setChannelStockValue(channelStock);
+  };
   /*
   const handleProductSelect = async (asin, index) => {
     if (selectedRowIndex === index) {
@@ -266,7 +285,17 @@ const ListView = () => {
     }
   };*/
 
-  const handleProductSelect = async (price, sku1, asin, fnSku, index) => {
+  const handleProductSelect = async (
+    price,
+    sku1,
+    asin,
+    fnSku,
+    index,
+    fulfillmentChannel,
+    quantity,
+    fulfillableQuantity,
+    pendingTransshipmentQuantity
+  ) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
       setSelectedProduct(null);
@@ -275,12 +304,21 @@ const ListView = () => {
       setSelectedSku("");
       setSelectedFnSku("");
       setSelectedPrice("");
+      handleSetChannelStockValue(null);
+      setFulfillmentChannel(null);
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
       setSelectedSku(sku1);
       setSelectedFnSku(fnSku);
       setSelectedPrice(price);
+      setFulfillmentChannel(fulfillmentChannel);
+      handleSetChannelStockValue(
+        fulfillmentChannel,
+        quantity,
+        fulfillableQuantity,
+        pendingTransshipmentQuantity
+      );
 
       try {
         const [responseOne, responseTwo] = await Promise.all([
@@ -295,7 +333,6 @@ const ListView = () => {
       }
     }
   };
-  console.log("sku111", selectedSku);
   /*
   const handleUpdate = (asin, e) => {
     e.stopPropagation();
@@ -404,8 +441,6 @@ const ListView = () => {
       </div>
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
-
-  console.log(filteredProducts);
 
   return (
     <>
@@ -702,7 +737,11 @@ const ListView = () => {
                           item.sellerSku,
                           item.asin1,
                           item.fnSku,
-                          index
+                          index,
+                          item.fulfillmentChannel,
+                          item.quantity,
+                          item.fulfillableQuantity,
+                          item.pendingTransshipmentQuantity
                         )
                       }
                       style={{
@@ -1088,6 +1127,8 @@ const ListView = () => {
                 sku1={selectedSku}
                 fnSku={selectedFnSku}
                 price={selectedPrice}
+                channelStockValue={channelStockValue}
+                fulfillmentChannel={fulfillmentChannel}
               />
             </div>
           ) : (

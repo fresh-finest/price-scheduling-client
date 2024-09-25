@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Table, Button } from "react-bootstrap";
 import { LuPencilLine } from "react-icons/lu";
+import { PiWarehouse } from "react-icons/pi";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -10,6 +11,7 @@ import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
+import { FaRankingStar } from "react-icons/fa6";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -102,7 +104,17 @@ const displayTimeSlotsWithDayLabels = (
     </div>
   ));
 };
-const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
+const ProductDetailView = ({
+  product,
+  listing,
+  asin,
+  sku1,
+  price,
+  fnSku,
+  channelStockValue,
+  fulfillmentChannel,
+}) => {
+  console.log("product", product);
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -258,7 +270,6 @@ const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
       width: "50px",
       maxHeight: "50px",
       objectFit: "contain",
-      marginBottom: "10px",
       marginRight: "20px",
     },
     card: {
@@ -270,7 +281,6 @@ const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
     },
     title: {
       fontSize: "14px",
-      marginBottom: "10px",
       textAlign: "left",
       fontWeight: "normal",
     },
@@ -338,7 +348,6 @@ const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
                   display: "flex",
                   alignItems: "flex-start",
                   margin: "0 10px",
-                  padding: "10px 0",
                 }}
               >
                 <Card.Img
@@ -351,9 +360,12 @@ const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
                 </Card.Title>
               </div>
 
-              <div className="grid grid-cols-[80px_auto_auto_auto]  mx-[10px] gap-2">
-                <div className="row-span-2 bg-blue-500 text-white flex justify-center items-center ">
-                  <h2>${price}</h2>
+              <div className="grid grid-cols-[60px_auto_auto_auto]  mx-[10px] gap-2">
+                <div
+                  style={{ borderRadius: "3px", height: "30px" }}
+                  className="row-span-2 bg-blue-500 text-white flex justify-center items-center  "
+                >
+                  <h2 style={{ fontSize: "13px" }}>${price}</h2>
                 </div>
 
                 <div>
@@ -455,63 +467,30 @@ const ProductDetailView = ({ product, listing, asin, sku1, price, fnSku }) => {
                     )}
                   </span>
                 </div>
-                <div className="text-center text-xs text-[#505050]">
-                  <span>
-                    {" "}
+                <div className="text-left text-[#505050]">
+                  <p className="flex justify-center items-center  gap-2 text-xs">
+                    <FaRankingStar style={{ fontSize: "16px" }} />{" "}
                     {product?.SalesRankings?.[0]?.Rank
-                      ? product?.SalesRankings[0]?.Rank
+                      ? "#" +
+                        new Intl.NumberFormat().format(
+                          product.SalesRankings[0].Rank
+                        )
                       : "N/A"}
-                  </span>
+                  </p>
+                </div>
+                <div className="text-center text-xs text-[#505050]">
+                  <p className="flex justify-center items-center gap-2 text-xs">
+                    {" "}
+                    <PiWarehouse style={{ fontSize: "16px" }} />
+                    {new Intl.NumberFormat().format(channelStockValue)}
+                  </p>
                 </div>
                 <div className="text-center text-xs text-[#505050]">
                   <span>
-                    {" "}
-                    {product?.SalesRankings?.[0]?.Rank
-                      ? product?.SalesRankings[0]?.Rank
-                      : "N/A"}
-                  </span>
-                </div>
-                <div className="text-center text-xs text-[#505050]">
-                  <span>
-                    {" "}
-                    {product?.SalesRankings?.[0]?.Rank
-                      ? product?.SalesRankings[0]?.Rank
-                      : "N/A"}
+                    {fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
                   </span>
                 </div>
               </div>
-              {/* <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  marginLeft: "40px",
-                }}
-              >
-                <Card.Text style={detailStyles.info}>
-                  <span>ASIN:</span>{" "}
-                  {product?.Identifiers?.MarketplaceASIN?.ASIN}
-                </Card.Text>
-                <Card.Text style={detailStyles.info}>
-                  <strong>SKU:</strong> {sku1}
-                </Card.Text>
-              </div> */}
-              {/* <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  marginLeft: "40px",
-                }}
-              >
-                <Card.Text style={detailStyles.info}>
-                  <strong>Price:</strong> ${price}
-                </Card.Text>
-                <Card.Text style={detailStyles.info}>
-                  <strong>BSR:</strong>{" "}
-                  {product?.SalesRankings?.[0]?.Rank
-                    ? product?.SalesRankings[0]?.Rank
-                    : "N/A"}
-                </Card.Text>
-              </div> */}
 
               <hr
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
