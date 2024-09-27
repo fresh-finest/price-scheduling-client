@@ -10,10 +10,9 @@ import {
   signInSuccess,
 } from "../../redux/user/userSlice";
 
-// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
-const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL =`http://localhost:3000`
 
+const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://localhost:3000`;
 const Login = () => {
   const [formData, setFormData] = useState({});
 
@@ -31,7 +30,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      dispatch(signInStart);
+      dispatch(signInStart()); // Dispatch as a function
 
       const res = await fetch(`${BASE_URL}/api/auth/signin`, {
         method: "POST",
@@ -39,14 +38,16 @@ const Login = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        credentials: 'include',  // Ensure cookies are included
       });
 
       const data = await res.json();
 
-      if (data.success === false) {
-        dispatch(signInFailure(data.message));
+      if (!res.ok || data.success === false) { // Check response status and structure
+        dispatch(signInFailure(data.message || "Login failed"));
         return;
       }
+
       dispatch(signInSuccess(data));
       navigate("/calendar");
     } catch (error) {
@@ -62,13 +63,11 @@ const Login = () => {
           <Card className="p-5 shadow">
             <Card.Body className="login-container">
               <Card.Title className="text-center">
-                {/* <img src={logo} alt="Fresh Finest" className="mb-4 logo" /> */}
-                {/* priceobo logo  */}
                 <div className="flex justify-center items-center mb-[20px] mt-[40px]">
                   <img
                     src={priceoboLogo}
                     alt="Priceobo Logo"
-                    className="mb-4  object-cover"
+                    className="mb-4 object-cover"
                   />
                 </div>
               </Card.Title>
