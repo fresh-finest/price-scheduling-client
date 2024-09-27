@@ -30,12 +30,57 @@ const BASE_URL_LIST = `https://api.priceobo.com`;
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
+import { refreshAccessToken } from "@/api/refreshToken";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
   return response.data;
 };
 
+// const fetchProducts = async () => {
+//   try {
+//     const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`, {
+//       withCredentials: true,  
+//     });
+//     return response.data;
+//   } catch (error) {
+//     if (error.response.status === 401) {
+//       console.error("Unauthorized. Please log in again.");
+//     } else {
+//       console.error("Error fetching listings:", error.message);
+//     }
+//   }
+// };
+/*
+const fetchProducts = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`, {
+      withCredentials: true,  // Ensure cookies (access token) are included
+    });
+    console.log("data:"+response.data)
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.status === 403) {
+      console.log("freshing token")
+      // Access token is expired or invalid, attempt to refresh the token
+      try {
+        await refreshAccessToken();  // Call the refresh token function
+        // Retry the original request after refreshing the access token
+        const retryResponse = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`, {
+          withCredentials: true,  // Ensure cookies are included again
+        });
+        return retryResponse.data;
+      } catch (refreshError) {
+        console.error("Failed to refresh access token. Please log in again.");
+        // Optionally redirect to the login page or trigger a logout
+      }
+    } else {
+      console.error("Error fetching listings:", error.message);
+    }
+  }
+};
+
+*/
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
   return response.data.result;
@@ -68,14 +113,7 @@ const ListView = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || "";
-  console.log(
-    "role:" +
-      currentUser.role +
-      "write: " +
-      currentUser.permissions.write +
-      "username:" +
-      userName
-  );
+ 
 
   const {
     data: productData,
@@ -292,7 +330,7 @@ const ListView = () => {
       }
     }
   };
-  console.log("sku111", selectedSku);
+  
   /*
   const handleUpdate = (asin, e) => {
     e.stopPropagation();
@@ -402,7 +440,7 @@ const ListView = () => {
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
-  console.log(filteredProducts);
+  
 
   return (
     <>

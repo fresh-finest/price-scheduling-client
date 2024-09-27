@@ -9,8 +9,8 @@ import { useSelector } from "react-redux";
 import moment from "moment-timezone";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -152,6 +152,8 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [weekly, setWeekly] = useState(existingSchedule.weekly || false);
+  const [loading, setLoading] = useState(false);
+
   // const [daysOfWeek, setDaysOfWeek] = useState(
   //   existingSchedule.daysOfWeek || []
   // );
@@ -180,11 +182,32 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
 
   const userName = currentUser.userName;
 
-  console.log("data:" + existingSchedule.endDate);
-
+ /*
+  
   const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
     if (newTime instanceof Date && !isNaN(newTime)) {
-      const formattedTime = formatDateToTimeString(newTime); // Format to 'HH:mm'
+      // We format the date as 'HH:mm' directly and do not convert it to UTC
+      const formattedTime = formatTimeToHHMM(newTime);
+      if (scheduleType === "weekly") {
+        setWeeklyTimeSlots((prevSlots) => {
+          const updatedSlots = { ...prevSlots };
+          updatedSlots[day][index][key] = formattedTime; // Keep the time as 'HH:mm'
+          return updatedSlots;
+        });
+      } else if (scheduleType === "monthly") {
+        setMonthlyTimeSlots((prevSlots) => {
+          const updatedSlots = { ...prevSlots };
+          updatedSlots[day][index][key] = formattedTime; // Keep the time as 'HH:mm'
+          return updatedSlots;
+        });
+      }
+    } else {
+      console.error("Invalid date object for time:", newTime);
+    }
+  };*/
+  const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
+    if (newTime instanceof Date && !isNaN(newTime)) {
+      const formattedTime = formatTimeToHHMM(newTime);
       if (scheduleType === "weekly") {
         setWeeklyTimeSlots((prevSlots) => {
           const updatedSlots = { ...prevSlots };
@@ -202,29 +225,17 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       console.error("Invalid date object for time:", newTime);
     }
   };
-
-  const formatDateToTimeString = (date) => {
-    if (!(date instanceof Date) && !isNaN(date)) {
-      console.error("Invalid date passed to formatDateToTimeString:", date);
-      return ""; // Return empty string or fallback value
-    }
-
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    console.log(hours + minutes + "formated");
+  // Format 'Date' object to 'HH:mm' without converting to UTC
+  const formatTimeToHHMM = (date) => {
+    const adjustedDate = new Date(date.getTime() - 6 * 60 * 60 * 1000); // Subtract 6 hours
+    const hours = adjustedDate.getHours().toString().padStart(2, '0');
+    const minutes = adjustedDate.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
-  // const convertTimeStringToDate = (timeString) => {
-  //   if (!timeString || typeof timeString !== 'string') {
-  //     console.error('Invalid timeString:', timeString);
-  //     return new Date();
-  //   }
-
-  //   const [hours, minutes] = timeString.split(':').map(Number);
-  //   const now = new Date();
-  //   now.setHours(hours, minutes, 0, 0);
-  //   return now;
-  // };
+  
+  
+  
+  /*
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
       const [hours, minutes] = timeString.split(":").map(Number);
@@ -236,8 +247,32 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
     }
     return new Date(); // Fallback to current time if the timeString is invalid
   };
-  
+  */
+  // Convert UTC time string to local date object
+const convertTimeStringToDate = (timeString) => {
+  if (typeof timeString === "string" && timeString.includes(":")) {
+    const [hours, minutes] = timeString.split(":").map(Number);
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      const now = new Date();
+      now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
+      return now; // Local time will be automatically adjusted
+    }
+  }
+  return new Date(); // Fallback to current time if the timeString is invalid
+};
+const convertUtcToLocalDate = (timeString) => {
+  if (typeof timeString === "string" && timeString.includes(":")) {
+    const [hours, minutes] = timeString.split(":").map(Number);
+    if (!isNaN(hours) && !isNaN(minutes)) {
+      const now = new Date();
+      now.setUTCHours(hours, minutes, 0, 0); // Treat the time as UTC
+      return new Date(now); // This will automatically convert UTC to local time
+    }
+  }
+  return new Date(); // Fallback to current time if the timeString is invalid
+};
 
+  
   useEffect(() => {
     if (show && existingSchedule) {
       setStartDate(new Date(existingSchedule.startDate));
@@ -262,7 +297,6 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
     }
   }, [show, existingSchedule]);
 
-  console.log("weekly slots: " + JSON.stringify(weeklyTimeSlots));
 
 
   useEffect(() => {
@@ -294,44 +328,20 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   // const convertTimeToUtc = (time) => {
   //   return moment(time).utc().format("HH:mm");
   // };
+
   const convertTimeToUtc = (timeString) => {
     const date = convertTimeStringToDate(timeString); // Convert time string to Date object
     return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
   };
-  
-  //const handleTimeChange = (scheduleType,identifier, index, key, value)=>{
 
-  // const handleTimeSlotChange = (scheduleType,identifier, index, key, value)=>{
-  //   if(scheduleType === 'weekly'){
-  //     setWeeklyTimeSlots((prevSlots)=>{
-  //       const newSlots = [...(prevSlots[identifier]|| [])];
-  //       newSlots[index][key] = value;
-  //       return {...prevSlots, [identifier]: newSlots};
-  //     })
-  //   } else if(scheduleType === 'monthly'){
-  //     setMonthlyTimeSlots((prevSlots)=>{
-  //       const newSlots = [...(prevSlots[identifier] || [])];
-  //       newSlots[index][key] = value;
-  //       return {...prevSlots, [identifier]: newSlots};
-  //     })
-  //   }
-  // }
+// Convert local time to UTC (for saving to MongoDB)
+const convertLocalTimeToUTC = (date) => {
+  const utcDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000); 
+  return utcDate.toISOString().split('T')[1].slice(0, 5); // Return as "HH:mm" in UTC
+};
 
-  // const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
-  //   if (scheduleType === 'weekly') {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const newSlots = [...(prevSlots[identifier] || [])];
-  //       newSlots[index]['newPrice'] = value;
-  //       return { ...prevSlots, [identifier]: newSlots };
-  //     });
-  //   } else if (scheduleType === 'monthly') {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const newSlots = [...(prevSlots[identifier] || [])];
-  //       newSlots[index]['newPrice'] = value;
-  //       return { ...prevSlots, [identifier]: newSlots };
-  //     });
-  //   }
-  // }
+
+/*
   const handleTimeSlotPriceChange = (
     scheduleType,
     identifier,
@@ -352,73 +362,47 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       });
     }
   };
+*/
+const handleTimeSlotPriceChange = (scheduleType, identifier, index, key, value) => {
+  if (scheduleType === "weekly") {
+    setWeeklyTimeSlots((prevSlots) => {
+      const updatedSlots = { ...prevSlots };
+      updatedSlots[identifier][index][key] = value;
+      return updatedSlots;
+    });
+  } else if (scheduleType === "monthly") {
+    setMonthlyTimeSlots((prevSlots) => {
+      const updatedSlots = { ...prevSlots };
+      updatedSlots[identifier][index][key] = value;
+      return updatedSlots;
+    });
+  }
+};
 
-  // const handleTimeSlotChange = (scheduleType, identifier, index, key, value) => {
-  //   console.log("Handle change:"+scheduleType+value)
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   }
-  // };
 
-  // const handleAddTimeSlot = (scheduleType, identifier) => {
-  //    const currentDate = new Date();
-  //    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // 1 hour after the current time
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   }
-  // };
 
-  const handleAddTimeSlot = (scheduleType, identifier) => {
+const handleAddTimeSlot = (scheduleType, identifier) => {
   const currentDate = new Date();
-  const hours = currentDate.getHours().toString().padStart(2, '0'); // Get hours and pad with 0 if needed
-  const minutes = currentDate.getMinutes().toString().padStart(2, '0'); // Get minutes and pad with 0 if needed
+  const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // Set endTime 1 hour after startTime
 
-const formattedTime = `${hours}:${minutes}`;
-    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // Set endTime 1 hour after startTime
-  
-    if (scheduleType === "weekly") {
-      setWeeklyTimeSlots((prevSlots) => ({
-        ...prevSlots,
-        [identifier]: [
-          ...(prevSlots[identifier] || []),
-          { startTime: formattedTime, endTime: endDate, newPrice: "" },
-        ],
-      }));
-    } else if (scheduleType === "monthly") {
-      setMonthlyTimeSlots((prevSlots) => ({
-        ...prevSlots,
-        [identifier]: [
-          ...(prevSlots[identifier] || []),
-          { startTime: currentDate, endTime: endDate, newPrice: "" },
-        ],
-      }));
-    }
-  };
-  
+  if (scheduleType === "weekly") {
+    setWeeklyTimeSlots((prevSlots) => ({
+      ...prevSlots,
+      [identifier]: [
+        ...(prevSlots[identifier] || []),
+        { startTime: currentDate, endTime: endDate, newPrice: "", revertPrice:"" }, // Store Date objects
+      ],
+    }));
+  } else if (scheduleType === "monthly") {
+    setMonthlyTimeSlots((prevSlots) => ({
+      ...prevSlots,
+      [identifier]: [
+        ...(prevSlots[identifier] || []),
+        { startTime: currentDate, endTime: endDate, newPrice: "",revertPrice:"" }, // Store Date objects
+      ],
+    }));
+  }
+};
 
   const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
     if (scheduleType === "weekly") {
@@ -433,6 +417,7 @@ const formattedTime = `${hours}:${minutes}`;
       }));
     }
   };
+  /*
   const validateTimeSlots = () => {
     // Check weekly slots
     for (const day in weeklyTimeSlots) {
@@ -444,7 +429,19 @@ const formattedTime = `${hours}:${minutes}`;
           return false;
         }
       }
-    }
+    }*/
+
+      const validateTimeSlots = () => {
+        // Check weekly slots
+        for (const day in weeklyTimeSlots) {
+          for (const slot of weeklyTimeSlots[day]) {
+            if (slot.startTime >= slot.endTime) {
+              setErrorMessage(`For day ${day}, start time must be earlier than end time.`);
+              return false;
+            }
+          }
+        }
+    
 
     // Check monthly slots
     for (const date in monthlyTimeSlots) {
@@ -469,11 +466,12 @@ const formattedTime = `${hours}:${minutes}`;
 
       if (!indefiniteEndDate && endDate < startDate) {
         setErrorMessage("End Date cannot be earlier than Start Date.");
-        // setLoading(false);
+        setLoading(false);
         return;
       }
       if (!validateTimeSlots()) {
-        setErrorMessage("Set correct time.");
+        // setErrorMessage("Set correct time.");
+        setLoading(false);
         return;
       }
 
@@ -500,29 +498,31 @@ const formattedTime = `${hours}:${minutes}`;
       if (weekly) {
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           utcWeeklySlots[day] = timeSlots.map(
-            ({ startTime, endTime, newPrice }) => ({
+            ({ startTime, endTime, newPrice, revertPrice }) => ({
               startTime: convertTimeToUtc(startTime),
               endTime: convertTimeToUtc(endTime),
+              // startTime: convertLocalTimeToUTC(startTime),
+              // endTime: convertLocalTimeToUTC(endTime),
               newPrice: parseFloat(newPrice),
+              revertPrice: parseFloat(revertPrice),
             })
           );
         }
       }
-      console.log("weeekly time slot without utc:"+JSON.stringify(utcMonthlySlots));
+      
 
       if (monthly) {
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           utcMonthlySlots[date] = timeSlots.map(
-            ({ startTime, endTime, newPrice }) => ({
+            ({ startTime, endTime, newPrice, revertPrice }) => ({
               startTime: convertTimeToUtc(startTime),
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
+              revertPrice: parseFloat(revertPrice)
             })
           );
         }
       }
-      console.log("weekly utc: " + JSON.stringify(utcWeeklySlots));
-
       // const updatedDaysOfWeek = daysOfWeek.filter(day => day).map(day => day.value || day);
       // const updatedDatesOfMonth = datesOfMonth.filter(date => date).map(date => date.value || date);
       // console.log("time and sinn "+asin+utcStartTime+utcEndTime);
@@ -783,21 +783,28 @@ const formattedTime = `${hours}:${minutes}`;
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
-                        <Form.Control
-                          type="number"
-                          value={slot.newPrice}
-                          placeholder="Price"
-                          // onChange={(e) => handleTimeSlotPriceChange('monthly', date.value, index, e.target.value)}
-                          onChange={(e) =>
-                            handleTimeSlotPriceChange(
-                              "weekly",
-                              day.value,
-                              index,
-                              e.target.value
-                            )
-                          }
-                          className="me-2"
-                        />
+                         <Form.Control
+                        type="number"
+                        value={slot.newPrice}
+                        placeholder="New Price"
+                        step="0.01"
+                        onChange={(e) =>
+                          handleTimeSlotPriceChange("weekly", day.value, index, "newPrice", e.target.value)
+                        }
+                        required
+                        className="me-2"
+                      />
+                      <Form.Control
+                        type="number"
+                        value={slot.revertPrice}
+                        placeholder="Revert Price"
+                        step="0.01"
+                        onChange={(e) =>
+                          handleTimeSlotPriceChange("weekly", day.value, index, "revertPrice", e.target.value)
+                        }
+                        required
+                        className="me-2"
+                      />
                         <Button
                           variant="danger"
                           onClick={() =>
@@ -832,7 +839,7 @@ const formattedTime = `${hours}:${minutes}`;
                         <DatePicker
                           selected={
                             slot.startTime
-                              ? parseTimeString(slot.startTime)
+                              ? convertTimeStringToDate(slot.startTime)
                               : new Date()
                           } // Parse the time string
                           onChange={(time) =>
@@ -854,7 +861,7 @@ const formattedTime = `${hours}:${minutes}`;
                         <DatePicker
                           selected={
                             slot.endTime
-                              ? parseTimeString(slot.endTime)
+                              ? convertTimeStringToDate(slot.endTime)
                               : new Date()
                           } // Parse the time string
                           onChange={(time) =>
@@ -873,21 +880,29 @@ const formattedTime = `${hours}:${minutes}`;
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
+                      
                         <Form.Control
-                          type="number"
-                          value={slot.newPrice}
-                          placeholder="Price"
-                          onChange={(e) =>
-                            handleTimeSlotChange(
-                              "monthly",
-                              date.value,
-                              index,
-                              "newPrice",
-                              e.target.value
-                            )
-                          }
-                          className="me-2"
-                        />
+                        type="number"
+                        value={slot.newPrice}
+                        placeholder="New Price"
+                        step="0.01"
+                        onChange={(e) =>
+                          handleTimeSlotPriceChange("monthly", date.value, index, "newPrice", e.target.value)
+                        }
+                        required
+                        className="me-2"
+                      />
+                      <Form.Control
+                        type="number"
+                        value={slot.revertPrice}
+                        placeholder="Revert Price"
+                        step="0.01"
+                        onChange={(e) =>
+                          handleTimeSlotPriceChange("monthly", date.value, index, "revertPrice", e.target.value)
+                        }
+                        required
+                        className="me-2"
+                      />
                         <Button
                           variant="danger"
                           onClick={() =>

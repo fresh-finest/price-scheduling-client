@@ -11,10 +11,12 @@ import History from "./pages/History";
 import ManageUserByAdmin from "./pages/ManageUserByAdmin";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import SidebarLayout from "./components/layouts/SidebarLayouts";
+import { AxiosProvider } from "./contexts/AxiosProdiver";
 
 function App() {
   return (
     <PriceScheduleProvider>
+ 
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -42,6 +44,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
+      
     </PriceScheduleProvider>
   );
 }

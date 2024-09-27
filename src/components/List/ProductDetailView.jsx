@@ -61,6 +61,7 @@ const dateNames = [
 //   const formattedHours = newHours < 10 ? `0${newHours}` : newHours;
 //   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`;
 // }
+/*
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
@@ -71,7 +72,25 @@ function addHoursToTime(timeString, hoursToAdd) {
   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+}*/
+function addHoursToTime(timeString, hoursToAdd) {
+  if (!timeString || typeof timeString !== "string") {
+    console.error("Invalid timeString:", timeString);
+    return "Invalid Time"; // Return a default value or handle it gracefully
+  }
+
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Add leading zero to minutes if necessary
+  
+  // Convert 24-hour time to 12-hour format with AM/PM
+  const period = newHours >= 12 ? "PM" : "AM";
+  const hours12 = newHours % 12 || 12; // Convert to 12-hour format
+  const formattedHours = hours12 < 10 ? `0${hours12}` : hours12;
+
+  return `${formattedHours}:${formattedMinutes} ${period}`; // Return time in 12-hour format with AM/PM
 }
+
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -79,6 +98,7 @@ const getDayLabelFromNumber = (dayNumber) => {
 const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
+/*
 const displayTimeSlotsWithDayLabels = (
   timeSlots,
   addHours = 0,
@@ -99,7 +119,25 @@ const displayTimeSlotsWithDayLabels = (
       ))}
     </div>
   ));
+};*/
+const displayTimeSlotsWithDayLabels = (timeSlots, addHours = 0, isWeekly = false) => {
+  return Object.entries(timeSlots).map(([key, slots]) => (
+    <div key={key}>
+      <strong>
+        {isWeekly
+          ? getDayLabelFromNumber(Number(key))
+          : getDateLabelFromNumber(Number(key))}
+      </strong>
+      {slots.map((slot, index) => (
+        <p key={index}>
+          {addHoursToTime(slot.startTime, addHours)} -{" "}
+          {addHoursToTime(slot.endTime, addHours)}
+        </p>
+      ))}
+    </div>
+  ));
 };
+
 const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
   console.log("sk1", sku1);
   if (!product.AttributeSets) {
