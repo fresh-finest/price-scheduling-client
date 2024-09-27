@@ -97,7 +97,7 @@ const displayTimeSlotsWithDayLabels = (
       {slots.map((slot, index) => (
         <p key={index}>
           {addHoursToTime(slot.startTime, addHours)} -{" "}
-          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice}
+          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice} - End Price: {slot?.revertPrice}
         </p>
       ))}
     </div>
@@ -570,7 +570,7 @@ export default function HistoryView() {
                             Repeats Weekly on {weeklyLabel}
                           </span>
 
-                          {displayData?.currentPrice && (
+                          {/* {displayData?.currentPrice && (
                             <p
                               style={{
                                 margin: 0,
@@ -581,7 +581,7 @@ export default function HistoryView() {
                             >
                               Will Revert to :${displayData.currentPrice}
                             </p>
-                          )}
+                          )} */}
                         </>
                       ) : displayData?.monthly ? (
                         <>
@@ -597,7 +597,7 @@ export default function HistoryView() {
                               ? addHoursToTime(displayData.endTime, 6)
                               : "Invalid end time"}
                           </p> */}
-                          {displayData?.currentPrice && (
+                          {/* {displayData?.currentPrice && (
                             <p
                               style={{
                                 margin: 0,
@@ -608,7 +608,7 @@ export default function HistoryView() {
                             >
                               Will Revert to :${displayData.currentPrice}
                             </p>
-                          )}
+                          )} */}
                         </>
                       ) : (
                         <>
