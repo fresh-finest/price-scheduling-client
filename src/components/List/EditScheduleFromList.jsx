@@ -178,6 +178,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showPriceInput, setShowPriceInput] = useState(false); // New state variable for controlling price input visibility
 
+  const [slotToRemove, setSlotToRemove] = useState(null); // Track which slot is being removed
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser.userName;
@@ -404,6 +405,7 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
   }
 };
 
+/*
   const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
     if (scheduleType === "weekly") {
       setWeeklyTimeSlots((prevSlots) => ({
@@ -417,6 +419,101 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
       }));
     }
   };
+
+*/
+  /*const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier] = updatedSlots[identifier].filter((_, i) => i !== index);
+  
+        // If no more time slots remain for the day, remove the day entirely
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier];
+        }
+  
+        return updatedSlots;
+      });
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier] = updatedSlots[identifier].filter((_, i) => i !== index);
+  
+        // If no more time slots remain for the date, remove the date entirely
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier];
+        }
+  
+        return updatedSlots;
+      });
+    }
+  };*/
+
+  const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
+  if (scheduleType === "weekly") {
+    setWeeklyTimeSlots((prevSlots) => {
+      const updatedSlots = { ...prevSlots };
+      updatedSlots[identifier] = updatedSlots[identifier].filter((_, i) => i !== index);
+
+      // If no more time slots remain for the day, remove the day entirely
+      if (updatedSlots[identifier].length === 0) {
+        delete updatedSlots[identifier];
+      }
+
+      return updatedSlots;
+    });
+  } else if (scheduleType === "monthly") {
+    setMonthlyTimeSlots((prevSlots) => {
+      const updatedSlots = { ...prevSlots };
+      updatedSlots[identifier] = updatedSlots[identifier].filter((_, i) => i !== index);
+
+      // If no more time slots remain for the date, remove the date entirely
+      if (updatedSlots[identifier].length === 0) {
+        delete updatedSlots[identifier];
+      }
+
+      return updatedSlots;
+    });
+  }
+};
+  /*
+
+  const confirmRemoveTimeSlot = () => {
+    const { scheduleType, identifier, index } = slotToRemove;
+
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier].splice(index, 1);
+        
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier]; // Remove the day if no time slots remain
+        }
+
+        return updatedSlots;
+      });
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier].splice(index, 1);
+
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier]; // Remove the date if no time slots remain
+        }
+
+        return updatedSlots;
+      });
+    }
+
+    setSlotToRemove(null);
+    setShowConfirmationModal(false);
+  };
+
+  const cancelRemoveTimeSlot = () => {
+    setSlotToRemove(null);
+    setShowConfirmationModal(false);
+  };*/
+
   /*
   const validateTimeSlots = () => {
     // Check weekly slots
@@ -959,6 +1056,7 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </>
   );
 };

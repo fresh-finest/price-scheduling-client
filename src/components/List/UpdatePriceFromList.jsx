@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
+
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { MultiSelect } from "react-multi-select-component";
@@ -440,14 +441,14 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       });
 
       console.log(overlappingSchedule);
-
+      /*
       if (overlappingSchedule) {
         setErrorMessage(
           "Cannot create a schedule during an existing scheduled period."
         );
         setLoading(false);
         return;
-      }
+      }*/
 
       const weeklySlotsInUtc = {};
       const monthlySlotsInUtc = {};
@@ -460,6 +461,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
+            
             })
           );
         }
@@ -473,6 +475,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
+             
             })
           );
         }
@@ -575,9 +578,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
             <Form.Group controlId="formSku">
               <Form.Label>SKU: {sku1 || "Not available"}</Form.Label>
             </Form.Group>
-            <Form.Group controlId="formCurrentPrice">
-              <Form.Label>Current Price: ${currentPrice}</Form.Label>
-            </Form.Group>
+          
             <Form.Group controlId="formPrice">
               <Form.Label>Enter New Price</Form.Label>
               <Form.Control
@@ -585,10 +586,18 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
                 placeholder="Enter New Price"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                required
                 disabled={loading}
               />
             </Form.Group>
+            <Form.Group controlId="formCurrentPrice">
+              <Form.Label>Enter Revert Price</Form.Label>
+              <Form.Control
+                type="number"
+                value={currentPrice}
+                onChange={(e) => setCurrentPrice(e.target.value)}
+              />
+            </Form.Group>
+
             <Form.Group controlId="formWeekly">
               <Form.Check
                 type="checkbox"
