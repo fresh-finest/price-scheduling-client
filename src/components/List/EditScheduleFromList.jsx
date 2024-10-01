@@ -183,7 +183,10 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
 
   const userName = currentUser.userName;
 
- /*
+  const isUpdateMode = !!existingSchedule;
+  console.log(existingSchedule);
+
+  /*
   
   const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
     if (newTime instanceof Date && !isNaN(newTime)) {
@@ -229,13 +232,11 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   // Format 'Date' object to 'HH:mm' without converting to UTC
   const formatTimeToHHMM = (date) => {
     const adjustedDate = new Date(date.getTime() - 6 * 60 * 60 * 1000); // Subtract 6 hours
-    const hours = adjustedDate.getHours().toString().padStart(2, '0');
-    const minutes = adjustedDate.getMinutes().toString().padStart(2, '0');
+    const hours = adjustedDate.getHours().toString().padStart(2, "0");
+    const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-  
-  
-  
+
   /*
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
@@ -250,30 +251,29 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   };
   */
   // Convert UTC time string to local date object
-const convertTimeStringToDate = (timeString) => {
-  if (typeof timeString === "string" && timeString.includes(":")) {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    if (!isNaN(hours) && !isNaN(minutes)) {
-      const now = new Date();
-      now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
-      return now; // Local time will be automatically adjusted
+  const convertTimeStringToDate = (timeString) => {
+    if (typeof timeString === "string" && timeString.includes(":")) {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      if (!isNaN(hours) && !isNaN(minutes)) {
+        const now = new Date();
+        now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
+        return now; // Local time will be automatically adjusted
+      }
     }
-  }
-  return new Date(); // Fallback to current time if the timeString is invalid
-};
-const convertUtcToLocalDate = (timeString) => {
-  if (typeof timeString === "string" && timeString.includes(":")) {
-    const [hours, minutes] = timeString.split(":").map(Number);
-    if (!isNaN(hours) && !isNaN(minutes)) {
-      const now = new Date();
-      now.setUTCHours(hours, minutes, 0, 0); // Treat the time as UTC
-      return new Date(now); // This will automatically convert UTC to local time
+    return new Date(); // Fallback to current time if the timeString is invalid
+  };
+  const convertUtcToLocalDate = (timeString) => {
+    if (typeof timeString === "string" && timeString.includes(":")) {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      if (!isNaN(hours) && !isNaN(minutes)) {
+        const now = new Date();
+        now.setUTCHours(hours, minutes, 0, 0); // Treat the time as UTC
+        return new Date(now); // This will automatically convert UTC to local time
+      }
     }
-  }
-  return new Date(); // Fallback to current time if the timeString is invalid
-};
+    return new Date(); // Fallback to current time if the timeString is invalid
+  };
 
-  
   useEffect(() => {
     if (show && existingSchedule) {
       setStartDate(new Date(existingSchedule.startDate));
@@ -297,8 +297,6 @@ const convertUtcToLocalDate = (timeString) => {
       }
     }
   }, [show, existingSchedule]);
-
-
 
   useEffect(() => {
     if (show && asin) {
@@ -335,14 +333,13 @@ const convertUtcToLocalDate = (timeString) => {
     return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
   };
 
-// Convert local time to UTC (for saving to MongoDB)
-const convertLocalTimeToUTC = (date) => {
-  const utcDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000); 
-  return utcDate.toISOString().split('T')[1].slice(0, 5); // Return as "HH:mm" in UTC
-};
+  // Convert local time to UTC (for saving to MongoDB)
+  const convertLocalTimeToUTC = (date) => {
+    const utcDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return utcDate.toISOString().split("T")[1].slice(0, 5); // Return as "HH:mm" in UTC
+  };
 
-
-/*
+  /*
   const handleTimeSlotPriceChange = (
     scheduleType,
     identifier,
@@ -364,48 +361,62 @@ const convertLocalTimeToUTC = (date) => {
     }
   };
 */
-const handleTimeSlotPriceChange = (scheduleType, identifier, index, key, value) => {
-  if (scheduleType === "weekly") {
-    setWeeklyTimeSlots((prevSlots) => {
-      const updatedSlots = { ...prevSlots };
-      updatedSlots[identifier][index][key] = value;
-      return updatedSlots;
-    });
-  } else if (scheduleType === "monthly") {
-    setMonthlyTimeSlots((prevSlots) => {
-      const updatedSlots = { ...prevSlots };
-      updatedSlots[identifier][index][key] = value;
-      return updatedSlots;
-    });
-  }
-};
+  const handleTimeSlotPriceChange = (
+    scheduleType,
+    identifier,
+    index,
+    key,
+    value
+  ) => {
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier][index][key] = value;
+        return updatedSlots;
+      });
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier][index][key] = value;
+        return updatedSlots;
+      });
+    }
+  };
 
+  const handleAddTimeSlot = (scheduleType, identifier) => {
+    const currentDate = new Date();
+    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // Set endTime 1 hour after startTime
 
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: [
+          ...(prevSlots[identifier] || []),
+          {
+            startTime: currentDate,
+            endTime: endDate,
+            newPrice: "",
+            revertPrice: "",
+          }, // Store Date objects
+        ],
+      }));
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => ({
+        ...prevSlots,
+        [identifier]: [
+          ...(prevSlots[identifier] || []),
+          {
+            startTime: currentDate,
+            endTime: endDate,
+            newPrice: "",
+            revertPrice: "",
+          }, // Store Date objects
+        ],
+      }));
+    }
+  };
 
-const handleAddTimeSlot = (scheduleType, identifier) => {
-  const currentDate = new Date();
-  const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // Set endTime 1 hour after startTime
-
-  if (scheduleType === "weekly") {
-    setWeeklyTimeSlots((prevSlots) => ({
-      ...prevSlots,
-      [identifier]: [
-        ...(prevSlots[identifier] || []),
-        { startTime: currentDate, endTime: endDate, newPrice: "", revertPrice:"" }, // Store Date objects
-      ],
-    }));
-  } else if (scheduleType === "monthly") {
-    setMonthlyTimeSlots((prevSlots) => ({
-      ...prevSlots,
-      [identifier]: [
-        ...(prevSlots[identifier] || []),
-        { startTime: currentDate, endTime: endDate, newPrice: "",revertPrice:"" }, // Store Date objects
-      ],
-    }));
-  }
-};
-
-/*
+  /*
   const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
     if (scheduleType === "weekly") {
       setWeeklyTimeSlots((prevSlots) => ({
@@ -450,32 +461,36 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
   };*/
 
   const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
-  if (scheduleType === "weekly") {
-    setWeeklyTimeSlots((prevSlots) => {
-      const updatedSlots = { ...prevSlots };
-      updatedSlots[identifier] = updatedSlots[identifier].filter((_, i) => i !== index);
+    if (scheduleType === "weekly") {
+      setWeeklyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier] = updatedSlots[identifier].filter(
+          (_, i) => i !== index
+        );
 
-      // If no more time slots remain for the day, remove the day entirely
-      if (updatedSlots[identifier].length === 0) {
-        delete updatedSlots[identifier];
-      }
+        // If no more time slots remain for the day, remove the day entirely
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier];
+        }
 
-      return updatedSlots;
-    });
-  } else if (scheduleType === "monthly") {
-    setMonthlyTimeSlots((prevSlots) => {
-      const updatedSlots = { ...prevSlots };
-      updatedSlots[identifier] = updatedSlots[identifier].filter((_, i) => i !== index);
+        return updatedSlots;
+      });
+    } else if (scheduleType === "monthly") {
+      setMonthlyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier] = updatedSlots[identifier].filter(
+          (_, i) => i !== index
+        );
 
-      // If no more time slots remain for the date, remove the date entirely
-      if (updatedSlots[identifier].length === 0) {
-        delete updatedSlots[identifier];
-      }
+        // If no more time slots remain for the date, remove the date entirely
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier];
+        }
 
-      return updatedSlots;
-    });
-  }
-};
+        return updatedSlots;
+      });
+    }
+  };
   /*
 
   const confirmRemoveTimeSlot = () => {
@@ -527,33 +542,66 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
         }
       }
     }*/
-
-      const validateTimeSlots = () => {
-        // Check weekly slots
-        for (const day in weeklyTimeSlots) {
-          for (const slot of weeklyTimeSlots[day]) {
-            if (slot.startTime >= slot.endTime) {
-              setErrorMessage(`For day ${day}, start time must be earlier than end time.`);
+      const validateTimeSlots =()=>{
+        const isTimeSlotOverlapping = (start1,end1,start2,end2)=>{
+          return (start1< end2 && start2 <end1)
+        }
+        const formatTime = (date) => {
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
+        };
+      
+        for (const day in weeklyTimeSlots){
+          const slots = weeklyTimeSlots[day];
+          for(let i=0;i<slots.length;i++){
+            const slot1 = slots[i];
+      
+            if(slot1.startTime >= slot1.endTime){
+              setErrorMessage(
+                `For day ${day}, start time must be earlier than end time.`
+              )
               return false;
+            }
+      
+            for(let j = i+1;j<slots.length;j++){
+              const slot2 = slots[j];
+              if(isTimeSlotOverlapping(slot1.startTime,slot1.endTime, slot2.startTime,slot2.endTime)){
+                setErrorMessage(
+                    `Time slots for day ${day} overlap between ${formatTime(slot1.startTime)} - ${formatTime(slot1.endTime)} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
+      
+                );
+                return false;
+              }
             }
           }
         }
-    
-
-    // Check monthly slots
-    for (const date in monthlyTimeSlots) {
-      for (const slot of monthlyTimeSlots[date]) {
-        if (slot.startTime >= slot.endTime) {
-          setErrorMessage(
-            `For date ${date}, start time must be earlier than end time.`
-          );
-          return false;
+      
+        for(const date in monthlyTimeSlots){
+          const slots = monthlyTimeSlots[date];
+          for(let i=0;i<slots.length;i++){
+            const slot1 = slots[i];
+      
+            if(slot1.startTime>=slot1.endTime){
+              setErrorMessage(
+                  `For date ${date}, start time must be earlier than end time.`
+              )
+              return false;
+            }
+      
+            for(let j= i+1;j<slots.length;j++){
+              const slot2 = slots[j];
+              if(isTimeSlotOverlapping(slot1.startTime,slot1.endTime,slot2.startTime,slot2.endTime)){
+                setErrorMessage(
+                    `Time slots for date ${date} overlap between ${formatTime(slot1.startTime)} - ${formatTime(slot1.endTime)} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
+                )
+                return false;
+              }
+            }
+          }
         }
+        return true;
       }
-    }
-
-    return true;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -571,6 +619,42 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
         setLoading(false);
         return;
       }
+
+      const overlappingSchedule = existingSchedule && (() => {
+        console.log(existingSchedule.status);
+      
+        // Skip deleted schedules
+        if (existingSchedule.status === "deleted") return false;
+      
+        // Only consider single-day schedules for overlap checking
+        // if (!existingSchedule.singleDay) return false;
+      
+        const existingStart = new Date(existingSchedule.startDate);
+        const existingEnd = existingSchedule.endDate ? new Date(existingSchedule.endDate) : null;
+      
+        // If the existing schedule has no end date, treat it as indefinite
+        if (!existingEnd) {
+          return true; // Block any new schedule if an existing one is indefinite
+        }
+      
+        // Check for overlaps between the new schedule and the existing schedule
+        return (
+          (startDate <= existingStart) 
+         
+          
+        );
+      })();
+      
+      
+      // if (overlappingSchedule) {
+      //   setErrorMessage(
+      //     "Cannot create a schedule during an existing scheduled period."
+      //   );
+      //   setLoading(false);
+      //   return;
+      // }
+
+
 
       // await updateSchedule(
       //   asin,
@@ -592,30 +676,66 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
 
       const utcWeeklySlots = {};
       const utcMonthlySlots = {};
+      /*
       if (weekly) {
+        console.log("weekly: "+weeklyTimeSlots)
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+          console.log("slots"+JSON.stringify(timeSlots.timeSlotScheduleId));
           utcWeeklySlots[day] = timeSlots.map(
+            
             ({ startTime, endTime, newPrice, revertPrice }) => ({
               startTime: convertTimeToUtc(startTime),
               endTime: convertTimeToUtc(endTime),
-              // startTime: convertLocalTimeToUTC(startTime),
-              // endTime: convertLocalTimeToUTC(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
+              timeSlotScheduleId:timeSlots.timeSlotScheduleId
+              
             })
           );
         }
       }
       
+*/
+      if (weekly) {
+        console.log("weekly: " + JSON.stringify(weeklyTimeSlots));
+        for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+          console.log(
+            "slots" +
+              JSON.stringify(timeSlots.map((slot) => slot.timeSlotScheduleId))
+          );
+          utcWeeklySlots[day] = timeSlots.map(
+            ({
+              startTime,
+              endTime,
+              newPrice,
+              revertPrice,
+              timeSlotScheduleId,
+            }) => ({
+              startTime: convertTimeToUtc(startTime),
+              endTime: convertTimeToUtc(endTime),
+              newPrice: parseFloat(newPrice),
+              revertPrice: parseFloat(revertPrice),
+              timeSlotScheduleId: timeSlotScheduleId,
+            })
+          );
+        }
+      }
 
       if (monthly) {
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           utcMonthlySlots[date] = timeSlots.map(
-            ({ startTime, endTime, newPrice, revertPrice }) => ({
+            ({
+              startTime,
+              endTime,
+              newPrice,
+              revertPrice,
+              timeSlotScheduleId,
+            }) => ({
               startTime: convertTimeToUtc(startTime),
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
-              revertPrice: parseFloat(revertPrice)
+              revertPrice: parseFloat(revertPrice),
+              timeSlotScheduleId: timeSlotScheduleId,
             })
           );
         }
@@ -640,11 +760,13 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
       };
       //startTime:startTime.toTimeString().slice(0, 5),
       //endTime:endTime.toTimeString().slice(0, 5)
+
       await axios.put(
         `${BASE_URL}/api/schedule/change/${existingSchedule._id}`,
         updateData
       );
 
+      
       addEvent({
         title: `SKU: ${sku} - $${price}`,
         start: startDate,
@@ -652,7 +774,9 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
         allDay: false,
       });
 
-      setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+      // setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+      setSuccessMessage(`Price schedule successfully ${isUpdateMode ? "updated" : "created"}`);
+
       setShowSuccessModal(true);
       onClose();
     } catch (error) {
@@ -749,6 +873,7 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
             <Form.Group controlId="formPrice" style={{ marginBottom: "15px" }}>
               <Form.Label>Changed to: ${existingSchedule.price}</Form.Label>
             </Form.Group>
+
             <Button
               variant="success"
               style={{ width: "40%", marginBottom: "15px" }}
@@ -767,7 +892,6 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
                   placeholder="Enter New Price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  
                 />
               </Form.Group>
             )}
@@ -813,7 +937,9 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
                       required={!indefiniteEndDate}
                     />
                   </Form.Group>
+
                 )}
+               
               </>
             )}
             {scheduleType === "weekly" && (
@@ -880,28 +1006,40 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
-                         <Form.Control
-                        type="number"
-                        value={slot.newPrice}
-                        placeholder="New Price"
-                        step="0.01"
-                        onChange={(e) =>
-                          handleTimeSlotPriceChange("weekly", day.value, index, "newPrice", e.target.value)
-                        }
-                        required
-                        className="me-2"
-                      />
-                      <Form.Control
-                        type="number"
-                        value={slot.revertPrice}
-                        placeholder="Revert Price"
-                        step="0.01"
-                        onChange={(e) =>
-                          handleTimeSlotPriceChange("weekly", day.value, index, "revertPrice", e.target.value)
-                        }
-                        required
-                        className="me-2"
-                      />
+                        <Form.Control
+                          type="number"
+                          value={slot.newPrice}
+                          placeholder="New Price"
+                          step="0.01"
+                          onChange={(e) =>
+                            handleTimeSlotPriceChange(
+                              "weekly",
+                              day.value,
+                              index,
+                              "newPrice",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="me-2"
+                        />
+                        <Form.Control
+                          type="number"
+                          value={slot.revertPrice}
+                          placeholder="Revert Price"
+                          step="0.01"
+                          onChange={(e) =>
+                            handleTimeSlotPriceChange(
+                              "weekly",
+                              day.value,
+                              index,
+                              "revertPrice",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="me-2"
+                        />
                         <Button
                           variant="danger"
                           onClick={() =>
@@ -977,29 +1115,41 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
                           dateFormat="h:mm aa"
                           className="form-control"
                         />
-                      
+
                         <Form.Control
-                        type="number"
-                        value={slot.newPrice}
-                        placeholder="New Price"
-                        step="0.01"
-                        onChange={(e) =>
-                          handleTimeSlotPriceChange("monthly", date.value, index, "newPrice", e.target.value)
-                        }
-                        required
-                        className="me-2"
-                      />
-                      <Form.Control
-                        type="number"
-                        value={slot.revertPrice}
-                        placeholder="Revert Price"
-                        step="0.01"
-                        onChange={(e) =>
-                          handleTimeSlotPriceChange("monthly", date.value, index, "revertPrice", e.target.value)
-                        }
-                        required
-                        className="me-2"
-                      />
+                          type="number"
+                          value={slot.newPrice}
+                          placeholder="New Price"
+                          step="0.01"
+                          onChange={(e) =>
+                            handleTimeSlotPriceChange(
+                              "monthly",
+                              date.value,
+                              index,
+                              "newPrice",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="me-2"
+                        />
+                        <Form.Control
+                          type="number"
+                          value={slot.revertPrice}
+                          placeholder="Revert Price"
+                          step="0.01"
+                          onChange={(e) =>
+                            handleTimeSlotPriceChange(
+                              "monthly",
+                              date.value,
+                              index,
+                              "revertPrice",
+                              e.target.value
+                            )
+                          }
+                          required
+                          className="me-2"
+                        />
                         <Button
                           variant="danger"
                           onClick={() =>
@@ -1034,6 +1184,8 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
             >
               Delete Schedule
             </Button>
+
+            
           </Form>
         </Modal.Body>
       </Modal>
@@ -1056,7 +1208,6 @@ const handleAddTimeSlot = (scheduleType, identifier) => {
           </Button>
         </Modal.Footer>
       </Modal>
-
     </>
   );
 };

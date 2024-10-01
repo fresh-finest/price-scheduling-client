@@ -306,7 +306,17 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
   };
 
   const now = new Date();
-
+  const countActiveSingleDaySchedules = () => {
+    return priceSchedule.filter(
+      (sc) =>
+        sc.status !== "deleted" &&
+        !sc.weekly &&
+        !sc.monthly && // Ensure it's not weekly or monthly
+        sc.startDate && // Ensure there's a start date
+        (!sc.endDate || new Date(sc.endDate) >= now) // Either no end date or end date is in the future
+    ).length;
+  };
+  
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
@@ -424,8 +434,12 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                       .map((sc) => (
                         <tr key={sc._id}>
                           {sc.weekly ? (
+                            <>
+                           
+
                             <td style={{ width: "200px" }} colSpan={2}>
-                              Weekly on{" "}
+                            {Object.values(sc.weeklyTimeSlots).reduce((acc, slots) => acc + slots.length, 0)} slot for {" "} Weekly on{" "} 
+                             
                               {Object.keys(sc.weeklyTimeSlots)
                                 .map((day) => getDayLabelFromNumber(day))
                                 .join(", ")}{" "}
@@ -444,10 +458,12 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                                     ${sc.currentPrice}
                                   </span> */}
                             </td>
+                            </>
                           ) : sc.monthly ? (
                             <>
+                          
                               <td style={{ width: "200px" }} colSpan={2}>
-                                Monthly on{" "}
+                              {Object.values(sc.monthlyTimeSlots).reduce((acc, slots) => acc + slots.length, 0)} slot for  Monthly on{" "}
                                 {Object.keys(sc.monthlyTimeSlots)
                                   .map((date) => getDateLabelFromNumber(date))
                                   .join(", ")}{" "}
@@ -469,10 +485,11 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                             </>
                           ) : (
                             <>
+                            <strong>slot</strong> {countActiveSingleDaySchedules()}
                               <td style={{ width: "200px" }}>
                                 {formatDateTime(sc.startDate)}{" "}
                                 <span style={{ color: "green" }}>
-                                  Changed Price: ${sc.price}
+                                  Changed Price: ${sc.price.toFixed(2)}
                                 </span>
                               </td>
                               <td style={{ width: "200px" }}>
@@ -481,7 +498,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                                     {formatDateTime(sc.endDate)}
                                     {sc.currentPrice && (
                                       <div style={{ color: "green" }}>
-                                        Reverted Price: ${sc.currentPrice}
+                                        Reverted Price: ${sc.currentPrice.toFixed(2)}
                                       </div>
                                     )}
                                   </>

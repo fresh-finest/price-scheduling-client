@@ -88,8 +88,8 @@ const saveScheduleAndQueueJobs = async (
       asin,
       sku,
       title,
-      price: parseFloat(price),
-      currentPrice: parseFloat(currentPrice),
+      price: parseFloat(price).toFixed(2),
+      currentPrice: parseFloat(currentPrice).toFixed(2),
       imageURL,
       startDate,
       endDate,
@@ -270,7 +270,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       });
     }
   };
-
+/*
   const validateTimeSlots = () => {
     // Check weekly slots
     for (const day in weeklyTimeSlots) {
@@ -298,6 +298,68 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
 
     return true;
   };
+*/
+
+const validateTimeSlots =()=>{
+  const isTimeSlotOverlapping = (start1,end1,start2,end2)=>{
+    return (start1< end2 && start2 <end1)
+  }
+  const formatTime = (date) => {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  for (const day in weeklyTimeSlots){
+    const slots = weeklyTimeSlots[day];
+    for(let i=0;i<slots.length;i++){
+      const slot1 = slots[i];
+
+      if(slot1.startTime >= slot1.endTime){
+        setErrorMessage(
+          `For day ${day}, start time must be earlier than end time.`
+        )
+        return false;
+      }
+
+      for(let j = i+1;j<slots.length;j++){
+        const slot2 = slots[j];
+        if(isTimeSlotOverlapping(slot1.startTime,slot1.endTime, slot2.startTime,slot2.endTime)){
+          setErrorMessage(
+              `Time slots for day ${day} overlap between ${formatTime(slot1.startTime)} - ${formatTime(slot1.endTime)} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
+
+          );
+          return false;
+        }
+      }
+    }
+  }
+
+  for(const date in monthlyTimeSlots){
+    const slots = monthlyTimeSlots[date];
+    for(let i=0;i<slots.length;i++){
+      const slot1 = slots[i];
+
+      if(slot1.startTime>=slot1.endTime){
+        setErrorMessage(
+            `For date ${date}, start time must be earlier than end time.`
+        )
+        return false;
+      }
+
+      for(let j= i+1;j<slots.length;j++){
+        const slot2 = slots[j];
+        if(isTimeSlotOverlapping(slot1.startTime,slot1.endTime,slot2.startTime,slot2.endTime)){
+          setErrorMessage(
+              `Time slots for date ${date} overlap between ${formatTime(slot1.startTime)} - ${formatTime(slot1.endTime)} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
+          )
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
 
   const fetchSchedules = async (asin) => {
     try {
@@ -372,6 +434,9 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
     return moment(time).utc().format("HH:mm");
   };
 
+  
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -415,7 +480,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
             (endDate ? endDate >= existingEnd : true))
         );
       });*/
-
+      
       const overlappingSchedule = existingSchedules.find((schedule) => {
         console.log(schedule.status);
 
@@ -440,15 +505,18 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
         );
       });
 
-      console.log(overlappingSchedule);
-      /*
-      if (overlappingSchedule) {
-        setErrorMessage(
-          "Cannot create a schedule during an existing scheduled period."
-        );
-        setLoading(false);
-        return;
-      }*/
+      // const overlappingSchedule = findOverlappingSchedule(
+      //   newSchedule,
+      //   existingSchedules
+      // );
+
+      // if (overlappingSchedule) {
+      //   setErrorMessage(
+      //     "Cannot create a schedule during an existing scheduled period."
+      //   );
+      //   setLoading(false);
+      //   return;
+      // }
 
       const weeklySlotsInUtc = {};
       const monthlySlotsInUtc = {};
@@ -461,7 +529,6 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
-            
             })
           );
         }
@@ -475,7 +542,6 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
-             
             })
           );
         }
@@ -578,14 +644,22 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
             <Form.Group controlId="formSku">
               <Form.Label>SKU: {sku1 || "Not available"}</Form.Label>
             </Form.Group>
-          
+
             <Form.Group controlId="formPrice">
               <Form.Label>Enter New Price</Form.Label>
               <Form.Control
                 type="number"
                 placeholder="Enter New Price"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) =>
+                 setPrice(e.target.value)}
+
+                // onChange={(e)=>{
+                //   const inputPrice = parseFloat(e.target.value)
+                //     if(!isNaN(inputPrice)){
+                //       setPrice(inputPrice);
+                //     } 
+                // }}
                 disabled={loading}
               />
             </Form.Group>
@@ -595,6 +669,13 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
                 type="number"
                 value={currentPrice}
                 onChange={(e) => setCurrentPrice(e.target.value)}
+                // onChange={(e)=>{
+                //   const inputPrice = parseFloat(e.target.value);
+
+                //   if(!isNaN(inputPrice)){
+                //     setCurrentPrice(inputPrice.toFixed(2));
+                //   } 
+                // }}
               />
             </Form.Group>
 
