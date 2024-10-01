@@ -147,6 +147,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null);
+  const [weeklyLength,setWeeklyLength]=useState(null)
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -316,7 +317,40 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
         (!sc.endDate || new Date(sc.endDate) >= now) // Either no end date or end date is in the future
     ).length;
   };
-  
+  const getFilteredWeeklySlotLength = (priceSchedule) => {
+    return priceSchedule
+      .filter(
+        (sc) =>
+          sc.status !== "deleted" && sc.weekly // Filter for weekly schedules
+      )
+      .reduce(
+        (totalSlots, sc) => totalSlots +  Object.values(sc.weeklyTimeSlots).reduce(
+          (acc, slots) => acc + slots.length,
+          0
+        ),
+        0
+      );
+  };
+  const getFilteredMonthlySlotLength = (priceSchedule) => {
+    return priceSchedule
+      .filter(
+        (sc) =>
+          sc.status !== "deleted" && sc.monthly // Filter for monthly schedules
+      )
+      .reduce(
+        (totalSlots, sc) =>
+          totalSlots + Object.values(sc.monthlyTimeSlots).reduce(
+            (acc, slots) => acc + slots.length,
+            0
+          ),
+        0
+      );
+  };
+  const singleDayLength = countActiveSingleDaySchedules()
+  const weeklySlotLength = getFilteredWeeklySlotLength(priceSchedule);
+
+  const monthlySlotLength = getFilteredMonthlySlotLength(priceSchedule);
+
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
@@ -435,10 +469,10 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                         <tr key={sc._id}>
                           {sc.weekly ? (
                             <>
-                           
-
+                             
+                            {weeklySlotLength} slot 
                             <td style={{ width: "200px" }} colSpan={2}>
-                            {Object.values(sc.weeklyTimeSlots).reduce((acc, slots) => acc + slots.length, 0)} slot for {" "} Weekly on{" "} 
+                          
                              
                               {Object.keys(sc.weeklyTimeSlots)
                                 .map((day) => getDayLabelFromNumber(day))
@@ -463,7 +497,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                             <>
                           
                               <td style={{ width: "200px" }} colSpan={2}>
-                              {Object.values(sc.monthlyTimeSlots).reduce((acc, slots) => acc + slots.length, 0)} slot for  Monthly on{" "}
+                              {monthlySlotLength} slot for  Monthly on{" "}
                                 {Object.keys(sc.monthlyTimeSlots)
                                   .map((date) => getDateLabelFromNumber(date))
                                   .join(", ")}{" "}
@@ -485,7 +519,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                             </>
                           ) : (
                             <>
-                            <strong>slot</strong> {countActiveSingleDaySchedules()}
+                            <strong>slot</strong> {singleDayLength}
                               <td style={{ width: "200px" }}>
                                 {formatDateTime(sc.startDate)}{" "}
                                 <span style={{ color: "green" }}>
