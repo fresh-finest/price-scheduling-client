@@ -760,7 +760,7 @@ const validateTimeSlots =()=>{
                           type="number"
                           placeholder="Enter Revert Price"
                           required
-                          value={slot.revertPrice} // Add input for revertPrice
+                          value={slot.revertPrice=currentPrice} // Add input for revertPrice
                           onChange={(e) =>
                             handleTimeSlotPriceChange(
                               "weekly",
@@ -872,7 +872,7 @@ const validateTimeSlots =()=>{
                           type="number"
                           placeholder="Enter Revert Price"
                           required
-                          value={slot.revertPrice} // Add input for revertPrice
+                          value={slot.revertPrice } // Add input for revertPrice
                           onChange={(e) =>
                             handleTimeSlotPriceChange(
                               "monthly",

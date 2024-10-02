@@ -186,6 +186,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
   const isUpdateMode = !!existingSchedule;
   console.log(existingSchedule);
 
+  const productPrice = existingSchedule.currentPrice;
   /*
   
   const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
@@ -311,7 +312,7 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       const data = await fetchProductDetails(asin);
       const productDetails = data.payload[0].Product.Offers[0];
       setSku(productDetails.SellerSKU);
-      setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+      // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
       const additionalData = await fetchProductAdditionalDetails(asin);
       setTitle(additionalData.payload.AttributeSets[0].Title);
@@ -881,11 +882,9 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
             <Form.Group controlId="formAsin" style={{ marginBottom: "15px" }}>
               <Form.Label>ASIN: {asin}</Form.Label>
             </Form.Group>
-            <Form.Group controlId="formPrice" style={{ marginBottom: "15px" }}>
-              <Form.Label>Changed to: ${existingSchedule.price}</Form.Label>
-            </Form.Group>
-
-           
+         
+            {showPriceInput && (
+              <>
               <Form.Group
                 controlId="formNewPrice"
                 style={{ marginBottom: "15px" }}
@@ -910,7 +909,8 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
                   onChange={(e) => setCurrentPrice(e.target.value)}
                 />
               </Form.Group>
-        
+              </>
+            )}
             {scheduleType === "one-time" && (
               <>
                 <Form.Group
