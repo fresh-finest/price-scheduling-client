@@ -9,8 +9,8 @@ import { useSelector } from "react-redux";
 import moment from "moment-timezone";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-const BASE_URL = "http://localhost:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -542,66 +542,74 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
         }
       }
     }*/
-      const validateTimeSlots =()=>{
-        const isTimeSlotOverlapping = (start1,end1,start2,end2)=>{
-          return (start1< end2 && start2 <end1)
-        }
+      const validateTimeSlots = () => {
+        const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
+          return start1 < end2 && start2 < end1;
+        };
+    
         const formatTime = (date) => {
-          const hours = date.getHours().toString().padStart(2, '0');
-          const minutes = date.getMinutes().toString().padStart(2, '0');
+          const hours = date.getHours().toString().padStart(2, "0");
+          const minutes = date.getMinutes().toString().padStart(2, "0");
           return `${hours}:${minutes}`;
         };
-      
-        for (const day in weeklyTimeSlots){
+    
+        // Check for overlapping weekly time slots
+        for (const day in weeklyTimeSlots) {
           const slots = weeklyTimeSlots[day];
-          for(let i=0;i<slots.length;i++){
+          for (let i = 0; i < slots.length; i++) {
             const slot1 = slots[i];
-      
-            if(slot1.startTime >= slot1.endTime){
-              setErrorMessage(
-                `For day ${day}, start time must be earlier than end time.`
-              )
+    
+            // Check if start time is before end time
+            if (slot1.startTime >= slot1.endTime) {
+              setErrorMessage(`For day ${day}, start time must be earlier than end time.`);
               return false;
             }
-      
-            for(let j = i+1;j<slots.length;j++){
+    
+            // Check for overlaps with other time slots on the same day
+            for (let j = i + 1; j < slots.length; j++) {
               const slot2 = slots[j];
-              if(isTimeSlotOverlapping(slot1.startTime,slot1.endTime, slot2.startTime,slot2.endTime)){
+              if (isTimeSlotOverlapping(slot1.startTime, slot1.endTime, slot2.startTime, slot2.endTime)) {
                 setErrorMessage(
-                    `Time slots for day ${day} overlap between ${formatTime(slot1.startTime)} - ${formatTime(slot1.endTime)} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
-      
+                  `Time slots for day ${day} overlap between ${formatTime(slot1.startTime)} - ${formatTime(
+                    slot1.endTime
+                  )} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
                 );
                 return false;
               }
             }
           }
         }
-      
-        for(const date in monthlyTimeSlots){
+    
+        // Check for overlapping monthly time slots
+        for (const date in monthlyTimeSlots) {
           const slots = monthlyTimeSlots[date];
-          for(let i=0;i<slots.length;i++){
+          for (let i = 0; i < slots.length; i++) {
             const slot1 = slots[i];
-      
-            if(slot1.startTime>=slot1.endTime){
-              setErrorMessage(
-                  `For date ${date}, start time must be earlier than end time.`
-              )
+    
+            // Check if start time is before end time
+            if (slot1.startTime >= slot1.endTime) {
+              setErrorMessage(`For date ${date}, start time must be earlier than end time.`);
               return false;
             }
-      
-            for(let j= i+1;j<slots.length;j++){
+    
+            // Check for overlaps with other time slots on the same date
+            for (let j = i + 1; j < slots.length; j++) {
               const slot2 = slots[j];
-              if(isTimeSlotOverlapping(slot1.startTime,slot1.endTime,slot2.startTime,slot2.endTime)){
+              if (isTimeSlotOverlapping(slot1.startTime, slot1.endTime, slot2.startTime, slot2.endTime)) {
                 setErrorMessage(
-                    `Time slots for date ${date} overlap between ${formatTime(slot1.startTime)} - ${formatTime(slot1.endTime)} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
-                )
+                  `Time slots for date ${date} overlap between ${formatTime(slot1.startTime)} - ${formatTime(
+                    slot1.endTime
+                  )} and ${formatTime(slot2.startTime)} - ${formatTime(slot2.endTime)}.`
+                );
                 return false;
               }
             }
           }
         }
+    
         return true;
-      }
+      };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -614,12 +622,15 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
         setLoading(false);
         return;
       }
+      // if (!validateTimeSlots()) {
+      //   // setErrorMessage("Set correct time.");
+      //   setLoading(false);
+      //   return;
+      // }
+
       if (!validateTimeSlots()) {
-        // setErrorMessage("Set correct time.");
-        setLoading(false);
         return;
       }
-
       const overlappingSchedule = existingSchedule && (() => {
         console.log(existingSchedule.status);
       
@@ -874,19 +885,12 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
               <Form.Label>Changed to: ${existingSchedule.price}</Form.Label>
             </Form.Group>
 
-            <Button
-              variant="success"
-              style={{ width: "40%", marginBottom: "15px" }}
-              onClick={handleSetPriceClick}
-            >
-              Set Price
-            </Button>
-            {showPriceInput && (
+           
               <Form.Group
                 controlId="formNewPrice"
                 style={{ marginBottom: "15px" }}
               >
-                <Form.Label>New Price</Form.Label>
+                <Form.Label>Start Price</Form.Label>
                 <Form.Control
                   type="number"
                   placeholder="Enter New Price"
@@ -894,7 +898,19 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
                   onChange={(e) => setPrice(e.target.value)}
                 />
               </Form.Group>
-            )}
+              <Form.Group
+                controlId="formNewPrice"
+                style={{ marginBottom: "15px" }}
+              >
+                <Form.Label>End Price</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Enter End Price"
+                  value={currentPrice}
+                  onChange={(e) => setCurrentPrice(e.target.value)}
+                />
+              </Form.Group>
+        
             {scheduleType === "one-time" && (
               <>
                 <Form.Group

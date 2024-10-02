@@ -11,8 +11,8 @@ import moment from "moment-timezone";
 
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-// const BASE_URL = "https://api.priceobo.com";
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://api.priceobo.com";
+// const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
