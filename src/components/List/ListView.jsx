@@ -8,7 +8,7 @@ import {
   Card,
 } from "react-bootstrap";
 import { useQuery } from "react-query";
-import { MdCheck } from "react-icons/md";
+import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
 import UpdatePriceFromList from "./UpdatePriceFromList";
@@ -43,6 +43,7 @@ const fetchScheduledData = async () => {
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [highQuatilyImage, setHighQuanlityImage] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
@@ -116,6 +117,9 @@ const ListView = () => {
     indexOfLastItem
   );
 
+  console.log("current Items", currentItems);
+  console.log("selected Product", selectedProduct);
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
@@ -167,6 +171,11 @@ const ListView = () => {
     debouncedFilterProducts(value); // Apply debounced filtering
   };
 
+  const handleClearInput = () => {
+    setSearchTerm("");
+    debouncedFilterProducts("");
+  };
+
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       const value = event.target.value || "";
@@ -179,15 +188,6 @@ const ListView = () => {
       ); // Immediate filtering on Enter press
     }
   };
-  // const handleSearch = (value) => {
-  //   setSearchTerm(value);
-  //   filterProducts(
-  //     productData?.listings || [],
-  //     scheduledData,
-  //     filterScheduled,
-  //     value
-  //   );
-  // };
 
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
@@ -254,36 +254,6 @@ const ListView = () => {
 
     setChannelStockValue(channelStock);
   };
-  /*
-  const handleProductSelect = async (asin, index) => {
-    if (selectedRowIndex === index) {
-      setSelectedRowIndex(null);
-      setSelectedProduct(null);
-      setSelectedListing(null);
-      setSelectedAsin("");
-    } else {
-      try {
-        const [responseone, responsetwo] = await Promise.all([
-          axios.get(
-            `${BASE_URL}/details/${asin}`
-          ),
-          axios.get(
-            `${BASE_URL}/product/${asin}`
-          ),
-        ]);
-
-
-
-
-        setSelectedProduct(responseone.data.payload);
-        setSelectedListing(responsetwo.data);
-        setSelectedAsin(asin);
-        setSelectedRowIndex(index);
-      } catch (error) {
-        console.error("Error fetching product details:", error.message);
-      }
-    }
-  };*/
 
   const handleProductSelect = async (
     price,
@@ -327,24 +297,14 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
+        console.log(responseOne.data.payload);
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
       }
     }
   };
-  /*
-  const handleUpdate = (asin, e) => {
-    e.stopPropagation();
-    if (asin) {
-      setSelectedAsin(asin);
-      setShowUpdateModal(true);
-      setSelectedProduct(product);
-    } else {
-      console.error("ASIN is not provided. Modal will not open.");
-    }
-  };
-*/
+
   // Fetch product details when Update Price button is clicked
   const handleUpdate = async (price, sku1, asin, index, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
@@ -445,39 +405,50 @@ const ListView = () => {
   return (
     <>
       <UpdatePriceFromList
+        product={selectedProduct}
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
         sku1={selectedSku}
+        fnSku={selectedFnSku}
+        channelStockValue={channelStockValue}
+        fulfillmentChannel={fulfillmentChannel}
       />
 
       <div>
-        <InputGroup
-          className="mb-3"
-          style={{ maxWidth: "500px", position: "absolute", top: "10px" }}
-        >
-          <Form.Control
-            type="text"
-            placeholder="Search Title/ASIN/SKU/FNSKU"
-            value={searchTerm}
-            // onChange={(e) => handleSearch(e.target.value)}
-            onChange={handleSearch}
-            onKeyDown={handleKeyPress}
-            style={{ borderRadius: "0px" }}
-            className="custom-input"
-          />
-          {/* <InputGroup>
-            {
-              <Button
-                variant="outline-secondary"
-                onClick={() => handleSearch("")} // Clears the input field
-                style={{ borderRadius: "0px", padding: "0 10px" }}
+        <div className="relative ">
+          <InputGroup
+            className="mb-3"
+            style={{ maxWidth: "500px", position: "absolute", top: "-7px" }}
+          >
+            <Form.Control
+              type="text"
+              placeholder="Search Title/ASIN/SKU/FNSKU"
+              value={searchTerm}
+              // onChange={(e) => handleSearch(e.target.value)}
+              onChange={handleSearch}
+              onKeyDown={handleKeyPress}
+              style={{ borderRadius: "0px" }}
+              className="custom-input"
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClearInput}
+                className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+                style={
+                  {
+                    // backgroundColor: "transparent",
+                    // border: "none",
+                    // fontSize: "16px",
+                    // cursor: "pointer",
+                  }
+                }
               >
-                ✕
-              </Button>
-            }
-          </InputGroup> */}
-        </InputGroup>
+                <MdOutlineClose />
+              </button>
+            )}
+          </InputGroup>
+        </div>
 
         <Button
           style={{
@@ -831,24 +802,6 @@ const ListView = () => {
                                   fontSize: "16px",
                                 }}
                               />
-                              // <BsCopy
-                              //   onClick={(e) => {
-                              //     e.stopPropagation();
-                              //     handleCopy(item.asin1, "asin", index);
-                              //   }}
-                              //   style={{
-                              //     marginLeft: "10px",
-                              //     cursor: "pointer",
-                              //     fontSize: "13px",
-                              //   }}
-                              // />
-                              // <MdContentCopy
-                              //   onClick={(e) => {
-                              //     e.stopPropagation();
-                              //     handleCopy(item.asin1, "asin", index);
-                              //   }}
-                              //   style={{ marginLeft: "5px", cursor: "pointer" }}
-                              // />
                             )}
                           </span>{" "}
                           <span
@@ -914,17 +867,6 @@ const ListView = () => {
                                 />
                               ))}
                           </span>
-                          {/* <span className="bubble-text">
-                            {item.fulfillmentChannel === "DEFAULT"
-                              ? "FBM"
-                              : "FBA"}{" "}
-                            :{" "}
-                            {item?.fulfillableQuantity != null &&
-                            item?.pendingTransshipmentQuantity != null
-                              ? item?.fulfillableQuantity +
-                                item?.pendingTransshipmentQuantity
-                              : "N/A"}
-                          </span> */}
                         </div>
                       </td>
                       <td
@@ -956,11 +898,6 @@ const ListView = () => {
                         }}
                       >
                         {item.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
-                        {/* {item?.fulfillableQuantity != null &&
-                        item?.pendingTransshipmentQuantity != null
-                          ? item?.fulfillableQuantity +
-                            item?.pendingTransshipmentQuantity
-                          : "N/A"} */}
                       </td>
                       <td
                         style={{
@@ -1010,46 +947,13 @@ const ListView = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        {/* <button
-                          className="text-white"
-                          style={{
-                            // backgroundColor: "#0D6EFD",
-
-                            // paddingLeft: "20px",
-                            // paddingRight: "20px",
-                            padding: "8px 12px",
-                            border: "none",
-                            backgroundColor: "#0662BB",
-                            borderRadius: "3px",
-
-                            // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
-                          }}
-                          onClick={(e) =>
-                            handleUpdate(
-                              item?.price,
-                              item.sellerSku,
-                              item.asin1,
-                              index,
-                              e
-                            )
-                          }
-                          disabled={!currentUser?.permissions?.write}
-                        >
-                          <IoMdAdd style={{ color: "white" }} />
-                        </button> */}
                         <Button
                           className="updatePriceBtn"
                           style={{
-                            // backgroundColor: "#0D6EFD",
-
-                            // paddingLeft: "20px",
-                            // paddingRight: "20px",
                             padding: "8px 12px",
                             border: "none",
                             backgroundColor: "#0662BB",
                             borderRadius: "3px",
-
-                            // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
                           }}
                           onClick={(e) =>
                             handleUpdate(

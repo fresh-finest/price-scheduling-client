@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Card, Table, Button } from "react-bootstrap";
+import React, { useContext, useEffect, useState } from "react";
+import { Card, Table, Button, Modal } from "react-bootstrap";
 import { LuPencilLine } from "react-icons/lu";
 import { PiWarehouse } from "react-icons/pi";
+import { CiEdit } from "react-icons/ci";
+import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -10,8 +12,24 @@ import EditScheduleFromList from "./EditScheduleFromList";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
-import { BsClipboardCheck } from "react-icons/bs";
-import { FaRankingStar } from "react-icons/fa6";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
+import { FaArrowRightLong, FaRankingStar } from "react-icons/fa6";
+import { Calendar } from "../ui/calendar";
+
+import {
+  Card as ShadCdnCard,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FaTrash } from "react-icons/fa";
+import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
+import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -65,6 +83,17 @@ const dateNames = [
 //   const formattedHours = newHours < 10 ? `0${newHours}` : newHours;
 //   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`;
 // }
+// function addHoursToTime(timeString, hoursToAdd) {
+//   if (!timeString || typeof timeString !== "string") {
+//     console.error("Invalid timeString:", timeString);
+//     return "Invalid Time"; // Return a default value or handle it gracefully
+//   }
+
+//   const [hours, minutes] = timeString.split(":").map(Number);
+//   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
+//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
+//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+// }
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
@@ -73,8 +102,14 @@ function addHoursToTime(timeString, hoursToAdd) {
 
   const [hours, minutes] = timeString.split(":").map(Number);
   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
-  const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
-  return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Add leading zero to minutes if necessary
+
+  // Convert 24-hour time to 12-hour format with AM/PM
+  const period = newHours >= 12 ? "PM" : "AM";
+  const hours12 = newHours % 12 || 12; // Convert to 12-hour format
+  const formattedHours = hours12 < 10 ? `0${hours12}` : hours12;
+
+  return `${formattedHours}:${formattedMinutes} ${period}`; // Return time in 12-hour format with AM/PM
 }
 
 const getDayLabelFromNumber = (dayNumber) => {
@@ -122,13 +157,37 @@ const ProductDetailView = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null);
+  const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
+  const [currentPrice, setCurrentPrice] = useState("");
+  const { addEvent, removeEvent } = useContext(PriceScheduleContext);
 
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [singleLength, setSingleLength] = useState("");
+  const [weeklyLength, setWeeklyLength] = useState("");
+  const [monthlyLength, setMonthlyLength] = useState("");
+
+  // const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(
+  //   editSchedule.weeklyTimeSlots || {}
+  // );
+  // const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(
+  //   existingSchedule.weeklyTimeSlots || {}
+  // );
+  // const [monthlyTimeSlots, setMonthlyTimeSlots] = useState(
+  //   editSchedule.monthlyTimeSlots || {}
+  // );
+  // const [monthlyTimeSlots, setMonthlyTimeSlots] = useState(
+  //   existingSchedule.monthlyTimeSlots || {}
+  // );
 
   const { currentUser } = useSelector((state) => state.user);
 
+  const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
   const formatDateTime = (dateString) => {
@@ -155,6 +214,31 @@ const ProductDetailView = ({
       )
       .join(", ");
   };
+
+  useEffect(() => {
+    console.log(priceSchedule);
+    const validSchedule = priceSchedule.find(
+      (sc) =>
+        sc.status !== "deleted" &&
+        sc.weekly &&
+        (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
+    );
+    console.log(validSchedule);
+
+    if (validSchedule) {
+      console.log(validSchedule.currentPrice);
+      setCurrentPrice(validSchedule.currentPrice);
+    }
+  }, [priceSchedule]);
+
+  useEffect(() => {
+    // Set dummy dates for testing
+    const dummyDates = ["2024-08-06", "2024-09-02", "2024-09-10", "2024-09-25"];
+
+    // Convert string dates to Date objects
+    const dateObjects = dummyDates.map((date) => new Date(date));
+    setDates(dateObjects);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -194,9 +278,76 @@ const ProductDetailView = ({
     };
   }, [asin]);
 
-  const handleEdit = (schedule) => {
+  const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
+    setEditScheduleModalTitle(scheduleType);
+    console.log(schedule);
   };
+  const handleShowConfirmation = () => {
+    setShowConfirmationModal(true);
+  };
+  const handleCloseConfirmation = () => {
+    setShowConfirmationModal(false);
+  };
+  const deleteSchedule = async (scheduleId) => {
+    try {
+      const response = await axios.delete(
+        `${BASE_URL}/api/schedule/change/${scheduleId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error deleting schedule:",
+        error.response ? error.response.data : error.message
+      );
+      throw error;
+    }
+  };
+
+  // const handleDelete = async () => {
+  //   try {
+  //     await deleteSchedule(editSchedule._id);
+  //     // await deleteSchedule(existingSchedule._id);
+  //     removeEvent(editSchedule._id);
+  //     setSuccessMessage(`Schedule deleted successfully for SKU: ${sku1}`);
+  //     setShowSuccessModal(true);
+  //     handleClose();
+  //   } catch (error) {
+  //     setErrorMessage(
+  //       "Error deleting schedule: " +
+  //         (error.response ? error.response.data.error : error.message)
+  //     );
+  //     console.error("Error deleting schedule:", error);
+  //   }
+  // };
+
+  // const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
+  //   if (scheduleType === "weekly") {
+  //     setWeeklyTimeSlots((prevSlots) => {
+  //       const updatedSlots = { ...prevSlots };
+  //       updatedSlots[identifier] = updatedSlots[identifier].filter(
+  //         (_, i) => i !== index
+  //       );
+  //       // If no more time slots remain for the day, remove the day entirely
+  //       if (updatedSlots[identifier].length === 0) {
+  //         delete updatedSlots[identifier];
+  //       }
+  //       return updatedSlots;
+  //     });
+  //   } else if (scheduleType === "monthly") {
+  //     setMonthlyTimeSlots((prevSlots) => {
+  //       const updatedSlots = { ...prevSlots };
+  //       updatedSlots[identifier] = updatedSlots[identifier].filter(
+  //         (_, i) => i !== index
+  //       );
+  //       // If no more time slots remain for the date, remove the date entirely
+  //       if (updatedSlots[identifier].length === 0) {
+  //         delete updatedSlots[identifier];
+  //       }
+  //       return updatedSlots;
+  //     });
+  //   }
+  // };
 
   const handleClose = () => {
     setEditSchedule(null);
@@ -221,38 +372,6 @@ const ProductDetailView = ({
         console.error("Failed to copy text: ", err);
       });
   };
-
-  // if (loading) {
-  //   return (
-  //     <div
-  //       style={{
-  //         // marginTop: "100px",
-  //         paddingTop: "30px",
-  //         display: "flex",
-  //         justifyContent: "center",
-  //         alignItems: "center",
-  //         height: "85vh",
-  //         padding: "20px",
-  //         width: "100%",
-  //         boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-  //         textAlign: "center",
-  //       }}
-  //     >
-  //       {/* <Spinner animation="border" /> Loading... */}
-  //       <img
-  //         style={{ width: "30px", marginRight: "6px" }}
-  //         className="animate-pulse"
-  //         src={priceoboIcon}
-  //         alt="Priceobo Icon"
-  //       />
-  //       <br />
-
-  //       <div className="block">
-  //         <p className="text-base"> Loading...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   // const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
   // const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
@@ -305,6 +424,65 @@ const ProductDetailView = ({
 
   const now = new Date();
 
+  const getDayName = (dateString) => {
+    const date = new Date(dateString);
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return daysOfWeek[date.getDay()];
+  };
+
+  const countActiveSingleDaySchedules = () => {
+    return priceSchedule.filter(
+      (sc) =>
+        sc.status !== "deleted" &&
+        !sc.weekly &&
+        !sc.monthly && // Ensure it's not weekly or monthly
+        sc.startDate && // Ensure there's a start date
+        (!sc.endDate || new Date(sc.endDate) >= now) // Either no end date or end date is in the future
+    ).length;
+  };
+  const getFilteredWeeklySlotLength = (priceSchedule) => {
+    return priceSchedule
+      .filter(
+        (sc) => sc.status !== "deleted" && sc.weekly // Filter for weekly schedules
+      )
+      .reduce(
+        (totalSlots, sc) =>
+          totalSlots +
+          Object.values(sc.weeklyTimeSlots).reduce(
+            (acc, slots) => acc + slots.length,
+            0
+          ),
+        0
+      );
+  };
+  const getFilteredMonthlySlotLength = (priceSchedule) => {
+    return priceSchedule
+      .filter(
+        (sc) => sc.status !== "deleted" && sc.monthly // Filter for monthly schedules
+      )
+      .reduce(
+        (totalSlots, sc) =>
+          totalSlots +
+          Object.values(sc.monthlyTimeSlots).reduce(
+            (acc, slots) => acc + slots.length,
+            0
+          ),
+        0
+      );
+  };
+  const singleDayLength = countActiveSingleDaySchedules();
+  const weeklySlotLength = getFilteredWeeklySlotLength(priceSchedule);
+
+  const monthlySlotLength = getFilteredMonthlySlotLength(priceSchedule);
+
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
@@ -343,294 +521,414 @@ const ProductDetailView = ({
                   Schedule Details
                 </h2>
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  margin: "0 10px",
-                }}
-              >
-                <Card.Img
-                  variant="top"
-                  src={product?.AttributeSets[0]?.SmallImage?.URL}
-                  style={detailStyles.image}
-                />
-                <Card.Title style={detailStyles.title}>
-                  {product?.AttributeSets[0]?.Title}
-                </Card.Title>
-              </div>
 
-              <div className="grid grid-cols-[60px_auto_auto_auto]  mx-[10px] gap-2">
-                <div
-                  style={{ borderRadius: "3px", height: "30px" }}
-                  className="row-span-2 bg-blue-500 text-white flex justify-center items-center  "
-                >
-                  <h2 style={{ fontSize: "13px" }}>${price}</h2>
-                </div>
+              {/* product image and details with asin numbers */}
 
-                <div>
-                  <span
-                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
-                    style={{
-                      cursor: "pointer",
-                      // display: "inline-flex",
-                      // alignItems: "stretch",
-                    }}
-                  >
-                    {asin}{" "}
-                    {copiedAsinIndex ? (
-                      <MdCheck
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          color: "green",
-                        }}
-                      />
-                    ) : (
-                      <BsClipboardCheck
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopy(asin, "asin");
-                        }}
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                        }}
-                      />
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span
-                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
-                    style={{
-                      cursor: "pointer",
-                      // display: "inline-flex",
-                      // alignItems: "stretch",
-                    }}
-                  >
-                    {sku1}{" "}
-                    {copiedSkuIndex ? (
-                      <MdCheck
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          color: "green",
-                        }}
-                      />
-                    ) : (
-                      <BsClipboardCheck
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopy(sku1, "sku");
-                        }}
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                        }}
-                      />
-                    )}
-                  </span>
-                </div>
-                <div>
-                  <span
-                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
-                    style={{
-                      cursor: "pointer",
-                      // display: "inline-flex",
-                      // alignItems: "stretch",
-                    }}
-                  >
-                    {fnSku}{" "}
-                    {copiedfnSkuIndex ? (
-                      <MdCheck
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          color: "green",
-                        }}
-                      />
-                    ) : (
-                      <BsClipboardCheck
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopy(fnSku, "fnSku");
-                        }}
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                        }}
-                      />
-                    )}
-                  </span>
-                </div>
-                <div className="text-left text-[#505050]">
-                  <p className="flex justify-center items-center  gap-2 text-xs">
-                    <FaRankingStar style={{ fontSize: "16px" }} />{" "}
-                    {product?.SalesRankings?.[0]?.Rank
-                      ? "#" +
-                        new Intl.NumberFormat().format(
-                          product.SalesRankings[0].Rank
-                        )
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="text-center text-xs text-[#505050]">
-                  <p className="flex justify-center items-center gap-2 text-xs">
-                    {" "}
-                    <PiWarehouse style={{ fontSize: "16px" }} />
-                    {new Intl.NumberFormat().format(channelStockValue)}
-                  </p>
-                </div>
-                <div className="text-center text-xs text-[#505050]">
-                  <span>
-                    {fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
-                  </span>
-                </div>
-              </div>
+              <ProductDetailsWithNumbers
+                product={product}
+                channelStockValue={channelStockValue}
+                fulfillmentChannel={fulfillmentChannel}
+                price={price}
+                asin={asin}
+                sku1={sku1}
+                fnSku={fnSku}
+                updatePriceModal={false}
+              ></ProductDetailsWithNumbers>
 
               <hr
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
-            </div>
 
-            {priceSchedule.length > 0 ? (
-              <div style={detailStyles.tableContainer}>
-                <Table striped bordered size="sm" style={detailStyles.table}>
-                  <thead>
-                    <tr>
-                      <th>Start Date</th>
-                      <th>End Date</th>
-                      <th>Update</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {priceSchedule
-                      .filter(
+              {/* calendar */}
+              <div className="m-3 ">
+                <Calendar
+                  selected={dates}
+                  className="rounded-md border w-full "
+                />
+              </div>
+              {/* tabs  */}
+
+              <div className="px-2 py-1 m-2 h-[45vh] overflow-y-auto">
+                <Tabs defaultValue="single" className="">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="single">
+                      Single ({singleDayLength})
+                    </TabsTrigger>
+                    <TabsTrigger value="weekly">
+                      Weekly ({weeklySlotLength}){" "}
+                    </TabsTrigger>
+                    <TabsTrigger value="monthly">
+                      Monthly ({monthlySlotLength})
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="single">
+                    <>
+                      {/* Filter schedules for single entries and check if data exists */}
+                      {priceSchedule.filter(
                         (sc) =>
                           sc.status !== "deleted" &&
-                          (sc.weekly ||
-                            sc.monthly ||
-                            sc.endDate === null ||
+                          !sc.weekly &&
+                          !sc.monthly &&
+                          (sc.endDate === null ||
                             (sc.endDate && new Date(sc.endDate) >= now))
-                      )
-
-                      .map((sc) => (
-                        <tr key={sc._id}>
-                          {sc.weekly ? (
-                            <td style={{ width: "200px" }} colSpan={2}>
-                              Weekly on{" "}
-                              {Object.keys(sc.weeklyTimeSlots)
-                                .map((day) => getDayLabelFromNumber(day))
-                                .join(", ")}{" "}
-                              {displayTimeSlotsWithDayLabels(
-                                sc.weeklyTimeSlots,
-                                6,
-                                true
-                              )}
-                              {/* <span style={{ color: "green" }}>
-                                    {" "}
-                                    ${sc.price}
-                                  </span>{" "}
-                                  {}{" "}
-                                  <span style={{ color: "green" }}>
-                                    {" "}
-                                    ${sc.currentPrice}
-                                  </span> */}
-                            </td>
-                          ) : sc.monthly ? (
-                            <>
-                              <td style={{ width: "200px" }} colSpan={2}>
-                                Monthly on{" "}
-                                {Object.keys(sc.monthlyTimeSlots)
-                                  .map((date) => getDateLabelFromNumber(date))
-                                  .join(", ")}{" "}
-                                {displayTimeSlotsWithDayLabels(
-                                  sc.monthlyTimeSlots,
-                                  6,
-                                  false
-                                )}
-                                {/* <span style={{ color: "green" }}>
-                                    {" "}
-                                    ${sc.price}
-                                  </span>{" "}
-                                  {}{" "}
-                                  <span style={{ color: "green" }}>
-                                    {" "}
-                                    ${sc.currentPrice}
-                                  </span>        */}
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td style={{ width: "200px" }}>
-                                {formatDateTime(sc.startDate)}{" "}
-                                <span style={{ color: "green" }}>
-                                  Changed Price: ${sc.price}
-                                </span>
-                              </td>
-                              <td style={{ width: "200px" }}>
-                                {sc.endDate ? (
-                                  <>
+                      ).length > 0 ? (
+                        // Map through the filtered schedules
+                        priceSchedule
+                          .filter(
+                            (sc) =>
+                              sc.status !== "deleted" &&
+                              !sc.weekly &&
+                              !sc.monthly &&
+                              (sc.endDate === null ||
+                                (sc.endDate && new Date(sc.endDate) >= now))
+                          )
+                          .map((sc, index) => (
+                            <ShadCdnCard
+                              className="flex justify-center w-full gap-2 mb-2 px-2 py-2"
+                              key={sc.id}
+                            >
+                              <div key={index} className="w-full">
+                                <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {formatDateTime(sc.startDate)}
+                                  {sc.price && (
+                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                      ${sc?.price?.toFixed(2)}
+                                    </span>
+                                  )}
+                                </h3>
+                              </div>
+                              <span className="flex justify-center items-center text-gray-400">
+                                <FaArrowRightLong />
+                              </span>
+                              {sc.endDate ? (
+                                <div className="w-full">
+                                  <h3 className="flex justify-between text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                     {formatDateTime(sc.endDate)}
                                     {sc.currentPrice && (
-                                      <div style={{ color: "green" }}>
-                                        Reverted Price: ${sc.currentPrice}
-                                      </div>
+                                      <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                        ${sc?.currentPrice?.toFixed(2)}
+                                      </span>
                                     )}
-                                  </>
-                                ) : (
-                                  <span style={{ color: "red" }}>
-                                    Until Changed
-                                  </span>
+                                  </h3>
+                                </div>
+                              ) : (
+                                <div className="w-full">
+                                  <h3 className="text-red-400 font-semibold text-[14px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                    <span className="">Until change back</span>
+                                  </h3>
+                                </div>
+                              )}
+                              <div className="w-[20%] text-center flex justify-center items-start mt-1">
+                                <button
+                                  onClick={() => handleEdit(sc, "Single")}
+                                  disabled={
+                                    (!sc.weekly &&
+                                      !sc.monthly &&
+                                      sc.endDate != null &&
+                                      (sc.endDate && new Date(sc.endDate)) <
+                                        now) ||
+                                    !currentUser?.permissions?.write
+                                  }
+                                  className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                                >
+                                  <PenLine size={18} className="text-white" />
+                                </button>
+                              </div>
+                            </ShadCdnCard>
+                          ))
+                      ) : (
+                        // Show this when no matching schedule is found
+                        <ShadCdnCard className="text-center py-3">
+                          <p className="text-2xl flex justify-center">
+                            <BsFillInfoSquareFill className="text-[#0D6EFD]" />
+                          </p>
+                          <h5 className="text-base">Not Found</h5>
+                        </ShadCdnCard>
+                      )}
+                    </>
+                  </TabsContent>
+
+                  <TabsContent value="weekly">
+                    <>
+                      <div>
+                        {/* Filter the schedules that have weekly data */}
+                        {priceSchedule.filter(
+                          (sc) =>
+                            sc.status !== "deleted" &&
+                            sc.weekly &&
+                            Object.keys(sc.weeklyTimeSlots).length > 0
+                        ).length > 0 ? (
+                          priceSchedule
+                            .filter(
+                              (sc) =>
+                                sc.status !== "deleted" &&
+                                (sc.weekly ||
+                                  sc.monthly ||
+                                  sc.endDate === null ||
+                                  (sc.endDate && new Date(sc.endDate) >= now))
+                            )
+                            .map((sc, scheduleIndex) => {
+                              return sc.weekly
+                                ? Object.keys(sc.weeklyTimeSlots).map((day) => {
+                                    // Check if there are time slots for this day
+                                    if (sc.weeklyTimeSlots[day].length > 0) {
+                                      return (
+                                        <ShadCdnCard
+                                          key={`${scheduleIndex}-${day}`}
+                                          className="flex flex-col mb-1"
+                                        >
+                                          <div className=" ">
+                                            {/* <div className="grid grid-cols-[93%_7%] "> */}
+                                            <div className=" bg-[#707070] border-0 m-0 p-0 rounded-t-sm ">
+                                              <span className="text-white text-start text-sm py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                {getDayLabelFromNumber(day)}
+                                              </span>
+                                            </div>
+
+                                            {/* <button
+                                              onClick={() => handleEdit(sc)}
+                                              className="bg-[#0662BB] py-1 px-1 rounded-sm ml-2"
+                                            >
+                                              <PenLine
+                                                size={20}
+                                                className="text-white"
+                                              />
+                                            </button> */}
+                                          </div>
+                                          <div>
+                                            {sc.weeklyTimeSlots[day].map(
+                                              (timeSlot, timeIndex) => (
+                                                <div
+                                                  key={timeIndex}
+                                                  className=""
+                                                >
+                                                  <div className="flex justify-center w-full gap-2 my-2 px-2 ">
+                                                    <div className="w-full">
+                                                      <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                        {addHoursToTime(
+                                                          timeSlot?.startTime,
+                                                          6
+                                                        )}
+                                                        <span className="bg-blue-500 text-white p-1 rounded-sm">
+                                                          $
+                                                          {parseFloat(
+                                                            timeSlot?.newPrice
+                                                          ).toFixed(2)}
+                                                        </span>
+                                                      </h3>
+                                                    </div>
+                                                    <span className="flex justify-center items-center text-gray-400">
+                                                      <FaArrowRightLong />
+                                                    </span>
+                                                    <div className="w-full">
+                                                      <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                        {addHoursToTime(
+                                                          timeSlot.endTime,
+                                                          6
+                                                        )}
+                                                        {timeSlot.revertPrice ? (
+                                                          <span className="bg-red-700 text-white p-1 rounded-sm">
+                                                            $
+                                                            {parseFloat(
+                                                              timeSlot?.revertPrice
+                                                            ).toFixed(2)}
+                                                          </span>
+                                                        ) : (
+                                                          <span className="p-1">
+                                                            <p className="py-2"></p>
+                                                          </span>
+                                                        )}
+                                                      </h3>
+                                                    </div>
+
+                                                    <div className="w-[20%] text-center flex justify-center items-center mt-0">
+                                                      <button
+                                                        onClick={() =>
+                                                          handleEdit(
+                                                            sc,
+                                                            "Weekly"
+                                                          )
+                                                        }
+                                                        className="bg-[#0662BB] py-1  px-1 rounded-sm "
+                                                      >
+                                                        <PenLine
+                                                          size={20}
+                                                          className="text-white"
+                                                        />
+                                                      </button>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              )
+                                            )}
+                                          </div>
+                                        </ShadCdnCard>
+                                      );
+                                    } else {
+                                      return null; // Don't render anything if no time slots
+                                    }
+                                  })
+                                : null;
+                            })
+                        ) : (
+                          <ShadCdnCard className="text-center  py-3">
+                            <p className="text-2xl flex  justify-center">
+                              <BsFillInfoSquareFill className="text-[#0D6EFD]" />
+                            </p>
+                            <h5 className="text-base">Not Found</h5>
+                          </ShadCdnCard>
+                        )}
+                      </div>
+                    </>
+                  </TabsContent>
+
+                  <TabsContent value="monthly">
+                    <>
+                      {/* <div className="flex justify-center w-full gap-2 px-2">
+                        <p className="text-center text-[14px] font-semibold flex items-center justify-center w-full">
+                          <Timer size={16} className="mr-1" /> Start
+                        </p>
+                        <p className="text-center text-[14px] font-semibold flex items-center justify-center w-full">
+                          <TimerOff size={16} className="mr-1" /> End
+                        </p>
+                        <p className="w-[20%]"></p>
+                        <p className="w-[20%]"></p>
+                      </div> */}
+
+                      {priceSchedule.filter(
+                        (sc) =>
+                          sc.status !== "deleted" &&
+                          sc.monthly &&
+                          Object.keys(sc.monthlyTimeSlots).length > 0
+                      ).length > 0 ? (
+                        priceSchedule
+                          .filter(
+                            (sc) =>
+                              sc.status !== "deleted" &&
+                              sc.monthly &&
+                              Object.keys(sc.monthlyTimeSlots).length > 0
+                          )
+                          .map((sc, index) =>
+                            Object.keys(sc.monthlyTimeSlots).map((date) => (
+                              <ShadCdnCard
+                                key={index}
+                                className="flex flex-col mb-1"
+                              >
+                                <div className="bg-[#707070] px-2 rounded-t py-1">
+                                  <h5 className="text-white text-start text-sm">
+                                    {getDateLabelFromNumber(date)}
+                                  </h5>
+                                </div>
+
+                                {sc.monthlyTimeSlots[date].map(
+                                  (timeSlot, timeIndex) => (
+                                    <div
+                                      key={timeIndex}
+                                      className="flex justify-center w-full gap-2 px-2 py-2"
+                                    >
+                                      <div className="w-full">
+                                        <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                          {addHoursToTime(
+                                            timeSlot.startTime,
+                                            6
+                                          )}
+                                          <span className="bg-blue-500 text-white p-1 rounded-sm ">
+                                            $
+                                            {parseFloat(
+                                              timeSlot?.newPrice
+                                            ).toFixed(2)}
+                                          </span>
+                                        </h3>
+                                      </div>
+
+                                      <span className="flex justify-center items-center text-gray-400">
+                                        <FaArrowRightLong />
+                                      </span>
+
+                                      <div className="w-full">
+                                        <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                          {addHoursToTime(timeSlot.endTime, 6)}
+                                          {timeSlot?.revertPrice ? (
+                                            <span className="bg-red-700 text-white p-1 rounded-sm">
+                                              $
+                                              {parseFloat(
+                                                timeSlot?.revertPrice
+                                              ).toFixed(2)}
+                                            </span>
+                                          ) : (
+                                            <span className="p-1">
+                                              <p className="py-2"></p>
+                                            </span>
+                                          )}
+                                        </h3>
+                                      </div>
+
+                                      <div className="w-[20%] text-center flex justify-center items-start mt-1">
+                                        <button
+                                          onClick={() =>
+                                            handleEdit(sc, "Monthly")
+                                          }
+                                          className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                                        >
+                                          <PenLine
+                                            size={20}
+                                            className="text-white"
+                                          />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )
                                 )}
-                              </td>
-                            </>
-                          )}
-                          <td>
-                            <Button
-                              style={{
-                                marginTop: "20px",
-                                backgroundColor: "#0D6EFD",
-                                border: "none",
-                              }}
-                              onClick={() => handleEdit(sc)}
-                              disabled={
-                                (!sc.weekly &&
-                                  !sc.monthly &&
-                                  sc.endDate != null &&
-                                  (sc.endDate && new Date(sc.endDate)) < now) ||
-                                !currentUser?.permissions?.write
-                              } // Disable button if endDate is in the past
-                            >
-                              <LuPencilLine />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </Table>
+                              </ShadCdnCard>
+                            ))
+                          )
+                      ) : (
+                        <ShadCdnCard className="text-center  py-3">
+                          <p className="text-2xl flex  justify-center">
+                            <BsFillInfoSquareFill className="text-[#0D6EFD]" />
+                          </p>
+                          <h5 className="text-base">Not Found</h5>
+                        </ShadCdnCard>
+                      )}
+                    </>
+                  </TabsContent>
+                </Tabs>
               </div>
-            ) : (
-              <p style={{ margin: "20px" }}>
-                No schedule available for this ASIN.
-              </p>
-            )}
+            </div>
           </Card.Body>
         )}
       </Card>
 
       {editSchedule && (
         <EditScheduleFromList
+          editScheduleModalTitle={editScheduleModalTitle}
           show={!!editSchedule}
           onClose={handleClose}
           asin={asin}
           existingSchedule={editSchedule}
         />
       )}
+
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Operation Successful!</Modal.Title>
+        </Modal.Header>
+      </Modal>
+      <Modal show={showConfirmationModal} onHide={handleCloseConfirmation}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this schedule?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseConfirmation}>
+            Cancel
+          </Button>
+          <Button variant="danger">
+            {/* <Button variant="danger" onClick={handleRemoveTimeSlot()}> */}
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

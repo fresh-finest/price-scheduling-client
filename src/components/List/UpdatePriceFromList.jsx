@@ -7,9 +7,17 @@ import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import moment from "moment-timezone";
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
 
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
+import "./UpdatePriceFromList.css";
+import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
+import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
+import { TabsContent } from "@radix-ui/react-tabs";
+import { FaPlus } from "react-icons/fa";
+import { Card } from "../ui/card";
+import { IoMdClose } from "react-icons/io";
 const BASE_URL = "https://api.priceobo.com";
 // const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
@@ -88,7 +96,7 @@ const saveScheduleAndQueueJobs = async (
       sku,
       title,
       price: parseFloat(price),
-      currentPrice,
+      currentPrice: parseFloat(currentPrice),
       imageURL,
       startDate,
       endDate,
@@ -109,10 +117,20 @@ const saveScheduleAndQueueJobs = async (
   }
 };
 
-const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
+const UpdatePriceFromList = ({
+  show,
+  onClose,
+  asin,
+  sku1,
+  product,
+  fnSku,
+  channelStockValue,
+  fulfillmentChannel,
+}) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
+  const [productPrice, setProductPrice] = useState("");
   const [price, setPrice] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -139,8 +157,11 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
   const [weeklyExists, setWeeklyExists] = useState(false);
   const [monthlyExists, setMonthlyExists] = useState(false);
 
-  console.log("seller sku from list: " + sku1);
+  console.log("weekly exists", weeklyExists);
+  console.log("monthly exists", monthlyExists);
 
+  const [activeTab, setActiveTab] = useState("single");
+  console.log(activeTab);
   // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
   //   label: `${i + 1}`,
   //   value: i + 1,
@@ -148,6 +169,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
 
   useEffect(() => {
     if (show && asin) {
+      setActiveTab("single");
       resetForm();
       fetchProductPriceBySku(sku1);
       fetchProductDetailsByAsin(asin);
@@ -157,6 +179,19 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       onClose();
     }
   }, [show, asin]);
+
+  useEffect(() => {
+    if (activeTab === "weekly") {
+      setWeekly(true);
+      setMonthly(false);
+    } else if (activeTab === "monthly") {
+      setMonthly(true);
+      setWeekly(false);
+    } else {
+      setMonthly(false);
+      setWeekly(false);
+    }
+  }, [activeTab]);
 
   const resetForm = () => {
     setSku("");
@@ -178,7 +213,12 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       ...prevSlots,
       [day]: [
         ...(prevSlots[day] || []),
-        { startTime: new Date(), endTime: new Date(), newPrice: "" },
+        {
+          startTime: new Date(),
+          endTime: new Date(),
+          newPrice: "",
+          revertPrice: "",
+        },
       ],
     }));
   };
@@ -189,7 +229,12 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       ...prevSlots,
       [date]: [
         ...(prevSlots[date] || []),
-        { startTime: new Date(), endTime: new Date(), newPrice: "" },
+        {
+          startTime: new Date(),
+          endTime: new Date(),
+          newPrice: "",
+          revertPrice: "",
+        },
       ],
     }));
   };
@@ -223,82 +268,142 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       });
     }
   };
-
   const handleTimeSlotPriceChange = (
     scheduleType,
     identifier,
     index,
+    key,
     value
   ) => {
     if (scheduleType === "weekly") {
       setWeeklyTimeSlots((prevSlots) => {
         const newSlots = [...(prevSlots[identifier] || [])];
-        newSlots[index]["newPrice"] = value;
+        newSlots[index][key] = value;
+
         return { ...prevSlots, [identifier]: newSlots };
       });
     } else if (scheduleType === "monthly") {
       setMonthlyTimeSlots((prevSlots) => {
         const newSlots = [...(prevSlots[identifier] || [])];
-        newSlots[index]["newPrice"] = value;
+        newSlots[index][key] = value;
         return { ...prevSlots, [identifier]: newSlots };
       });
     }
   };
 
   const validateTimeSlots = () => {
-    // Check weekly slots
+    const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
+      return start1 < end2 && start2 < end1;
+    };
+    const formatTime = (date) => {
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      return `${hours}:${minutes}`;
+    };
+
     for (const day in weeklyTimeSlots) {
-      for (const slot of weeklyTimeSlots[day]) {
-        if (slot.startTime >= slot.endTime) {
+      const slots = weeklyTimeSlots[day];
+      for (let i = 0; i < slots.length; i++) {
+        const slot1 = slots[i];
+
+        if (slot1.startTime >= slot1.endTime) {
           setErrorMessage(
             `For day ${day}, start time must be earlier than end time.`
           );
           return false;
         }
+
+        for (let j = i + 1; j < slots.length; j++) {
+          const slot2 = slots[j];
+          if (
+            isTimeSlotOverlapping(
+              slot1.startTime,
+              slot1.endTime,
+              slot2.startTime,
+              slot2.endTime
+            )
+          ) {
+            setErrorMessage(
+              `Time slots for day ${day} overlap between ${formatTime(
+                slot1.startTime
+              )} - ${formatTime(slot1.endTime)} and ${formatTime(
+                slot2.startTime
+              )} - ${formatTime(slot2.endTime)}.`
+            );
+            return false;
+          }
+        }
       }
     }
 
-    // Check monthly slots
     for (const date in monthlyTimeSlots) {
-      for (const slot of monthlyTimeSlots[date]) {
-        if (slot.startTime >= slot.endTime) {
+      const slots = monthlyTimeSlots[date];
+      for (let i = 0; i < slots.length; i++) {
+        const slot1 = slots[i];
+
+        if (slot1.startTime >= slot1.endTime) {
           setErrorMessage(
             `For date ${date}, start time must be earlier than end time.`
           );
           return false;
         }
+
+        for (let j = i + 1; j < slots.length; j++) {
+          const slot2 = slots[j];
+          if (
+            isTimeSlotOverlapping(
+              slot1.startTime,
+              slot1.endTime,
+              slot2.startTime,
+              slot2.endTime
+            )
+          ) {
+            setErrorMessage(
+              `Time slots for date ${date} overlap between ${formatTime(
+                slot1.startTime
+              )} - ${formatTime(slot1.endTime)} and ${formatTime(
+                slot2.startTime
+              )} - ${formatTime(slot2.endTime)}.`
+            );
+            return false;
+          }
+        }
       }
     }
-
     return true;
   };
 
   const fetchSchedules = async (asin) => {
     try {
+      setLoading(true);
       const schedules = await fetchExistingSchedules(asin);
       setExistingSchedules(schedules);
 
       const hasWeekly = schedules.some(
         (schedule) => schedule.weekly && schedule.status != "deleted"
       );
+      console.log(hasWeekly);
       const hasMonthly = schedules.some(
         (schedule) => schedule.monthly && schedule.status != "deleted"
       );
+      console.log("has monthly", hasMonthly);
 
       setWeeklyExists(hasWeekly);
       setMonthlyExists(hasMonthly);
     } catch (error) {
       setErrorMessage("Error fetching existing schedules.");
+    } finally {
+      setLoading(false);
     }
   };
 
   console.log("SKUUUU: " + sku);
-
   const fetchProductPriceBySku = async (SellerSKU) => {
     setLoading(true);
     try {
       const priceData = await fetchPriceBySku(SellerSKU);
       setCurrentPrice(priceData?.offerAmount);
+      setProductPrice(priceData?.offerAmount);
       setSku(priceData?.sku);
       console.log(`Price for SKU ${SellerSKU}:`, priceData.offerAmount);
     } catch (error) {
@@ -393,13 +498,13 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       });
       console.log(overlappingSchedule);
 
-      if (overlappingSchedule) {
-        setErrorMessage(
-          "Cannot create a schedule during an existing scheduled period."
-        );
-        setLoading(false);
-        return;
-      }
+      // if (overlappingSchedule) {
+      //   setErrorMessage(
+      //     "Cannot create a schedule during an existing scheduled period."
+      //   );
+      //   setLoading(false);
+      //   return;
+      // }
 
       const weeklySlotsInUtc = {};
       const monthlySlotsInUtc = {};
@@ -407,10 +512,11 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       if (weekly) {
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           weeklySlotsInUtc[day] = timeSlots.map(
-            ({ startTime, endTime, newPrice }) => ({
+            ({ startTime, endTime, newPrice, revertPrice }) => ({
               startTime: convertTimeToUtc(startTime),
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
+              revertPrice: parseFloat(revertPrice),
             })
           );
         }
@@ -419,10 +525,11 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       if (monthly) {
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           monthlySlotsInUtc[date] = timeSlots.map(
-            ({ startTime, endTime, newPrice }) => ({
+            ({ startTime, endTime, newPrice, revertPrice }) => ({
               startTime: convertTimeToUtc(startTime),
               endTime: convertTimeToUtc(endTime),
               newPrice: parseFloat(newPrice),
+              revertPrice: parseFloat(revertPrice),
             })
           );
         }
@@ -510,338 +617,556 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
 
   return (
     <>
-      <Modal show={show} onHide={onClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Update Scheduled Price</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {loading && <Spinner animation="border" />}
-          {successMessage && <Alert variant="success">{successMessage}</Alert>}
-          {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formAsin">
-              <Form.Label>ASIN: {asin || "Not available"}</Form.Label>
-            </Form.Group>
-            <Form.Group controlId="formSku">
-              <Form.Label>SKU: {sku1 || "Not available"}</Form.Label>
-            </Form.Group>
-            <Form.Group controlId="formCurrentPrice">
-              <Form.Label>
-                Current Price: ${currentPrice || "Not available"}
-              </Form.Label>
-            </Form.Group>
-            <Form.Group controlId="formPrice">
-              <Form.Label>New Price</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter New Price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </Form.Group>
-            <Form.Group controlId="formWeekly">
-              <Form.Check
-                type="checkbox"
-                label="Repeat Weekly"
-                checked={weekly}
-                onChange={() => setWeekly(!weekly)}
-                disabled={loading || monthly || weeklyExists}
-              />
-            </Form.Group>
-            {weekly && (
-              <>
-                <Form.Group controlId="formDaysOfWeek">
-                  <Form.Label>Repeat Weekly on</Form.Label>
-                  <MultiSelect
-                    options={daysOptions}
-                    value={daysOfWeek}
-                    onChange={setDaysOfWeek}
-                    labelledBy="Select"
-                  />
-                </Form.Group>
-                {daysOfWeek.map((day) => (
-                  <div key={day.value}>
-                    <h5>{day.label}</h5>
-                    {weeklyTimeSlots[day.value]?.map((slot, index) => (
-                      <div key={index} className="d-flex mb-2">
-                        <DatePicker
-                          selected={slot.startTime}
-                          onChange={(time) =>
-                            handleTimeChange(
-                              "weekly",
-                              day.value,
-                              index,
-                              "startTime",
-                              time
-                            )
-                          }
-                          showTimeSelect
-                          showTimeSelectOnly
-                          timeIntervals={15}
-                          timeCaption="Start"
-                          dateFormat="h:mm aa"
-                          className="form-control me-2"
-                        />
-                        <DatePicker
-                          selected={slot.endTime}
-                          onChange={(time) =>
-                            handleTimeChange(
-                              "weekly",
-                              day.value,
-                              index,
-                              "endTime",
-                              time
-                            )
-                          }
-                          showTimeSelect
-                          showTimeSelectOnly
-                          timeIntervals={15}
-                          timeCaption="End"
-                          dateFormat="h:mm aa"
-                          className="form-control"
-                        />
-                        <Form.Control
-                          type="number"
-                          placeholder="Enter New Price"
-                          value={slot.newPrice}
-                          onChange={(e) =>
-                            handleTimeSlotPriceChange(
-                              "weekly",
-                              day.value,
-                              index,
-                              e.target.value
-                            )
-                          }
-                          className="form-control me-2"
-                        />
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            removeTimeSlot("weekly", day.value, index)
-                          }
-                          className="ms-2"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                    <Button onClick={() => addWeeklyTimeSlot(day.value)}>
-                      Add Time Slot
-                    </Button>
-                  </div>
-                ))}
-
-                {/* <Form.Group controlId="formWeeklyStartTime">
-                <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
-                <DatePicker
-                  selected={startTime}
-                  onChange={(time) => setStartTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group>
-              <Form.Group controlId="formWeeklyEndTime">
-                <Form.Label style={{ marginRight: "25px" }}>End Time</Form.Label>
-                <DatePicker
-                  selected={endTime}
-                  onChange={(time) => setEndTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group> */}
-              </>
-            )}
-
-            <Form.Group controlId="formMonthly">
-              <Form.Check
-                type="checkbox"
-                label="Repeat Monthly"
-                checked={monthly}
-                onChange={() => setMonthly(!monthly)}
-                disabled={loading || weekly || monthlyExists}
-              />
-            </Form.Group>
-            {monthly && (
-              <>
-                <Form.Group controlId="formDatesOfMonth">
-                  <Form.Label>Repeat Monthly on</Form.Label>
-                  <MultiSelect
-                    options={datesOptions}
-                    value={datesOfMonth}
-                    onChange={setDatesOfMonth}
-                    labelledBy="Select"
-                  />
-                </Form.Group>
-                {datesOfMonth.map((date) => (
-                  <div key={date.value}>
-                    <h5>Date: {date.label}</h5>
-                    {monthlyTimeSlots[date.value]?.map((slot, index) => (
-                      <div key={index} className="d-flex mb-2">
-                        <DatePicker
-                          selected={slot.startTime}
-                          onChange={(time) =>
-                            handleTimeChange(
-                              "monthly",
-                              date.value,
-                              index,
-                              "startTime",
-                              time
-                            )
-                          }
-                          showTimeSelect
-                          showTimeSelectOnly
-                          timeIntervals={15}
-                          timeCaption="Start"
-                          dateFormat="h:mm aa"
-                          className="form-control me-2"
-                        />
-                        <DatePicker
-                          selected={slot.endTime}
-                          onChange={(time) =>
-                            handleTimeChange(
-                              "monthly",
-                              date.value,
-                              index,
-                              "endTime",
-                              time
-                            )
-                          }
-                          showTimeSelect
-                          showTimeSelectOnly
-                          timeIntervals={15}
-                          timeCaption="End"
-                          dateFormat="h:mm aa"
-                          className="form-control"
-                        />
-                        <Form.Control
-                          type="number"
-                          placeholder="Enter New Price"
-                          value={slot.newPrice}
-                          onChange={(e) =>
-                            handleTimeSlotPriceChange(
-                              "monthly",
-                              date.value,
-                              index,
-                              e.target.value
-                            )
-                          }
-                          className="form-control me-2"
-                        />
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            removeTimeSlot("monthly", date.value, index)
-                          }
-                          className="ms-2"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                    <Button onClick={() => addMonthlyTimeSlot(date.value)}>
-                      Add Time Slot
-                    </Button>
-                  </div>
-                ))}
-                {/* <Form.Group controlId="formMonthlyStartTime">
-                <Form.Label style={{ marginRight: "25px" }}>Start Time</Form.Label>
-                <DatePicker
-                  selected={startTime}
-                  onChange={(time) => setStartTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group>
-              <Form.Group controlId="formMonthlyEndTime">
-                <Form.Label style={{ marginRight: "25px" }}>End Time</Form.Label>
-                <DatePicker
-                  selected={endTime}
-                  onChange={(time) => setEndTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="form-control"
-                />
-              </Form.Group> */}
-              </>
-            )}
-            {!weekly && !monthly && (
-              <>
-                <Form.Group controlId="formStartDate">
-                  <Form.Label style={{ marginRight: "20px" }}>
-                    Start Date and Time
-                  </Form.Label>
-                  <DatePicker
-                    selected={startDate}
-                    onChange={(date) => setStartDate(date)}
-                    showTimeSelect
-                    dateFormat="Pp"
-                    className="form-control"
-                    required
-                    disabled={loading}
-                  />
-                </Form.Group>
-                <Form.Group controlId="formIndefiniteEndDate">
-                  <Form.Check
-                    type="checkbox"
-                    label="Until I change."
-                    checked={indefiniteEndDate}
-                    onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
-                    disabled={loading}
-                  />
-                </Form.Group>
-                {!indefiniteEndDate && (
-                  <Form.Group controlId="formEndDate">
-                    <Form.Label style={{ marginRight: "25px" }}>
-                      End Date and Time
-                    </Form.Label>
-                    <DatePicker
-                      selected={endDate}
-                      onChange={(date) => setEndDate(date)}
-                      showTimeSelect
-                      dateFormat="Pp"
-                      className="form-control"
-                      required={!indefiniteEndDate}
-                      disabled={loading}
-                    />
-                  </Form.Group>
-                )}
-              </>
-            )}
-            <Button
+      <Modal
+        centered={true}
+        show={show}
+        onHide={onClose}
+        dialogClassName="update-price-list-modal"
+      >
+        {loading ? (
+          // Display only the spinner when loading
+          <div
+            className="flex items-center justify-center"
+            style={{ height: "75vh" }}
+          >
+            {/* <Spinner animation="border" role="status" /> */}
+            <div
+              className=""
               style={{
+                // marginTop: "100px",
+                paddingTop: "30px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                padding: "20px",
                 width: "100%",
-                backgroundColor: "black",
-                marginTop: "30px",
+                textAlign: "center",
               }}
-              type="submit"
-              disabled={loading}
             >
-              {weekly
-                ? "Weekly Update"
-                : monthly
-                ? "Monthly Update Price"
-                : "Update Price"}
-            </Button>
-          </Form>
-        </Modal.Body>
+              {/* <Spinner animation="border" /> Loading... */}
+              <img
+                style={{
+                  width: "30px",
+                  marginRight: "6px",
+                }}
+                className="animate-pulse flex justify-center items-center"
+                src={priceoboIcon}
+                alt="Priceobo Icon"
+              />
+              <br />
+
+              <div className="block">
+                <p className="text-base"> Loading...</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Modal.Header closeButton>
+              <ProductDetailsWithNumbers
+                product={product}
+                channelStockValue={channelStockValue}
+                fulfillmentChannel={fulfillmentChannel}
+                price={productPrice}
+                asin={asin}
+                sku1={sku1}
+                fnSku={fnSku}
+                updatePriceModal={true}
+              ></ProductDetailsWithNumbers>
+            </Modal.Header>
+
+            <Modal.Body className="update-price-list-modal-body">
+              {successMessage && (
+                <Alert variant="success">{successMessage}</Alert>
+              )}
+              {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
+              <Form onSubmit={handleSubmit}>
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className=" "
+                >
+                  {/* <Tabs defaultValue="single" className=" "> */}
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="single">Single </TabsTrigger>
+                    <TabsTrigger
+                      // disabled={loading || monthly || weeklyExists}
+                      disabled={weeklyExists}
+                      value="weekly"
+                    >
+                      Weekly{" "}
+                    </TabsTrigger>
+                    <TabsTrigger
+                      // disabled={loading || weekly || monthlyExists}
+                      disabled={monthlyExists}
+                      value="monthly"
+                    >
+                      Monthly{" "}
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="single" className="py-2">
+                    <div className="max-w-[93%] mx-auto mt-2">
+                      {/* <Form.Control
+                                    type="number"
+                                    placeholder="Enter Revert Price"
+                                    required
+                                    step="0.01"
+                                    value={slot.revertPrice} // Add input for revertPrice
+                                    onChange={(e) =>
+                                      handleTimeSlotPriceChange(
+                                        "weekly",
+                                        day.value,
+                                        index,
+                                        "revertPrice",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="form-control modal-custom-input "
+                                  /> */}
+
+                      {!weekly && !monthly && (
+                        <>
+                          <div className="grid grid-cols-3 gap-4 mt-3">
+                            <div className="bg-[#DCDCDC] flex justify-center items-center rounded-sm ">
+                              <h2 className=" text-black">Start </h2>
+                            </div>
+                            <Form.Group
+                              className="flex flex-col"
+                              controlId="formStartDate"
+                            >
+                              {/* <Form.Label>Start Date and Time</Form.Label> */}
+                              <DatePicker
+                                selected={startDate}
+                                onChange={(date) => setStartDate(date)}
+                                showTimeSelect
+                                dateFormat="Pp"
+                                className="form-control"
+                                required
+                                disabled={loading}
+                              />
+                            </Form.Group>
+
+                            <Form.Group controlId="formPrice">
+                              {/* <Form.Label>New Price</Form.Label> */}
+                              <Form.Control
+                                type="number"
+                                placeholder="Start Price"
+                                step="0.01"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                required
+                                disabled={loading}
+                              />
+                            </Form.Group>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-4 my-2">
+                            {!indefiniteEndDate && (
+                              <div className="bg-[#DCDCDC]  flex justify-center items-center rounded-sm ">
+                                <h2 className="text-black">End</h2>
+                              </div>
+                            )}
+
+                            {!indefiniteEndDate && (
+                              <Form.Group
+                                className="flex flex-col"
+                                controlId="formEndDate"
+                              >
+                                {/* <Form.Label>End Date and Time</Form.Label> */}
+                                <DatePicker
+                                  selected={endDate}
+                                  onChange={(date) => setEndDate(date)}
+                                  showTimeSelect
+                                  dateFormat="Pp"
+                                  className="form-control"
+                                  required={!indefiniteEndDate}
+                                  disabled={loading}
+                                />
+                              </Form.Group>
+                            )}
+
+                            {!indefiniteEndDate && (
+                              // <Form.Group controlId="formPrice">
+                              //   <Form.Control
+                              //     type="number"
+                              //     placeholder="Enter New Price"
+                              //     value={price}
+                              //     onChange={(e) => setPrice(e.target.value)}
+                              //     required
+                              //     disabled={loading}
+                              //   />
+                              // </Form.Group>
+
+                              //  <Form.Control
+                              //       type="number"
+                              //       placeholder="Enter Revert Price"
+                              //       required
+                              //       step="0.01"
+                              //       value={slot.revertPrice} // Add input for revertPrice
+                              //       onChange={(e) =>
+                              //         handleTimeSlotPriceChange(
+                              //           "weekly",
+                              //           day.value,
+                              //           index,
+                              //           "revertPrice",
+                              //           e.target.value
+                              //         )
+                              //       }
+                              //       className="form-control modal-custom-input "
+                              //     />
+
+                              <Form.Group controlId="formCurrentPrice">
+                                {/* <Form.Label>Enter Revert Price</Form.Label> */}
+                                <Form.Control
+                                  type="number"
+                                  step="0.01"
+                                  // value={parseFloat(currentPrice).toFixed(2)}
+                                  // value={parseFloat(currentPrice).toFixed(2)}
+                                  onChange={(e) =>
+                                    setCurrentPrice(e.target.value)
+                                  }
+                                  className="form-control "
+                                  placeholder="End Price"
+                                  // onChange={(e)=>{
+                                  //   const inputPrice = parseFloat(e.target.value);
+
+                                  //   if(!isNaN(inputPrice)){
+                                  //     setCurrentPrice(inputPrice.toFixed(2));
+                                  //   }
+                                  // }}
+                                />
+                              </Form.Group>
+                            )}
+                          </div>
+
+                          <Form.Group controlId="formIndefiniteEndDate">
+                            <Form.Check
+                              type="checkbox"
+                              label="Until I change."
+                              checked={indefiniteEndDate}
+                              onChange={() =>
+                                setIndefiniteEndDate(!indefiniteEndDate)
+                              }
+                              disabled={loading}
+                            />
+                          </Form.Group>
+                        </>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="weekly">
+                    {/* Weekly schedule handling */}
+                    <Form.Group controlId="formWeekly" className="mt-3">
+                      {/* <Form.Label>Repeat Weekly on:</Form.Label> */}
+                      {/* Iterate through 7 days of the week */}
+                      <div className="weekly-schedule">
+                        {daysOptions.map((day) => (
+                          <div key={day.value} className="day-box ">
+                            <div className="flex items-center gap-1 mb-1">
+                              <h2 className=" w-full py-1 rounded-sm bg-[#DCDCDC] px-2 text-center text-sm">
+                                <span className="  rounded-sm text-black">
+                                  {day.label}
+                                </span>
+                              </h2>
+                              <Button
+                                size="sm"
+                                className="px-2 py-2 text-xs bg-[#0662BB] text-white"
+                                onClick={() => addWeeklyTimeSlot(day.value)}
+                              >
+                                <FaPlus />
+                              </Button>
+                            </div>
+
+                            {/* Render the time slots for each day */}
+                            {weeklyTimeSlots[day.value]?.map((slot, index) => (
+                              <Card
+                                key={index}
+                                className="  p-2 border-0 bg-[#F1F1F2] shadow-md my-2 rounded-sm"
+                              >
+                                {/* start time and start price */}
+                                {/* <div className="grid grid-cols-4 gap-1  my-1"> */}
+                                <div className="flex justify-center items-center gap-1  my-1">
+                                  <h3 className="flex justify-center items-center w-[90px] text-sm ">
+                                    Start
+                                  </h3>
+                                  <DatePicker
+                                    selected={slot.startTime}
+                                    onChange={(time) =>
+                                      handleTimeChange(
+                                        "weekly",
+                                        day.value,
+                                        index,
+                                        "startTime",
+                                        time
+                                      )
+                                    }
+                                    showTimeSelect
+                                    showTimeSelectOnly
+                                    timeIntervals={15}
+                                    timeCaption="Start"
+                                    dateFormat="h:mm aa"
+                                    className="form-control modal-custom-input "
+                                  />
+                                  <Form.Control
+                                    type="number"
+                                    placeholder="Enter New Price"
+                                    required
+                                    step="0.01"
+                                    value={slot.newPrice}
+                                    onChange={(e) =>
+                                      handleTimeSlotPriceChange(
+                                        "weekly",
+                                        day.value,
+                                        index,
+                                        "newPrice",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="form-control modal-custom-input"
+                                  />
+                                  {/* <Button className="w-[40px] border-0  bg-transparent ml-1  ">
+                                    <span className=""></span>
+                                  </Button> */}
+
+                                  <span className=" w-[50px] border-0 flex items-center justify-center   py-2 rounded text-white">
+                                    <span className=""></span>
+                                  </span>
+                                </div>
+
+                                <div className=" flex justify-center items-center gap-1">
+                                  <h3 className="flex justify-center items-center w-[90px] text-sm">
+                                    End
+                                  </h3>
+                                  <DatePicker
+                                    selected={slot.endTime}
+                                    onChange={(time) =>
+                                      handleTimeChange(
+                                        "weekly",
+                                        day.value,
+                                        index,
+                                        "endTime",
+                                        time
+                                      )
+                                    }
+                                    showTimeSelect
+                                    showTimeSelectOnly
+                                    timeIntervals={15}
+                                    timeCaption="End"
+                                    dateFormat="h:mm aa"
+                                    className="form-control modal-custom-input"
+                                  />
+
+                                  <Form.Control
+                                    type="number"
+                                    placeholder="Enter Revert Price"
+                                    required
+                                    step="0.01"
+                                    value={slot.revertPrice} // Add input for revertPrice
+                                    onChange={(e) =>
+                                      handleTimeSlotPriceChange(
+                                        "weekly",
+                                        day.value,
+                                        index,
+                                        "revertPrice",
+                                        e.target.value
+                                      )
+                                    }
+                                    className="form-control modal-custom-input "
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      removeTimeSlot("weekly", day.value, index)
+                                    }
+                                    className=" w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
+                                  >
+                                    <IoMdClose className=" text-center text-base" />
+                                  </button>
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </Form.Group>
+                  </TabsContent>
+
+                  <TabsContent value="monthly">
+                    {monthly && (
+                      <>
+                        <Form.Group controlId="formDatesOfMonth">
+                          <div className="grid grid-cols-4   my-3">
+                            {/* Render 31 boxes for each day */}
+                            {datesOptions.map((date) => (
+                              <div key={date.value} className="day-box">
+                                <div className="flex justify-center items-center gap-1 mb-1">
+                                  <h2 className=" w-full py-1 rounded-sm bg-[#DCDCDC] px-2 text-center text-sm ">
+                                    {/* <h2 className=" w-full py-1 rounded-sm bg-[#F1F1F2] px-2 text-center text-sm "> */}
+                                    {/* <h2 className=" w-full py-1 rounded-sm bg-[#888888] px-2 text-center text-sm "> */}
+                                    {/* <span className="  rounded-sm text-white"> */}
+                                    <span className="  rounded-sm text-black">
+                                      {date.label}
+                                    </span>
+                                  </h2>
+                                  <Button
+                                    size="sm"
+                                    className="px-2 py-2 text-xs bg-[#0662BB] text-white"
+                                    onClick={() =>
+                                      addMonthlyTimeSlot(date.value)
+                                    }
+                                  >
+                                    <FaPlus />
+                                  </Button>
+                                </div>
+
+                                {monthlyTimeSlots[date.value]?.map(
+                                  (slot, index) => (
+                                    <Card
+                                      key={index}
+                                      className="  px-1 py-1  border-0 bg-[#F1F1F2] shadow-md my-2 rounded-sm"
+                                    >
+                                      {/* start time and start price */}
+                                      {/* <div className="grid grid-cols-4 gap-1  my-1"> */}
+                                      <div className="flex justify-center items-center gap-1  my-1">
+                                        <h3 className="flex justify-center items-center w-[90px] text-[12px] ">
+                                          Start
+                                        </h3>
+                                        <DatePicker
+                                          selected={slot.startTime}
+                                          onChange={(time) =>
+                                            handleTimeChange(
+                                              "monthly",
+                                              date.value,
+                                              index,
+                                              "startTime",
+                                              time
+                                            )
+                                          }
+                                          showTimeSelect
+                                          showTimeSelectOnly
+                                          timeIntervals={15}
+                                          timeCaption="Start"
+                                          dateFormat="h:mm aa"
+                                          className="form-control modal-custom-input "
+                                        />
+                                        <Form.Control
+                                          type="number"
+                                          placeholder="Start Price"
+                                          required
+                                          step="0.01"
+                                          value={slot.newPrice}
+                                          onChange={(e) =>
+                                            handleTimeSlotPriceChange(
+                                              "monthly",
+                                              date.value,
+                                              index,
+                                              "newPrice",
+                                              e.target.value
+                                            )
+                                          }
+                                          className="form-control modal-custom-input"
+                                        />
+                                        {/* <Button className="w-[40px] border-0  bg-transparent ml-1  ">
+                                        <span className=""></span>
+                                      </Button> */}
+
+                                        <span className=" w-[63px] border-0 flex items-center justify-center   py-2 rounded text-white">
+                                          <span className=""></span>
+                                        </span>
+                                      </div>
+
+                                      <div className=" flex justify-center items-center gap-1">
+                                        <h3 className="flex justify-center items-center w-[90px] text-[12px]">
+                                          End
+                                        </h3>
+                                        <DatePicker
+                                          selected={slot.endTime}
+                                          onChange={(time) =>
+                                            handleTimeChange(
+                                              "monthly",
+                                              date.value,
+                                              index,
+                                              "endTime",
+                                              time
+                                            )
+                                          }
+                                          showTimeSelect
+                                          showTimeSelectOnly
+                                          timeIntervals={15}
+                                          timeCaption="End"
+                                          dateFormat="h:mm aa"
+                                          className="form-control modal-custom-input"
+                                        />
+
+                                        <Form.Control
+                                          type="number"
+                                          placeholder="End Price"
+                                          required
+                                          step="0.01"
+                                          value={slot.revertPrice} // Add input for revertPrice
+                                          onChange={(e) =>
+                                            handleTimeSlotPriceChange(
+                                              "monthly",
+                                              date.value,
+                                              index,
+                                              "revertPrice",
+                                              e.target.value
+                                            )
+                                          }
+                                          className="form-control modal-custom-input "
+                                        />
+                                        <button
+                                          onClick={() =>
+                                            removeTimeSlot(
+                                              "monthly",
+                                              date.value,
+                                              index
+                                            )
+                                          }
+                                          className=" w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
+                                        >
+                                          <IoMdClose className=" text-center text-base" />
+                                        </button>
+                                      </div>
+                                    </Card>
+                                  )
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </Form.Group>
+                      </>
+                    )}
+                  </TabsContent>
+                </Tabs>
+
+                <Button
+                  style={{
+                    width: "20%",
+                    backgroundColor: "#0662BB",
+
+                    margin: "0 auto",
+                    display: "block",
+                    position: "absolute",
+                    bottom: 22,
+                    right: 30,
+                  }}
+                  type="submit"
+                  disabled={loading}
+                >
+                  {weekly
+                    ? "Weekly Update"
+                    : monthly
+                    ? "Monthly Update Price"
+                    : "Update Price"}
+                </Button>
+              </Form>
+            </Modal.Body>
+          </>
+        )}
       </Modal>
+
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Successfully updated price!</Modal.Title>
