@@ -523,7 +523,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                               <td style={{ width: "200px" }}>
                                 {formatDateTime(sc.startDate)}{" "}
                                 <span style={{ color: "green" }}>
-                                  Changed Price: ${sc.price.toFixed(2)}
+                                  Changed Price: ${parseFloat(sc.price).toFixed(2)}
                                 </span>
                               </td>
                               <td style={{ width: "200px" }}>
@@ -532,7 +532,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
                                     {formatDateTime(sc.endDate)}
                                     {sc.currentPrice && (
                                       <div style={{ color: "green" }}>
-                                        Reverted Price: ${sc.currentPrice.toFixed(2)}
+                                        Reverted Price: ${parseFloat(sc.currentPrice).toFixed(2)}
                                       </div>
                                     )}
                                   </>

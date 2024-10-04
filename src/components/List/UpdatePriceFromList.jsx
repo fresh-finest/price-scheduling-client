@@ -11,8 +11,8 @@ import moment from "moment-timezone";
 
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-const BASE_URL = "https://api.priceobo.com";
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "https://api.priceobo.com";
+const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -88,8 +88,8 @@ const saveScheduleAndQueueJobs = async (
       asin,
       sku,
       title,
-      price: parseFloat(price).toFixed(2),
-      currentPrice: parseFloat(currentPrice).toFixed(2),
+      price: parseFloat(price),
+      currentPrice: parseFloat(currentPrice),
       imageURL,
       startDate,
       endDate,
@@ -133,7 +133,9 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
-
+  const [schedules, setSchedules] = useState([
+    { price: '', currentPrice: '', startDate: new Date(), endDate: new Date(), indefiniteEndDate: false }
+  ]);
   const userName = currentUser?.userName || "";
 
   const [weeklyExists, setWeeklyExists] = useState(false);
@@ -169,6 +171,7 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
     setErrorMessage("");
     setWeeklyTimeSlots({});
     setMonthlyTimeSlots({});
+    setSchedules([]);
   };
 
   const addWeeklyTimeSlot = (day) => {
@@ -231,6 +234,9 @@ const UpdatePriceFromList = ({ show, onClose, asin, sku1 }) => {
       });
     }
   };
+
+  
+
 
   /*
   const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
@@ -309,6 +315,38 @@ const validateTimeSlots =()=>{
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
+
+  for (let i = 0; i < schedules.length; i++) {
+    const schedule1 = schedules[i];
+    const start1 = new Date(schedule1.startDate);
+    const end1 = new Date(schedule1.endDate || start1);
+
+    for (let j = i + 1; j < schedules.length; j++) {
+      const schedule2 = schedules[j];
+      const start2 = new Date(schedule2.startDate);
+      const end2 = new Date(schedule2.endDate || start2);
+
+      if (isTimeSlotOverlapping(start1, end1, start2, end2)) {
+        setErrorMessage(" schedules overlap.");
+        return false;
+      }
+    }
+  }
+    // Check if the "Until Changed" option is valid
+    for (let i = 0; i < schedules.length - 1; i++) {
+      const prevSchedule = schedules[i];
+      const currentSchedule = schedules[schedules.length - 1];
+
+      const prevEndDate = new Date(prevSchedule.endDate || prevSchedule.startDate);
+      const currentStartDate = new Date(currentSchedule.startDate);
+
+      if (currentSchedule.indefiniteEndDate && currentStartDate <= prevEndDate) {
+        setErrorMessage(
+          `"Until Changed" option can only be selected if the start date is greater than the end date of all previous schedules.`
+        );
+        return false;
+      }
+    }
 
   for (const day in weeklyTimeSlots){
     const slots = weeklyTimeSlots[day];
@@ -433,8 +471,21 @@ const validateTimeSlots =()=>{
   const convertTimeToUtc = (time) => {
     return moment(time).utc().format("HH:mm");
   };
+  const addNewSchedule = () => {
+    setSchedules([
+      ...schedules,
+      { price: '', currentPrice: '', startDate: new Date(), endDate: new Date(), indefiniteEndDate: false },
+    ]);
+  };
+  const removeSchedule = (index) => {
+    setSchedules(schedules.filter((_, i) => i !== index));
+  };
 
-  
+  const handleScheduleChange = (index, key, value) => {
+    const updatedSchedules = [...schedules];
+    updatedSchedules[index][key] = value;
+    setSchedules(updatedSchedules);
+  };
   
 
   const handleSubmit = async (e) => {
@@ -480,6 +531,13 @@ const validateTimeSlots =()=>{
             (endDate ? endDate >= existingEnd : true))
         );
       });*/
+      const hasMonthlyTimeSlots = Object.values(monthlyTimeSlots).some(
+        (timeSlots) => timeSlots.length > 0
+      );
+      
+      const hasWeeklyTimeSlots = Object.values(weeklyTimeSlots).some(
+        (timeSlots) => timeSlots.length > 0
+      );
       
       const overlappingSchedule = existingSchedules.find((schedule) => {
         console.log(schedule.status);
@@ -522,6 +580,13 @@ const validateTimeSlots =()=>{
       const monthlySlotsInUtc = {};
 
       if (weekly) {
+        if (!userName || !asin || !sku || !hasWeeklyTimeSlots) {
+
+          console.log(weeklyTimeSlots);
+          setErrorMessage("Not provided weekly values.");
+          setLoading(false);
+          return;
+        }
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           weeklySlotsInUtc[day] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
@@ -532,9 +597,33 @@ const validateTimeSlots =()=>{
             })
           );
         }
+        await saveScheduleAndQueueJobs(
+          userName,
+          asin,
+          sku,
+          title,
+          price,
+          currentPrice,
+          imageURL,
+          startDate,
+          indefiniteEndDate ? null : endDate,
+          weekly,
+          // daysOfWeek.map((day) => day.value),
+          weeklySlotsInUtc,
+          monthly,
+          // datesOfMonth.map((date) => date.value),
+          monthlySlotsInUtc
+        );
       }
 
       if (monthly) {
+        if (!userName || !asin || !sku || !hasMonthlyTimeSlots) {
+
+          console.log(weeklyTimeSlots);
+          setErrorMessage("Not provided monthly values");
+          setLoading(false);
+          return;
+        }
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           monthlySlotsInUtc[date] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
@@ -545,50 +634,28 @@ const validateTimeSlots =()=>{
             })
           );
         }
+
+        await saveScheduleAndQueueJobs(
+          userName,
+          asin,
+          sku,
+          title,
+          price,
+          currentPrice,
+          imageURL,
+          startDate,
+          indefiniteEndDate ? null : endDate,
+          weekly,
+          // daysOfWeek.map((day) => day.value),
+          weeklySlotsInUtc,
+          monthly,
+          // datesOfMonth.map((date) => date.value),
+          monthlySlotsInUtc
+        );
       }
 
-      /* if (weekly) {
-        for (const [day, timeSlots] of Object.entries(weeklySlots)) {
-          for (const { startTime, endTime } of timeSlots) {
-            if (!startTime || !endTime) {
-              setErrorMessage("Start time and end time are required for each weekly time slot.");
-              setLoading(false);
-              return;
-            }
-            if (endTime < startTime) {
-              setErrorMessage("End time cannot be earlier than start time.");
-              setLoading(false);
-              return;
-            }
-          }
-        }
-      }*/
-
-      // for (const date in monthlyTimeSlots){
-      //   monthlyTimeSlots[date] = monthlyTimeSlots[date].map((slot)=>({
-      //     startTime: convertTimeToUtc(slot.startTime),
-      //     endTime: convertTimeToUtc(slot.endTime),
-      //   }))
-      // }
-      // await saveScheduleAndQueueJobs(
-      //   userName,
-      //   asin,
-      //   sku,
-      //   title,
-      //   price,
-      //   currentPrice,
-      //   imageURL,
-      //   startDate,
-      //   indefiniteEndDate ? null : endDate,
-      //   weekly,
-      //   daysOfWeek.map((day) => day.value),
-      //   monthly,
-      //   datesOfMonth.map((date) => date.value),
-      //   utcStartTime,
-      //   utcEndTime
-
-      // );
-      console.log("weekly:", JSON.stringify(weeklySlotsInUtc, null, 2));
+      /*
+  
       await saveScheduleAndQueueJobs(
         userName,
         asin,
@@ -606,14 +673,44 @@ const validateTimeSlots =()=>{
         // datesOfMonth.map((date) => date.value),
         monthlySlotsInUtc
       );
-      console.log("weekly:" + weeklySlotsInUtc);
+
+      */
+
+      for (const schedule of schedules) {
+        const { price, currentPrice, startDate, endDate, indefiniteEndDate } = schedule;
+        if (!indefiniteEndDate && endDate < startDate) {
+          setErrorMessage("End Date cannot be earlier than Start Date.");
+          setLoading(false);
+          return;
+        }
+        await saveScheduleAndQueueJobs(
+          userName,
+          asin,
+          sku,
+          title,
+          price,
+          currentPrice,
+          imageURL,
+          startDate,
+          indefiniteEndDate ? null : endDate,
+          weekly,
+          // daysOfWeek.map((day) => day.value),
+          weeklySlotsInUtc,
+          monthly,
+          // datesOfMonth.map((date) => date.value),
+          monthlySlotsInUtc
+        );
+          // Log event or update UI after successful submission
+      }
       addEvent({
         title: `SKU: ${sku} - $${price}`,
-        start: startDate,
-        end: indefiniteEndDate ? null : endDate,
-        allDay: false,
-      });
-
+        start: new Date(startDate), // Use the original date object for UI purposes
+        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
+        allDay: false
+      })
+    
+      
+      
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
       onClose();
@@ -626,6 +723,8 @@ const validateTimeSlots =()=>{
       setLoading(false);
     }
   };
+
+  const disableAddNewButton = schedules.some(schedule => schedule.indefiniteEndDate);
 
   return (
     <>
@@ -644,40 +743,12 @@ const validateTimeSlots =()=>{
             <Form.Group controlId="formSku">
               <Form.Label>SKU: {sku1 || "Not available"}</Form.Label>
             </Form.Group>
-
-            <Form.Group controlId="formPrice">
-              <Form.Label>Enter New Price</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter New Price"
-                value={price}
-                onChange={(e) =>
-                 setPrice(e.target.value)}
-
-                // onChange={(e)=>{
-                //   const inputPrice = parseFloat(e.target.value)
-                //     if(!isNaN(inputPrice)){
-                //       setPrice(inputPrice);
-                //     } 
-                // }}
-                disabled={loading}
-              />
-            </Form.Group>
             <Form.Group controlId="formCurrentPrice">
-              <Form.Label>Enter Revert Price</Form.Label>
-              <Form.Control
-                type="number"
-                value={currentPrice}
-                onChange={(e) => setCurrentPrice(e.target.value)}
-                // onChange={(e)=>{
-                //   const inputPrice = parseFloat(e.target.value);
-
-                //   if(!isNaN(inputPrice)){
-                //     setCurrentPrice(inputPrice.toFixed(2));
-                //   } 
-                // }}
-              />
+              <Form.Label>
+                Current Price: ${currentPrice || "Not available"}
+              </Form.Label>
             </Form.Group>
+      
 
             <Form.Group controlId="formWeekly">
               <Form.Check
@@ -905,13 +976,36 @@ const validateTimeSlots =()=>{
             )}
             {!weekly && !monthly && (
               <>
-                <Form.Group controlId="formStartDate">
-                  <Form.Label style={{ marginRight: "20px" }}>
-                    Start Date and Time
-                  </Form.Label>
+              {schedules.map((schedule, index) => (
+              <div key={index} className="mb-4">
+                <h5>Schedule {index + 1}</h5>
+                <Form.Group controlId={`formNewPrice-${index}`}>
+                  <Form.Label>New Price</Form.Label>
+                  <Form.Control
+                    type="number"
+                    placeholder="Enter New Price"
+                    value={schedule.price}
+                    onChange={(e) => handleScheduleChange(index, "price", e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </Form.Group>
+                <Form.Group controlId={`formRevertPrice-${index}`}>
+                  <Form.Label>Revert Price</Form.Label>
+                  <Form.Control
+                    type="number"
+                    placeholder="Enter Revert Price"
+                    value={schedule.currentPrice}
+                    onChange={(e) => handleScheduleChange(index, "currentPrice", e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </Form.Group>
+                <Form.Group controlId={`formStartDate-${index}`}>
+                  <Form.Label>Start Date and Time</Form.Label>
                   <DatePicker
-                    selected={startDate}
-                    onChange={(date) => setStartDate(date)}
+                    selected={schedule.startDate}
+                    onChange={(date) => handleScheduleChange(index, "startDate", date)}
                     showTimeSelect
                     dateFormat="Pp"
                     className="form-control"
@@ -919,31 +1013,41 @@ const validateTimeSlots =()=>{
                     disabled={loading}
                   />
                 </Form.Group>
-                <Form.Group controlId="formIndefiniteEndDate">
-                  <Form.Check
-                    type="checkbox"
-                    label="Until I change."
-                    checked={indefiniteEndDate}
-                    onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
-                    disabled={loading}
-                  />
-                </Form.Group>
-                {!indefiniteEndDate && (
-                  <Form.Group controlId="formEndDate">
-                    <Form.Label style={{ marginRight: "25px" }}>
-                      End Date and Time
-                    </Form.Label>
-                    <DatePicker
-                      selected={endDate}
-                      onChange={(date) => setEndDate(date)}
-                      showTimeSelect
-                      dateFormat="Pp"
-                      className="form-control"
-                      required={!indefiniteEndDate}
+                {index === schedules.length - 1 && (
+                  <Form.Group controlId={`formIndefiniteEndDate-${index}`}>
+                    <Form.Check
+                      type="checkbox"
+                      label="Until I change."
+                      checked={schedule.indefiniteEndDate}
+                      onChange={() => handleScheduleChange(index, "indefiniteEndDate", !schedule.indefiniteEndDate)}
                       disabled={loading}
                     />
                   </Form.Group>
                 )}
+                {!schedule.indefiniteEndDate && (
+                  <Form.Group controlId={`formEndDate-${index}`}>
+                    <Form.Label>End Date and Time</Form.Label>
+                    <DatePicker
+                      selected={schedule.endDate}
+                      onChange={(date) => handleScheduleChange(index, "endDate", date)}
+                      showTimeSelect
+                      dateFormat="Pp"
+                      className="form-control"
+                      required
+                      disabled={loading}
+                    />
+                  </Form.Group>
+                )}
+                {index > -1 && (
+                  <Button variant="danger" onClick={() => removeSchedule(index)} className="mt-2" disabled={loading}>
+                    Remove Schedule
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button variant="secondary" onClick={addNewSchedule} disabled={loading || disableAddNewButton} className="mb-3">
+              Add New Schedule
+            </Button>
               </>
             )}
             <Button

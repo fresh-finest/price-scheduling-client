@@ -12,15 +12,19 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck } from "react-icons/md";
 
+
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
+
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 // const BASE_URL = "http://localhost:3000";
 
+
 const BASE_URL = `https://api.priceobo.com`;
+
 
 const dayNames = [
   "Sunday",
@@ -65,12 +69,14 @@ const dateNames = [
   "31st",
 ];
 
+
 function addHoursToTime(timeString, hoursToAdd) {
   const [hours, minutes] = timeString.split(":").map(Number);
   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
 }
+
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -83,7 +89,6 @@ const displayTimeSlotsWithDayLabels = (
   addHours = 0,
   isWeekly = false
 ) => {
-  console.log("history timeslots: " + timeSlots);
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Add this check to handle undefined or null timeSlots
   }
@@ -97,28 +102,32 @@ const displayTimeSlotsWithDayLabels = (
       {slots.map((slot, index) => (
         <p key={index}>
           {addHoursToTime(slot.startTime, addHours)} -{" "}
-          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice} - End Price: {slot?.revertPrice}
+          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice}
         </p>
       ))}
     </div>
   ));
 };
 
+
 export default function HistoryView() {
   const [data, setData] = useState([]);
   const [users, setUsers] = useState([]);
+  const [nestedData, setNestedData] = useState({});
+  const [expandedRow, setExpandedRow] = useState(null);
   const [selectedUser, setSelectedUser] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingNested, setLoadingNested] = useState(false);
   const [error, setError] = useState(null);
   const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
 
+
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
-  // console.log(baseUrl);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -130,12 +139,15 @@ export default function HistoryView() {
       }
     };
 
+
     fetchUsers();
   }, []);
+
 
   useEffect(() => {
     fetchData();
   }, [selectedUser]);
+
 
   const fetchData = async () => {
     const url = selectedUser
@@ -150,7 +162,8 @@ export default function HistoryView() {
           )
         : [];
 
-      setData(sortedData);
+
+      setData(sortedData.filter((item) => item.action === "created"));
     } catch (err) {
       setError(
         "Error fetching data: " +
@@ -161,19 +174,53 @@ export default function HistoryView() {
     }
   };
 
+
+  const fetchNestedData = async (scheduleId) => {
+    console.log("sd: " + scheduleId);
+    setLoadingNested(true);
+    try {
+      const response = await axios.get(`${BASE_URL}/api/history/${scheduleId}`);
+      setNestedData((prevData) => ({
+        ...prevData,
+        [scheduleId]: response.data,
+      }));
+    } catch (err) {
+      console.error("Error fetching nested data: ", err);
+    } finally {
+      setLoadingNested(false);
+    }
+  };
+
+
+  const handleRowClick = (scheduleId) => {
+    console.log("sd handle: " + scheduleId);
+    if (expandedRow === scheduleId) {
+      setExpandedRow(null); // Collapse the row if it's already expanded
+    } else {
+      setExpandedRow(scheduleId);
+      if (!nestedData[scheduleId]) {
+        fetchNestedData(scheduleId);
+      }
+    }
+  };
+
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
+
   const handleUserChange = (e) => {
     setSelectedUser(e.target.value);
   };
+
 
   const handleFilterDateChange = (dates) => {
     const [start, end] = dates;
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
+
 
   const formatDateTime = (dateString) => {
     const options = {
@@ -187,8 +234,8 @@ export default function HistoryView() {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
+
   const handleCopy = (text, type, index) => {
-    console.log("text: " + text + "type: " + type + "index: " + index);
     navigator.clipboard
       .writeText(text)
       .then(() => {
@@ -205,6 +252,7 @@ export default function HistoryView() {
       });
   };
 
+
   const getDisplayData = (item) => {
     if (item.action === "updated") {
       return item.updatedState || item.previousState || {};
@@ -212,11 +260,13 @@ export default function HistoryView() {
     return item;
   };
 
+
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
       .map((day) => daysOptions.find((option) => option.value === day)?.label)
       .join(", ");
   };
+
 
   const getDateLabels = (datesOfMonth) => {
     return datesOfMonth
@@ -225,6 +275,7 @@ export default function HistoryView() {
       )
       .join(", ");
   };
+
 
   const filteredData = data
     .filter((item) => {
@@ -244,6 +295,7 @@ export default function HistoryView() {
       const itemEndDate = displayData.endDate
         ? new Date(displayData.endDate)
         : null;
+
 
       if (filterStartDate && filterEndDate) {
         const adjustedEndDate = new Date(filterEndDate);
@@ -272,6 +324,7 @@ export default function HistoryView() {
       return true;
     });
 
+
   if (loading)
     return (
       <div
@@ -292,12 +345,14 @@ export default function HistoryView() {
         />
         <br />
 
+
         <div className="block">
           <p className="text-xl"> Loading...</p>
         </div>
       </div>
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
+
 
   return (
     <Container fluid style={{ marginTop: "100px" }}>
@@ -374,14 +429,8 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
-              {
-                /* const daysLabel = displayData?.weekly
-                ? getDayLabels(displayData.daysOfWeek)
-                : "";
-              const datesLabel = displayData?.monthly
-                ? getDateLabels(displayData?.datesOfMonth)
-                : " "; */
-              }
+
+
               const weeklyLabel = displayData?.weekly
                 ? displayTimeSlotsWithDayLabels(
                     displayData?.weeklyTimeSlots,
@@ -397,234 +446,102 @@ export default function HistoryView() {
                   )
                 : null;
 
-              return (
-                <tr key={item._id} style={{ height: "50px" }}>
-                  <td>
-                    <img
-                      src={displayData?.imageURL || "placeholder-image-url"}
-                      alt=""
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </td>
-                  <td
-                    style={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {displayData?.title || "N/A"}
-                    <div>
-                      <span
-                        className="bubble-text"
-                        style={{
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        {displayData?.asin || "N/A"}
-                        {copiedAsinIndex === index ? (
-                          <MdCheck
-                            style={{
-                              marginLeft: "5px",
-                              cursor: "pointer",
-                              color: "green",
-                            }}
-                          />
-                        ) : (
-                          <MdContentCopy
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopy(displayData.asin, "asin", index);
-                            }}
-                            style={{ marginLeft: "5px", cursor: "pointer" }}
-                          />
-                        )}
-                      </span>{" "}
-                      <span
-                        className="bubble-text"
-                        style={{
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        {displayData?.sku || "N/A"}
-                        {copiedSkuIndex === index ? (
-                          <MdCheck
-                            style={{
-                              marginLeft: "5px",
-                              cursor: "pointer",
-                              color: "green",
-                            }}
-                          />
-                        ) : (
-                          <MdContentCopy
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopy(displayData.sku, "sku", index);
-                            }}
-                            style={{ marginLeft: "5px", cursor: "pointer" }}
-                          />
-                        )}
-                      </span>
-                    </div>
-                  </td>
-                  {/* <td>
-                    <div>
-                      <span>
-                        {displayData?.startDate
-                          ? formatDateTime(displayData.startDate)
-                          : "N/A"}{" "}
-                        --{" "}
-                        {displayData?.endDate
-                          ? formatDateTime(displayData.endDate)
-                          : "No End Date"}
-                        {displayData?.currentPrice && (
-                          <p
-                            style={{
-                              margin: 0,
-                              color: "green",
-                              textAlign: "right",
-                              marginRight: "50px",
-                            }}
-                          >
-                            ${displayData.currentPrice}
-                          </p>
-                        )}
-                        <div style={{ position: "relative" }}>
-                          <p
-                            style={{
-                              color: "green",
-                              position: "absolute",
-                              left: "50px",
-                              bottom: "0px",
-                              margin: 0,
-                            }}
-                          >
-                            ${displayData?.price || "N/A"}
-                          </p>
-                        </div>
-                      </span> 
-                      <span>
-                        {displayData?.startDate
-                          ? formatDateTime(displayData.startDate)
-                          : "N/A"}{" "}
-                        --{" "}
-                        {displayData?.endDate ? (
-                          formatDateTime(displayData.endDate)
-                        ) : (
-                          <span style={{ color: "blue" }}>No End Date</span>
-                        )}
-                        {displayData?.endDate ? (
-                          displayData?.currentPrice && (
-                            <p
-                              style={{
-                                margin: 0,
-                                color: "green",
-                                textAlign: "right",
-                                marginRight: "50px",
-                              }}
-                            >
-                              ${displayData.currentPrice}
-                            </p>
-                          )
-                        ) : (
-                          <p
-                            style={{
-                              margin: 0,
-                              color: "orange",
-                              textAlign: "right",
-                              marginRight: "50px",
-                            }}
-                          >
-                            Until Changed
-                          </p>
-                        )}
-                        <div style={{ position: "relative" }}>
-                          <p
-                            style={{
-                              color: "green",
-                              position: "absolute",
-                              left: "50px",
-                              bottom: "0px",
-                              margin: 0,
-                            }}
-                          >
-                            ${displayData?.price || "N/A"}
-                          </p>
-                        </div>
-                      </span>
-                    </div>
-                  </td>*/}
-                  <td>
-                    <div>
-                      {displayData?.weekly ? (
-                        <>
-                          <span style={{ color: "blue" }}>
-                            Repeats Weekly on {weeklyLabel}
-                          </span>
 
-                          {/* {displayData?.currentPrice && (
-                            <p
+              return (
+                <>
+                  <tr
+                    key={item._id}
+                    style={{ height: "50px", cursor: "pointer" }}
+                    onClick={() => handleRowClick(item.scheduleId)}
+                  >
+                    <td>
+                      <img
+                        src={displayData?.imageURL || "placeholder-image-url"}
+                        alt=""
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {displayData?.title || "N/A"}
+                      <div>
+                        <span
+                          className="bubble-text"
+                          style={{
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          {displayData?.asin || "N/A"}
+                          {copiedAsinIndex === index ? (
+                            <MdCheck
                               style={{
-                                margin: 0,
+                                marginLeft: "5px",
+                                cursor: "pointer",
                                 color: "green",
-                                textAlign: "right",
-                                marginRight: "50px",
                               }}
-                            >
-                              Will Revert to :${displayData.currentPrice}
-                            </p>
-                          )} */}
-                        </>
-                      ) : displayData?.monthly ? (
-                        <>
-                          <span style={{ color: "blue" }}>
-                            Repeats Monthly on {monthlyLabel}
-                          </span>
-                          {/* <p>
-                            {displayData.startTime
-                              ? addHoursToTime(displayData.startTime, 6)
-                              : "Invalid start time"}{" "}
-                            -
-                            {displayData.endTime
-                              ? addHoursToTime(displayData.endTime, 6)
-                              : "Invalid end time"}
-                          </p> */}
-                          {/* {displayData?.currentPrice && (
-                            <p
+                            />
+                          ) : (
+                            <MdContentCopy
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(displayData.asin, "asin", index);
+                              }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
+                            />
+                          )}
+                        </span>{" "}
+                        <span
+                          className="bubble-text"
+                          style={{
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          {displayData?.sku || "N/A"}
+                          {copiedSkuIndex === index ? (
+                            <MdCheck
                               style={{
-                                margin: 0,
+                                marginLeft: "5px",
+                                cursor: "pointer",
                                 color: "green",
-                                textAlign: "right",
-                                marginRight: "50px",
                               }}
-                            >
-                              Will Revert to :${displayData.currentPrice}
-                            </p>
-                          )} */}
-                        </>
-                      ) : (
-                        <>
-                          <span>
-                            {displayData?.startDate
-                              ? formatDateTime(displayData.startDate)
-                              : "N/A"}{" "}
-                            --{" "}
-                            {displayData?.endDate ? (
-                              formatDateTime(displayData.endDate)
-                            ) : (
-                              <span style={{ color: "blue" }}>No End Date</span>
-                            )}
-                          </span>
-                          {displayData?.endDate ? (
-                            displayData?.currentPrice && (
+                            />
+                          ) : (
+                            <MdContentCopy
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(displayData.sku, "sku", index);
+                              }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
+                            />
+                          )}
+                        </span>
+                      </div>
+                    </td>
+
+
+                    <td>
+                      <div>
+                        {displayData?.weekly ? (
+                          <>
+                            <span style={{ color: "blue" }}>
+                              Repeats Weekly on {weeklyLabel}
+                            </span>
+
+
+                            {displayData?.currentPrice && (
                               <p
                                 style={{
                                   margin: 0,
@@ -633,64 +550,189 @@ export default function HistoryView() {
                                   marginRight: "50px",
                                 }}
                               >
-                                ${displayData.currentPrice}
+                                Will Revert to :${displayData.currentPrice}
                               </p>
-                            )
-                          ) : (
-                            <p
-                              style={{
-                                margin: 0,
-                                color: "orange",
-                                textAlign: "right",
-                                marginRight: "50px",
-                              }}
-                            >
-                              Until Changed
-                            </p>
-                          )}
-                          <div style={{ position: "relative" }}>
-                            <p
-                              style={{
-                                color: "green",
-                                position: "absolute",
-                                left: "50px",
-                                bottom: "0px",
-                                margin: 0,
-                              }}
-                            >
-                              ${displayData?.price || "N/A"}
-                            </p>
-                          </div>
-                        </>
+                            )}
+                          </>
+                        ) : displayData?.monthly ? (
+                          <>
+                            <span style={{ color: "blue" }}>
+                              Repeats Monthly on {monthlyLabel}
+                            </span>
+
+
+                            {displayData?.currentPrice && (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  color: "green",
+                                  textAlign: "right",
+                                  marginRight: "50px",
+                                }}
+                              >
+                                Will Revert to :${displayData.currentPrice}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span>
+                              {displayData?.startDate
+                                ? formatDateTime(displayData.startDate)
+                                : "N/A"}{" "}
+                              --{" "}
+                              {displayData?.endDate ? (
+                                formatDateTime(displayData.endDate)
+                              ) : (
+                                <span style={{ color: "blue" }}>
+                                  No End Date
+                                </span>
+                              )}
+                            </span>
+                            {displayData?.endDate ? (
+                              displayData?.currentPrice && (
+                                <p
+                                  style={{
+                                    margin: 0,
+                                    color: "green",
+                                    textAlign: "right",
+                                    marginRight: "50px",
+                                  }}
+                                >
+                                  ${displayData.currentPrice}
+                                </p>
+                              )
+                            ) : (
+                              <p
+                                style={{
+                                  margin: 0,
+                                  color: "orange",
+                                  textAlign: "right",
+                                  marginRight: "50px",
+                                }}
+                              >
+                                Until Changed
+                              </p>
+                            )}
+                            <div style={{ position: "relative" }}>
+                              <p
+                                style={{
+                                  color: "green",
+                                  position: "absolute",
+                                  left: "50px",
+                                  bottom: "0px",
+                                  margin: 0,
+                                }}
+                              >
+                                ${displayData?.price || "N/A"}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      {item.userName} <p>{formatDateTime(item.timestamp)}</p>
+                    </td>
+                    <td>
+                      {item.action === "deleted" ? (
+                        <span style={{ color: "red" }}>Deleted</span>
+                      ) : item.action === "updated" ? (
+                        <span style={{ color: "orange" }}>Updated</span>
+                      ) : (
+                        <span>Created</span>
                       )}
-                      {/* <div style={{ position: "relative" }}>
-                        <p
-                          style={{
-                            color: "green",
-                            position: "absolute",
-                            left: "50px",
-                            bottom: "0px",
-                            margin: 0,
-                          }}
-                        >
-                          ${displayData?.price || "N/A"}
-                        </p>
-                      </div> */}
-                    </div>
-                  </td>
-                  <td>
-                    {item.userName} <p>{formatDateTime(item.timestamp)}</p>
-                  </td>
-                  <td>
-                    {item.action === "deleted" ? (
-                      <span style={{ color: "red" }}>Deleted</span>
-                    ) : item.action === "updated" ? (
-                      <span style={{ color: "orange" }}>Updated</span>
-                    ) : (
-                      <span>Created</span>
-                    )}
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+
+
+                  {expandedRow === item.scheduleId && (
+                    <tr>
+                      <td colSpan="4">
+                        {loadingNested && <Spinner animation="border" />}
+                        {!loadingNested && nestedData[item.scheduleId] && (
+                          <Table bordered size="sm">
+                            <thead>
+                              <tr>
+                                <th>Image</th>
+                                <th>Action</th>
+                                <th>Duration</th>
+                                <th>Product Details</th>
+                              </tr>
+                            </thead>
+                            <tbody
+                              style={{
+                                fontSize: "12px",
+                                fontFamily: "Arial, sans-serif",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              {nestedData[item.scheduleId]
+                                .filter(
+                                  (nestedItem) =>
+                                    nestedItem.action !== "created"
+                                )
+                                .map((nestedItem) => (
+                                  <tr key={nestedItem._id}>
+                                    <td>
+                                      <img
+                                        src={
+                                          nestedItem.imageURL
+                                            ? nestedItem.imageURL
+                                            : nestedItem.updatedState.imageURL
+                                        }
+                                        alt="Item Image"
+                                      />
+                                    </td>
+
+
+                                    <td>{nestedItem.action}</td>
+                                    <td>
+                                      {formatDateTime(nestedItem.timestamp)}
+                                    </td>
+
+
+                                    <td>
+                                      {nestedItem.previousState ? (
+                                        <>
+                                          <p>
+                                            Price: $
+                                            {nestedItem.previousState.price}
+                                          </p>
+                                          <p>
+                                            Title:{" "}
+                                            {nestedItem.previousState.title}
+                                          </p>
+                                        </>
+                                      ) : (
+                                        "N/A"
+                                      )}
+                                    </td>
+                                    <td>
+                                      {nestedItem.updatedState ? (
+                                        <>
+                                          <p>
+                                            Price: $
+                                            {nestedItem.updatedState.price}
+                                          </p>
+                                          <p>
+                                            Title:{" "}
+                                            {nestedItem.updatedState.title}
+                                          </p>
+                                        </>
+                                      ) : (
+                                        "N/A"
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </Table>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </>
               );
             })
           ) : (
@@ -705,3 +747,6 @@ export default function HistoryView() {
     </Container>
   );
 }
+
+
+

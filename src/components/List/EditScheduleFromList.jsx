@@ -9,8 +9,8 @@ import { useSelector } from "react-redux";
 import moment from "moment-timezone";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
