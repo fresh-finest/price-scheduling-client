@@ -130,6 +130,7 @@ th .resizer:hover {
   /* background-color: white; Set a background to see the effect */
   /* box-shadow: 0 4px 2px -2px gray; */
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  /* margin-top: 200px; */
 }
 .table tr:hover {
   /* transform: translateY(-3px); */

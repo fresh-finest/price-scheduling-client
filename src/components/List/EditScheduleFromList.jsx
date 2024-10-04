@@ -146,6 +146,19 @@ const deleteSchedule = async (scheduleId) => {
     throw error;
   }
 };
+const fetchPriceBySku = async (sku) => {
+  try {
+    const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
+    const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching:",
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+};
 
 const EditScheduleFromList = ({
   show,
@@ -159,6 +172,8 @@ const EditScheduleFromList = ({
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [price, setPrice] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
@@ -250,28 +265,38 @@ const EditScheduleFromList = ({
     return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
   };
 
-  // const formatDateToTimeString = (date) => {
-  //   if (!(date instanceof Date) && !isNaN(date)) {
-  //     console.error("Invalid date passed to formatDateToTimeString:", date);
-  //     return ""; // Return empty string or fallback value
-  //   }
+  useEffect(() => {
+    const encodedSku = encodeURIComponent(existingSchedule.sku); // Replace with your actual SKU value
+    fetch(`${BASE_URL}/list/${encodedSku}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error fetching: ${response.statusText}`);
+        }
+        return response.json(); // Parse the response as JSON
+      })
+      .then((data) => {
+        console.log(data);
+        setProductPrice(data?.offerAmount);
+      })
+      .catch((error) => {
+        console.error("Error:", error.message); // Handle the error
+      });
+  }, []);
 
-  //   const hours = date.getHours().toString().padStart(2, "0");
-  //   const minutes = date.getMinutes().toString().padStart(2, "0");
-  //   console.log(hours + minutes + "formated");
-  //   return `${hours}:${minutes}`;
-  // };
-  // const convertTimeStringToDate = (timeString) => {
-  //   if (!timeString || typeof timeString !== 'string') {
-  //     console.error('Invalid timeString:', timeString);
-  //     return new Date();
+  // const fetchPriceBySku = async (sku) => {
+  //   try {
+  //     const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
+  //     const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(
+  //       "Error fetching:",
+  //       error.response ? error.response.data : error.message
+  //     );
+  //     throw error;
   //   }
-
-  //   const [hours, minutes] = timeString.split(':').map(Number);
-  //   const now = new Date();
-  //   now.setHours(hours, minutes, 0, 0);
-  //   return now;
   // };
+
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
       const [hours, minutes] = timeString.split(":").map(Number);
@@ -308,6 +333,22 @@ const EditScheduleFromList = ({
     }
   }, [show, existingSchedule]);
 
+  const fetchProductPriceBySku = async (SellerSKU) => {
+    // setLoading(true);
+    try {
+      const priceData = await fetchPriceBySku(SellerSKU);
+
+      setProductPrice(priceData?.offerAmount);
+      setSku(priceData?.sku);
+      console.log(`Price for SKU ${SellerSKU}:`, priceData.offerAmount);
+    } catch (error) {
+      console.error(
+        `Error fetching price for SKU ${SellerSKU}:`,
+        error.message
+      );
+      throw error;
+    }
+  };
   console.log("weekly slots: " + JSON.stringify(weeklyTimeSlots));
 
   useEffect(() => {
@@ -336,43 +377,7 @@ const EditScheduleFromList = ({
       console.error("Error fetching product details:", error);
     }
   };
-  // const convertTimeToUtc = (time) => {
-  //   return moment(time).utc().format("HH:mm");
-  // };
 
-  //const handleTimeChange = (scheduleType,identifier, index, key, value)=>{
-
-  // const handleTimeSlotChange = (scheduleType,identifier, index, key, value)=>{
-  //   if(scheduleType === 'weekly'){
-  //     setWeeklyTimeSlots((prevSlots)=>{
-  //       const newSlots = [...(prevSlots[identifier]|| [])];
-  //       newSlots[index][key] = value;
-  //       return {...prevSlots, [identifier]: newSlots};
-  //     })
-  //   } else if(scheduleType === 'monthly'){
-  //     setMonthlyTimeSlots((prevSlots)=>{
-  //       const newSlots = [...(prevSlots[identifier] || [])];
-  //       newSlots[index][key] = value;
-  //       return {...prevSlots, [identifier]: newSlots};
-  //     })
-  //   }
-  // }
-
-  // const handleTimeSlotPriceChange = (scheduleType, identifier, index, value) => {
-  //   if (scheduleType === 'weekly') {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const newSlots = [...(prevSlots[identifier] || [])];
-  //       newSlots[index]['newPrice'] = value;
-  //       return { ...prevSlots, [identifier]: newSlots };
-  //     });
-  //   } else if (scheduleType === 'monthly') {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const newSlots = [...(prevSlots[identifier] || [])];
-  //       newSlots[index]['newPrice'] = value;
-  //       return { ...prevSlots, [identifier]: newSlots };
-  //     });
-  //   }
-  // }
   const handleTimeSlotPriceChange = (
     scheduleType,
     identifier,
@@ -463,15 +468,29 @@ const EditScheduleFromList = ({
 
   const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
     if (scheduleType === "weekly") {
-      setWeeklyTimeSlots((prevSlots) => ({
-        ...prevSlots,
-        [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
-      }));
+      setWeeklyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier] = updatedSlots[identifier].filter(
+          (_, i) => i !== index
+        );
+        // If no more time slots remain for the day, remove the day entirely
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier];
+        }
+        return updatedSlots;
+      });
     } else if (scheduleType === "monthly") {
-      setMonthlyTimeSlots((prevSlots) => ({
-        ...prevSlots,
-        [identifier]: prevSlots[identifier].filter((_, i) => i !== index),
-      }));
+      setMonthlyTimeSlots((prevSlots) => {
+        const updatedSlots = { ...prevSlots };
+        updatedSlots[identifier] = updatedSlots[identifier].filter(
+          (_, i) => i !== index
+        );
+        // If no more time slots remain for the date, remove the date entirely
+        if (updatedSlots[identifier].length === 0) {
+          delete updatedSlots[identifier];
+        }
+        return updatedSlots;
+      });
     }
   };
   const validateTimeSlots = () => {
@@ -750,6 +769,8 @@ const EditScheduleFromList = ({
     return `${hours}:${minutes}`;
   };
 
+  console.log(existingSchedule);
+
   return (
     <>
       <Modal
@@ -784,7 +805,8 @@ const EditScheduleFromList = ({
                       className=" bg-blue-500 text-white flex justify-center items-center mt-1  "
                     >
                       <h2 style={{ fontSize: "13px" }}>
-                        ${parseFloat(existingSchedule?.currentPrice).toFixed(2)}
+                        {/* ${parseFloat(existingSchedule?.currentPrice).toFixed(2)} */}
+                        {productPrice}
                       </h2>
                     </div>
 
@@ -835,14 +857,14 @@ const EditScheduleFromList = ({
             {scheduleType === "one-time" && (
               <>
                 <section className="  max-w-[50%]  mx-auto px-2">
-                  <div className="flex  gap-2">
+                  <div className="flex  gap-1">
                     <div className="flex justify-center items-center bg-[#DCDCDC] rounded-sm h-[37px] w-[35%]">
                       <h2 className="text-black">Start Price</h2>
                     </div>
                     <Form.Group
                       controlId="formStartDate"
                       style={{
-                        marginBottom: "15px",
+                        marginBottom: "10px",
                         height: "37px",
                       }}
                     >
@@ -859,7 +881,7 @@ const EditScheduleFromList = ({
 
                     <Form.Group
                       controlId="formNewPrice"
-                      style={{ marginBottom: "15px", height: "37px" }}
+                      style={{ height: "37px" }}
                     >
                       {/* <Form.Label>Start Price</Form.Label> */}
                       <Form.Control
@@ -872,7 +894,7 @@ const EditScheduleFromList = ({
                     </Form.Group>
                   </div>
 
-                  <div className="flex  gap-2">
+                  <div className="flex  gap-1">
                     {!indefiniteEndDate && (
                       <div className="flex justify-center items-center bg-[#DCDCDC] rounded-sm h-[37px]  w-[35%]">
                         <h2 className="text-black">End Price</h2>
@@ -881,7 +903,7 @@ const EditScheduleFromList = ({
                     {!indefiniteEndDate && (
                       <Form.Group
                         controlId="formEndDate"
-                        style={{ marginBottom: "15px" }}
+                        style={{ marginBottom: "10px" }}
                       >
                         {/* <Form.Label>End Date and Time</Form.Label> */}
                         <DatePicker
@@ -897,7 +919,7 @@ const EditScheduleFromList = ({
                     {!indefiniteEndDate && (
                       <Form.Group
                         controlId="formNewPrice"
-                        style={{ marginBottom: "15px" }}
+                        // style={{ marginBottom: "15px" }}
                       >
                         <Form.Control
                           type="number"
@@ -910,8 +932,8 @@ const EditScheduleFromList = ({
                   </div>
                   <Form.Group
                     controlId="formIndefiniteEndDate"
-                    style={{ marginBottom: "15px" }}
-                    className="flex justify-start"
+                    // style={{ marginBottom: "15px" }}
+                    className=" justify-start   bg-[#DCDCDC] inline-block w-[31%] p-2 rounded-sm"
                   >
                     <Form.Check
                       type="checkbox"
@@ -920,23 +942,6 @@ const EditScheduleFromList = ({
                       onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
                     />
                   </Form.Group>
-
-                  {/* {!indefiniteEndDate && (
-                  <Form.Group
-                    controlId="formEndDate"
-                    style={{ marginBottom: "15px" }}
-                  >
-                    <Form.Label>End Date and Time</Form.Label>
-                    <DatePicker
-                      selected={endDate}
-                      onChange={(date) => setEndDate(date)}
-                      showTimeSelect
-                      dateFormat="Pp"
-                      className="form-control"
-                      required={!indefiniteEndDate}
-                    />
-                  </Form.Group>
-                )} */}
                 </section>
               </>
             )}

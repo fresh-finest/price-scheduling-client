@@ -10,6 +10,8 @@ import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
+import { Card } from "../ui/card";
+import { FaArrowRightLong } from "react-icons/fa6";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -83,6 +85,7 @@ const getDayLabelFromNumber = (dayNumber) => {
 const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
+
 const displayTimeSlotsWithDayLabels = (
   timeSlots,
   addHours = 0,
@@ -107,6 +110,22 @@ const displayTimeSlotsWithDayLabels = (
       ))}
     </div>
   ));
+};
+
+const displayWeekdays = (timeSlots) => {
+  if (!timeSlots || Object.keys(timeSlots).length === 0) {
+    return <p>No time slots available</p>; // Handle undefined or null timeSlots
+  }
+
+  // Array of weekdays to display based on your desired keys
+  const weekdaysToDisplay = [1, 2, 3, 4, 5]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
+
+  const displayedWeekdays = weekdaysToDisplay
+    .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
+    .map((day) => getDayLabelFromNumber(day)) // Get the day label
+    .join(", "); // Join with a comma
+
+  return <p>{displayedWeekdays}</p>; // Return the formatted string
 };
 
 export default function HistoryView() {
@@ -335,7 +354,7 @@ export default function HistoryView() {
   return (
     <div className="">
       <div className="">
-        <InputGroup className="max-w-[350px] absolute top-[1.2%] ">
+        <InputGroup className="max-w-[350px] absolute top-2 ">
           <Form.Control
             type="text"
             placeholder="Search by Product Name, ASIN or SKU..."
@@ -345,7 +364,7 @@ export default function HistoryView() {
             className="custom-input"
           />
         </InputGroup>
-        <div className="absolute top-[1.5%] right-[25%]">
+        <div className="absolute top-2 right-[25%]">
           <Form.Control
             as="select"
             value={selectedUser}
@@ -361,7 +380,7 @@ export default function HistoryView() {
             ))}
           </Form.Control>
         </div>
-        <div className="absolute top-[1.5%] right-[12%]">
+        <div className="absolute top-2 right-[12%]">
           <DatePicker
             selected={filterStartDate}
             onChange={handleFilterDateChange}
@@ -376,11 +395,10 @@ export default function HistoryView() {
         </div>
       </div>
       <Table
-        bordered
         hover
         responsive
         style={{ tableLayout: "fixed" }}
-        className="mt-14"
+        className="mt-14 historyCustomTable "
       >
         <thead
           style={{
@@ -391,11 +409,71 @@ export default function HistoryView() {
           }}
         >
           <tr>
-            <th style={{ width: "80px" }}>Image</th>
-            <th style={{ width: "300px" }}>Product Details</th>
-            <th style={{ width: "200px" }}>Duration</th>
-            <th style={{ width: "90px" }}>User</th>
-            <th style={{ width: "60px" }}>Action</th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "80px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Image
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "300px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Product Details
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "60px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Type
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "200px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Duration
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "90px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              User
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "60px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+              }}
+            >
+              Action
+            </th>
           </tr>
         </thead>
         <tbody
@@ -409,13 +487,18 @@ export default function HistoryView() {
             filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
 
+              // const weeklyLabel = displayData?.weekly
+              //   ? displayTimeSlotsWithDayLabels(
+              //       displayData?.weeklyTimeSlots,
+              //       6,
+              //       true
+              //     )
+              //   : null;
+
               const weeklyLabel = displayData?.weekly
-                ? displayTimeSlotsWithDayLabels(
-                    displayData?.weeklyTimeSlots,
-                    6,
-                    true
-                  )
+                ? displayWeekdays(displayData?.weeklyTimeSlots)
                 : null;
+
               const monthlyLabel = displayData?.monthly
                 ? displayTimeSlotsWithDayLabels(
                     displayData?.monthlyTimeSlots,
@@ -428,18 +511,31 @@ export default function HistoryView() {
                 <>
                   <tr
                     key={index}
-                    style={{ height: "50px", cursor: "pointer" }}
+                    style={{
+                      height: "50px",
+                      cursor: "pointer",
+                      margin: "20px 0",
+                    }}
                     onClick={() => handleRowClick(item.scheduleId)}
+                    // className="borderless spacer-row"
                   >
                     {/* image  */}
-                    <td>
+                    <td
+                      style={{
+                        cursor: "pointer",
+                        height: "40px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
                       <img
                         src={displayData?.imageURL || "placeholder-image-url"}
                         alt=""
                         style={{
-                          width: "80px",
-                          height: "80px",
-                          objectFit: "cover",
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "contain",
+                          margin: "0 auto",
                         }}
                       />
                     </td>
@@ -449,6 +545,10 @@ export default function HistoryView() {
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
+                        cursor: "pointer",
+                        height: "40px",
+                        textAlign: "start",
+                        verticalAlign: "middle",
                       }}
                     >
                       {displayData?.title || "N/A"}
@@ -509,16 +609,43 @@ export default function HistoryView() {
                         </span>
                       </div>
                     </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        cursor: "pointer",
+                        height: "40px",
+                      }}
+                    >
+                      {displayData.weekly ? (
+                        <h2>Weekly</h2>
+                      ) : displayData.monthly ? (
+                        <h2>Monthly</h2>
+                      ) : (
+                        <h2>Single</h2>
+                      )}
+                    </td>
                     {/* duration */}
-                    <td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        cursor: "pointer",
+                        // height: "40px",
+                      }}
+                    >
                       <div>
                         {displayData?.weekly ? (
                           <>
-                            <span style={{ color: "blue" }}>
-                              Repeats Weekly on {weeklyLabel}
-                            </span>
+                            <p className=" ">{weeklyLabel}</p>
 
-                            {displayData?.currentPrice && (
+                            {/* {displayData?.currentPrice && (
                               <p
                                 style={{
                                   margin: 0,
@@ -529,12 +656,12 @@ export default function HistoryView() {
                               >
                                 Will Revert to :${displayData.currentPrice}
                               </p>
-                            )}
+                            )} */}
                           </>
                         ) : displayData?.monthly ? (
                           <>
                             <span style={{ color: "blue" }}>
-                              Repeats Monthly on {monthlyLabel}
+                              Monthly on {monthlyLabel}
                             </span>
 
                             {displayData?.currentPrice && (
@@ -552,70 +679,131 @@ export default function HistoryView() {
                           </>
                         ) : (
                           <>
-                            <span>
-                              {displayData?.startDate
-                                ? formatDateTime(displayData.startDate)
-                                : "N/A"}{" "}
-                              --{" "}
-                              {displayData?.endDate ? (
-                                formatDateTime(displayData.endDate)
-                              ) : (
-                                <span style={{ color: "blue" }}>
-                                  No End Date
+                            {/* Single Entry Display */}
+                            <Card className="flex justify-between items-center p-2 mb-2 border">
+                              <div className="w-full flex gap-2">
+                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {displayData?.startDate
+                                    ? formatDateTime(displayData.startDate)
+                                    : "N/A"}
+                                  {displayData.price && (
+                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                      ${displayData?.price?.toFixed(2)}
+                                    </span>
+                                  )}
+                                </h3>
+                                <span className="flex justify-center items-center text-gray-400">
+                                  <FaArrowRightLong />
                                 </span>
-                              )}
-                            </span>
 
-                            {displayData?.endDate ? (
-                              displayData?.currentPrice && (
+                                {displayData.endDate ? (
+                                  <div className="w-full">
+                                    <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                      {formatDateTime(displayData.endDate)}
+                                      {displayData.currentPrice && (
+                                        <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
+                                          $
+                                          {displayData?.currentPrice?.toFixed(
+                                            2
+                                          )}
+                                        </span>
+                                      )}
+                                    </h3>
+                                  </div>
+                                ) : (
+                                  <div className="w-full">
+                                    <h3 className="text-red-400  text-[12px]  text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                      <span className="">
+                                        Until change back
+                                      </span>
+                                    </h3>
+                                  </div>
+                                )}
+                              </div>
+                              {/* <div className="w-full">
+                                <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  <span>
+                                    {displayData?.startDate
+                                      ? formatDateTime(displayData.startDate)
+                                      : "N/A"}
+                                    <FaArrowRightLong />
+                                    {displayData?.endDate ? (
+                                      formatDateTime(displayData.endDate)
+                                    ) : (
+                                      <span style={{ color: "blue" }}>
+                                        No End Date
+                                      </span>
+                                    )}
+                                  </span>
+                                </h3>
+                              </div> */}
+
+                              {/* <div className="w-[20%] text-center flex flex-col items-end">
+                                {displayData?.endDate ? (
+                                  displayData?.currentPrice && (
+                                    <p
+                                      className="text-green-600"
+                                      style={{ margin: 0 }}
+                                    >
+                                      ${displayData.currentPrice}
+                                    </p>
+                                  )
+                                ) : (
+                                  <p
+                                    className="text-orange-500"
+                                    style={{ margin: 0 }}
+                                  >
+                                    Until Changed
+                                  </p>
+                                )}
+                              </div> */}
+
+                              {/* <div style={{ position: "relative" }}>
                                 <p
+                                  className="text-green-600"
                                   style={{
+                                    position: "absolute",
+                                    left: "50px",
+                                    bottom: "0px",
                                     margin: 0,
-                                    color: "green",
-                                    textAlign: "right",
-                                    marginRight: "50px",
                                   }}
                                 >
-                                  ${displayData.currentPrice}
+                                  ${displayData.price || "N/A"}
                                 </p>
-                              )
-                            ) : (
-                              <p
-                                style={{
-                                  margin: 0,
-                                  color: "orange",
-                                  textAlign: "right",
-                                  marginRight: "50px",
-                                }}
-                              >
-                                Until Changed
-                              </p>
-                            )}
-                            <div style={{ position: "relative" }}>
-                              <p
-                                style={{
-                                  color: "green",
-                                  position: "absolute",
-                                  left: "50px",
-                                  bottom: "0px",
-                                  margin: 0,
-                                }}
-                              >
-                                ${displayData.price || "N/A"}
-                              </p>
-                            </div>
+                              </div> */}
+                            </Card>
                           </>
                         )}
                       </div>
                     </td>
 
                     {/* user */}
-                    <td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        // verticalAlign: "middle",
+                        cursor: "pointer",
+                        // height: "40px",
+                      }}
+                    >
                       {item.userName} <p>{formatDateTime(item.timestamp)}</p>
                     </td>
 
                     {/* action */}
-                    <td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        // verticalAlign: "middle",
+                        cursor: "pointer",
+                        // height: "40px",
+                      }}
+                    >
                       {item.action === "deleted" ? (
                         <span style={{ color: "red" }}>Deleted</span>
                       ) : item.action === "updated" ? (

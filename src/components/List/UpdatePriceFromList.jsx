@@ -148,6 +148,15 @@ const UpdatePriceFromList = ({
   // const [endTime,setEndTime] = useState(new Date());
   const [weeklyTimeSlots, setWeeklyTimeSlots] = useState({});
   const [monthlyTimeSlots, setMonthlyTimeSlots] = useState({});
+  const [schedules, setSchedules] = useState([
+    {
+      price: "",
+      currentPrice: "",
+      startDate: new Date(),
+      endDate: new Date(),
+      indefiniteEndDate: false,
+    },
+  ]);
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
@@ -206,6 +215,7 @@ const UpdatePriceFromList = ({
     setErrorMessage("");
     setWeeklyTimeSlots({});
     setMonthlyTimeSlots({});
+    // setSchedules([]);
   };
 
   const addWeeklyTimeSlot = (day) => {
@@ -300,6 +310,48 @@ const UpdatePriceFromList = ({
       const minutes = date.getMinutes().toString().padStart(2, "0");
       return `${hours}:${minutes}`;
     };
+
+    for (let i = 0; i < schedules.length; i++) {
+      const schedule1 = schedules[i];
+      const start1 = new Date(schedule1.startDate);
+      const end1 = new Date(schedule1.endDate || start1);
+
+      for (let j = i + 1; j < schedules.length; j++) {
+        const schedule2 = schedules[j];
+        const start2 = new Date(schedule2.startDate);
+        const end2 = new Date(schedule2.endDate || start2);
+
+        if (isTimeSlotOverlapping(start1, end1, start2, end2)) {
+          setErrorMessage("Schedules overlap.");
+
+          // Hide the error message after 3 seconds
+          setTimeout(() => {
+            setErrorMessage(""); // Clear the error message
+          }, 2000);
+          return false;
+        }
+      }
+    }
+    // Check if the "Until Changed" option is valid
+    for (let i = 0; i < schedules.length - 1; i++) {
+      const prevSchedule = schedules[i];
+      const currentSchedule = schedules[schedules.length - 1];
+
+      const prevEndDate = new Date(
+        prevSchedule.endDate || prevSchedule.startDate
+      );
+      const currentStartDate = new Date(currentSchedule.startDate);
+
+      if (
+        currentSchedule.indefiniteEndDate &&
+        currentStartDate <= prevEndDate
+      ) {
+        setErrorMessage(
+          `"Until Changed" option can only be selected if the start date is greater than the end date of all previous schedules.`
+        );
+        return false;
+      }
+    }
 
     for (const day in weeklyTimeSlots) {
       const slots = weeklyTimeSlots[day];
@@ -453,6 +505,29 @@ const UpdatePriceFromList = ({
     return moment(time).utc().format("HH:mm");
   };
 
+  const addNewSchedule = () => {
+    setSchedules([
+      ...schedules,
+      {
+        price: "",
+        currentPrice: "",
+        startDate: new Date(),
+        endDate: new Date(),
+        indefiniteEndDate: false,
+      },
+    ]);
+  };
+
+  const removeSchedule = (index) => {
+    setSchedules(schedules.filter((_, i) => i !== index));
+  };
+
+  const handleScheduleChange = (index, key, value) => {
+    const updatedSchedules = [...schedules];
+    updatedSchedules[index][key] = value;
+    setSchedules(updatedSchedules);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -505,11 +580,25 @@ const UpdatePriceFromList = ({
       //   setLoading(false);
       //   return;
       // }
+      const hasMonthlyTimeSlots = Object.values(monthlyTimeSlots).some(
+        (timeSlots) => timeSlots.length > 0
+      );
+
+      const hasWeeklyTimeSlots = Object.values(weeklyTimeSlots).some(
+        (timeSlots) => timeSlots.length > 0
+      );
 
       const weeklySlotsInUtc = {};
       const monthlySlotsInUtc = {};
 
       if (weekly) {
+        if (!userName || !asin || !sku || !hasWeeklyTimeSlots) {
+          console.log(weeklyTimeSlots);
+          setErrorMessage("Not provided weekly values.");
+          setLoading(false);
+          return;
+        }
+
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           weeklySlotsInUtc[day] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
@@ -520,9 +609,33 @@ const UpdatePriceFromList = ({
             })
           );
         }
+        await saveScheduleAndQueueJobs(
+          userName,
+          asin,
+          sku,
+          title,
+          price,
+          currentPrice,
+          imageURL,
+          startDate,
+          indefiniteEndDate ? null : endDate,
+          weekly,
+          // daysOfWeek.map((day) => day.value),
+          weeklySlotsInUtc,
+          monthly,
+          // datesOfMonth.map((date) => date.value),
+          monthlySlotsInUtc
+        );
       }
 
       if (monthly) {
+        if (!userName || !asin || !sku || !hasMonthlyTimeSlots) {
+          console.log(weeklyTimeSlots);
+          setErrorMessage("Not provided monthly values");
+          setLoading(false);
+          return;
+        }
+
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           monthlySlotsInUtc[date] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
@@ -533,6 +646,23 @@ const UpdatePriceFromList = ({
             })
           );
         }
+        await saveScheduleAndQueueJobs(
+          userName,
+          asin,
+          sku,
+          title,
+          price,
+          currentPrice,
+          imageURL,
+          startDate,
+          indefiniteEndDate ? null : endDate,
+          weekly,
+          // daysOfWeek.map((day) => day.value),
+          weeklySlotsInUtc,
+          monthly,
+          // datesOfMonth.map((date) => date.value),
+          monthlySlotsInUtc
+        );
       }
 
       /* if (weekly) {
@@ -576,29 +706,39 @@ const UpdatePriceFromList = ({
       //   utcEndTime
 
       // );
-      console.log("weekly:", JSON.stringify(weeklySlotsInUtc, null, 2));
-      await saveScheduleAndQueueJobs(
-        userName,
-        asin,
-        sku,
-        title,
-        price,
-        currentPrice,
-        imageURL,
-        startDate,
-        indefiniteEndDate ? null : endDate,
-        weekly,
-        // daysOfWeek.map((day) => day.value),
-        weeklySlotsInUtc,
-        monthly,
-        // datesOfMonth.map((date) => date.value),
-        monthlySlotsInUtc
-      );
-      console.log("weekly:" + weeklySlotsInUtc);
+
+      if (!weekly && !monthly)
+        for (const schedule of schedules) {
+          const { price, currentPrice, startDate, endDate, indefiniteEndDate } =
+            schedule;
+          if (!indefiniteEndDate && endDate < startDate) {
+            setErrorMessage("End Date cannot be earlier than Start Date.");
+            setLoading(false);
+            return;
+          }
+          await saveScheduleAndQueueJobs(
+            userName,
+            asin,
+            sku,
+            title,
+            price,
+            currentPrice,
+            imageURL,
+            startDate,
+            indefiniteEndDate ? null : endDate,
+            weekly,
+            // daysOfWeek.map((day) => day.value),
+            weeklySlotsInUtc,
+            monthly,
+            // datesOfMonth.map((date) => date.value),
+            monthlySlotsInUtc
+          );
+          // Log event or update UI after successful submission
+        }
       addEvent({
         title: `SKU: ${sku} - $${price}`,
-        start: startDate,
-        end: indefiniteEndDate ? null : endDate,
+        start: new Date(startDate), // Use the original date object for UI purposes
+        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
         allDay: false,
       });
 
@@ -614,6 +754,10 @@ const UpdatePriceFromList = ({
       setLoading(false);
     }
   };
+
+  const disableAddNewButton = schedules.some(
+    (schedule) => schedule.indefiniteEndDate
+  );
 
   return (
     <>
@@ -706,151 +850,161 @@ const UpdatePriceFromList = ({
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="single" className="py-2">
-                    <div className="max-w-[93%] mx-auto mt-2">
-                      {/* <Form.Control
-                                    type="number"
-                                    placeholder="Enter Revert Price"
-                                    required
-                                    step="0.01"
-                                    value={slot.revertPrice} // Add input for revertPrice
-                                    onChange={(e) =>
-                                      handleTimeSlotPriceChange(
-                                        "weekly",
-                                        day.value,
+                    <div className="max-w-[55%] mx-auto mt-2  ">
+                      {!weekly && !monthly && (
+                        <>
+                          {schedules.map((schedule, index) => (
+                            <div
+                              key={index}
+                              className=" mb-3 mx-auto bg-[#F1F1F2] px-4 pt-3 pb-2 rounded-sm relative shadow-sm"
+                            >
+                              <div className="grid grid-cols-3 gap-1 mt-3 ">
+                                <div className="bg-[#DCDCDC] flex justify-center items-center rounded-sm ">
+                                  <h2 className=" text-black">Start </h2>
+                                </div>
+                                <Form.Group
+                                  className="flex flex-col"
+                                  controlId={`formStartDate-${index}`}
+                                >
+                                  {/* <Form.Label>Start Date and Time</Form.Label> */}
+                                  <DatePicker
+                                    selected={schedule.startDate}
+                                    onChange={(date) =>
+                                      handleScheduleChange(
                                         index,
-                                        "revertPrice",
+                                        "startDate",
+                                        date
+                                      )
+                                    }
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                    className="form-control"
+                                    required
+                                    disabled={loading}
+                                  />
+                                </Form.Group>
+
+                                <Form.Group controlId={`formNewPrice-${index}`}>
+                                  <Form.Control
+                                    type="number"
+                                    className="update-custom-input"
+                                    placeholder="Start Price"
+                                    step="0.01"
+                                    value={schedule.price}
+                                    onChange={(e) =>
+                                      handleScheduleChange(
+                                        index,
+                                        "price",
                                         e.target.value
                                       )
                                     }
-                                    className="form-control modal-custom-input "
-                                  /> */}
-
-                      {!weekly && !monthly && (
-                        <>
-                          <div className="grid grid-cols-3 gap-4 mt-3">
-                            <div className="bg-[#DCDCDC] flex justify-center items-center rounded-sm ">
-                              <h2 className=" text-black">Start </h2>
-                            </div>
-                            <Form.Group
-                              className="flex flex-col"
-                              controlId="formStartDate"
-                            >
-                              {/* <Form.Label>Start Date and Time</Form.Label> */}
-                              <DatePicker
-                                selected={startDate}
-                                onChange={(date) => setStartDate(date)}
-                                showTimeSelect
-                                dateFormat="Pp"
-                                className="form-control"
-                                required
-                                disabled={loading}
-                              />
-                            </Form.Group>
-
-                            <Form.Group controlId="formPrice">
-                              {/* <Form.Label>New Price</Form.Label> */}
-                              <Form.Control
-                                type="number"
-                                placeholder="Start Price"
-                                step="0.01"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                required
-                                disabled={loading}
-                              />
-                            </Form.Group>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-4 my-2">
-                            {!indefiniteEndDate && (
-                              <div className="bg-[#DCDCDC]  flex justify-center items-center rounded-sm ">
-                                <h2 className="text-black">End</h2>
+                                    required
+                                    disabled={loading}
+                                  />
+                                </Form.Group>
                               </div>
-                            )}
 
-                            {!indefiniteEndDate && (
-                              <Form.Group
-                                className="flex flex-col"
-                                controlId="formEndDate"
-                              >
-                                {/* <Form.Label>End Date and Time</Form.Label> */}
-                                <DatePicker
-                                  selected={endDate}
-                                  onChange={(date) => setEndDate(date)}
-                                  showTimeSelect
-                                  dateFormat="Pp"
-                                  className="form-control"
-                                  required={!indefiniteEndDate}
+                              <div className="grid grid-cols-3 gap-1 mt-2">
+                                {!schedule.indefiniteEndDate && (
+                                  <div className="bg-[#DCDCDC]  flex justify-center items-center rounded-sm ">
+                                    <h2 className="text-black">End</h2>
+                                  </div>
+                                )}
+
+                                {!schedule.indefiniteEndDate && (
+                                  <Form.Group
+                                    className="flex flex-col"
+                                    controlId={`formEndDate-${index}`}
+                                  >
+                                    <DatePicker
+                                      selected={schedule.endDate}
+                                      onChange={(date) =>
+                                        handleScheduleChange(
+                                          index,
+                                          "endDate",
+                                          date
+                                        )
+                                      }
+                                      showTimeSelect
+                                      dateFormat="Pp"
+                                      className="form-control"
+                                      required={!schedule.indefiniteEndDate}
+                                      disabled={loading}
+                                    />
+                                  </Form.Group>
+                                )}
+
+                                {!schedule.indefiniteEndDate && (
+                                  <Form.Group
+                                    controlId={`formRevertPrice-${index}`}
+                                  >
+                                    {/* <Form.Label>Enter Revert Price</Form.Label> */}
+                                    <Form.Control
+                                      type="number"
+                                      step="0.01"
+                                      value={schedule.currentPrice}
+                                      onChange={(e) =>
+                                        handleScheduleChange(
+                                          index,
+                                          "currentPrice",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="form-control update-custom-input"
+                                      placeholder="End Price"
+                                      required={!schedule.indefiniteEndDate}
+                                    />
+                                  </Form.Group>
+                                )}
+                              </div>
+                              {index === schedules.length - 1 && (
+                                <Form.Group
+                                  controlId={`formIndefiniteEndDate-${index}`}
+                                  className="mt-2  bg-[#DCDCDC] inline-block w-[33%] p-2 rounded"
+                                >
+                                  <Form.Check
+                                    type="checkbox"
+                                    label="Until change back"
+                                    checked={schedule.indefiniteEndDate}
+                                    onChange={() =>
+                                      handleScheduleChange(
+                                        index,
+                                        "indefiniteEndDate",
+                                        !schedule.indefiniteEndDate
+                                      )
+                                    }
+                                    disabled={loading}
+                                  />
+                                </Form.Group>
+                              )}
+
+                              {index > -1 && (
+                                <button
+                                  // variant="danger"
+                                  // size="sm"
+                                  onClick={() => removeSchedule(index)}
+                                  className="mt-2 absolute top-[-5px] right-1 shadow-sm "
                                   disabled={loading}
-                                />
-                              </Form.Group>
-                            )}
-
-                            {!indefiniteEndDate && (
-                              // <Form.Group controlId="formPrice">
-                              //   <Form.Control
-                              //     type="number"
-                              //     placeholder="Enter New Price"
-                              //     value={price}
-                              //     onChange={(e) => setPrice(e.target.value)}
-                              //     required
-                              //     disabled={loading}
-                              //   />
-                              // </Form.Group>
-
-                              //  <Form.Control
-                              //       type="number"
-                              //       placeholder="Enter Revert Price"
-                              //       required
-                              //       step="0.01"
-                              //       value={slot.revertPrice} // Add input for revertPrice
-                              //       onChange={(e) =>
-                              //         handleTimeSlotPriceChange(
-                              //           "weekly",
-                              //           day.value,
-                              //           index,
-                              //           "revertPrice",
-                              //           e.target.value
-                              //         )
-                              //       }
-                              //       className="form-control modal-custom-input "
-                              //     />
-
-                              <Form.Group controlId="formCurrentPrice">
-                                {/* <Form.Label>Enter Revert Price</Form.Label> */}
-                                <Form.Control
-                                  type="number"
-                                  step="0.01"
-                                  // value={parseFloat(currentPrice).toFixed(2)}
-                                  // value={parseFloat(currentPrice).toFixed(2)}
-                                  onChange={(e) =>
-                                    setCurrentPrice(e.target.value)
-                                  }
-                                  className="form-control "
-                                  placeholder="End Price"
-                                  // onChange={(e)=>{
-                                  //   const inputPrice = parseFloat(e.target.value);
-
-                                  //   if(!isNaN(inputPrice)){
-                                  //     setCurrentPrice(inputPrice.toFixed(2));
-                                  //   }
-                                  // }}
-                                />
-                              </Form.Group>
-                            )}
-                          </div>
-
-                          <Form.Group controlId="formIndefiniteEndDate">
-                            <Form.Check
-                              type="checkbox"
-                              label="Until I change."
-                              checked={indefiniteEndDate}
-                              onChange={() =>
-                                setIndefiniteEndDate(!indefiniteEndDate)
-                              }
-                              disabled={loading}
-                            />
-                          </Form.Group>
+                                >
+                                  <IoMdClose className=" text-center text-xl" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          {!disableAddNewButton && (
+                            <button
+                              onClick={addNewSchedule}
+                              disabled={loading || disableAddNewButton}
+                              className={`mt-1 ml-[4%] w-[30%] ${
+                                disableAddNewButton
+                                  ? "bg-[#DCDCDC] text-slate-500"
+                                  : "bg-[#DCDCDC] text-black"
+                              }  py-2 px-2 rounded-sm `}
+                            >
+                              {/* <FaPlus /> */}
+                              Add Time Slot
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -883,11 +1037,11 @@ const UpdatePriceFromList = ({
                             {weeklyTimeSlots[day.value]?.map((slot, index) => (
                               <Card
                                 key={index}
-                                className="  p-2 border-0 bg-[#F1F1F2] shadow-md my-2 rounded-sm"
+                                className="  p-2 border-0 bg-[#F1F1F2] shadow-md my-2 rounded-sm relative"
                               >
                                 {/* start time and start price */}
                                 {/* <div className="grid grid-cols-4 gap-1  my-1"> */}
-                                <div className="flex justify-center items-center gap-1  my-1">
+                                <div className="flex justify-center items-center gap-1  mt-3">
                                   <h3 className="flex justify-center items-center w-[90px] text-sm ">
                                     Start
                                   </h3>
@@ -911,7 +1065,7 @@ const UpdatePriceFromList = ({
                                   />
                                   <Form.Control
                                     type="number"
-                                    placeholder="Enter New Price"
+                                    placeholder="Enter New Price "
                                     required
                                     step="0.01"
                                     value={slot.newPrice}
@@ -924,15 +1078,15 @@ const UpdatePriceFromList = ({
                                         e.target.value
                                       )
                                     }
-                                    className="form-control modal-custom-input"
+                                    className="form-control modal-custom-input "
                                   />
                                   {/* <Button className="w-[40px] border-0  bg-transparent ml-1  ">
                                     <span className=""></span>
                                   </Button> */}
 
-                                  <span className=" w-[50px] border-0 flex items-center justify-center   py-2 rounded text-white">
+                                  {/* <span className=" w-[50px] border-0 flex items-center justify-center   py-2 rounded text-white">
                                     <span className=""></span>
-                                  </span>
+                                  </span> */}
                                 </div>
 
                                 <div className=" flex justify-center items-center gap-1">
@@ -979,7 +1133,7 @@ const UpdatePriceFromList = ({
                                     onClick={() =>
                                       removeTimeSlot("weekly", day.value, index)
                                     }
-                                    className=" w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
+                                    className=" border-0 flex items-center justify-center px-1 py-1 rounded-sm text-black shadow-sm absolute top-0 right-0"
                                   >
                                     <IoMdClose className=" text-center text-base" />
                                   </button>
@@ -1024,11 +1178,11 @@ const UpdatePriceFromList = ({
                                   (slot, index) => (
                                     <Card
                                       key={index}
-                                      className="  px-1 py-1  border-0 bg-[#F1F1F2] shadow-md my-2 rounded-sm"
+                                      className="  px-1 py-1  border-0 bg-[#F1F1F2] shadow-md my-2 rounded-sm relative"
                                     >
                                       {/* start time and start price */}
                                       {/* <div className="grid grid-cols-4 gap-1  my-1"> */}
-                                      <div className="flex justify-center items-center gap-1  my-1">
+                                      <div className="flex justify-center items-center gap-1  mt-4 mb-1">
                                         <h3 className="flex justify-center items-center w-[90px] text-[12px] ">
                                           Start
                                         </h3>
@@ -1070,10 +1224,6 @@ const UpdatePriceFromList = ({
                                         {/* <Button className="w-[40px] border-0  bg-transparent ml-1  ">
                                         <span className=""></span>
                                       </Button> */}
-
-                                        <span className=" w-[63px] border-0 flex items-center justify-center   py-2 rounded text-white">
-                                          <span className=""></span>
-                                        </span>
                                       </div>
 
                                       <div className=" flex justify-center items-center gap-1">
@@ -1116,6 +1266,7 @@ const UpdatePriceFromList = ({
                                           }
                                           className="form-control modal-custom-input "
                                         />
+
                                         <button
                                           onClick={() =>
                                             removeTimeSlot(
@@ -1124,7 +1275,7 @@ const UpdatePriceFromList = ({
                                               index
                                             )
                                           }
-                                          className=" w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
+                                          className="  border-0 flex items-center justify-center px-1 py-1 rounded-sm text-black shadow-sm absolute top-0 right-0"
                                         >
                                           <IoMdClose className=" text-center text-base" />
                                         </button>
