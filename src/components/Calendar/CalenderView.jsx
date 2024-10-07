@@ -144,7 +144,7 @@ const CalendarView = () => {
   return (
     <>
       <section>
-        <div className="flex items-center justify-between  mt-[-20px]">
+        <div className="flex items-center justify-between  mt-[-0.5%]">
           {/* Left: Previous, Today, Next Buttons */}
           <div className="flex items-center justify-start">
             <Button
@@ -194,25 +194,8 @@ const CalendarView = () => {
             </h3>
           </div>
 
-          {/* <DropdownButton
-            className="mr-[220px]"
-            id="dropdown-basic-button"
-            title={view.charAt(0).toUpperCase() + view.slice(1)}
-          >
-            <Dropdown.Item onClick={() => handleViewChange(Views.MONTH)}>
-              Month
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => handleViewChange(Views.WEEK)}>
-              Week
-            </Dropdown.Item>
-          </DropdownButton> */}
-
-          {/* <div className="mr-[220px]">
-            <CalenderPageDropdown></CalenderPageDropdown>
-          </div> */}
-
           {/* calender page dropdown */}
-          <div className="mr-[220px]">
+          <div className="mr-[13%]">
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button

@@ -1,30 +1,18 @@
-import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Form,
-  InputGroup,
-  Spinner,
-  Container,
-  Row,
-  Col,
-} from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Table, Form, InputGroup, Spinner } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck } from "react-icons/md";
-
 
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000";
 
-
-const BASE_URL = `https://api.priceobo.com`;
-
+// const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -69,14 +57,25 @@ const dateNames = [
   "31st",
 ];
 
-
+// function addHoursToTime(timeString, hoursToAdd) {
+//   const [hours, minutes] = timeString.split(":").map(Number);
+//   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
+//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
+//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+// }
 function addHoursToTime(timeString, hoursToAdd) {
-  const [hours, minutes] = timeString.split(":").map(Number);
-  const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
-  const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
-  return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
-}
+  let [hours, minutes] = timeString.split(":").map(Number);
 
+  // Add hours and calculate new hours and AM/PM
+  hours = (hours + hoursToAdd) % 24;
+  const amOrPm = hours >= 12 ? "PM" : "AM";
+
+  // Convert 24-hour format to 12-hour format
+  const formattedHours = hours % 12 === 0 ? 12 : hours % 12; // Handle midnight (0 -> 12) and noon (12 -> 12)
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Add leading zero to minutes if necessary
+
+  return `${formattedHours}:${formattedMinutes} ${amOrPm}`;
+}
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -102,13 +101,13 @@ const displayTimeSlotsWithDayLabels = (
       {slots.map((slot, index) => (
         <p key={index}>
           {addHoursToTime(slot.startTime, addHours)} -{" "}
-          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice}
+          {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice} -
+          End Price: {slot?.revertPrice}
         </p>
       ))}
     </div>
   ));
 };
-
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
@@ -125,9 +124,7 @@ export default function HistoryView() {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
 
-
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
-
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -139,15 +136,12 @@ export default function HistoryView() {
       }
     };
 
-
     fetchUsers();
   }, []);
-
 
   useEffect(() => {
     fetchData();
   }, [selectedUser]);
-
 
   const fetchData = async () => {
     const url = selectedUser
@@ -162,7 +156,6 @@ export default function HistoryView() {
           )
         : [];
 
-
       setData(sortedData.filter((item) => item.action === "created"));
     } catch (err) {
       setError(
@@ -173,7 +166,6 @@ export default function HistoryView() {
       setLoading(false);
     }
   };
-
 
   const fetchNestedData = async (scheduleId) => {
     console.log("sd: " + scheduleId);
@@ -191,7 +183,6 @@ export default function HistoryView() {
     }
   };
 
-
   const handleRowClick = (scheduleId) => {
     console.log("sd handle: " + scheduleId);
     if (expandedRow === scheduleId) {
@@ -204,23 +195,19 @@ export default function HistoryView() {
     }
   };
 
-
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-
   const handleUserChange = (e) => {
     setSelectedUser(e.target.value);
   };
-
 
   const handleFilterDateChange = (dates) => {
     const [start, end] = dates;
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-
 
   const formatDateTime = (dateString) => {
     const options = {
@@ -233,7 +220,6 @@ export default function HistoryView() {
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
@@ -252,7 +238,6 @@ export default function HistoryView() {
       });
   };
 
-
   const getDisplayData = (item) => {
     if (item.action === "updated") {
       return item.updatedState || item.previousState || {};
@@ -260,13 +245,11 @@ export default function HistoryView() {
     return item;
   };
 
-
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
       .map((day) => daysOptions.find((option) => option.value === day)?.label)
       .join(", ");
   };
-
 
   const getDateLabels = (datesOfMonth) => {
     return datesOfMonth
@@ -275,7 +258,6 @@ export default function HistoryView() {
       )
       .join(", ");
   };
-
 
   const filteredData = data
     .filter((item) => {
@@ -295,7 +277,6 @@ export default function HistoryView() {
       const itemEndDate = displayData.endDate
         ? new Date(displayData.endDate)
         : null;
-
 
       if (filterStartDate && filterEndDate) {
         const adjustedEndDate = new Date(filterEndDate);
@@ -324,7 +305,6 @@ export default function HistoryView() {
       return true;
     });
 
-
   if (loading)
     return (
       <div
@@ -345,7 +325,6 @@ export default function HistoryView() {
         />
         <br />
 
-
         <div className="block">
           <p className="text-xl"> Loading...</p>
         </div>
@@ -353,27 +332,26 @@ export default function HistoryView() {
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
-
   return (
-    <Container fluid style={{ marginTop: "100px" }}>
-      <Row className="mb-3">
-        <Col md={3}>
-          <InputGroup>
-            <Form.Control
-              type="text"
-              placeholder="Search by Product Name, ASIN or SKU..."
-              value={searchTerm}
-              onChange={handleSearch}
-              style={{ borderRadius: "4px" }}
-            />
-          </InputGroup>
-        </Col>
-        <Col md={3} className="text-right">
+    <div className="">
+      <div className="">
+        <InputGroup className="max-w-[350px] absolute top-[1.2%] ">
+          <Form.Control
+            type="text"
+            placeholder="Search by Product Name, ASIN or SKU..."
+            value={searchTerm}
+            onChange={handleSearch}
+            style={{ borderRadius: "0px" }}
+            className="custom-input"
+          />
+        </InputGroup>
+        <div className="absolute top-[1.5%] right-[25%]">
           <Form.Control
             as="select"
             value={selectedUser}
             onChange={handleUserChange}
             style={{ borderRadius: "4px" }}
+            className="custom-input"
           >
             <option value="">All Users</option>
             {users.map((user) => (
@@ -382,8 +360,8 @@ export default function HistoryView() {
               </option>
             ))}
           </Form.Control>
-        </Col>
-        <Col md={6} className="text-right">
+        </div>
+        <div className="absolute top-[1.5%] right-[12%]">
           <DatePicker
             selected={filterStartDate}
             onChange={handleFilterDateChange}
@@ -395,13 +373,14 @@ export default function HistoryView() {
             className="form-control"
             style={{ borderRadius: "4px" }}
           />
-        </Col>
-      </Row>
+        </div>
+      </div>
       <Table
         bordered
         hover
         responsive
-        style={{ width: "90%", tableLayout: "fixed" }}
+        style={{ tableLayout: "fixed" }}
+        className="mt-14"
       >
         <thead
           style={{
@@ -415,7 +394,7 @@ export default function HistoryView() {
             <th style={{ width: "80px" }}>Image</th>
             <th style={{ width: "300px" }}>Product Details</th>
             <th style={{ width: "200px" }}>Duration</th>
-            <th style={{ width: "90px" }}>Changed By</th>
+            <th style={{ width: "90px" }}>User</th>
             <th style={{ width: "60px" }}>Action</th>
           </tr>
         </thead>
@@ -429,7 +408,6 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
-
 
               const weeklyLabel = displayData?.weekly
                 ? displayTimeSlotsWithDayLabels(
@@ -446,14 +424,14 @@ export default function HistoryView() {
                   )
                 : null;
 
-
               return (
                 <>
                   <tr
-                    key={item._id}
+                    key={index}
                     style={{ height: "50px", cursor: "pointer" }}
                     onClick={() => handleRowClick(item.scheduleId)}
                   >
+                    {/* image  */}
                     <td>
                       <img
                         src={displayData?.imageURL || "placeholder-image-url"}
@@ -465,6 +443,7 @@ export default function HistoryView() {
                         }}
                       />
                     </td>
+                    {/* product details */}
                     <td
                       style={{
                         whiteSpace: "nowrap",
@@ -530,8 +509,7 @@ export default function HistoryView() {
                         </span>
                       </div>
                     </td>
-
-
+                    {/* duration */}
                     <td>
                       <div>
                         {displayData?.weekly ? (
@@ -539,7 +517,6 @@ export default function HistoryView() {
                             <span style={{ color: "blue" }}>
                               Repeats Weekly on {weeklyLabel}
                             </span>
-
 
                             {displayData?.currentPrice && (
                               <p
@@ -559,7 +536,6 @@ export default function HistoryView() {
                             <span style={{ color: "blue" }}>
                               Repeats Monthly on {monthlyLabel}
                             </span>
-
 
                             {displayData?.currentPrice && (
                               <p
@@ -589,6 +565,7 @@ export default function HistoryView() {
                                 </span>
                               )}
                             </span>
+
                             {displayData?.endDate ? (
                               displayData?.currentPrice && (
                                 <p
@@ -624,16 +601,20 @@ export default function HistoryView() {
                                   margin: 0,
                                 }}
                               >
-                                ${displayData?.price || "N/A"}
+                                ${displayData.price || "N/A"}
                               </p>
                             </div>
                           </>
                         )}
                       </div>
                     </td>
+
+                    {/* user */}
                     <td>
                       {item.userName} <p>{formatDateTime(item.timestamp)}</p>
                     </td>
+
+                    {/* action */}
                     <td>
                       {item.action === "deleted" ? (
                         <span style={{ color: "red" }}>Deleted</span>
@@ -645,7 +626,6 @@ export default function HistoryView() {
                     </td>
                   </tr>
 
-
                   {expandedRow === item.scheduleId && (
                     <tr>
                       <td colSpan="4">
@@ -654,10 +634,11 @@ export default function HistoryView() {
                           <Table bordered size="sm">
                             <thead>
                               <tr>
-                                <th>Image</th>
-                                <th>Action</th>
+                                {/* <th>Image</th> */}
                                 <th>Duration</th>
-                                <th>Product Details</th>
+                                <th>Action</th>
+                                {/* <th>Product Details</th> */}
+                                <th>User</th>
                               </tr>
                             </thead>
                             <tbody
@@ -672,60 +653,414 @@ export default function HistoryView() {
                                   (nestedItem) =>
                                     nestedItem.action !== "created"
                                 )
-                                .map((nestedItem) => (
-                                  <tr key={nestedItem._id}>
-                                    <td>
-                                      <img
-                                        src={
-                                          nestedItem.imageURL
-                                            ? nestedItem.imageURL
-                                            : nestedItem.updatedState.imageURL
-                                        }
-                                        alt="Item Image"
-                                      />
-                                    </td>
+                                .map((nestedItem) => {
+                                  // Log nestedItem to the console
+                                  console.log("nested Item", nestedItem);
 
+                                  // Return JSX
+                                  return (
+                                    <tr key={nestedItem._id}>
+                                      {/* duration */}
+                                      {/* <td>
+                                        {formatDateTime(nestedItem.timestamp)}
+                                      </td> */}
 
-                                    <td>{nestedItem.action}</td>
-                                    <td>
-                                      {formatDateTime(nestedItem.timestamp)}
-                                    </td>
+                                      <td>
+                                        <div>
+                                          {nestedItem?.action === "deleted" ? (
+                                            // Display previousState data when action is deleted
+                                            <>
+                                              {nestedItem?.previousState
+                                                ?.weekly ? (
+                                                <>
+                                                  {Object.entries(
+                                                    nestedItem?.previousState
+                                                      ?.weeklyTimeSlots || {}
+                                                  ).map(([day, timeSlots]) => (
+                                                    <div key={day}>
+                                                      <p style={{ margin: 0 }}>
+                                                        Day {day}:
+                                                        {timeSlots.map(
+                                                          (slot, index) => (
+                                                            <span key={index}>
+                                                              {" "}
+                                                              {addHoursToTime(
+                                                                slot.startTime,
+                                                                6
+                                                              )}{" "}
+                                                              -{" "}
+                                                              {addHoursToTime(
+                                                                slot.endTime,
+                                                                6
+                                                              )}
+                                                            </span>
+                                                          )
+                                                        )}
+                                                      </p>
+                                                      {timeSlots.map(
+                                                        (slot, index) => (
+                                                          <p
+                                                            key={index}
+                                                            style={{
+                                                              margin: 0,
+                                                              color: "green",
+                                                              textAlign:
+                                                                "right",
+                                                              marginRight:
+                                                                "50px",
+                                                            }}
+                                                          >
+                                                            New Price: $
+                                                            {slot.newPrice} |
+                                                            Reverts to: $
+                                                            {slot.revertPrice}
+                                                          </p>
+                                                        )
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </>
+                                              ) : nestedItem?.previousState
+                                                  ?.monthly ? (
+                                                <>
+                                                  {Object.entries(
+                                                    nestedItem?.previousState
+                                                      ?.monthlyTimeSlots || {}
+                                                  ).map(([date, timeSlots]) => (
+                                                    <div key={date}>
+                                                      <p style={{ margin: 0 }}>
+                                                        Day {date}:
+                                                        {timeSlots.map(
+                                                          (slot, index) => (
+                                                            <span key={index}>
+                                                              {" "}
+                                                              {addHoursToTime(
+                                                                slot.startTime,
+                                                                6
+                                                              )}{" "}
+                                                              -{" "}
+                                                              {addHoursToTime(
+                                                                slot.endTime,
+                                                                6
+                                                              )}
+                                                            </span>
+                                                          )
+                                                        )}
+                                                      </p>
+                                                      {timeSlots.map(
+                                                        (slot, index) => (
+                                                          <p
+                                                            key={index}
+                                                            style={{
+                                                              margin: 0,
+                                                              color: "green",
+                                                              textAlign:
+                                                                "right",
+                                                              marginRight:
+                                                                "50px",
+                                                            }}
+                                                          >
+                                                            New Price: $
+                                                            {slot.newPrice} |
+                                                            Reverts to: $
+                                                            {slot.revertPrice}
+                                                          </p>
+                                                        )
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <span>
+                                                    {nestedItem?.previousState
+                                                      ?.startDate
+                                                      ? formatDateTime(
+                                                          nestedItem
+                                                            .previousState
+                                                            ?.startDate
+                                                        )
+                                                      : "N/A"}{" "}
+                                                    --{" "}
+                                                    {nestedItem?.previousState
+                                                      ?.endDate ? (
+                                                      formatDateTime(
+                                                        nestedItem.previousState
+                                                          ?.endDate
+                                                      )
+                                                    ) : (
+                                                      <span
+                                                        style={{
+                                                          color: "blue",
+                                                        }}
+                                                      >
+                                                        No End Date
+                                                      </span>
+                                                    )}
+                                                  </span>
+                                                  {nestedItem?.previousState
+                                                    ?.endDate ? (
+                                                    nestedItem?.previousState
+                                                      ?.currentPrice && (
+                                                      <p
+                                                        style={{
+                                                          margin: 0,
+                                                          color: "green",
+                                                          textAlign: "right",
+                                                          marginRight: "50px",
+                                                        }}
+                                                      >
+                                                        $
+                                                        {
+                                                          nestedItem
+                                                            ?.previousState
+                                                            ?.currentPrice
+                                                        }
+                                                      </p>
+                                                    )
+                                                  ) : (
+                                                    <p
+                                                      style={{
+                                                        margin: 0,
+                                                        color: "orange",
+                                                        textAlign: "right",
+                                                        marginRight: "50px",
+                                                      }}
+                                                    >
+                                                      Until Changed
+                                                    </p>
+                                                  )}
+                                                  <div
+                                                    style={{
+                                                      position: "relative",
+                                                    }}
+                                                  >
+                                                    <p
+                                                      style={{
+                                                        color: "green",
+                                                        position: "absolute",
+                                                        left: "50px",
+                                                        bottom: "0px",
+                                                        margin: 0,
+                                                      }}
+                                                    >
+                                                      $
+                                                      {nestedItem?.previousState
+                                                        ?.price || "N/A"}
+                                                    </p>
+                                                  </div>
+                                                </>
+                                              )}
+                                            </>
+                                          ) : nestedItem?.updatedState
+                                              ?.weekly ? (
+                                            // Display updatedState data when action is not deleted
+                                            <>
+                                              {Object.entries(
+                                                nestedItem?.updatedState
+                                                  ?.weeklyTimeSlots || {}
+                                              ).map(([day, timeSlots]) => (
+                                                <div key={day}>
+                                                  <p style={{ margin: 0 }}>
+                                                    Day {day}:
+                                                    {timeSlots.map(
+                                                      (slot, index) => (
+                                                        <span key={index}>
+                                                          {" "}
+                                                          {addHoursToTime(
+                                                            slot.startTime,
+                                                            6
+                                                          )}{" "}
+                                                          -{" "}
+                                                          {addHoursToTime(
+                                                            slot.endTime,
+                                                            6
+                                                          )}
+                                                        </span>
+                                                      )
+                                                    )}
+                                                  </p>
+                                                  {timeSlots.map(
+                                                    (slot, index) => (
+                                                      <p
+                                                        key={index}
+                                                        style={{
+                                                          margin: 0,
+                                                          color: "green",
+                                                          textAlign: "right",
+                                                          marginRight: "50px",
+                                                        }}
+                                                      >
+                                                        New Price: $
+                                                        {slot.newPrice} |
+                                                        Reverts to: $
+                                                        {slot.revertPrice}
+                                                      </p>
+                                                    )
+                                                  )}
+                                                </div>
+                                              ))}
+                                            </>
+                                          ) : nestedItem?.updatedState
+                                              ?.monthly ? (
+                                            <>
+                                              {Object.entries(
+                                                nestedItem?.updatedState
+                                                  ?.monthlyTimeSlots || {}
+                                              ).map(([date, timeSlots]) => (
+                                                <div key={date}>
+                                                  <p style={{ margin: 0 }}>
+                                                    Day {date}:
+                                                    {timeSlots.map(
+                                                      (slot, index) => (
+                                                        <span key={index}>
+                                                          {" "}
+                                                          {addHoursToTime(
+                                                            slot.startTime,
+                                                            6
+                                                          )}{" "}
+                                                          -{" "}
+                                                          {addHoursToTime(
+                                                            slot.endTime,
+                                                            6
+                                                          )}
+                                                        </span>
+                                                      )
+                                                    )}
+                                                  </p>
+                                                  {timeSlots.map(
+                                                    (slot, index) => (
+                                                      <p
+                                                        key={index}
+                                                        style={{
+                                                          margin: 0,
+                                                          color: "green",
+                                                          textAlign: "right",
+                                                          marginRight: "50px",
+                                                        }}
+                                                      >
+                                                        New Price: $
+                                                        {slot.newPrice} |
+                                                        Reverts to: $
+                                                        {slot.revertPrice}
+                                                      </p>
+                                                    )
+                                                  )}
+                                                </div>
+                                              ))}
+                                            </>
+                                          ) : (
+                                            <>
+                                              <span>
+                                                {nestedItem?.updatedState
+                                                  ?.startDate
+                                                  ? formatDateTime(
+                                                      nestedItem.updatedState
+                                                        ?.startDate
+                                                    )
+                                                  : "N/A"}{" "}
+                                                --{" "}
+                                                {nestedItem?.updatedState
+                                                  ?.endDate ? (
+                                                  formatDateTime(
+                                                    nestedItem.updatedState
+                                                      ?.endDate
+                                                  )
+                                                ) : (
+                                                  <span
+                                                    style={{ color: "blue" }}
+                                                  >
+                                                    No End Date
+                                                  </span>
+                                                )}
+                                              </span>
+                                              {nestedItem?.updatedState
+                                                ?.endDate ? (
+                                                nestedItem?.updatedState
+                                                  ?.currentPrice && (
+                                                  <p
+                                                    style={{
+                                                      margin: 0,
+                                                      color: "green",
+                                                      textAlign: "right",
+                                                      marginRight: "50px",
+                                                    }}
+                                                  >
+                                                    $
+                                                    {
+                                                      nestedItem?.updatedState
+                                                        ?.currentPrice
+                                                    }
+                                                  </p>
+                                                )
+                                              ) : (
+                                                <p
+                                                  style={{
+                                                    margin: 0,
+                                                    color: "orange",
+                                                    textAlign: "right",
+                                                    marginRight: "50px",
+                                                  }}
+                                                >
+                                                  Until Changed
+                                                </p>
+                                              )}
+                                              <div
+                                                style={{ position: "relative" }}
+                                              >
+                                                <p
+                                                  style={{
+                                                    color: "green",
+                                                    position: "absolute",
+                                                    left: "50px",
+                                                    bottom: "0px",
+                                                    margin: 0,
+                                                  }}
+                                                >
+                                                  $
+                                                  {nestedItem?.updatedState
+                                                    ?.price || "N/A"}
+                                                </p>
+                                              </div>
+                                            </>
+                                          )}
+                                        </div>
+                                      </td>
 
+                                      {/* action */}
+                                      <td>{nestedItem.action}</td>
 
-                                    <td>
-                                      {nestedItem.previousState ? (
-                                        <>
-                                          <p>
-                                            Price: $
-                                            {nestedItem.previousState.price}
-                                          </p>
-                                          <p>
-                                            Title:{" "}
-                                            {nestedItem.previousState.title}
-                                          </p>
-                                        </>
-                                      ) : (
-                                        "N/A"
-                                      )}
-                                    </td>
-                                    <td>
-                                      {nestedItem.updatedState ? (
-                                        <>
-                                          <p>
-                                            Price: $
-                                            {nestedItem.updatedState.price}
-                                          </p>
-                                          <p>
-                                            Title:{" "}
-                                            {nestedItem.updatedState.title}
-                                          </p>
-                                        </>
-                                      ) : (
-                                        "N/A"
-                                      )}
-                                    </td>
-                                  </tr>
-                                ))}
+                                      {/* user */}
+                                      <td>
+                                        <h2>
+                                          {nestedItem.userName} -{" "}
+                                          {formatDateTime(nestedItem.timestamp)}
+                                        </h2>
+                                      </td>
+
+                                      {/* <td>
+            {nestedItem.previousState ? (
+              <>
+                <p>Price: ${nestedItem.previousState.price}</p>
+                <p>Title: {nestedItem.previousState.title}</p>
+              </>
+            ) : (
+              "N/A"
+            )}
+          </td> */}
+                                      {/* <td>
+            {nestedItem.updatedState ? (
+              <>
+                <p>Price: ${nestedItem.updatedState.price}</p>
+                <p>Title: {nestedItem.updatedState.title}</p>
+              </>
+            ) : (
+              "N/A"
+            )}
+          </td> */}
+                                    </tr>
+                                  );
+                                })}
                             </tbody>
                           </Table>
                         )}
@@ -744,9 +1079,6 @@ export default function HistoryView() {
           )}
         </tbody>
       </Table>
-    </Container>
+    </div>
   );
 }
-
-
-

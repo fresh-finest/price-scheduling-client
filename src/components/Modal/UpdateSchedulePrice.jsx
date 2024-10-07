@@ -1,11 +1,11 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import axios from 'axios';
-import { useSelector } from 'react-redux';
-import { current } from '@reduxjs/toolkit';
+import React, { useState, useContext, useEffect } from "react";
+import { Modal, Button, Form, Alert } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+import axios from "axios";
+import { useSelector } from "react-redux";
+import { current } from "@reduxjs/toolkit";
 
 // const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
@@ -18,7 +18,10 @@ const fetchProductDetails = async (asin) => {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching product details:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
@@ -28,62 +31,92 @@ const fetchProductAdditionalDetails = async (asin) => {
     const response = await axios.get(`${BASE_URL}/details/${asin}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching additional product details:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching additional product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
 const updateProductPrice = async (sku, value) => {
   try {
-    console.log(`Attempting to update price for SKU: ${sku} to value: ${value}`);
-    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, { value: parseFloat(value) });
-    console.log('Update response:', response.data);
+    console.log(
+      `Attempting to update price for SKU: ${sku} to value: ${value}`
+    );
+    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
+      value: parseFloat(value),
+    });
+    console.log("Update response:", response.data);
 
     if (response.data.issues && response.data.issues.length > 0) {
-      console.warn('Price update issues:', response.data.issues);
+      console.warn("Price update issues:", response.data.issues);
     }
 
     return response.data;
   } catch (error) {
-    console.error('Error updating product price:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error updating product price:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
-const saveSchedule = async (userName,  asin, sku, title, price, currentPrice,imageURL, startDate, endDate) => {
+const saveSchedule = async (
+  userName,
+  asin,
+  sku,
+  title,
+  price,
+  currentPrice,
+  imageURL,
+  startDate,
+  endDate
+) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, {userName, asin, sku,title, price: parseFloat(price),currentPrice,imageURL, startDate, endDate });
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {
+      userName,
+      asin,
+      sku,
+      title,
+      price: parseFloat(price),
+      currentPrice,
+      imageURL,
+      startDate,
+      endDate,
+    });
     return response.data;
   } catch (error) {
-    console.error('Error saving schedule:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error saving schedule:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
-
-
 
 const UpdatePrice = ({ show, onClose }) => {
   const { addEvent } = useContext(PriceScheduleContext);
-  const [asin, setAsin] = useState('');
-  const [sku, setSku] = useState('');
-  const [currentPrice, setCurrentPrice] = useState('');
-  const [price, setPrice] = useState('');
+  const [asin, setAsin] = useState("");
+  const [sku, setSku] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false); // New state for indefinite end date
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-
-  const [title, setTitle] = useState('');
-  const [imageURL, setImageUrl] = useState('');
+  const [title, setTitle] = useState("");
+  const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
-  
+
   // const userName = JSON.stringify(currentUser.userName);
   const userName = currentUser.userName;
 
-  console.log("current user " +userName);
+  console.log("current user " + userName);
   useEffect(() => {
     if (show) {
       resetForm();
@@ -91,15 +124,15 @@ const UpdatePrice = ({ show, onClose }) => {
   }, [show]);
 
   const resetForm = () => {
-    setAsin('');
-    setSku('');
-    setCurrentPrice('');
-    setPrice('');
+    setAsin("");
+    setSku("");
+    setCurrentPrice("");
+    setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
     setIndefiniteEndDate(false); // Reset the checkbox
-    setSuccessMessage('');
-    setErrorMessage('');
+    setSuccessMessage("");
+    setErrorMessage("");
   };
 
   const handleAsinChange = async (e) => {
@@ -115,24 +148,40 @@ const UpdatePrice = ({ show, onClose }) => {
         const additionalData = await fetchProductAdditionalDetails(asinValue);
         setTitle(additionalData.payload.AttributeSets[0].Title);
         setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-
       } catch (error) {
-        setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
-        console.error('Error fetching product details:', error);
+        setErrorMessage(
+          "Error fetching product details: " +
+            (error.response ? error.response.data.error : error.message)
+        );
+        console.error("Error fetching product details:", error);
       }
     }
   };
-
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       // First, schedule the price update
-      await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
+      await schedulePriceUpdate(
+        sku,
+        currentPrice,
+        price,
+        startDate,
+        indefiniteEndDate ? null : endDate
+      );
 
       // Log the scheduling in MongoDB
-      await saveSchedule(userName, asin, sku, title, price, currentPrice, imageURL,startDate, indefiniteEndDate ? null : endDate);
+      await saveSchedule(
+        userName,
+        asin,
+        sku,
+        title,
+        price,
+        currentPrice,
+        imageURL,
+        startDate,
+        indefiniteEndDate ? null : endDate
+      );
 
       // Add event to the context
       addEvent({
@@ -151,12 +200,21 @@ const UpdatePrice = ({ show, onClose }) => {
       // Close the main modal
       onClose();
     } catch (error) {
-      setErrorMessage('Error scheduling price update: ' + (error.response ? error.response.data.error : error.message));
-      console.error('Error scheduling price update:', error);
+      setErrorMessage(
+        "Error scheduling price update: " +
+          (error.response ? error.response.data.error : error.message)
+      );
+      console.error("Error scheduling price update:", error);
     }
   };
 
-  const schedulePriceUpdate = async (sku, originalPrice, newPrice, startDate, endDate) => {
+  const schedulePriceUpdate = async (
+    sku,
+    originalPrice,
+    newPrice,
+    startDate,
+    endDate
+  ) => {
     const now = new Date();
     const delayStart = startDate - now;
 
@@ -166,9 +224,11 @@ const UpdatePrice = ({ show, onClose }) => {
         try {
           console.log("Price is getting updated.");
           await updateProductPrice(sku, newPrice);
-          console.log(`Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
+          console.log(
+            `Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`
+          );
         } catch (error) {
-          console.error('Error updating to new price:', error);
+          console.error("Error updating to new price:", error);
         }
       }, delayStart);
     } else {
@@ -176,7 +236,7 @@ const UpdatePrice = ({ show, onClose }) => {
         await updateProductPrice(sku, newPrice);
         console.log(`Price updated to ${newPrice} immediately for SKU ${sku}`);
       } catch (error) {
-        console.error('Error updating to new price:', error);
+        console.error("Error updating to new price:", error);
       }
     }
 
@@ -188,9 +248,11 @@ const UpdatePrice = ({ show, onClose }) => {
           try {
             console.log("Price is getting reverted...");
             await updateProductPrice(sku, originalPrice);
-            console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
+            console.log(
+              `Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`
+            );
           } catch (error) {
-            console.error('Error reverting to original price:', error);
+            console.error("Error reverting to original price:", error);
           }
         }, delayEnd);
       }
@@ -199,10 +261,10 @@ const UpdatePrice = ({ show, onClose }) => {
 
   const modalStyles = {
     formControl: {
-      marginBottom: '15px',
+      marginBottom: "15px",
     },
     button: {
-      width: '100%',
+      width: "100%",
     },
   };
 
@@ -226,7 +288,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formCurrentPrice"
+              style={modalStyles.formControl}
+            >
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formPrice" style={modalStyles.formControl}>
@@ -239,7 +304,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formStartDate" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formStartDate"
+              style={modalStyles.formControl}
+            >
               <Form.Label>Start Date and Time</Form.Label>
               <DatePicker
                 selected={startDate}
@@ -250,7 +318,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formIndefiniteEndDate" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formIndefiniteEndDate"
+              style={modalStyles.formControl}
+            >
               <Form.Check
                 type="checkbox"
                 label="Untill I change it."
@@ -259,7 +330,10 @@ const UpdatePrice = ({ show, onClose }) => {
               />
             </Form.Group>
             {!indefiniteEndDate && (
-              <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
+              <Form.Group
+                controlId="formEndDate"
+                style={modalStyles.formControl}
+              >
                 <Form.Label>End Date and Time</Form.Label>
                 <DatePicker
                   selected={endDate}
