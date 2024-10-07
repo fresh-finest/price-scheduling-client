@@ -1,0 +1,52 @@
+.update-price-list-modal {
+  position: relative;
+  margin-left: 11%;
+  max-width: 60vw;
+}
+.update-price-list-modal .modal-content {
+  height: 75vh; /*modal height */
+  overflow-y: auto;
+}
+.update-price-list-modal .modal-header {
+  border: 0;
+}
+.update-price-list-modal .modal-header button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.weekly-schedule {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* gap: 10px; */
+}
+
+.day-box {
+  padding: 10px;
+  border: 0.2px solid #dcdcdc;
+  margin: 1px;
+  /* border: 1px solid #ddd; */
+  /* border-radius: 5px; */
+  /* background-color: #f9f9f9; */
+  /* text-align: center; */
+}
+.modal-custom-input {
+  padding: 2px;
+  font-size: 12px;
+  text-align: left;
+  border-radius: 0;
+  border: 1px solid #d8d8d8;
+}
+.modal-custom-input::placeholder {
+  font-size: 12px;
+  color: #c8c8c8;
+}
+
+.modal-custom-input:focus {
+  outline: none !important;
+  box-shadow: none;
+  border: 1px solid #d8d8d8;
+  /* border: 1px solid #d8d8d8; */
+  /* box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25); Optional: Add a shadow */
+  /* box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); */
+}

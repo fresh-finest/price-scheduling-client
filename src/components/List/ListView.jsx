@@ -8,7 +8,7 @@ import {
   Card,
 } from "react-bootstrap";
 import { useQuery } from "react-query";
-import { MdCheck } from "react-icons/md";
+import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 
 import UpdatePriceFromList from "./UpdatePriceFromList";
@@ -30,57 +30,12 @@ const BASE_URL_LIST = `https://api.priceobo.com`;
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
-import { refreshAccessToken } from "@/api/refreshToken";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
   return response.data;
 };
 
-// const fetchProducts = async () => {
-//   try {
-//     const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`, {
-//       withCredentials: true,  
-//     });
-//     return response.data;
-//   } catch (error) {
-//     if (error.response.status === 401) {
-//       console.error("Unauthorized. Please log in again.");
-//     } else {
-//       console.error("Error fetching listings:", error.message);
-//     }
-//   }
-// };
-/*
-const fetchProducts = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`, {
-      withCredentials: true,  // Ensure cookies (access token) are included
-    });
-    console.log("data:"+response.data)
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.status === 403) {
-      console.log("freshing token")
-      // Access token is expired or invalid, attempt to refresh the token
-      try {
-        await refreshAccessToken();  // Call the refresh token function
-        // Retry the original request after refreshing the access token
-        const retryResponse = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`, {
-          withCredentials: true,  // Ensure cookies are included again
-        });
-        return retryResponse.data;
-      } catch (refreshError) {
-        console.error("Failed to refresh access token. Please log in again.");
-        // Optionally redirect to the login page or trigger a logout
-      }
-    } else {
-      console.error("Error fetching listings:", error.message);
-    }
-  }
-};
-
-*/
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
   return response.data.result;
@@ -88,6 +43,7 @@ const fetchScheduledData = async () => {
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [highQuatilyImage, setHighQuanlityImage] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
@@ -99,6 +55,9 @@ const ListView = () => {
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedSku, setSelectedSku] = useState("");
   const [selectedPrice, setSelectedPrice] = useState("");
+  const [selectedFnSku, setSelectedFnSku] = useState("");
+  const [channelStockValue, setChannelStockValue] = useState("");
+  const [fulfillmentChannel, setFulfillmentChannel] = useState("");
   const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
@@ -113,7 +72,14 @@ const ListView = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || "";
- 
+  console.log(
+    "role:" +
+      currentUser.role +
+      "write: " +
+      currentUser.permissions.write +
+      "username:" +
+      userName
+  );
 
   const {
     data: productData,
@@ -150,6 +116,9 @@ const ListView = () => {
     indexOfFirstItem,
     indexOfLastItem
   );
+
+  console.log("current Items", currentItems);
+  console.log("selected Product", selectedProduct);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -202,6 +171,11 @@ const ListView = () => {
     debouncedFilterProducts(value); // Apply debounced filtering
   };
 
+  const handleClearInput = () => {
+    setSearchTerm("");
+    debouncedFilterProducts("");
+  };
+
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       const value = event.target.value || "";
@@ -214,15 +188,6 @@ const ListView = () => {
       ); // Immediate filtering on Enter press
     }
   };
-  // const handleSearch = (value) => {
-  //   setSearchTerm(value);
-  //   filterProducts(
-  //     productData?.listings || [],
-  //     scheduledData,
-  //     filterScheduled,
-  //     value
-  //   );
-  // };
 
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
@@ -272,50 +237,58 @@ const ListView = () => {
       searchTerm
     );
   };
-  /*
-  const handleProductSelect = async (asin, index) => {
-    if (selectedRowIndex === index) {
-      setSelectedRowIndex(null);
-      setSelectedProduct(null);
-      setSelectedListing(null);
-      setSelectedAsin("");
-    } else {
-      try {
-        const [responseone, responsetwo] = await Promise.all([
-          axios.get(
-            `${BASE_URL}/details/${asin}`
-          ),
-          axios.get(
-            `${BASE_URL}/product/${asin}`
-          ),
-        ]);
+  const handleSetChannelStockValue = (
+    fulfillmentChannel,
+    quantity,
+    fulfillableQuantity,
+    pendingTransshipmentQuantity
+  ) => {
+    const channelStock =
+      fulfillmentChannel === "DEFAULT"
+        ? quantity != null
+          ? quantity
+          : "N/A"
+        : fulfillableQuantity != null && pendingTransshipmentQuantity != null
+        ? fulfillableQuantity + pendingTransshipmentQuantity
+        : "N/A";
 
+    setChannelStockValue(channelStock);
+  };
 
-
-
-        setSelectedProduct(responseone.data.payload);
-        setSelectedListing(responsetwo.data);
-        setSelectedAsin(asin);
-        setSelectedRowIndex(index);
-      } catch (error) {
-        console.error("Error fetching product details:", error.message);
-      }
-    }
-  };*/
-
-  const handleProductSelect = async (price, sku1, asin, index) => {
+  const handleProductSelect = async (
+    price,
+    sku1,
+    asin,
+    fnSku,
+    index,
+    fulfillmentChannel,
+    quantity,
+    fulfillableQuantity,
+    pendingTransshipmentQuantity
+  ) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
       setSelectedProduct(null);
       setSelectedListing(null);
       setSelectedAsin("");
       setSelectedSku("");
+      setSelectedFnSku("");
       setSelectedPrice("");
+      handleSetChannelStockValue(null);
+      setFulfillmentChannel(null);
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
       setSelectedSku(sku1);
+      setSelectedFnSku(fnSku);
       setSelectedPrice(price);
+      setFulfillmentChannel(fulfillmentChannel);
+      handleSetChannelStockValue(
+        fulfillmentChannel,
+        quantity,
+        fulfillableQuantity,
+        pendingTransshipmentQuantity
+      );
 
       try {
         const [responseOne, responseTwo] = await Promise.all([
@@ -324,25 +297,14 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
+        console.log(responseOne.data.payload);
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
       }
     }
   };
-  
-  /*
-  const handleUpdate = (asin, e) => {
-    e.stopPropagation();
-    if (asin) {
-      setSelectedAsin(asin);
-      setShowUpdateModal(true);
-      setSelectedProduct(product);
-    } else {
-      console.error("ASIN is not provided. Modal will not open.");
-    }
-  };
-*/
+
   // Fetch product details when Update Price button is clicked
   const handleUpdate = async (price, sku1, asin, index, e) => {
     e.stopPropagation(); // Prevent row click from being triggered
@@ -440,33 +402,53 @@ const ListView = () => {
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
-  
-
   return (
     <>
       <UpdatePriceFromList
+        product={selectedProduct}
         show={showUpdateModal}
         onClose={handleCloseUpdateModal}
         asin={selectedAsin}
         sku1={selectedSku}
+        fnSku={selectedFnSku}
+        channelStockValue={channelStockValue}
+        fulfillmentChannel={fulfillmentChannel}
       />
 
       <div>
-        <InputGroup
-          className="mb-3"
-          style={{ maxWidth: "500px", position: "absolute", top: "10px" }}
-        >
-          <Form.Control
-            type="text"
-            placeholder="Search Title/ASIN/SKU/FNSKU"
-            value={searchTerm}
-            // onChange={(e) => handleSearch(e.target.value)}
-            onChange={handleSearch}
-            onKeyDown={handleKeyPress}
-            style={{ borderRadius: "0px" }}
-            className="custom-input"
-          />
-        </InputGroup>
+        <div className="relative ">
+          <InputGroup
+            className="mb-3"
+            style={{ maxWidth: "500px", position: "absolute", top: "-7px" }}
+          >
+            <Form.Control
+              type="text"
+              placeholder="Search Title/ASIN/SKU/FNSKU"
+              value={searchTerm}
+              // onChange={(e) => handleSearch(e.target.value)}
+              onChange={handleSearch}
+              onKeyDown={handleKeyPress}
+              style={{ borderRadius: "0px" }}
+              className="custom-input"
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClearInput}
+                className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+                style={
+                  {
+                    // backgroundColor: "transparent",
+                    // border: "none",
+                    // fontSize: "16px",
+                    // cursor: "pointer",
+                  }
+                }
+              >
+                <MdOutlineClose />
+              </button>
+            )}
+          </InputGroup>
+        </div>
 
         <Button
           style={{
@@ -691,7 +673,7 @@ const ListView = () => {
                         width: `${columnWidths[7]}px`,
                         minWidth: "80px",
                         position: "relative",
-                        textAlign: "right",
+                        textAlign: "center",
                       }}
                     >
                       Update Price
@@ -725,7 +707,12 @@ const ListView = () => {
                           item?.price,
                           item.sellerSku,
                           item.asin1,
-                          index
+                          item.fnSku,
+                          index,
+                          item.fulfillmentChannel,
+                          item.quantity,
+                          item.fulfillableQuantity,
+                          item.pendingTransshipmentQuantity
                         )
                       }
                       style={{
@@ -815,24 +802,6 @@ const ListView = () => {
                                   fontSize: "16px",
                                 }}
                               />
-                              // <BsCopy
-                              //   onClick={(e) => {
-                              //     e.stopPropagation();
-                              //     handleCopy(item.asin1, "asin", index);
-                              //   }}
-                              //   style={{
-                              //     marginLeft: "10px",
-                              //     cursor: "pointer",
-                              //     fontSize: "13px",
-                              //   }}
-                              // />
-                              // <MdContentCopy
-                              //   onClick={(e) => {
-                              //     e.stopPropagation();
-                              //     handleCopy(item.asin1, "asin", index);
-                              //   }}
-                              //   style={{ marginLeft: "5px", cursor: "pointer" }}
-                              // />
                             )}
                           </span>{" "}
                           <span
@@ -898,17 +867,6 @@ const ListView = () => {
                                 />
                               ))}
                           </span>
-                          {/* <span className="bubble-text">
-                            {item.fulfillmentChannel === "DEFAULT"
-                              ? "FBM"
-                              : "FBA"}{" "}
-                            :{" "}
-                            {item?.fulfillableQuantity != null &&
-                            item?.pendingTransshipmentQuantity != null
-                              ? item?.fulfillableQuantity +
-                                item?.pendingTransshipmentQuantity
-                              : "N/A"}
-                          </span> */}
                         </div>
                       </td>
                       <td
@@ -940,11 +898,6 @@ const ListView = () => {
                         }}
                       >
                         {item.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
-                        {/* {item?.fulfillableQuantity != null &&
-                        item?.pendingTransshipmentQuantity != null
-                          ? item?.fulfillableQuantity +
-                            item?.pendingTransshipmentQuantity
-                          : "N/A"} */}
                       </td>
                       <td
                         style={{
@@ -995,16 +948,12 @@ const ListView = () => {
                         }}
                       >
                         <Button
+                          className="updatePriceBtn"
                           style={{
-                            // backgroundColor: "#0D6EFD",
-
-                            // paddingLeft: "20px",
-                            // paddingRight: "20px",
-                            padding: "6px 12px",
+                            padding: "8px 12px",
                             border: "none",
                             backgroundColor: "#0662BB",
-                            borderRadius: "2px",
-                            // backgroundColor: selectedRowIndex === index ? "#d3d3d3" : "#5AB36D",
+                            borderRadius: "3px",
                           }}
                           onClick={(e) =>
                             handleUpdate(
@@ -1080,7 +1029,10 @@ const ListView = () => {
                 listing={selectedListing}
                 asin={selectedAsin}
                 sku1={selectedSku}
+                fnSku={selectedFnSku}
                 price={selectedPrice}
+                channelStockValue={channelStockValue}
+                fulfillmentChannel={fulfillmentChannel}
               />
             </div>
           ) : (
