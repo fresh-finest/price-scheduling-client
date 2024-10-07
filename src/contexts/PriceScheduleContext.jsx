@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const PriceScheduleContext = createContext();
 
-// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+
 const BASE_URL = `https://api.priceobo.com`;
 
 
