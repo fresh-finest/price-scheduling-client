@@ -993,6 +993,7 @@ const UpdatePriceFromList = ({
                           ))}
                           {!disableAddNewButton && (
                             <button
+                              type="button"
                               onClick={addNewSchedule}
                               disabled={loading || disableAddNewButton}
                               className={`mt-1 ml-[4%] w-[30%] ${
