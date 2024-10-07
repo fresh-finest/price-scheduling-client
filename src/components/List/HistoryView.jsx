@@ -10,11 +10,11 @@ import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { Card } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
-// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -106,6 +106,24 @@ const displayTimeSlotsWithDayLabels = (
   ));
 };
 
+// const displayWeekdays = (timeSlots) => {
+//   if (!timeSlots || Object.keys(timeSlots).length === 0) {
+//     return <p>No time slots available</p>; // Handle undefined or null timeSlots
+//   }
+
+//   // Array of weekdays to display based on your desired keys
+//   const weekdaysToDisplay = [1, 2, 3, 4, 5]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
+
+//   const displayedWeekdays = weekdaysToDisplay
+//     .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
+//     .map((day) => getDayLabelFromNumber(day)) // Get the day label
+//     .join(", "); // Join with a comma
+
+//   console.log("displayedWeekDays", displayedWeekdays);
+
+//   return <p>{displayedWeekdays}</p>; // Return the formatted string
+// };
+
 const displayWeekdays = (timeSlots) => {
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Handle undefined or null timeSlots
@@ -116,10 +134,21 @@ const displayWeekdays = (timeSlots) => {
 
   const displayedWeekdays = weekdaysToDisplay
     .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
-    .map((day) => getDayLabelFromNumber(day)) // Get the day label
-    .join(", "); // Join with a comma
+    .map((day) => getDayLabelFromNumber(day)); // Get the day label as an array
 
-  return <p>{displayedWeekdays}</p>; // Return the formatted string
+  console.log("displayedWeekDays", displayedWeekdays);
+
+  return (
+    <Card className=" px-2 py-2 inline-block">
+      <div className="flex flex-wrap gap-2">
+        {displayedWeekdays.map((dayLabel, index) => (
+          <div key={index} className="flex">
+            <p className="p-1 bg-[#F5F5F5] rounded-sm ">{dayLabel}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
 };
 
 export default function HistoryView() {
@@ -518,6 +547,8 @@ export default function HistoryView() {
                   )
                 : null;
 
+              // const daysArray = weeklyLabel.split(", ");
+
               return (
                 <>
                   <tr
@@ -655,6 +686,12 @@ export default function HistoryView() {
                         {displayData?.weekly ? (
                           <>
                             <p className=" ">{weeklyLabel}</p>
+
+                            {/* <div>
+                              {daysArray.map((day, index) => (
+                                <p key={index}>{day}</p> // Create a <p> element for each day
+                              ))}
+                            </div> */}
 
                             {/* {displayData?.currentPrice && (
                               <p
@@ -1184,27 +1221,6 @@ export default function HistoryView() {
                                           {formatDateTime(nestedItem.timestamp)}
                                         </h2>
                                       </td>
-
-                                      {/* <td>
-            {nestedItem.previousState ? (
-              <>
-                <p>Price: ${nestedItem.previousState.price}</p>
-                <p>Title: {nestedItem.previousState.title}</p>
-              </>
-            ) : (
-              "N/A"
-            )}
-          </td> */}
-                                      {/* <td>
-            {nestedItem.updatedState ? (
-              <>
-                <p>Price: ${nestedItem.updatedState.price}</p>
-                <p>Title: {nestedItem.updatedState.title}</p>
-              </>
-            ) : (
-              "N/A"
-            )}
-          </td> */}
                                     </tr>
                                   );
                                 })}

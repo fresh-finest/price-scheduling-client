@@ -18,8 +18,8 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
-const BASE_URL = "https://api.priceobo.com";
-// const BASE_URL ='http://localhost:3000'
+// const BASE_URL = "https://api.priceobo.com";
+const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
