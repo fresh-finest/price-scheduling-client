@@ -349,7 +349,7 @@ export default function HistoryView() {
   return (
     <div className="">
       <div className="">
-        <InputGroup className="max-w-[350px] absolute top-2 ">
+        <InputGroup className="max-w-[500px] absolute top-2 ">
           <Form.Control
             type="text"
             placeholder="Search by Product Name, ASIN or SKU..."

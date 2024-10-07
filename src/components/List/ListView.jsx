@@ -257,11 +257,12 @@ const ListView = () => {
     sku1,
     asin,
     fnSku,
-    index,
+
     fulfillmentChannel,
     quantity,
     fulfillableQuantity,
-    pendingTransshipmentQuantity
+    pendingTransshipmentQuantity,
+    index
   ) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
@@ -302,7 +303,18 @@ const ListView = () => {
   };
 
   // Fetch product details when Update Price button is clicked
-  const handleUpdate = async (price, sku1, asin, index, e) => {
+  const handleUpdate = async (
+    price,
+    sku1,
+    asin,
+    fnSku,
+    fulfillmentChannel,
+    quantity,
+    fulfillableQuantity,
+    pendingTransshipmentQuantity,
+    index,
+    e
+  ) => {
     e.stopPropagation(); // Prevent row click from being triggered
 
     if (!asin) {
@@ -316,6 +328,15 @@ const ListView = () => {
       setSelectedAsin(asin);
       setShowUpdateModal(true);
       setSelectedRowIndex(index);
+      setSelectedFnSku(fnSku);
+      setFulfillmentChannel(fulfillmentChannel);
+      handleSetChannelStockValue(
+        fulfillmentChannel,
+        quantity,
+        fulfillableQuantity,
+        pendingTransshipmentQuantity
+      );
+
       // Fetch product details and set the selected product
       const response = await axios.get(`${BASE_URL}/details/${asin}`);
       setSelectedProduct(response.data.payload);
@@ -701,14 +722,14 @@ const ListView = () => {
                       onClick={() =>
                         handleProductSelect(
                           item?.price,
-                          item.sellerSku,
-                          item.asin1,
-                          item.fnSku,
-                          index,
-                          item.fulfillmentChannel,
-                          item.quantity,
-                          item.fulfillableQuantity,
-                          item.pendingTransshipmentQuantity
+                          item?.sellerSku,
+                          item?.asin1,
+                          item?.fnSku,
+                          item?.fulfillmentChannel,
+                          item?.quantity,
+                          item?.fulfillableQuantity,
+                          item?.pendingTransshipmentQuantity,
+                          index
                         )
                       }
                       style={{
@@ -954,8 +975,13 @@ const ListView = () => {
                           onClick={(e) =>
                             handleUpdate(
                               item?.price,
-                              item.sellerSku,
-                              item.asin1,
+                              item?.sellerSku,
+                              item?.asin1,
+                              item?.fnSku,
+                              item?.fulfillmentChannel,
+                              item?.quantity,
+                              item?.fulfillableQuantity,
+                              item?.pendingTransshipmentQuantity,
                               index,
                               e
                             )
