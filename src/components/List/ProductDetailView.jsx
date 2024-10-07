@@ -6,9 +6,9 @@ import { CiEdit } from "react-icons/ci";
 import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
-
+import DetailedCalendarView from "../Calendar/DetailedCalendarView"
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
@@ -29,7 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
-import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
+// import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
@@ -187,6 +187,19 @@ const ProductDetailView = ({
 
   const { currentUser } = useSelector((state) => state.user);
 
+  const { events } = useContext(PriceScheduleContext); // Get the events from the context
+  const [selectedDays, setSelectedDays] = useState([]);
+
+  useEffect(() => {
+    // Map the events' start dates to selectedDays array
+    const scheduleDates = events.map((event) => new Date(event.start));
+    setSelectedDays(scheduleDates); // Set the selected dates
+  }, [events]);
+
+  const handleDateSelect = (dates) => {
+    setSelectedDays(dates); // Update the selected days on user interaction
+    console.log("Selected Dates: ", dates); // Optional: For debugging
+  };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
@@ -539,12 +552,10 @@ const ProductDetailView = ({
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
 
-              {/* calendar */}
+        
               <div className="m-3 ">
-                <Calendar
-                  selected={dates}
-                  className="rounded-md border w-full "
-                />
+              
+               <DetailedCalendarView/>
               </div>
               {/* tabs  */}
 
