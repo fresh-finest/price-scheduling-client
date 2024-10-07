@@ -860,8 +860,8 @@ const EditScheduleFromList = ({
                       className=" bg-blue-500 text-white flex justify-center items-center mt-1  "
                     >
                       <h2 style={{ fontSize: "13px" }}>
-                        {/* ${parseFloat(existingSchedule?.currentPrice).toFixed(2)} */}
-                        {productPrice}
+                        
+                        ${parseFloat(productPrice).toFixed(2)}
                       </h2>
                     </div>
 

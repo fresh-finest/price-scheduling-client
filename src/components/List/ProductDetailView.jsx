@@ -555,7 +555,7 @@ const ProductDetailView = ({
         
               <div className="m-3 ">
               
-               <DetailedCalendarView/>
+               <DetailedCalendarView asin={asin}/>
               </div>
               {/* tabs  */}
 
