@@ -1,10 +1,10 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import axios from 'axios';
-import { useSelector } from 'react-redux';
+import React, { useState, useContext, useEffect } from "react";
+import { Modal, Button, Form, Alert } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
 const BASE_URL = `https://quiet-stream-22437-07fa6bb134e0.herokuapp.com/http://100.26.185.72:3000`;
 
@@ -13,7 +13,10 @@ const fetchProductDetails = async (asin) => {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching product details:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
@@ -23,49 +26,79 @@ const fetchProductAdditionalDetails = async (asin) => {
     const response = await axios.get(`${BASE_URL}/details/${asin}`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching additional product details:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error fetching additional product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
 const updateProductPrice = async (sku, value) => {
   try {
-    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, { value: parseFloat(value) });
+    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
+      value: parseFloat(value),
+    });
     return response.data;
   } catch (error) {
-    console.error('Error updating product price:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error updating product price:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
-const saveSchedule = async (userName, asin, sku, title, price, currentPrice, imageURL, startDate, endDate) => {
+const saveSchedule = async (
+  userName,
+  asin,
+  sku,
+  title,
+  price,
+  currentPrice,
+  imageURL,
+  startDate,
+  endDate
+) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/schedule`, { userName, asin, sku, title, price: parseFloat(price), currentPrice, imageURL, startDate, endDate });
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {
+      userName,
+      asin,
+      sku,
+      title,
+      price: parseFloat(price),
+      currentPrice,
+      imageURL,
+      startDate,
+      endDate,
+    });
     return response.data;
   } catch (error) {
-    console.error('Error saving schedule:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error saving schedule:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
 const UpdatePrice = ({ show, onClose }) => {
   const { addEvent } = useContext(PriceScheduleContext);
-  const [asin, setAsin] = useState('');
-  const [sku, setSku] = useState('');
-  const [currentPrice, setCurrentPrice] = useState('');
-  const [price, setPrice] = useState('');
+  const [asin, setAsin] = useState("");
+  const [sku, setSku] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [startTimerId, setStartTimerId] = useState(null);
   const [endTimerId, setEndTimerId] = useState(null);
 
-  
-  const [title, setTitle] = useState('');
-  const [imageURL, setImageUrl] = useState('');
+  const [title, setTitle] = useState("");
+  const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
   const userName = currentUser.userName;
 
@@ -76,15 +109,15 @@ const UpdatePrice = ({ show, onClose }) => {
   }, [show]);
 
   const resetForm = () => {
-    setAsin('');
-    setSku('');
-    setCurrentPrice('');
-    setPrice('');
+    setAsin("");
+    setSku("");
+    setCurrentPrice("");
+    setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
     setIndefiniteEndDate(false);
-    setSuccessMessage('');
-    setErrorMessage('');
+    setSuccessMessage("");
+    setErrorMessage("");
     if (startTimerId) clearTimeout(startTimerId);
     if (endTimerId) clearTimeout(endTimerId);
   };
@@ -102,10 +135,12 @@ const UpdatePrice = ({ show, onClose }) => {
         const additionalData = await fetchProductAdditionalDetails(asinValue);
         setTitle(additionalData.payload.AttributeSets[0].Title);
         setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-
       } catch (error) {
-        setErrorMessage('Error fetching product details: ' + (error.response ? error.response.data.error : error.message));
-        console.error('Error fetching product details:', error);
+        setErrorMessage(
+          "Error fetching product details: " +
+            (error.response ? error.response.data.error : error.message)
+        );
+        console.error("Error fetching product details:", error);
       }
     }
   };
@@ -114,14 +149,30 @@ const UpdatePrice = ({ show, onClose }) => {
     e.preventDefault();
     try {
       // Schedule the price update and store the timer IDs
-      const { startTimer, endTimer } = await schedulePriceUpdate(sku, currentPrice, price, startDate, indefiniteEndDate ? null : endDate);
+      const { startTimer, endTimer } = await schedulePriceUpdate(
+        sku,
+        currentPrice,
+        price,
+        startDate,
+        indefiniteEndDate ? null : endDate
+      );
 
       // Store timer IDs in state for potential future cancellation
       setStartTimerId(startTimer);
       setEndTimerId(endTimer);
 
       // Log the scheduling in MongoDB
-      await saveSchedule(userName, asin, sku, title, price, currentPrice, imageURL, startDate, indefiniteEndDate ? null : endDate);
+      await saveSchedule(
+        userName,
+        asin,
+        sku,
+        title,
+        price,
+        currentPrice,
+        imageURL,
+        startDate,
+        indefiniteEndDate ? null : endDate
+      );
 
       // Add event to the context
       addEvent({
@@ -135,12 +186,21 @@ const UpdatePrice = ({ show, onClose }) => {
       setShowSuccessModal(true);
       onClose();
     } catch (error) {
-      setErrorMessage('Error scheduling price update: ' + (error.response ? error.response.data.error : error.message));
-      console.error('Error scheduling price update:', error);
+      setErrorMessage(
+        "Error scheduling price update: " +
+          (error.response ? error.response.data.error : error.message)
+      );
+      console.error("Error scheduling price update:", error);
     }
   };
 
-  const schedulePriceUpdate = async (sku, originalPrice, newPrice, startDate, endDate) => {
+  const schedulePriceUpdate = async (
+    sku,
+    originalPrice,
+    newPrice,
+    startDate,
+    endDate
+  ) => {
     const now = new Date();
     const delayStart = startDate - now;
     const delayEnd = endDate ? endDate - now : null;
@@ -152,17 +212,15 @@ const UpdatePrice = ({ show, onClose }) => {
       startTimer = setTimeout(async () => {
         try {
           await updateProductPrice(sku, newPrice);
-          console.log(`Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
         } catch (error) {
-          console.error('Error updating to new price:', error);
+          console.error("Error updating to new price:", error);
         }
       }, delayStart);
     } else {
       try {
         await updateProductPrice(sku, newPrice);
-        console.log(`Price updated to ${newPrice} immediately for SKU ${sku}`);
       } catch (error) {
-        console.error('Error updating to new price:', error);
+        console.error("Error updating to new price:", error);
       }
     }
 
@@ -171,9 +229,8 @@ const UpdatePrice = ({ show, onClose }) => {
       endTimer = setTimeout(async () => {
         try {
           await updateProductPrice(sku, originalPrice);
-          console.log(`Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`);
         } catch (error) {
-          console.error('Error reverting to original price:', error);
+          console.error("Error reverting to original price:", error);
         }
       }, delayEnd);
     }
@@ -190,10 +247,10 @@ const UpdatePrice = ({ show, onClose }) => {
 
   const modalStyles = {
     formControl: {
-      marginBottom: '15px',
+      marginBottom: "15px",
     },
     button: {
-      width: '100%',
+      width: "100%",
     },
   };
 
@@ -217,7 +274,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formCurrentPrice"
+              style={modalStyles.formControl}
+            >
               <Form.Label>Current Price: ${currentPrice}</Form.Label>
             </Form.Group>
             <Form.Group controlId="formPrice" style={modalStyles.formControl}>
@@ -230,7 +290,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formStartDate" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formStartDate"
+              style={modalStyles.formControl}
+            >
               <Form.Label>Start Date and Time</Form.Label>
               <DatePicker
                 selected={startDate}
@@ -241,7 +304,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formIndefiniteEndDate" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formIndefiniteEndDate"
+              style={modalStyles.formControl}
+            >
               <Form.Check
                 type="checkbox"
                 label="Until I change it."
@@ -250,7 +316,10 @@ const UpdatePrice = ({ show, onClose }) => {
               />
             </Form.Group>
             {!indefiniteEndDate && (
-              <Form.Group controlId="formEndDate" style={modalStyles.formControl}>
+              <Form.Group
+                controlId="formEndDate"
+                style={modalStyles.formControl}
+              >
                 <Form.Label>End Date and Time</Form.Label>
                 <DatePicker
                   selected={endDate}
@@ -266,7 +335,11 @@ const UpdatePrice = ({ show, onClose }) => {
               Schedule Price Update
             </Button>
           </Form>
-          <Button variant="danger" onClick={handleCancel} style={{ ...modalStyles.button, marginTop: '15px' }}>
+          <Button
+            variant="danger"
+            onClick={handleCancel}
+            style={{ ...modalStyles.button, marginTop: "15px" }}
+          >
             Cancel Price Update
           </Button>
         </Modal.Body>

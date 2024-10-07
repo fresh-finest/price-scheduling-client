@@ -167,7 +167,6 @@ const EditScheduleFromList = ({
   existingSchedule,
   editScheduleModalTitle,
 }) => {
-  console.log("existing schedule", existingSchedule);
   const { addEvent, removeEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
@@ -208,29 +207,6 @@ const EditScheduleFromList = ({
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser.userName;
-
-  console.log("data:" + existingSchedule.endDate);
-
-  // const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
-  //   if (newTime instanceof Date && !isNaN(newTime)) {
-  //     const formattedTime = formatDateToTimeString(newTime); // Format to 'HH:mm'
-  //     if (scheduleType === "weekly") {
-  //       setWeeklyTimeSlots((prevSlots) => {
-  //         const updatedSlots = { ...prevSlots };
-  //         updatedSlots[day][index][key] = formattedTime;
-  //         return updatedSlots;
-  //       });
-  //     } else if (scheduleType === "monthly") {
-  //       setMonthlyTimeSlots((prevSlots) => {
-  //         const updatedSlots = { ...prevSlots };
-  //         updatedSlots[day][index][key] = formattedTime;
-  //         return updatedSlots;
-  //       });
-  //     }
-  //   } else {
-  //     console.error("Invalid date object for time:", newTime);
-  //   }
-  // };
 
   const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
     if (newTime instanceof Date && !isNaN(newTime)) {
@@ -275,27 +251,12 @@ const EditScheduleFromList = ({
         return response.json(); // Parse the response as JSON
       })
       .then((data) => {
-        console.log(data);
         setProductPrice(data?.offerAmount);
       })
       .catch((error) => {
         console.error("Error:", error.message); // Handle the error
       });
-  }, []);
-
-  // const fetchPriceBySku = async (sku) => {
-  //   try {
-  //     const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
-  //     const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(
-  //       "Error fetching:",
-  //       error.response ? error.response.data : error.message
-  //     );
-  //     throw error;
-  //   }
-  // };
+  }, [existingSchedule.sku]);
 
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
@@ -340,7 +301,6 @@ const EditScheduleFromList = ({
 
       setProductPrice(priceData?.offerAmount);
       setSku(priceData?.sku);
-      console.log(`Price for SKU ${SellerSKU}:`, priceData.offerAmount);
     } catch (error) {
       console.error(
         `Error fetching price for SKU ${SellerSKU}:`,
@@ -349,7 +309,6 @@ const EditScheduleFromList = ({
       throw error;
     }
   };
-  console.log("weekly slots: " + JSON.stringify(weeklyTimeSlots));
 
   useEffect(() => {
     if (show && asin) {
@@ -400,45 +359,6 @@ const EditScheduleFromList = ({
     }
   };
 
-  // const handleTimeSlotChange = (scheduleType, identifier, index, key, value) => {
-  //   console.log("Handle change:"+scheduleType+value)
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   }
-  // };
-
-  // const handleAddTimeSlot = (scheduleType, identifier) => {
-  //    const currentDate = new Date();
-  //    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // 1 hour after the current time
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   }
-  // };
-
   const handleAddTimeSlot = (scheduleType, identifier) => {
     const currentDate = new Date();
     const hours = currentDate.getHours().toString().padStart(2, "0"); // Get hours and pad with 0 if needed
@@ -452,7 +372,7 @@ const EditScheduleFromList = ({
         ...prevSlots,
         [identifier]: [
           ...(prevSlots[identifier] || []),
-          { startTime: formattedTime, endTime: endDate, newPrice: "" },
+          { startTime: currentDate, endTime: endDate, newPrice: "" },
         ],
       }));
     } else if (scheduleType === "monthly") {
@@ -612,12 +532,12 @@ const EditScheduleFromList = ({
       const utcWeeklySlots = {};
       const utcMonthlySlots = {};
       if (weekly) {
-        console.log("weekly: " + JSON.stringify(weeklyTimeSlots));
+        // console.log("weekly: " + JSON.stringify(weeklyTimeSlots));
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
-          console.log(
-            "slots" +
-              JSON.stringify(timeSlots.map((slot) => slot.timeSlotScheduleId))
-          );
+          // console.log(
+          //   "slots" +
+          //     JSON.stringify(timeSlots.map((slot) => slot.timeSlotScheduleId))
+          // );
           utcWeeklySlots[day] = timeSlots.map(
             ({
               startTime,
@@ -769,8 +689,6 @@ const EditScheduleFromList = ({
     return `${hours}:${minutes}`;
   };
 
-  console.log(existingSchedule);
-
   return (
     <>
       <Modal
@@ -825,16 +743,6 @@ const EditScheduleFromList = ({
               </div>
             </div>
           </div>
-          {/* <ProductDetailsWithNumbers
-                product={product}
-                channelStockValue={channelStockValue}
-                fulfillmentChannel={fulfillmentChannel}
-                price={currentPrice}
-                asin={asin}
-                sku1={sku1}
-                fnSku={fnSku}
-                updatePriceModal={true}
-              ></ProductDetailsWithNumbers> */}
         </Modal.Header>
         <Modal.Body>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
@@ -847,6 +755,7 @@ const EditScheduleFromList = ({
               >
                 <Form.Label>New Price</Form.Label>
                 <Form.Control
+                  step="0.01"
                   type="number"
                   placeholder="Enter New Price"
                   value={price}
@@ -886,6 +795,7 @@ const EditScheduleFromList = ({
                       {/* <Form.Label>Start Price</Form.Label> */}
                       <Form.Control
                         type="number"
+                        step="0.01"
                         className="w-full"
                         placeholder="Start Price"
                         value={price}
@@ -923,6 +833,7 @@ const EditScheduleFromList = ({
                       >
                         <Form.Control
                           type="number"
+                          step="0.01"
                           placeholder="Enter End Price"
                           value={currentPrice}
                           onChange={(e) => setCurrentPrice(e.target.value)}
@@ -995,6 +906,7 @@ const EditScheduleFromList = ({
                             />
                             <Form.Control
                               type="number"
+                              step="0.01"
                               value={slot.newPrice}
                               placeholder="Start Price"
                               onChange={(e) =>
@@ -1037,6 +949,7 @@ const EditScheduleFromList = ({
                             />
                             <Form.Control
                               type="number"
+                              step="0.01"
                               value={slot.revertPrice}
                               placeholder="End Price"
                               onChange={(e) =>
@@ -1051,6 +964,7 @@ const EditScheduleFromList = ({
                               className="form-control edit-modal-custom-input"
                             />
                             <button
+                              type="button"
                               onClick={() =>
                                 handleRemoveTimeSlot("weekly", day.value, index)
                               }
@@ -1080,6 +994,7 @@ const EditScheduleFromList = ({
                           </span>
                         </h2>
                         <Button
+                          type="button"
                           size="sm"
                           className="px-2 py-2 text-xs bg-[#0662BB] text-white"
                           onClick={() =>
@@ -1124,6 +1039,7 @@ const EditScheduleFromList = ({
                               />
                               <Form.Control
                                 type="number"
+                                step="0.01"
                                 placeholder="Start Price"
                                 value={slot.newPrice}
                                 onChange={(e) =>
@@ -1183,6 +1099,7 @@ const EditScheduleFromList = ({
                                 className=" edit-modal-custom-input"
                               />
                               <button
+                                type="button"
                                 onClick={() =>
                                   handleRemoveTimeSlot(
                                     "monthly",

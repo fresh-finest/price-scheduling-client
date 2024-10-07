@@ -166,11 +166,7 @@ const UpdatePriceFromList = ({
   const [weeklyExists, setWeeklyExists] = useState(false);
   const [monthlyExists, setMonthlyExists] = useState(false);
 
-  console.log("weekly exists", weeklyExists);
-  console.log("monthly exists", monthlyExists);
-
   const [activeTab, setActiveTab] = useState("single");
-  console.log(activeTab);
   // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
   //   label: `${i + 1}`,
   //   value: i + 1,
@@ -434,11 +430,9 @@ const UpdatePriceFromList = ({
       const hasWeekly = schedules.some(
         (schedule) => schedule.weekly && schedule.status != "deleted"
       );
-      console.log(hasWeekly);
       const hasMonthly = schedules.some(
         (schedule) => schedule.monthly && schedule.status != "deleted"
       );
-      console.log("has monthly", hasMonthly);
 
       setWeeklyExists(hasWeekly);
       setMonthlyExists(hasMonthly);
@@ -449,7 +443,6 @@ const UpdatePriceFromList = ({
     }
   };
 
-  console.log("SKUUUU: " + sku);
   const fetchProductPriceBySku = async (SellerSKU) => {
     setLoading(true);
     try {
@@ -457,7 +450,6 @@ const UpdatePriceFromList = ({
       setCurrentPrice(priceData?.offerAmount);
       setProductPrice(priceData?.offerAmount);
       setSku(priceData?.sku);
-      console.log(`Price for SKU ${SellerSKU}:`, priceData.offerAmount);
     } catch (error) {
       console.error(
         `Error fetching price for SKU ${SellerSKU}:`,
@@ -548,18 +540,9 @@ const UpdatePriceFromList = ({
         setLoading(false);
         return;
       }
-      // if (endTime < startTime) {
-      //   setErrorMessage("End Time cannot be earlier than Start Time.");
-      //   setLoading(false);
-      //   return;
-      // }
-      // Convert startTime and endTime to UTC
-      //  const utcStartTime = convertTimeToUtc(startTime);
-      //  const utcEndTime = convertTimeToUtc(endTime);
 
       // Check for overlapping schedules
       const overlappingSchedule = existingSchedules.find((schedule) => {
-        console.log(schedule.status);
         if (schedule.status === "deleted") return false;
 
         const existingStart = new Date(schedule.startDate);
@@ -571,15 +554,7 @@ const UpdatePriceFromList = ({
             (endDate ? endDate >= existingEnd : true))
         );
       });
-      console.log(overlappingSchedule);
 
-      // if (overlappingSchedule) {
-      //   setErrorMessage(
-      //     "Cannot create a schedule during an existing scheduled period."
-      //   );
-      //   setLoading(false);
-      //   return;
-      // }
       const hasMonthlyTimeSlots = Object.values(monthlyTimeSlots).some(
         (timeSlots) => timeSlots.length > 0
       );
@@ -593,7 +568,6 @@ const UpdatePriceFromList = ({
 
       if (weekly) {
         if (!userName || !asin || !sku || !hasWeeklyTimeSlots) {
-          console.log(weeklyTimeSlots);
           setErrorMessage("Not provided weekly values.");
           setLoading(false);
           return;
@@ -630,7 +604,6 @@ const UpdatePriceFromList = ({
 
       if (monthly) {
         if (!userName || !asin || !sku || !hasMonthlyTimeSlots) {
-          console.log(weeklyTimeSlots);
           setErrorMessage("Not provided monthly values");
           setLoading(false);
           return;
@@ -664,48 +637,6 @@ const UpdatePriceFromList = ({
           monthlySlotsInUtc
         );
       }
-
-      /* if (weekly) {
-        for (const [day, timeSlots] of Object.entries(weeklySlots)) {
-          for (const { startTime, endTime } of timeSlots) {
-            if (!startTime || !endTime) {
-              setErrorMessage("Start time and end time are required for each weekly time slot.");
-              setLoading(false);
-              return;
-            }
-            if (endTime < startTime) {
-              setErrorMessage("End time cannot be earlier than start time.");
-              setLoading(false);
-              return;
-            }
-          }
-        }
-      }*/
-
-      // for (const date in monthlyTimeSlots){
-      //   monthlyTimeSlots[date] = monthlyTimeSlots[date].map((slot)=>({
-      //     startTime: convertTimeToUtc(slot.startTime),
-      //     endTime: convertTimeToUtc(slot.endTime),
-      //   }))
-      // }
-      // await saveScheduleAndQueueJobs(
-      //   userName,
-      //   asin,
-      //   sku,
-      //   title,
-      //   price,
-      //   currentPrice,
-      //   imageURL,
-      //   startDate,
-      //   indefiniteEndDate ? null : endDate,
-      //   weekly,
-      //   daysOfWeek.map((day) => day.value),
-      //   monthly,
-      //   datesOfMonth.map((date) => date.value),
-      //   utcStartTime,
-      //   utcEndTime
-
-      // );
 
       if (!weekly && !monthly)
         for (const schedule of schedules) {
@@ -980,8 +911,7 @@ const UpdatePriceFromList = ({
 
                               {index > -1 && (
                                 <button
-                                  // variant="danger"
-                                  // size="sm"
+                                  type="button"
                                   onClick={() => removeSchedule(index)}
                                   className="mt-2 absolute top-[-5px] right-1 shadow-sm "
                                   disabled={loading}
@@ -1026,6 +956,7 @@ const UpdatePriceFromList = ({
                                 </span>
                               </h2>
                               <Button
+                                type="button"
                                 size="sm"
                                 className="px-2 py-2 text-xs bg-[#0662BB] text-white"
                                 onClick={() => addWeeklyTimeSlot(day.value)}
@@ -1081,13 +1012,6 @@ const UpdatePriceFromList = ({
                                     }
                                     className="form-control modal-custom-input "
                                   />
-                                  {/* <Button className="w-[40px] border-0  bg-transparent ml-1  ">
-                                    <span className=""></span>
-                                  </Button> */}
-
-                                  {/* <span className=" w-[50px] border-0 flex items-center justify-center   py-2 rounded text-white">
-                                    <span className=""></span>
-                                  </span> */}
                                 </div>
 
                                 <div className=" flex justify-center items-center gap-1">
@@ -1131,6 +1055,7 @@ const UpdatePriceFromList = ({
                                     className="form-control modal-custom-input "
                                   />
                                   <button
+                                    type="button"
                                     onClick={() =>
                                       removeTimeSlot("weekly", day.value, index)
                                     }
@@ -1165,6 +1090,7 @@ const UpdatePriceFromList = ({
                                     </span>
                                   </h2>
                                   <Button
+                                    type="button"
                                     size="sm"
                                     className="px-2 py-2 text-xs bg-[#0662BB] text-white"
                                     onClick={() =>
@@ -1269,6 +1195,7 @@ const UpdatePriceFromList = ({
                                         />
 
                                         <button
+                                          type="button"
                                           onClick={() =>
                                             removeTimeSlot(
                                               "monthly",

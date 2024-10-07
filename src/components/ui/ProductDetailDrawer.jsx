@@ -66,7 +66,6 @@ const dateNames = [
 ];
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
-    console.error("Invalid timeString:", timeString);
     return "Invalid Time"; // Return a default value or handle it gracefully
   }
 
@@ -178,7 +177,7 @@ export function ProductDetailDrawer({
       )
       .join(", ");
   };
-  // console.log(data.asin1);
+
   const ID = data.asin1;
   useEffect(() => {
     const controller = new AbortController();

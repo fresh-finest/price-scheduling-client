@@ -83,7 +83,6 @@ const displayTimeSlotsWithDayLabels = (
   addHours = 0,
   isWeekly = false
 ) => {
-  console.log("history timeslots: " + timeSlots);
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Add this check to handle undefined or null timeSlots
   }
@@ -118,8 +117,6 @@ export default function HistoryView() {
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
-
-  // console.log(baseUrl);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -189,7 +186,6 @@ export default function HistoryView() {
   };
 
   const handleCopy = (text, type, index) => {
-    console.log("text: " + text + "type: " + type + "index: " + index);
     navigator.clipboard
       .writeText(text)
       .then(() => {

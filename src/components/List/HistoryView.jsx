@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Table, Form, InputGroup, Spinner } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
-import { MdContentCopy, MdCheck } from "react-icons/md";
+import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
 
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
@@ -59,12 +59,6 @@ const dateNames = [
   "31st",
 ];
 
-// function addHoursToTime(timeString, hoursToAdd) {
-//   const [hours, minutes] = timeString.split(":").map(Number);
-//   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
-//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
-//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
-// }
 function addHoursToTime(timeString, hoursToAdd) {
   let [hours, minutes] = timeString.split(":").map(Number);
 
@@ -187,7 +181,6 @@ export default function HistoryView() {
   };
 
   const fetchNestedData = async (scheduleId) => {
-    console.log("sd: " + scheduleId);
     setLoadingNested(true);
     try {
       const response = await axios.get(`${BASE_URL}/api/history/${scheduleId}`);
@@ -203,7 +196,6 @@ export default function HistoryView() {
   };
 
   const handleRowClick = (scheduleId) => {
-    console.log("sd handle: " + scheduleId);
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
     } else {
@@ -216,6 +208,9 @@ export default function HistoryView() {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+  };
+  const handleClearInput = () => {
+    setSearchTerm("");
   };
 
   const handleUserChange = (e) => {
@@ -363,6 +358,22 @@ export default function HistoryView() {
             style={{ borderRadius: "0px" }}
             className="custom-input"
           />
+          {searchTerm && (
+            <button
+              onClick={handleClearInput}
+              className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+              style={
+                {
+                  // backgroundColor: "transparent",
+                  // border: "none",
+                  // fontSize: "16px",
+                  // cursor: "pointer",
+                }
+              }
+            >
+              <MdOutlineClose />
+            </button>
+          )}
         </InputGroup>
         <div className="absolute top-2 right-[25%]">
           <Form.Control
@@ -720,57 +731,6 @@ export default function HistoryView() {
                                   </div>
                                 )}
                               </div>
-                              {/* <div className="w-full">
-                                <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  <span>
-                                    {displayData?.startDate
-                                      ? formatDateTime(displayData.startDate)
-                                      : "N/A"}
-                                    <FaArrowRightLong />
-                                    {displayData?.endDate ? (
-                                      formatDateTime(displayData.endDate)
-                                    ) : (
-                                      <span style={{ color: "blue" }}>
-                                        No End Date
-                                      </span>
-                                    )}
-                                  </span>
-                                </h3>
-                              </div> */}
-
-                              {/* <div className="w-[20%] text-center flex flex-col items-end">
-                                {displayData?.endDate ? (
-                                  displayData?.currentPrice && (
-                                    <p
-                                      className="text-green-600"
-                                      style={{ margin: 0 }}
-                                    >
-                                      ${displayData.currentPrice}
-                                    </p>
-                                  )
-                                ) : (
-                                  <p
-                                    className="text-orange-500"
-                                    style={{ margin: 0 }}
-                                  >
-                                    Until Changed
-                                  </p>
-                                )}
-                              </div> */}
-
-                              {/* <div style={{ position: "relative" }}>
-                                <p
-                                  className="text-green-600"
-                                  style={{
-                                    position: "absolute",
-                                    left: "50px",
-                                    bottom: "0px",
-                                    margin: 0,
-                                  }}
-                                >
-                                  ${displayData.price || "N/A"}
-                                </p>
-                              </div> */}
                             </Card>
                           </>
                         )}
@@ -843,7 +803,6 @@ export default function HistoryView() {
                                 )
                                 .map((nestedItem) => {
                                   // Log nestedItem to the console
-                                  console.log("nested Item", nestedItem);
 
                                   // Return JSX
                                   return (

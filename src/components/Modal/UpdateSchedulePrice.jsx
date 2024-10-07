@@ -41,13 +41,9 @@ const fetchProductAdditionalDetails = async (asin) => {
 
 const updateProductPrice = async (sku, value) => {
   try {
-    console.log(
-      `Attempting to update price for SKU: ${sku} to value: ${value}`
-    );
     const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
       value: parseFloat(value),
     });
-    console.log("Update response:", response.data);
 
     if (response.data.issues && response.data.issues.length > 0) {
       console.warn("Price update issues:", response.data.issues);

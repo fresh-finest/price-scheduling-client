@@ -149,7 +149,6 @@ const ProductDetailView = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  console.log("product", product);
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -216,17 +215,14 @@ const ProductDetailView = ({
   };
 
   useEffect(() => {
-    console.log(priceSchedule);
     const validSchedule = priceSchedule.find(
       (sc) =>
         sc.status !== "deleted" &&
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
-    console.log(validSchedule);
 
     if (validSchedule) {
-      console.log(validSchedule.currentPrice);
       setCurrentPrice(validSchedule.currentPrice);
     }
   }, [priceSchedule]);
@@ -281,7 +277,6 @@ const ProductDetailView = ({
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
     setEditScheduleModalTitle(scheduleType);
-    console.log(schedule);
   };
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);

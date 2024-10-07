@@ -327,8 +327,6 @@ const ListView = () => {
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
-  console.log(filteredProducts);
-
   return (
     <>
       <UpdatePriceFromList
