@@ -21,9 +21,9 @@ import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL ='http://localhost:3000'
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
@@ -199,10 +199,10 @@ const ListView = () => {
               (item.endDate && new Date(item.endDate) >= now))
         )
 
-        .map((item) => item.asin);
+        .map((item) => item.sku);
 
       filtered = products.filter((product) =>
-        scheduledAsins.includes(product.asin1)
+        scheduledAsins.includes(product.sellerSku)
       );
     }
 

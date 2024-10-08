@@ -8,6 +8,7 @@ const CalendarView = ({ asin }) => {
   const [events, setEvents] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [selectedEndDays, setSelectedEndDays] = useState([]);
 
   const now = new Date();
 
@@ -39,6 +40,11 @@ const CalendarView = ({ asin }) => {
         const { startDate, endDate, price, currentPrice, sku, weekly, weeklyTimeSlots, monthly, monthlyTimeSlots } = schedule;
 
         if (!weekly && !monthly) {
+          const start = new Date(startDate);
+          const end = endDate ? new Date(endDate) : new Date(startDate);
+
+          // Generate the range of dates between startDate and endDate
+          const dateRange = generateDateRange(start, end);
           // Single-day schedule
           events.push({
             title: `SKU: ${sku} - $${price || currentPrice}`,
@@ -46,6 +52,15 @@ const CalendarView = ({ asin }) => {
             end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
             allDay: false,
             price: price || currentPrice,
+            dateRange
+          });
+          events.push({
+            title: `SKU: ${sku} - $${price || currentPrice}`,
+            start: endDate ? new Date(endDate) : new Date(startDate),
+            end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
+            allDay: false,
+            price: price || currentPrice,
+            dateRange
           });
         } else if (weekly) {
           // Weekly schedule with multiple time slots
@@ -108,6 +123,17 @@ const CalendarView = ({ asin }) => {
     }
   };
 
+  const generateDateRange = (start, end) => {
+    const dateRange = [];
+    let currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      dateRange.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
+    }
+
+    return dateRange;
+  };
   // Fetch schedules when the component mounts and when the ASIN changes
   useEffect(() => {
     if (asin) {
@@ -115,11 +141,32 @@ const CalendarView = ({ asin }) => {
     }
   }, [asin]);
 
-  // Map the events' start dates to selectedDays array whenever events change
+ 
   useEffect(() => {
-    const scheduleDates = events.map((event) => new Date(event.start));
-    setSelectedDays(scheduleDates); // Set the selected dates
+    const scheduleStartDates = events.map((event) => new Date(event.start));
+  
+    setSelectedDays(scheduleStartDates); 
+   
   }, [events]);
+ 
+
+// useEffect(() => {
+//   const scheduleDates = events.map((event) => ({
+//     start: new Date(event.start),
+//     end: new Date(event.end),
+//   }));
+
+//   const scheduleStartDates = scheduleDates.map((date) => date.start);
+//   const scheduleEndDates = scheduleDates.map((date) => date.end);
+
+//   setSelectedDays(scheduleStartDates);
+//   setSelectedEndDays(scheduleEndDates);
+// }, [events]);
+
+
+  
+
+  
 
   // Handle date selection in the calendar
   const handleDateSelect = (selected) => {
@@ -135,13 +182,13 @@ const CalendarView = ({ asin }) => {
     <div className="m-3">
       {/* Pass selectedDays and onDateSelect to the Calendar component */}
       <Calendar
-        selectedDays={selectedDays} // Pass the selected dates
+        selectedDays={selectedDays} 
         onDateSelect={handleDateSelect} // Handle the date selection
         className="rounded-md border w-full"
       />
 
       {/* Show selected schedule details */}
-      {selectedSchedule && (
+      {/* {selectedSchedule && (
         <div className="mt-4 p-4 bg-white shadow-md rounded-md">
           <h3>Schedule Details for {selectedSchedule.title}</h3>
           <p><strong>Start:</strong> {selectedSchedule.start.toLocaleString()}</p>
@@ -155,7 +202,7 @@ const CalendarView = ({ asin }) => {
             <p><strong>Description:</strong> {selectedSchedule.description}</p>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
