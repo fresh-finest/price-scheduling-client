@@ -162,6 +162,10 @@ export default function HistoryView() {
   };
 
   const fetchNestedData = async (scheduleId) => {
+<<<<<<< HEAD
+=======
+    console.log("sd: " + scheduleId);
+>>>>>>> 776ed2b2864050a43da4e7a07f87303d632661da
     setLoadingNested(true);
     try {
       const response = await axios.get(`${BASE_URL}/api/history/${scheduleId}`);
@@ -177,6 +181,10 @@ export default function HistoryView() {
   };
 
   const handleRowClick = (scheduleId) => {
+<<<<<<< HEAD
+=======
+    console.log("sd handle: " + scheduleId);
+>>>>>>> 776ed2b2864050a43da4e7a07f87303d632661da
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
     } else {

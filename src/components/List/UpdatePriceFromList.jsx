@@ -211,7 +211,15 @@ const UpdatePriceFromList = ({
     setErrorMessage("");
     setWeeklyTimeSlots({});
     setMonthlyTimeSlots({});
-    // setSchedules([]);
+    setSchedules([
+      {
+        price: "",
+        currentPrice: "",
+        startDate: new Date(),
+        endDate: new Date(),
+        indefiniteEndDate: false,
+      },
+    ]);
   };
 
   const addWeeklyTimeSlot = (day) => {
@@ -743,7 +751,7 @@ const UpdatePriceFromList = ({
                 product={product}
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
-                price={productPrice}
+                price={parseFloat(productPrice).toFixed(2)}
                 asin={asin}
                 sku1={sku1}
                 fnSku={fnSku}

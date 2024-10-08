@@ -6,9 +6,9 @@ import { CiEdit } from "react-icons/ci";
 import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
-
+import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
@@ -29,7 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
-import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
+// import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
@@ -77,23 +77,6 @@ const dateNames = [
   "31st",
 ];
 
-// function addHoursToTime(timeString, hoursToAdd) {
-//   const [hours, minutes] = timeString.split(":").map(Number);
-//   const newHours = (hours + hoursToAdd) % 24;
-//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours;
-//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`;
-// }
-// function addHoursToTime(timeString, hoursToAdd) {
-//   if (!timeString || typeof timeString !== "string") {
-//     console.error("Invalid timeString:", timeString);
-//     return "Invalid Time"; // Return a default value or handle it gracefully
-//   }
-
-//   const [hours, minutes] = timeString.split(":").map(Number);
-//   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
-//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
-//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
-// }
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
@@ -149,6 +132,7 @@ const ProductDetailView = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
+  console.log("product", product);
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -186,6 +170,19 @@ const ProductDetailView = ({
 
   const { currentUser } = useSelector((state) => state.user);
 
+  const { events } = useContext(PriceScheduleContext); // Get the events from the context
+  const [selectedDays, setSelectedDays] = useState([]);
+
+  useEffect(() => {
+    // Map the events' start dates to selectedDays array
+    const scheduleDates = events.map((event) => new Date(event.start));
+    setSelectedDays(scheduleDates); // Set the selected dates
+  }, [events]);
+
+  const handleDateSelect = (dates) => {
+    setSelectedDays(dates); // Update the selected days on user interaction
+    console.log("Selected Dates: ", dates); // Optional: For debugging
+  };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
@@ -215,14 +212,17 @@ const ProductDetailView = ({
   };
 
   useEffect(() => {
+    console.log(priceSchedule);
     const validSchedule = priceSchedule.find(
       (sc) =>
         sc.status !== "deleted" &&
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
+    console.log(validSchedule);
 
     if (validSchedule) {
+      console.log(validSchedule.currentPrice);
       setCurrentPrice(validSchedule.currentPrice);
     }
   }, [priceSchedule]);
@@ -277,6 +277,7 @@ const ProductDetailView = ({
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
     setEditScheduleModalTitle(scheduleType);
+    console.log(schedule);
   };
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);
@@ -534,12 +535,8 @@ const ProductDetailView = ({
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
 
-              {/* calendar */}
               <div className="m-3 ">
-                <Calendar
-                  selected={dates}
-                  className="rounded-md border w-full "
-                />
+                <DetailedCalendarView asin={asin} />
               </div>
               {/* tabs  */}
 

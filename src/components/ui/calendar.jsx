@@ -10,12 +10,21 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   selectedDays = [],
+  onDateSelect, // Add this prop to handle date selection
   ...props
 }) {
+  // Handle the date selection and call the onDateSelect handler
+  const handleSelect = (selected) => {
+    if (selected) {
+      onDateSelect(selected); // Pass selected date(s) back to the parent component
+    }
+  };
+
   return (
     <DayPicker
       mode="multiple" // Enable multiple day selection
       selected={selectedDays} // Pass the array of selected dates
+      onSelect={handleSelect} // Handle date selection
       showOutsideDays={showOutsideDays} // Hide outside days
       numberOfMonths={1} // Display only one month
       className={cn("p-2 h-[220px] w-full flex flex-col", className)}
@@ -56,6 +65,7 @@ function Calendar({
     />
   );
 }
+
 Calendar.displayName = "Calendar";
 
 export { Calendar };

@@ -30,6 +30,8 @@ const BASE_URL_LIST = `https://api.priceobo.com`;
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
+import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
+import CalendarView from "../Calendar/DetailedCalendarView";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -116,6 +118,9 @@ const ListView = () => {
     indexOfFirstItem,
     indexOfLastItem
   );
+
+  console.log("current Items", currentItems);
+  console.log("selected Product", selectedProduct);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -257,12 +262,11 @@ const ListView = () => {
     sku1,
     asin,
     fnSku,
-
+    index,
     fulfillmentChannel,
     quantity,
     fulfillableQuantity,
-    pendingTransshipmentQuantity,
-    index
+    pendingTransshipmentQuantity
   ) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
@@ -295,6 +299,7 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
+        console.log(responseOne.data.payload);
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -722,14 +727,14 @@ const ListView = () => {
                       onClick={() =>
                         handleProductSelect(
                           item?.price,
-                          item?.sellerSku,
-                          item?.asin1,
-                          item?.fnSku,
-                          item?.fulfillmentChannel,
-                          item?.quantity,
-                          item?.fulfillableQuantity,
-                          item?.pendingTransshipmentQuantity,
-                          index
+                          item.sellerSku,
+                          item.asin1,
+                          item.fnSku,
+                          index,
+                          item.fulfillmentChannel,
+                          item.quantity,
+                          item.fulfillableQuantity,
+                          item.pendingTransshipmentQuantity
                         )
                       }
                       style={{
@@ -1016,11 +1021,16 @@ const ListView = () => {
           ) : (
             filterScheduled && (
               <div
-                style={{
-                  marginTop: "20px",
-                  color: "#888",
-                  textAlign: "center",
-                }}
+                // style={{
+                //   marginTop: "20px",
+                //   height: "20vh",
+                //   color: "#888",
+                //   display: "flex",
+                //   textAlign: "center",
+                //   justifyContent: "center",
+                // }}
+
+                className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]"
               >
                 There is no active schedule.
               </div>
@@ -1056,6 +1066,7 @@ const ListView = () => {
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
               />
+              {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div
