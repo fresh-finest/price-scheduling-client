@@ -205,10 +205,10 @@ const ListView = () => {
               (item.endDate && new Date(item.endDate) >= now))
         )
 
-        .map((item) => item.asin);
+        .map((item) => item.sku);
 
       filtered = products.filter((product) =>
-        scheduledAsins.includes(product.asin1)
+        scheduledAsins.includes(product.sellerSku)
       );
     }
 
