@@ -10,13 +10,36 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   selectedDays = [],
+  onDateSelect, // Add this prop to handle date selection
   ...props
 }) {
+  // Handle the date selection and call the onDateSelect handler
+  const handleSelect = (selected) => {
+    if (selected) {
+      // Check if the selected day is already in the selectedDays array
+      const isSelected = selectedDays.some(
+        (day) => day.toDateString() === selected.toDateString()
+      );
+
+      if (isSelected) {
+        // If it's already selected, remove it
+        const newSelectedDays = selectedDays.filter(
+          (day) => day.toDateString() !== selected.toDateString()
+        );
+        onDateSelect(newSelectedDays); // Update selected dates
+      } else {
+        // If it's not selected, add it
+        onDateSelect([...selectedDays, selected]); // Append the new selected date
+      }
+    }
+  };
+
   return (
     <DayPicker
       mode="multiple" // Enable multiple day selection
       selected={selectedDays} // Pass the array of selected dates
-      showOutsideDays={showOutsideDays} // Hide outside days
+      onSelect={handleSelect} // Handle date selection
+      showOutsideDays={showOutsideDays} // Show outside days
       numberOfMonths={1} // Display only one month
       className={cn("p-2 h-[220px] w-full flex flex-col", className)}
       classNames={{
@@ -42,8 +65,7 @@ function Calendar({
           "h-6 w-6 p-0 font-normal aria-selected:opacity-100 rounded-full p-1"
         ),
         day_selected:
-          "bg-[#0662BB] text-white hover:bg-blue-500 hover:text-primary-foreground focus:bg-[#3B82F6] focus:text-white ",
-        day_today: "bg-accent text-accent-foreground",
+          "bg-[#0662BB] text-white hover:bg-blue-500 hover:text-primary-foreground focus:bg-[#3B82F6] focus:text-white",
         day_disabled: "text-muted-foreground opacity-50",
         day_outside: "text-gray-400",
         ...classNames,
@@ -56,6 +78,7 @@ function Calendar({
     />
   );
 }
+
 Calendar.displayName = "Calendar";
 
 export { Calendar };

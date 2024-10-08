@@ -30,6 +30,8 @@ const BASE_URL_LIST = `https://api.priceobo.com`;
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
+import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
+import CalendarView from "../Calendar/DetailedCalendarView";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -72,14 +74,7 @@ const ListView = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || "";
-  console.log(
-    "role:" +
-      currentUser.role +
-      "write: " +
-      currentUser.permissions.write +
-      "username:" +
-      userName
-  );
+  
 
   const {
     data: productData,
@@ -117,8 +112,7 @@ const ListView = () => {
     indexOfLastItem
   );
 
-  console.log("current Items", currentItems);
-  console.log("selected Product", selectedProduct);
+  
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -297,7 +291,7 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
-        console.log(responseOne.data.payload);
+       
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -1059,6 +1053,7 @@ const ListView = () => {
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
               />
+               {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div

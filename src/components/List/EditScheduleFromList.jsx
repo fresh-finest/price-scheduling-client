@@ -1327,6 +1327,3 @@ const EditScheduleFromList = ({
 
 
 export default EditScheduleFromList;
-
-
-
