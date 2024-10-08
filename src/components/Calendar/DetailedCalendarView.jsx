@@ -9,7 +9,7 @@ const CalendarView = ({ asin }) => {
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
 
-  console.log("ASIN in calendar: " + asin);
+  const now = new Date();
 
   // Fetch schedules based on the provided ASIN
   const fetchSchedules = async () => {
@@ -19,14 +19,23 @@ const CalendarView = ({ asin }) => {
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/schedule`);
+      const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
       const schedules = response.data.result;
 
       console.log("Fetched schedules:", schedules);
 
       const events = [];
 
-      schedules.forEach((schedule) => {
+      const filteredSchedules = schedules.filter(
+        (sc)=> 
+
+        (sc.monthly || sc.weekly  ) && sc.status !=="deleted"  ||
+
+        ((sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)) && sc.status !=="deleted")
+
+      )
+
+      filteredSchedules.forEach((schedule) => {
         const { startDate, endDate, price, currentPrice, sku, weekly, weeklyTimeSlots, monthly, monthlyTimeSlots } = schedule;
 
         if (!weekly && !monthly) {
@@ -132,7 +141,7 @@ const CalendarView = ({ asin }) => {
       />
 
       {/* Show selected schedule details */}
-      {/* {selectedSchedule && (
+      {selectedSchedule && (
         <div className="mt-4 p-4 bg-white shadow-md rounded-md">
           <h3>Schedule Details for {selectedSchedule.title}</h3>
           <p><strong>Start:</strong> {selectedSchedule.start.toLocaleString()}</p>
@@ -146,7 +155,7 @@ const CalendarView = ({ asin }) => {
             <p><strong>Description:</strong> {selectedSchedule.description}</p>
           )}
         </div>
-      )} */}
+      )}
     </div>
   );
 };

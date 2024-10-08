@@ -149,7 +149,7 @@ const ProductDetailView = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  console.log("product", product);
+  
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -198,7 +198,6 @@ const ProductDetailView = ({
 
   const handleDateSelect = (dates) => {
     setSelectedDays(dates); // Update the selected days on user interaction
-    console.log("Selected Dates: ", dates); // Optional: For debugging
   };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
@@ -229,17 +228,15 @@ const ProductDetailView = ({
   };
 
   useEffect(() => {
-    console.log(priceSchedule);
     const validSchedule = priceSchedule.find(
       (sc) =>
         sc.status !== "deleted" &&
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
-    console.log(validSchedule);
+  
 
     if (validSchedule) {
-      console.log(validSchedule.currentPrice);
       setCurrentPrice(validSchedule.currentPrice);
     }
   }, [priceSchedule]);
@@ -274,7 +271,7 @@ const ProductDetailView = ({
         setPriceSchedule(data.result || []);
       } catch (err) {
         if (err.name !== "AbortError") {
-          console.error("Error fetching data:", err);
+          
           setError("Error fetching schedule data.");
         }
       } finally {
@@ -294,7 +291,6 @@ const ProductDetailView = ({
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
     setEditScheduleModalTitle(scheduleType);
-    console.log(schedule);
   };
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);
