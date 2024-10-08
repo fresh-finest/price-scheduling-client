@@ -12,7 +12,7 @@ const CalendarView = ({ asin }) => {
 
   const now = new Date();
 
-  // Fetch schedules based on the provided ASIN
+  
   const fetchSchedules = async () => {
     if (!asin) {
       console.error("ASIN is required to fetch schedules.");
@@ -43,13 +43,13 @@ const CalendarView = ({ asin }) => {
           const start = new Date(startDate);
           const end = endDate ? new Date(endDate) : new Date(startDate);
 
-          // Generate the range of dates between startDate and endDate
+        
           const dateRange = generateDateRange(start, end);
-          // Single-day schedule
+        
           events.push({
             title: `SKU: ${sku} - $${price || currentPrice}`,
             start: new Date(startDate),
-            end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
+            end: endDate ? new Date(endDate) : new Date(startDate), 
             allDay: false,
             price: price || currentPrice,
             dateRange
@@ -57,23 +57,22 @@ const CalendarView = ({ asin }) => {
           events.push({
             title: `SKU: ${sku} - $${price || currentPrice}`,
             start: endDate ? new Date(endDate) : new Date(startDate),
-            end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
+            end: endDate ? new Date(endDate) : new Date(startDate), 
             allDay: false,
             price: price || currentPrice,
             dateRange
           });
         } else if (weekly) {
-          // Weekly schedule with multiple time slots
+          
           Object.entries(weeklyTimeSlots).forEach(([day, timeSlots]) => {
             timeSlots.forEach(({ startTime, endTime, newPrice, revertPrice }) => {
               const startDateObj = new Date(startDate);
               const endDateObj = new Date(startDate);
 
-              // Adjust the date for the correct day of the week
               startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
               endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
 
-              // Set the time for the time slot
+            
               const [startHour, startMinute] = startTime.split(":").map(Number);
               const [endHour, endMinute] = endTime.split(":").map(Number);
               startDateObj.setHours(startHour, startMinute, 0);
@@ -89,17 +88,17 @@ const CalendarView = ({ asin }) => {
             });
           });
         } else if (monthly) {
-          // Monthly schedule with multiple time slots
+          
           Object.entries(monthlyTimeSlots).forEach(([date, timeSlots]) => {
             timeSlots.forEach(({ startTime, endTime, newPrice, revertPrice }) => {
               const startDateObj = new Date(startDate);
               const endDateObj = new Date(startDate);
 
-              // Adjust the date for the correct day of the month
+         
               startDateObj.setDate(parseInt(date, 10));
               endDateObj.setDate(parseInt(date, 10));
 
-              // Set the time for the time slot
+             
               const [startHour, startMinute] = startTime.split(":").map(Number);
               const [endHour, endMinute] = endTime.split(":").map(Number);
               startDateObj.setHours(startHour, startMinute, 0);
@@ -117,7 +116,7 @@ const CalendarView = ({ asin }) => {
         }
       });
 
-      setEvents(events); // Update the state with parsed events
+      setEvents(events); 
     } catch (error) {
       console.error('Error fetching schedules:', error);
     }
@@ -129,12 +128,12 @@ const CalendarView = ({ asin }) => {
 
     while (currentDate <= end) {
       dateRange.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
+      currentDate.setDate(currentDate.getDate() + 1); 
     }
 
     return dateRange;
   };
-  // Fetch schedules when the component mounts and when the ASIN changes
+  
   useEffect(() => {
     if (asin) {
       fetchSchedules();
@@ -150,40 +149,23 @@ const CalendarView = ({ asin }) => {
   }, [events]);
  
 
-// useEffect(() => {
-//   const scheduleDates = events.map((event) => ({
-//     start: new Date(event.start),
-//     end: new Date(event.end),
-//   }));
-
-//   const scheduleStartDates = scheduleDates.map((date) => date.start);
-//   const scheduleEndDates = scheduleDates.map((date) => date.end);
-
-//   setSelectedDays(scheduleStartDates);
-//   setSelectedEndDays(scheduleEndDates);
-// }, [events]);
-
 
   
-
-  
-
-  // Handle date selection in the calendar
   const handleDateSelect = (selected) => {
-    setSelectedDays([selected]); // Set the selected date
-    const selectedDate = selected[0] || selected; // Handle single date selection
+    setSelectedDays([selected]); 
+    const selectedDate = selected[0] || selected;
     const scheduleForSelectedDate = events.find(
       (event) => new Date(event.start).toDateString() === selectedDate.toDateString()
     );
-    setSelectedSchedule(scheduleForSelectedDate); // Set the schedule for the selected date
+    setSelectedSchedule(scheduleForSelectedDate); 
   };
 
   return (
     <div className="m-3">
-      {/* Pass selectedDays and onDateSelect to the Calendar component */}
+  
       <Calendar
         selectedDays={selectedDays} 
-        onDateSelect={handleDateSelect} // Handle the date selection
+        onDateSelect={handleDateSelect} 
         className="rounded-md border w-full"
       />
 
