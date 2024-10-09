@@ -148,7 +148,7 @@ const displayWeekdays = (timeSlots) => {
     .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
     .map((day) => getDayLabelFromNumber(day)); // Get the day label as an array
 
-  console.log("displayedWeekDays", displayedWeekdays);
+ 
 
   return (
     <Card className=" px-2 py-2 inline-block">
@@ -801,14 +801,10 @@ export default function HistoryView() {
                               }}
                             >
                               {nestedData[item.scheduleId]
-                                .filter(
-                                  (nestedItem) =>
-                                    !(
-                                      nestedItem.action === "created" &&
-                                      !nestedItem.weekly &&
-                                      !nestedItem.monthly
-                                    )
-                                )
+                                // .filter(
+                                //   (nestedItem) =>
+                                //     nestedItem.action !== "created"
+                                // )
 
                                 .map((nestedItem) => {
                                   // console.log(nestedItem);
