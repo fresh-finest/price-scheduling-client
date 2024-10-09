@@ -3,6 +3,7 @@ import { Table, Form, InputGroup, Spinner } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
+import { FaArrowRight } from 'react-icons/fa'; // Example arrow icon
 
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
@@ -177,6 +178,8 @@ export default function HistoryView() {
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [lengthNested, setLengthNested] = useState(null)
+  const [selectedScheduleId, setSelectedScheduleId] = useState(null);
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
@@ -211,6 +214,26 @@ export default function HistoryView() {
         : [];
 
       setData(sortedData.filter((item) => item.action === "created"));
+      const nestedDataLengths = {};
+    await Promise.all(
+      sortedData.map(async (item) => {
+        try {
+          const nestedResponse = await axios.get(
+            `${BASE_URL}/api/history/${item.scheduleId}`
+          );
+          nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
+        } catch (err) {
+          console.error(
+            `Error fetching nested data for scheduleId ${item.scheduleId}:`,
+            err
+          );
+          nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+        }
+      })
+    );
+
+    setLengthNested(nestedDataLengths); // Store the nested data lengths
+     
     } catch (err) {
       setError(
         "Error fetching data: " +
@@ -221,6 +244,8 @@ export default function HistoryView() {
     }
   };
 
+  console.log("nested length"+JSON.stringify(lengthNested))
+
   const fetchNestedData = async (scheduleId) => {
     setLoadingNested(true);
     try {
@@ -229,6 +254,8 @@ export default function HistoryView() {
         ...prevData,
         [scheduleId]: response.data,
       }));
+      
+      console.log("len"+response.data.length)
     } catch (err) {
       console.error("Error fetching nested data: ", err);
     } finally {
@@ -236,6 +263,8 @@ export default function HistoryView() {
     }
   };
 
+
+  console.log(lengthNested);
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -388,8 +417,8 @@ export default function HistoryView() {
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
   return (
-    <div className="">
-      <div className="">
+    <div className="bg-white">
+      <div className="bg-white fixed top-0 left-0 w-full ml-[10%] mr-[8%] z-10 p-4 show-md">
         <InputGroup className="max-w-[500px] absolute top-2 ">
           <Form.Control
             type="text"
@@ -555,6 +584,7 @@ export default function HistoryView() {
                     onClick={() => handleRowClick(item.scheduleId)}
                     // className="borderless spacer-row"
                   >
+                 
                     {/* image  */}
                     <td
                       style={{
@@ -587,6 +617,8 @@ export default function HistoryView() {
                         verticalAlign: "middle",
                       }}
                     >
+                      
+                      {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null}
                       {displayData?.title || "N/A"}
                       <div>
                         <span
@@ -797,11 +829,14 @@ export default function HistoryView() {
                               }}
                             >
                               {nestedData[item.scheduleId]
-                                // .filter(
-                                //   (nestedItem) =>
-                                //     nestedItem.action !== "created"
-                                // )
-
+                                .filter(
+                                  (nestedItem) =>
+                                    !(
+                                      nestedItem.action === "created" &&
+                                      !nestedItem.weekly &&
+                                      !nestedItem.monthly
+                                    )
+                                )
                                 .map((nestedItem) => {
                                   // console.log(nestedItem);
                                   // Return JSX
