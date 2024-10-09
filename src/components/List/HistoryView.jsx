@@ -3,7 +3,7 @@ import { Table, Form, InputGroup, Spinner } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
-import { FaArrowRight } from 'react-icons/fa'; // Example arrow icon
+import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
 
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
@@ -143,13 +143,19 @@ const displayWeekdays = (timeSlots) => {
   }
 
   // Array of weekdays to display based on your desired keys
-  const weekdaysToDisplay = [0, 1, 2, 3, 4, 5, 6]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
+  // const weekdaysToDisplay = [0, 1, 2, 3, 4, 5, 6];
+  const weekdaysToDisplay = Object.entries(timeSlots)
+    .filter(([, slots]) => slots.length > 0) // Filter out empty slots
+    .map(([day]) => Number(day)); // Convert keys back to numbers
 
-  const displayedWeekdays = weekdaysToDisplay
-    .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
-    .map((day) => getDayLabelFromNumber(day)); // Get the day label as an array
+  // Get the labels for the days with non-empty time slots
+  const displayedWeekdays = weekdaysToDisplay.map((day) =>
+    getDayLabelFromNumber(day)
+  );
 
- 
+  // const displayedWeekdays = weekdaysToDisplay
+  //   .filter((day) => day in timeSlots)
+  //   .map((day) => getDayLabelFromNumber(day));
 
   return (
     <Card className=" px-2 py-2 inline-block">
@@ -178,8 +184,7 @@ export default function HistoryView() {
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
-  const [lengthNested, setLengthNested] = useState(null)
-
+  const [lengthNested, setLengthNested] = useState(null);
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
@@ -215,25 +220,24 @@ export default function HistoryView() {
 
       setData(sortedData.filter((item) => item.action === "created"));
       const nestedDataLengths = {};
-    // await Promise.all(
-    //   sortedData.map(async (item) => {
-    //     try {
-    //       const nestedResponse = await axios.get(
-    //         `${BASE_URL}/api/history/${item.scheduleId}`
-    //       );
-    //       nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
-    //     } catch (err) {
-    //       console.error(
-    //         `Error fetching nested data for scheduleId ${item.scheduleId}:`,
-    //         err
-    //       );
-    //       nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
-    //     }
-    //   })
-    // );
+      // await Promise.all(
+      //   sortedData.map(async (item) => {
+      //     try {
+      //       const nestedResponse = await axios.get(
+      //         `${BASE_URL}/api/history/${item.scheduleId}`
+      //       );
+      //       nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
+      //     } catch (err) {
+      //       console.error(
+      //         `Error fetching nested data for scheduleId ${item.scheduleId}:`,
+      //         err
+      //       );
+      //       nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+      //     }
+      //   })
+      // );
 
-    // setLengthNested(nestedDataLengths); 
-     
+      // setLengthNested(nestedDataLengths);
     } catch (err) {
       setError(
         "Error fetching data: " +
@@ -244,7 +248,7 @@ export default function HistoryView() {
     }
   };
 
-  console.log("nested length"+JSON.stringify(lengthNested))
+  console.log("nested length" + JSON.stringify(lengthNested));
 
   const fetchNestedData = async (scheduleId) => {
     setLoadingNested(true);
@@ -254,8 +258,8 @@ export default function HistoryView() {
         ...prevData,
         [scheduleId]: response.data,
       }));
-      
-      console.log("len"+response.data.length)
+
+      console.log("len" + response.data.length);
     } catch (err) {
       console.error("Error fetching nested data: ", err);
     } finally {
@@ -263,8 +267,6 @@ export default function HistoryView() {
     }
   };
 
-
-  console.log(lengthNested);
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -584,7 +586,6 @@ export default function HistoryView() {
                     onClick={() => handleRowClick(item.scheduleId)}
                     // className="borderless spacer-row"
                   >
-                 
                     {/* image  */}
                     <td
                       style={{
@@ -617,9 +618,8 @@ export default function HistoryView() {
                         verticalAlign: "middle",
                       }}
                     >
-                      
-                      {/* {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null}
-                      {displayData?.title || "N/A"} */}
+                      {/* {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null} */}
+                      {displayData?.title || "N/A"}
                       <div>
                         <span
                           className="bubble-text"
@@ -1097,98 +1097,104 @@ export default function HistoryView() {
                                               ?.weekly ? (
                                             // Display updatedState data when action is not deleted
                                             <>
-                                              {nestedItem?.updatedState
-                                                ?.weeklyTimeSlots ? (
+                                              {nestedItem?.previousState
+                                                ?.weekly ? (
                                                 <div className="grid grid-cols-3 gap-1">
                                                   {Object.entries(
-                                                    nestedItem?.updatedState
+                                                    nestedItem?.previousState
                                                       ?.weeklyTimeSlots || {}
-                                                  ).map(([day, timeSlots]) => (
-                                                    <div
-                                                      key={day}
-                                                      className="border rounded shadow-md bg-white"
-                                                    >
-                                                      <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                        <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                          {
-                                                            [
-                                                              "Sunday",
-                                                              "Monday",
-                                                              "Tuesday",
-                                                              "Wednesday",
-                                                              "Thursday",
-                                                              "Friday",
-                                                              "Saturday",
-                                                            ][parseInt(day)]
-                                                          }
-                                                        </h4>
-                                                      </div>
-                                                      {timeSlots.length > 0 ? (
-                                                        <div className="flex flex-col gap-1">
-                                                          {timeSlots.map(
-                                                            (slot, index) => (
-                                                              <Card
-                                                                key={index}
-                                                                className="flex justify-between items-center p-2 border"
-                                                              >
-                                                                <div className="flex justify-between w-full">
-                                                                  <div className="w-full">
-                                                                    <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                      {addHoursToTime(
-                                                                        slot.startTime,
-                                                                        6
-                                                                      )}
-                                                                      <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                        ${" "}
-                                                                        {
-                                                                          slot.newPrice
-                                                                        }
-                                                                      </span>
-                                                                    </h3>
-                                                                  </div>
-
-                                                                  <span className="flex justify-center items-center text-gray-400">
-                                                                    <FaArrowRightLong />
-                                                                  </span>
-                                                                  {slot.endTime ? (
+                                                  )
+                                                    .filter(
+                                                      ([, timeSlots]) =>
+                                                        timeSlots.length > 0
+                                                    ) // Filter out empty time slots
+                                                    .map(([day, timeSlots]) => (
+                                                      <div
+                                                        key={day}
+                                                        className="border rounded shadow-md bg-white"
+                                                      >
+                                                        <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                          <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                            {
+                                                              [
+                                                                "Sunday",
+                                                                "Monday",
+                                                                "Tuesday",
+                                                                "Wednesday",
+                                                                "Thursday",
+                                                                "Friday",
+                                                                "Saturday",
+                                                              ][parseInt(day)]
+                                                            }
+                                                          </h4>
+                                                        </div>
+                                                        {timeSlots.length >
+                                                        0 ? (
+                                                          <div className="flex flex-col gap-1">
+                                                            {timeSlots.map(
+                                                              (slot, index) => (
+                                                                <Card
+                                                                  key={index}
+                                                                  className="flex justify-between items-center p-2 border"
+                                                                >
+                                                                  <div className="flex justify-between w-full">
                                                                     <div className="w-full">
-                                                                      <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                      <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                         {addHoursToTime(
-                                                                          slot.endTime,
+                                                                          slot.startTime,
                                                                           6
                                                                         )}
-                                                                        <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                        <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                           ${" "}
-                                                                          {slot.revertPrice ||
-                                                                            "N/A"}
+                                                                          {
+                                                                            slot.newPrice
+                                                                          }
                                                                         </span>
                                                                       </h3>
                                                                     </div>
-                                                                  ) : (
-                                                                    <div className="w-full">
-                                                                      <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                        <span>
-                                                                          Until
-                                                                          change
-                                                                          back
-                                                                        </span>
-                                                                      </h3>
-                                                                    </div>
-                                                                  )}
-                                                                </div>
-                                                              </Card>
-                                                            )
-                                                          )}
-                                                        </div>
-                                                      ) : (
-                                                        <p className="text-gray-500 italic">
-                                                          No time slots
-                                                          available for this
-                                                          day.
-                                                        </p>
-                                                      )}
-                                                    </div>
-                                                  ))}
+
+                                                                    <span className="flex justify-center items-center text-gray-400">
+                                                                      <FaArrowRightLong />
+                                                                    </span>
+                                                                    {slot.endTime ? (
+                                                                      <div className="w-full">
+                                                                        <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                          {addHoursToTime(
+                                                                            slot.endTime,
+                                                                            6
+                                                                          )}
+                                                                          <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                            ${" "}
+                                                                            {slot.revertPrice ||
+                                                                              "N/A"}
+                                                                          </span>
+                                                                        </h3>
+                                                                      </div>
+                                                                    ) : (
+                                                                      <div className="w-full">
+                                                                        <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                          <span>
+                                                                            Until
+                                                                            change
+                                                                            back
+                                                                          </span>
+                                                                        </h3>
+                                                                      </div>
+                                                                    )}
+                                                                  </div>
+                                                                </Card>
+                                                              )
+                                                            )}
+                                                          </div>
+                                                        ) : (
+                                                          <p className="text-gray-500 italic">
+                                                            No time slots
+                                                            available for this
+                                                            day.
+                                                          </p>
+                                                        )}
+                                                      </div>
+                                                    ))}
                                                 </div>
                                               ) : (
                                                 <p>
@@ -1349,83 +1355,89 @@ export default function HistoryView() {
                                               {Object.entries(
                                                 nestedItem?.weeklyTimeSlots ||
                                                   {}
-                                              ).map(([day, timeSlots]) => (
-                                                <div
-                                                  key={day}
-                                                  className="border rounded shadow-md bg-white "
-                                                >
-                                                  <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                    <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                      {
-                                                        [
-                                                          "Sunday",
-                                                          "Monday",
-                                                          "Tuesday",
-                                                          "Wednesday",
-                                                          "Thursday",
-                                                          "Friday",
-                                                          "Saturday",
-                                                        ][parseInt(day)]
-                                                      }
-                                                    </h4>
-                                                  </div>
-                                                  <div className="flex flex-col gap-1">
-                                                    {timeSlots.map(
-                                                      (slot, index) => (
-                                                        <Card
-                                                          key={index}
-                                                          className="flex justify-between items-center p-2 border"
-                                                        >
-                                                          <div className="flex justify-between w-full">
-                                                            <div className="w-full">
-                                                              <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                {addHoursToTime(
-                                                                  slot.startTime,
-                                                                  6
-                                                                )}
-                                                                <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                  ${" "}
-                                                                  {
-                                                                    slot.newPrice
-                                                                  }
-                                                                </span>
-                                                              </h3>
-                                                            </div>
-
-                                                            <span className="flex justify-center items-center text-gray-400">
-                                                              <FaArrowRightLong />
-                                                            </span>
-                                                            {slot.endTime ? (
+                                              )
+                                                .filter(
+                                                  ([, timeSlots]) =>
+                                                    timeSlots.length > 0
+                                                ) // Filter out empty time slots
+                                                .map(([day, timeSlots]) => (
+                                                  <div
+                                                    key={day}
+                                                    className="border rounded shadow-md bg-white "
+                                                  >
+                                                    <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                      <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                        {
+                                                          [
+                                                            "Sunday",
+                                                            "Monday",
+                                                            "Tuesday",
+                                                            "Wednesday",
+                                                            "Thursday",
+                                                            "Friday",
+                                                            "Saturday",
+                                                          ][parseInt(day)]
+                                                        }
+                                                      </h4>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                      {timeSlots.map(
+                                                        (slot, index) => (
+                                                          <Card
+                                                            key={index}
+                                                            className="flex justify-between items-center p-2 border"
+                                                          >
+                                                            <div className="flex justify-between w-full">
                                                               <div className="w-full">
-                                                                <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                   {addHoursToTime(
-                                                                    slot.endTime,
+                                                                    slot.startTime,
                                                                     6
                                                                   )}
-                                                                  <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                  <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                     ${" "}
-                                                                    {slot.revertPrice ||
-                                                                      "N/A"}
+                                                                    {
+                                                                      slot.newPrice
+                                                                    }
                                                                   </span>
                                                                 </h3>
                                                               </div>
-                                                            ) : (
-                                                              <div className="w-full">
-                                                                <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                  <span>
-                                                                    Until change
-                                                                    back
-                                                                  </span>
-                                                                </h3>
-                                                              </div>
-                                                            )}
-                                                          </div>
-                                                        </Card>
-                                                      )
-                                                    )}
+
+                                                              <span className="flex justify-center items-center text-gray-400">
+                                                                <FaArrowRightLong />
+                                                              </span>
+                                                              {slot.endTime ? (
+                                                                <div className="w-full">
+                                                                  <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                    {addHoursToTime(
+                                                                      slot.endTime,
+                                                                      6
+                                                                    )}
+                                                                    <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                      ${" "}
+                                                                      {slot.revertPrice ||
+                                                                        "N/A"}
+                                                                    </span>
+                                                                  </h3>
+                                                                </div>
+                                                              ) : (
+                                                                <div className="w-full">
+                                                                  <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                    <span>
+                                                                      Until
+                                                                      change
+                                                                      back
+                                                                    </span>
+                                                                  </h3>
+                                                                </div>
+                                                              )}
+                                                            </div>
+                                                          </Card>
+                                                        )
+                                                      )}
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              ))}
+                                                ))}
                                             </div>
                                           ) : (
                                             // single update and created
