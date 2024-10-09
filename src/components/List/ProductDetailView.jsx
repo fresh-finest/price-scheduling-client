@@ -31,9 +31,9 @@ import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -257,12 +257,9 @@ const ProductDetailView = ({
     const getData = async () => {
       try {
         setLoading(true);
-<<<<<<< HEAD
-        const response = await axios.get(`${BASE_URL}/api/schedule/${sku1}`);
-=======
         const encodedSku = encodeURIComponent(sku1);
         const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
->>>>>>> 6b7653ec28f391f1a586f73204d2322e3b9cf434
+
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Calendar } from "../ui/calendar";
 import axios from "axios";
 
-// const BASE_URL = 'http://localhost:3000';
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = 'http://localhost:3000';
+// const BASE_URL = `https://api.priceobo.com`;
 
 const CalendarView = ({ sku1 }) => {
   const [events, setEvents] = useState([]);
@@ -13,11 +13,7 @@ const CalendarView = ({ sku1 }) => {
 
   const now = new Date();
 
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> 6b7653ec28f391f1a586f73204d2322e3b9cf434
   const fetchSchedules = async () => {
     if (!sku1) {
       console.error("SKU is required to fetch schedules.");
