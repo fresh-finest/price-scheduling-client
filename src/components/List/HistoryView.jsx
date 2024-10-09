@@ -142,7 +142,7 @@ const displayWeekdays = (timeSlots) => {
   }
 
   // Array of weekdays to display based on your desired keys
-  const weekdaysToDisplay = [1, 2, 3, 4, 5]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
+  const weekdaysToDisplay = [0, 1, 2, 3, 4, 5, 6]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
 
   const displayedWeekdays = weekdaysToDisplay
     .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
@@ -403,14 +403,6 @@ export default function HistoryView() {
             <button
               onClick={handleClearInput}
               className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
-              style={
-                {
-                  // backgroundColor: "transparent",
-                  // border: "none",
-                  // fontSize: "16px",
-                  // cursor: "pointer",
-                }
-              }
             >
               <MdOutlineClose />
             </button>
@@ -538,14 +530,6 @@ export default function HistoryView() {
           {filteredData.length > 0 ? (
             filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
-
-              // const weeklyLabel = displayData?.weekly
-              //   ? displayTimeSlotsWithDayLabels(
-              //       displayData?.weeklyTimeSlots,
-              //       6,
-              //       true
-              //     )
-              //   : null;
 
               const weeklyLabel = displayData?.weekly
                 ? displayWeekdays(displayData?.weeklyTimeSlots)
@@ -697,42 +681,10 @@ export default function HistoryView() {
                         {displayData?.weekly ? (
                           <>
                             <p className=" ">{weeklyLabel}</p>
-
-                            {/* <div>
-                              {daysArray.map((day, index) => (
-                                <p key={index}>{day}</p> // Create a <p> element for each day
-                              ))}
-                            </div> */}
-
-                            {/* {displayData?.currentPrice && (
-                              <p
-                                style={{
-                                  margin: 0,
-                                  color: "green",
-                                  textAlign: "right",
-                                  marginRight: "50px",
-                                }}
-                              >
-                                Will Revert to :${displayData.currentPrice}
-                              </p>
-                            )} */}
                           </>
                         ) : displayData?.monthly ? (
                           <>
                             <span>{monthlyLabel}</span>
-
-                            {/* {displayData?.currentPrice && (
-                              <p
-                                style={{
-                                  margin: 0,
-                                  color: "green",
-                                  textAlign: "right",
-                                  marginRight: "50px",
-                                }}
-                              >
-                                Will Revert to :${displayData.currentPrice}
-                              </p>
-                            )} */}
                           </>
                         ) : (
                           <>
@@ -824,10 +776,10 @@ export default function HistoryView() {
 
                   {expandedRow === item.scheduleId && (
                     <tr>
-                      <td colSpan="6">
+                      <td colSpan="5">
                         {loadingNested && <Spinner animation="border" />}
                         {!loadingNested && nestedData[item.scheduleId] && (
-                          <Table className="" size="sm">
+                          <Table className="ml-[9%]" size="sm">
                             <thead>
                               <tr>
                                 {/* <th>Image</th> */}
@@ -845,13 +797,13 @@ export default function HistoryView() {
                               }}
                             >
                               {nestedData[item.scheduleId]
-                                .filter(
-                                  (nestedItem) =>
-                                    nestedItem.action !== "created"
-                                )
-                                .map((nestedItem) => {
-                                  // Log nestedItem to the console
+                                // .filter(
+                                //   (nestedItem) =>
+                                //     nestedItem.action !== "created"
+                                // )
 
+                                .map((nestedItem) => {
+                                  // console.log(nestedItem);
                                   // Return JSX
                                   return (
                                     <tr key={nestedItem._id}>
@@ -1050,6 +1002,8 @@ export default function HistoryView() {
                                                   ))}
                                                 </div>
                                               ) : (
+                                                // single delete
+
                                                 <Card className="flex flex-col  p-2 border rounded-lg w-[420px]">
                                                   <div className="flex justify-center gap-1 items-center mb-2">
                                                     <h3 className="flex items-center text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
@@ -1282,9 +1236,168 @@ export default function HistoryView() {
                                                 </div>
                                               ))}
                                             </div>
+                                          ) : nestedItem?.monthly ? (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {Object.entries(
+                                                nestedItem?.monthlyTimeSlots ||
+                                                  {}
+                                              ).map(([date, timeSlots]) => (
+                                                <div
+                                                  key={date}
+                                                  className="border rounded shadow-md bg-white "
+                                                >
+                                                  <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                    <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                      {date}th
+                                                    </h4>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                    {timeSlots.map(
+                                                      (slot, index) => (
+                                                        <Card
+                                                          key={index}
+                                                          className="flex justify-between items-center p-2 border"
+                                                        >
+                                                          <div className="flex justify-between w-full">
+                                                            <div className="w-full">
+                                                              <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                {addHoursToTime(
+                                                                  slot.startTime,
+                                                                  6
+                                                                )}
+                                                                <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                  ${" "}
+                                                                  {
+                                                                    slot.newPrice
+                                                                  }
+                                                                </span>
+                                                              </h3>
+                                                            </div>
+
+                                                            <span className="flex justify-center items-center text-gray-400">
+                                                              <FaArrowRightLong />
+                                                            </span>
+                                                            {slot.endTime ? (
+                                                              <div className="w-full">
+                                                                <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                  {addHoursToTime(
+                                                                    slot.endTime,
+                                                                    6
+                                                                  )}
+                                                                  <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                    ${" "}
+                                                                    {slot.revertPrice ||
+                                                                      "N/A"}
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            ) : (
+                                                              <div className="w-full">
+                                                                <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                  <span>
+                                                                    Until change
+                                                                    back
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </Card>
+                                                      )
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          ) : nestedItem?.weekly ? (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {Object.entries(
+                                                nestedItem?.weeklyTimeSlots ||
+                                                  {}
+                                              ).map(([day, timeSlots]) => (
+                                                <div
+                                                  key={day}
+                                                  className="border rounded shadow-md bg-white "
+                                                >
+                                                  <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                    <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                      {
+                                                        [
+                                                          "Sunday",
+                                                          "Monday",
+                                                          "Tuesday",
+                                                          "Wednesday",
+                                                          "Thursday",
+                                                          "Friday",
+                                                          "Saturday",
+                                                        ][parseInt(day)]
+                                                      }
+                                                    </h4>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                    {timeSlots.map(
+                                                      (slot, index) => (
+                                                        <Card
+                                                          key={index}
+                                                          className="flex justify-between items-center p-2 border"
+                                                        >
+                                                          <div className="flex justify-between w-full">
+                                                            <div className="w-full">
+                                                              <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                {addHoursToTime(
+                                                                  slot.startTime,
+                                                                  6
+                                                                )}
+                                                                <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                  ${" "}
+                                                                  {
+                                                                    slot.newPrice
+                                                                  }
+                                                                </span>
+                                                              </h3>
+                                                            </div>
+
+                                                            <span className="flex justify-center items-center text-gray-400">
+                                                              <FaArrowRightLong />
+                                                            </span>
+                                                            {slot.endTime ? (
+                                                              <div className="w-full">
+                                                                <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                  {addHoursToTime(
+                                                                    slot.endTime,
+                                                                    6
+                                                                  )}
+                                                                  <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                    ${" "}
+                                                                    {slot.revertPrice ||
+                                                                      "N/A"}
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            ) : (
+                                                              <div className="w-full">
+                                                                <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                  <span>
+                                                                    Until change
+                                                                    back
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </Card>
+                                                      )
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
                                           ) : (
-                                            <Card className="flex flex-col  p-2 border rounded-lg w-[420px]">
+                                            // single update and created
+
+                                            <Card className="flex flex-col p-2 border rounded-lg w-[420px]">
                                               <div className="flex justify-center gap-1 items-center mb-2">
+                                                {/* Start Date and Start Price */}
                                                 <h3 className="flex items-center text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
                                                   {nestedItem?.updatedState
                                                     ?.startDate
@@ -1292,20 +1405,36 @@ export default function HistoryView() {
                                                         nestedItem.updatedState
                                                           .startDate
                                                       )
+                                                    : nestedItem?.startDate
+                                                    ? formatDateTime(
+                                                        nestedItem.startDate
+                                                      )
                                                     : "N/A"}
                                                   {nestedItem?.updatedState
                                                     ?.price && (
                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                       $
-                                                      {nestedItem.updatedState.price?.toFixed(
+                                                      {nestedItem?.updatedState?.price?.toFixed(
+                                                        2
+                                                      )}
+                                                    </span>
+                                                  )}
+                                                  {nestedItem?.price && (
+                                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                      $
+                                                      {nestedItem?.price?.toFixed(
                                                         2
                                                       )}
                                                     </span>
                                                   )}
                                                 </h3>
+
+                                                {/* Arrow Icon */}
                                                 <span className="flex justify-center items-center text-gray-400">
                                                   <FaArrowRightLong />
                                                 </span>
+
+                                                {/* End Date and End Price */}
                                                 {nestedItem?.updatedState
                                                   ?.endDate ? (
                                                   <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
@@ -1313,11 +1442,25 @@ export default function HistoryView() {
                                                       nestedItem.updatedState
                                                         .endDate
                                                     )}
-                                                    {nestedItem.updatedState
-                                                      .currentPrice && (
+                                                    {nestedItem?.updatedState
+                                                      ?.currentPrice && (
                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                         $
-                                                        {nestedItem.updatedState.currentPrice?.toFixed(
+                                                        {nestedItem?.updatedState?.currentPrice?.toFixed(
+                                                          2
+                                                        )}
+                                                      </span>
+                                                    )}
+                                                  </h3>
+                                                ) : nestedItem?.endDate ? (
+                                                  <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
+                                                    {formatDateTime(
+                                                      nestedItem.endDate
+                                                    )}
+                                                    {nestedItem?.currentPrice && (
+                                                      <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                        $
+                                                        {nestedItem?.currentPrice?.toFixed(
                                                           2
                                                         )}
                                                       </span>
@@ -1325,9 +1468,7 @@ export default function HistoryView() {
                                                   </h3>
                                                 ) : (
                                                   <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                    <span>
-                                                      Until change back
-                                                    </span>
+                                                    <span>Until Changed</span>
                                                   </h3>
                                                 )}
                                               </div>
@@ -1369,7 +1510,9 @@ export default function HistoryView() {
                                             {nestedItem.action}
                                           </span>
                                         ) : (
-                                          <span>{nestedItem.action}</span>
+                                          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+                                            {nestedItem.action}
+                                          </span>
                                         )}
                                       </td>
                                     </tr>
