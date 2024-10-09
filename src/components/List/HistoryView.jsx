@@ -179,7 +179,7 @@ export default function HistoryView() {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [lengthNested, setLengthNested] = useState(null)
-  const [selectedScheduleId, setSelectedScheduleId] = useState(null);
+
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
