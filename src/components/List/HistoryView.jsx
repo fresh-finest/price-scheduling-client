@@ -236,6 +236,7 @@ export default function HistoryView() {
     }
   };
 
+  
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -245,8 +246,9 @@ export default function HistoryView() {
         fetchNestedData(scheduleId);
       }
     }
+    
   };
-
+  
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -587,6 +589,8 @@ export default function HistoryView() {
                         verticalAlign: "middle",
                       }}
                     >
+                   
+
                       {displayData?.title || "N/A"}
                       <div>
                         <span
@@ -797,10 +801,14 @@ export default function HistoryView() {
                               }}
                             >
                               {nestedData[item.scheduleId]
-                                // .filter(
-                                //   (nestedItem) =>
-                                //     nestedItem.action !== "created"
-                                // )
+                                .filter(
+                                  (nestedItem) =>
+                                    !(
+                                      nestedItem.action === "created" &&
+                                      !nestedItem.weekly &&
+                                      !nestedItem.monthly
+                                    )
+                                )
 
                                 .map((nestedItem) => {
                                   // console.log(nestedItem);
