@@ -439,7 +439,7 @@ export default function HistoryView() {
         </div>
       </div>
       <Table
-        hover
+        // hover
         responsive
         style={{ tableLayout: "fixed" }}
         className="mt-14 historyCustomTable "
