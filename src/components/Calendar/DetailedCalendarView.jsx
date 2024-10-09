@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Calendar } from "../ui/calendar";
 import axios from "axios";
 
-const BASE_URL = 'http://localhost:3000';
+// const BASE_URL = 'http://localhost:3000';
+const BASE_URL = `https://api.priceobo.com`;
 
-const CalendarView = ({ asin }) => {
+const CalendarView = ({ sku1 }) => {
   const [events, setEvents] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
@@ -12,15 +13,20 @@ const CalendarView = ({ asin }) => {
 
   const now = new Date();
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 6b7653ec28f391f1a586f73204d2322e3b9cf434
   const fetchSchedules = async () => {
-    if (!asin) {
-      console.error("ASIN is required to fetch schedules.");
+    if (!sku1) {
+      console.error("SKU is required to fetch schedules.");
       return;
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+      const encodedSku = encodeURIComponent(sku1);
+      const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
       const schedules = response.data.result;
 
       console.log("Fetched schedules:", schedules);
@@ -135,10 +141,10 @@ const CalendarView = ({ asin }) => {
   };
   
   useEffect(() => {
-    if (asin) {
+    if (sku1) {
       fetchSchedules();
     }
-  }, [asin]);
+  }, [sku1]);
 
  
   useEffect(() => {

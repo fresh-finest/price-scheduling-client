@@ -18,8 +18,8 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
-// const BASE_URL = "https://api.priceobo.com";
-const BASE_URL ='http://localhost:3000'
+const BASE_URL = "https://api.priceobo.com";
+// const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -696,6 +696,7 @@ const UpdatePriceFromList = ({
     (schedule) => schedule.indefiniteEndDate
   );
 
+<<<<<<< HEAD
   
     useEffect(() => {
       if (showSuccessModal) {
@@ -706,6 +707,18 @@ const UpdatePriceFromList = ({
         return () => clearTimeout(timer); // Clean up the timeout when component unmounts or when the modal closes
       }
     }, [showSuccessModal, setShowSuccessModal]);
+=======
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 1000); // 1000ms = 1 second
+
+      return () => clearTimeout(timer); 
+    }
+  }, [showSuccessModal, setShowSuccessModal]);
+
+>>>>>>> 6b7653ec28f391f1a586f73204d2322e3b9cf434
 
   return (
     <>
