@@ -257,7 +257,7 @@ const ProductDetailView = ({
     const getData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+        const response = await axios.get(`${BASE_URL}/api/schedule/${sku1}`);
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
