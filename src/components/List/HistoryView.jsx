@@ -215,24 +215,24 @@ export default function HistoryView() {
 
       setData(sortedData.filter((item) => item.action === "created"));
       const nestedDataLengths = {};
-    await Promise.all(
-      sortedData.map(async (item) => {
-        try {
-          const nestedResponse = await axios.get(
-            `${BASE_URL}/api/history/${item.scheduleId}`
-          );
-          nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
-        } catch (err) {
-          console.error(
-            `Error fetching nested data for scheduleId ${item.scheduleId}:`,
-            err
-          );
-          nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
-        }
-      })
-    );
+    // await Promise.all(
+    //   sortedData.map(async (item) => {
+    //     try {
+    //       const nestedResponse = await axios.get(
+    //         `${BASE_URL}/api/history/${item.scheduleId}`
+    //       );
+    //       nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
+    //     } catch (err) {
+    //       console.error(
+    //         `Error fetching nested data for scheduleId ${item.scheduleId}:`,
+    //         err
+    //       );
+    //       nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+    //     }
+    //   })
+    // );
 
-    setLengthNested(nestedDataLengths); // Store the nested data lengths
+    // setLengthNested(nestedDataLengths); 
      
     } catch (err) {
       setError(
@@ -618,8 +618,8 @@ export default function HistoryView() {
                       }}
                     >
                       
-                      {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null}
-                      {displayData?.title || "N/A"}
+                      {/* {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null}
+                      {displayData?.title || "N/A"} */}
                       <div>
                         <span
                           className="bubble-text"
