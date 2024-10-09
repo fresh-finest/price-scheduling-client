@@ -257,7 +257,8 @@ const ProductDetailView = ({
     const getData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+        const encodedSku = encodeURIComponent(sku1);
+        const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -279,14 +280,14 @@ const ProductDetailView = ({
       }
     };
 
-    if (asin) {
+    if (sku1) {
       getData();
     }
 
     return () => {
       controller.abort();
     };
-  }, [asin]);
+  }, [sku1]);
 
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
@@ -551,7 +552,7 @@ const ProductDetailView = ({
         
               <div className="m-3 ">
               
-               <DetailedCalendarView asin={asin}/>
+               <DetailedCalendarView sku1={sku1}/>
               </div>
               {/* tabs  */}
 

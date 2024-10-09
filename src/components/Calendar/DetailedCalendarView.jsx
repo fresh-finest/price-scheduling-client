@@ -5,7 +5,7 @@ import axios from "axios";
 // const BASE_URL = 'http://localhost:3000';
 const BASE_URL = `https://api.priceobo.com`;
 
-const CalendarView = ({ asin }) => {
+const CalendarView = ({ sku1 }) => {
   const [events, setEvents] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
@@ -13,15 +13,16 @@ const CalendarView = ({ asin }) => {
 
   const now = new Date();
 
-  // Fetch schedules based on the provided ASIN
+
   const fetchSchedules = async () => {
-    if (!asin) {
-      console.error("ASIN is required to fetch schedules.");
+    if (!sku1) {
+      console.error("SKU is required to fetch schedules.");
       return;
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+      const encodedSku = encodeURIComponent(sku1);
+      const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
       const schedules = response.data.result;
 
       console.log("Fetched schedules:", schedules);
@@ -135,12 +136,12 @@ const CalendarView = ({ asin }) => {
 
     return dateRange;
   };
-  // Fetch schedules when the component mounts and when the ASIN changes
+  
   useEffect(() => {
-    if (asin) {
+    if (sku1) {
       fetchSchedules();
     }
-  }, [asin]);
+  }, [sku1]);
 
  
   useEffect(() => {
