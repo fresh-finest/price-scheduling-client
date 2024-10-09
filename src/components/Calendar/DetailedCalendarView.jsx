@@ -56,14 +56,14 @@ const CalendarView = ({ sku1 }) => {
             price: price || currentPrice,
             dateRange
           });
-          events.push({
-            title: `SKU: ${sku} - $${price || currentPrice}`,
-            start: endDate ? new Date(endDate) : new Date(startDate),
-            end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
-            allDay: false,
-            price: price || currentPrice,
-            dateRange
-          });
+          // events.push({
+          //   title: `SKU: ${sku} - $${price || currentPrice}`,
+          //   start: endDate ? new Date(endDate) : new Date(startDate),
+          //   end: endDate ? new Date(endDate) : new Date(startDate),
+          //   allDay: false,
+          //   price: price || currentPrice,
+          //   dateRange
+          // });
         } else if (weekly) {
           // Weekly schedule with multiple time slots
           Object.entries(weeklyTimeSlots).forEach(([day, timeSlots]) => {
@@ -71,9 +71,19 @@ const CalendarView = ({ sku1 }) => {
               const startDateObj = new Date(startDate);
               const endDateObj = new Date(startDate);
 
+
+              // targetDay = parseInt(day,10);
+              let dayDifference = parseInt(day, 10) - startDateObj.getDay();
+
+              if(dayDifference< 0){
+                dayDifference=dayDifference+7
+              }
               // Adjust the date for the correct day of the week
-              startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
-              endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
+              // startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
+              // endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
+
+              startDateObj.setDate(startDateObj.getDate()+dayDifference);
+              endDateObj.setDate(endDateObj.getDate()+dayDifference);
 
               // Set the time for the time slot
               const [startHour, startMinute] = startTime.split(":").map(Number);
