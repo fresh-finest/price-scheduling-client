@@ -2,34 +2,51 @@ import React, { useEffect, useState } from "react";
 import { Calendar } from "../ui/calendar";
 import axios from "axios";
 
-const BASE_URL = 'http://localhost:3000';
+// const BASE_URL = 'http://localhost:3000';
+const BASE_URL = `https://api.priceobo.com`;
 
-const CalendarView = ({ asin }) => {
+const CalendarView = ({ sku1 }) => {
   const [events, setEvents] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [selectedEndDays, setSelectedEndDays] = useState([]);
 
-  console.log("ASIN in calendar: " + asin);
+  const now = new Date();
 
-  // Fetch schedules based on the provided ASIN
+
   const fetchSchedules = async () => {
-    if (!asin) {
-      console.error("ASIN is required to fetch schedules.");
+    if (!sku1) {
+      console.error("SKU is required to fetch schedules.");
       return;
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/schedule`);
+      const encodedSku = encodeURIComponent(sku1);
+      const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
       const schedules = response.data.result;
 
       console.log("Fetched schedules:", schedules);
 
       const events = [];
 
-      schedules.forEach((schedule) => {
+      const filteredSchedules = schedules.filter(
+        (sc)=> 
+
+        (sc.monthly || sc.weekly  ) && sc.status !=="deleted"  ||
+
+        ((sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)) && sc.status !=="deleted")
+
+      )
+
+      filteredSchedules.forEach((schedule) => {
         const { startDate, endDate, price, currentPrice, sku, weekly, weeklyTimeSlots, monthly, monthlyTimeSlots } = schedule;
 
         if (!weekly && !monthly) {
+          const start = new Date(startDate);
+          const end = endDate ? new Date(endDate) : new Date(startDate);
+
+          // Generate the range of dates between startDate and endDate
+          const dateRange = generateDateRange(start, end);
           // Single-day schedule
           events.push({
             title: `SKU: ${sku} - $${price || currentPrice}`,
@@ -37,7 +54,16 @@ const CalendarView = ({ asin }) => {
             end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
             allDay: false,
             price: price || currentPrice,
+            dateRange
           });
+          // events.push({
+          //   title: `SKU: ${sku} - $${price || currentPrice}`,
+          //   start: endDate ? new Date(endDate) : new Date(startDate),
+          //   end: endDate ? new Date(endDate) : new Date(startDate),
+          //   allDay: false,
+          //   price: price || currentPrice,
+          //   dateRange
+          // });
         } else if (weekly) {
           // Weekly schedule with multiple time slots
           Object.entries(weeklyTimeSlots).forEach(([day, timeSlots]) => {
@@ -45,9 +71,19 @@ const CalendarView = ({ asin }) => {
               const startDateObj = new Date(startDate);
               const endDateObj = new Date(startDate);
 
+
+              // targetDay = parseInt(day,10);
+              let dayDifference = parseInt(day, 10) - startDateObj.getDay();
+
+              if(dayDifference< 0){
+                dayDifference=dayDifference+7
+              }
               // Adjust the date for the correct day of the week
-              startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
-              endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
+              // startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
+              // endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
+
+              startDateObj.setDate(startDateObj.getDate()+dayDifference);
+              endDateObj.setDate(endDateObj.getDate()+dayDifference);
 
               // Set the time for the time slot
               const [startHour, startMinute] = startTime.split(":").map(Number);
@@ -99,18 +135,50 @@ const CalendarView = ({ asin }) => {
     }
   };
 
-  // Fetch schedules when the component mounts and when the ASIN changes
+  const generateDateRange = (start, end) => {
+    const dateRange = [];
+    let currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      dateRange.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
+    }
+
+    return dateRange;
+  };
+  
   useEffect(() => {
-    if (asin) {
+    if (sku1) {
       fetchSchedules();
     }
-  }, [asin]);
+  }, [sku1]);
 
-  // Map the events' start dates to selectedDays array whenever events change
+ 
   useEffect(() => {
-    const scheduleDates = events.map((event) => new Date(event.start));
-    setSelectedDays(scheduleDates); // Set the selected dates
+    const scheduleStartDates = events.map((event) => new Date(event.start));
+  
+    setSelectedDays(scheduleStartDates); 
+   
   }, [events]);
+ 
+
+// useEffect(() => {
+//   const scheduleDates = events.map((event) => ({
+//     start: new Date(event.start),
+//     end: new Date(event.end),
+//   }));
+
+//   const scheduleStartDates = scheduleDates.map((date) => date.start);
+//   const scheduleEndDates = scheduleDates.map((date) => date.end);
+
+//   setSelectedDays(scheduleStartDates);
+//   setSelectedEndDays(scheduleEndDates);
+// }, [events]);
+
+
+  
+
+  
 
   // Handle date selection in the calendar
   const handleDateSelect = (selected) => {
@@ -126,7 +194,7 @@ const CalendarView = ({ asin }) => {
     <div className="m-3">
       {/* Pass selectedDays and onDateSelect to the Calendar component */}
       <Calendar
-        selectedDays={selectedDays} // Pass the selected dates
+        selectedDays={selectedDays} 
         onDateSelect={handleDateSelect} // Handle the date selection
         className="rounded-md border w-full"
       />

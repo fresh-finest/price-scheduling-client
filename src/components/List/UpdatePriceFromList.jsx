@@ -698,6 +698,16 @@ const UpdatePriceFromList = ({
     (schedule) => schedule.indefiniteEndDate
   );
 
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 1000); // 1000ms = 1 second
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessModal, setShowSuccessModal]);
+
   return (
     <>
       <Modal

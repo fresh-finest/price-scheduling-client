@@ -74,14 +74,6 @@ const ListView = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || "";
-  // console.log(
-  //   "role:" +
-  //     currentUser.role +
-  //     "write: " +
-  //     currentUser.permissions.write +
-  //     "username:" +
-  //     userName
-  // );
 
   const {
     data: productData,
@@ -118,9 +110,6 @@ const ListView = () => {
     indexOfFirstItem,
     indexOfLastItem
   );
-
-  console.log("current Items", currentItems);
-  console.log("selected Product", selectedProduct);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -207,10 +196,10 @@ const ListView = () => {
               (item.endDate && new Date(item.endDate) >= now))
         )
 
-        .map((item) => item.asin);
+        .map((item) => item.sku);
 
       filtered = products.filter((product) =>
-        scheduledAsins.includes(product.asin1)
+        scheduledAsins.includes(product.sellerSku)
       );
     }
 
@@ -299,7 +288,7 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
-        console.log(responseOne.data.payload);
+
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);

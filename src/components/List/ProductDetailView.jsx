@@ -34,6 +34,7 @@ import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 // const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL = "http://localhost:3000";
+// const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -132,7 +133,6 @@ const ProductDetailView = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  console.log("product", product);
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -181,7 +181,6 @@ const ProductDetailView = ({
 
   const handleDateSelect = (dates) => {
     setSelectedDays(dates); // Update the selected days on user interaction
-    console.log("Selected Dates: ", dates); // Optional: For debugging
   };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
@@ -212,17 +211,14 @@ const ProductDetailView = ({
   };
 
   useEffect(() => {
-    console.log(priceSchedule);
     const validSchedule = priceSchedule.find(
       (sc) =>
         sc.status !== "deleted" &&
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
-    console.log(validSchedule);
 
     if (validSchedule) {
-      console.log(validSchedule.currentPrice);
       setCurrentPrice(validSchedule.currentPrice);
     }
   }, [priceSchedule]);
@@ -243,7 +239,10 @@ const ProductDetailView = ({
     const getData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+        const encodedSku = encodeURIComponent(sku1);
+        const response = await axios.get(
+          `${BASE_URL}/api/schedule/${encodedSku}`
+        );
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -257,7 +256,6 @@ const ProductDetailView = ({
         setPriceSchedule(data.result || []);
       } catch (err) {
         if (err.name !== "AbortError") {
-          console.error("Error fetching data:", err);
           setError("Error fetching schedule data.");
         }
       } finally {
@@ -265,19 +263,18 @@ const ProductDetailView = ({
       }
     };
 
-    if (asin) {
+    if (sku1) {
       getData();
     }
 
     return () => {
       controller.abort();
     };
-  }, [asin]);
+  }, [sku1]);
 
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
     setEditScheduleModalTitle(scheduleType);
-    console.log(schedule);
   };
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);
@@ -537,6 +534,8 @@ const ProductDetailView = ({
 
               <div className="m-3 ">
                 <DetailedCalendarView asin={asin} />
+
+                <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}
 
