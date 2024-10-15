@@ -259,6 +259,7 @@ const ProductDetailView = ({
         const response = await axios.get(
           `${BASE_URL}/api/schedule/${encodedSku}`
         );
+
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
