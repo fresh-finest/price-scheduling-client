@@ -926,7 +926,7 @@ export default function HistoryView() {
                                               <>
                                                 {nestedItem?.previousState
                                                   ?.weekly ? (
-                                                  <div className="grid grid-cols-3 gap-1">
+                                                  <div className="grid grid-cols-3 gap-1 ">
                                                     {Object.entries(
                                                       nestedItem?.previousState
                                                         ?.weeklyTimeSlots || {}
@@ -934,9 +934,10 @@ export default function HistoryView() {
                                                       ([day, timeSlots]) => (
                                                         <div
                                                           key={day}
-                                                          className=" border rounded shadow-md bg-white"
+                                                          className=" border rounded shadow-md bg-white "
+                                                          // className=" border rounded shadow-md bg-white overflow-auto max-h-20"
                                                         >
-                                                          <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                          <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm ">
                                                             {/* Array of day names */}
                                                             <h4 className=" text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                               {` ${
