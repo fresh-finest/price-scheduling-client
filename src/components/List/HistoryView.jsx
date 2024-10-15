@@ -1126,11 +1126,11 @@ const renderPaginationButtons = () => {
                                               ?.weekly ? (
                                             // Display updatedState data when action is not deleted
                                             <>
-                                              {nestedItem?.previousState
+                                              {nestedItem?.updatedState
                                                 ?.weekly ? (
                                                 <div className="grid grid-cols-3 gap-1">
                                                   {Object.entries(
-                                                    nestedItem?.previousState
+                                                    nestedItem?.updatedState
                                                       ?.weeklyTimeSlots || {}
                                                   )
                                                     .filter(
