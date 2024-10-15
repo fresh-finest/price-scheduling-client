@@ -34,7 +34,6 @@ import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 // const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL = "http://localhost:3000";
-// const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -78,6 +77,23 @@ const dateNames = [
   "31st",
 ];
 
+// function addHoursToTime(timeString, hoursToAdd) {
+//   const [hours, minutes] = timeString.split(":").map(Number);
+//   const newHours = (hours + hoursToAdd) % 24;
+//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours;
+//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`;
+// }
+// function addHoursToTime(timeString, hoursToAdd) {
+//   if (!timeString || typeof timeString !== "string") {
+//     console.error("Invalid timeString:", timeString);
+//     return "Invalid Time"; // Return a default value or handle it gracefully
+//   }
+
+//   const [hours, minutes] = timeString.split(":").map(Number);
+//   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
+//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
+//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
+// }
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
@@ -243,6 +259,7 @@ const ProductDetailView = ({
         const response = await axios.get(
           `${BASE_URL}/api/schedule/${encodedSku}`
         );
+
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -533,8 +550,6 @@ const ProductDetailView = ({
               />
 
               <div className="m-3 ">
-                <DetailedCalendarView asin={asin} />
-
                 <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}
