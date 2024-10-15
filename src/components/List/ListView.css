@@ -112,6 +112,7 @@ th .resizer:hover {
 
 ::-webkit-scrollbar {
   width: 7px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: #ebedf0;

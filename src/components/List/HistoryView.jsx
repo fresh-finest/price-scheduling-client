@@ -529,7 +529,7 @@ export default function HistoryView() {
             <th
               className="tableHeader"
               style={{
-                width: "80px",
+                width: "60px",
                 position: "sticky", // Sticky header
                 textAlign: "center",
                 borderRight: "2px solid #C3C6D4",
@@ -551,7 +551,7 @@ export default function HistoryView() {
             <th
               className="tableHeader"
               style={{
-                width: "60px",
+                width: "50px",
                 position: "sticky", // Sticky header
                 textAlign: "center",
                 borderRight: "2px solid #C3C6D4",
@@ -562,10 +562,12 @@ export default function HistoryView() {
             <th
               className="tableHeader"
               style={{
-                width: "200px",
+                width: "220px",
+                overflowX: "auto",
                 position: "sticky", // Sticky header
                 textAlign: "center",
                 borderRight: "2px solid #C3C6D4",
+                whiteSpace: "nowrap",
               }}
             >
               Duration
@@ -749,7 +751,6 @@ export default function HistoryView() {
                         verticalAlign: "middle",
                         cursor: "pointer",
                         // height: "40px",
-                        width: "50px",
                       }}
                     >
                       <div>
@@ -764,28 +765,37 @@ export default function HistoryView() {
                         ) : (
                           <>
                             {/* Single Entry Display */}
-                            <Card className="flex justify-between items-center p-2 mb-2 border ">
-                              <div className="w-full flex gap-2">
-                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {displayData?.startDate
-                                    ? formatDateTime(displayData.startDate)
-                                    : "N/A"}
-                                  {displayData.price && (
-                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                      ${displayData?.price?.toFixed(2)}
-                                    </span>
-                                  )}
-                                </h3>
-                                <span className="flex justify-center items-center text-gray-400">
-                                  <FaArrowRightLong />
-                                </span>
+                            <Card
+                              style={{ width: "full", overflowX: "auto" }}
+                              className="items-center p-2 border"
+                            >
+                              <div className="flex justify-between items-center gap-2 w-full">
+                                {/* Start Date + Price */}
+                                <div className="flex-grow flex justify-between items-center gap-2">
+                                  <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1 w-full">
+                                    {displayData?.startDate
+                                      ? formatDateTime(displayData.startDate)
+                                      : "N/A"}
+                                    {displayData.price && (
+                                      <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                        ${displayData?.price?.toFixed(2)}
+                                      </span>
+                                    )}
+                                  </h3>
+                                </div>
 
+                                {/* Arrow Icon */}
+                                <div className="flex-shrink-0 text-gray-400 text-center">
+                                  <FaArrowRightLong />
+                                </div>
+
+                                {/* End Date + Current Price or Placeholder */}
                                 {displayData.endDate ? (
-                                  <div className="w-full">
-                                    <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  <div className="flex-grow flex justify-between items-center gap-2">
+                                    <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1 w-full">
                                       {formatDateTime(displayData.endDate)}
                                       {displayData.currentPrice && (
-                                        <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
+                                        <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                           $
                                           {displayData?.currentPrice?.toFixed(
                                             2
@@ -796,10 +806,8 @@ export default function HistoryView() {
                                   </div>
                                 ) : (
                                   <div className="w-full">
-                                    <h3 className="text-red-400  text-[12px]  text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                      <span className="">
-                                        Until change back
-                                      </span>
+                                    <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                      Until change back
                                     </h3>
                                   </div>
                                 )}
