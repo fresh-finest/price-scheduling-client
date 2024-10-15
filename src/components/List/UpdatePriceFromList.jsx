@@ -18,8 +18,9 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
-const BASE_URL = "https://api.priceobo.com";
-// const BASE_URL ='http://localhost:3000'
+
+// const BASE_URL = "https://api.priceobo.com";
+const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -355,8 +356,24 @@ const UpdatePriceFromList = ({
       }
     }
 
+    const now = new Date();
+    const today = now.getDay(); // Get today's day index
+    const currentDayOfMonth = now.getDate(); // Get today's date in the month
+    
     for (const day in weeklyTimeSlots) {
+     
       const slots = weeklyTimeSlots[day];
+      if (parseInt(day) === today) {
+        // If the selected day is today, check the time
+        for (let slot of slots) {
+          if (slot.startTime < now) {
+            setErrorMessage(
+              "The selected start time is in the past for today's time slot. Please select a future time."
+            );
+            return false;
+          }
+        }
+      }
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -392,6 +409,18 @@ const UpdatePriceFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
+
+      if (parseInt(date) === currentDayOfMonth) {
+        // If the selected date is today, check the time
+        for (let slot of slots) {
+          if (slot.startTime < now) {
+            setErrorMessage(
+              "The selected start time is in the past for today's time slot. Please select a future time."
+            );
+            return false;
+          }
+        }
+      }
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 

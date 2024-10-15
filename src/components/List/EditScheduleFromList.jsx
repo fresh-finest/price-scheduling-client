@@ -17,8 +17,8 @@ import { BsClipboardCheck } from "react-icons/bs";
 import { MdCheck } from "react-icons/md";
 
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 
 const dayNames = [
@@ -524,7 +524,12 @@ const EditScheduleFromList = ({
       });
     }
   };
+
+  
   const validateTimeSlots = () => {
+    const now = new Date();
+    const today = now.getDay(); // Get today's day index
+  const currentDayOfMonth = now.getDate(); // Get today's date in the month
     const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
       return start1 < end2 && start2 < end1;
     };
@@ -537,6 +542,18 @@ const EditScheduleFromList = ({
 
     for (const day in weeklyTimeSlots) {
       const slots = weeklyTimeSlots[day];
+
+      if (parseInt(day) === today) {
+        // If the selected day is today, check the time
+        for (let slot of slots) {
+          if (slot.startTime < now) {
+            setErrorMessage(
+              "The selected start time is in the past for today's time slot. Please select a future time."
+            );
+            return false;
+          }
+        }
+      }
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -575,6 +592,19 @@ const EditScheduleFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
+
+      if (parseInt(date) === currentDayOfMonth) {
+        // If the selected date is today, check the time
+        for (let slot of slots) {
+          if (slot.startTime < now) {
+            setErrorMessage(
+              "The selected start time is in the past for today's time slot. Please select a future time."
+            );
+            return false;
+          }
+        }
+      }
+
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
