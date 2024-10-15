@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { Table, Form, InputGroup, Spinner, Pagination } from "react-bootstrap";
+import { Table, Form, InputGroup, Spinner } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
-// import { FaArrowRight } from "react-icons/fa"; 
-import { GiPlainArrow } from "react-icons/gi";
+import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
 
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
@@ -186,15 +185,8 @@ export default function HistoryView() {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [lengthNested, setLengthNested] = useState(null);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [currentPage, setCurrentPage] =  useState(1);
-  
-  const itemsPerPage = 10
-
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
-
- 
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -209,12 +201,9 @@ export default function HistoryView() {
     fetchUsers();
   }, []);
 
-  // useEffect(() => {
-  //   fetchData();
-  // }, [selectedUser]);
   useEffect(() => {
-    fetchData(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+    fetchData();
+  }, [selectedUser]);
 
   const fetchData = async () => {
     const url = selectedUser
@@ -231,24 +220,24 @@ export default function HistoryView() {
 
       setData(sortedData.filter((item) => item.action === "created"));
       const nestedDataLengths = {};
-      await Promise.all(
-        sortedData.map(async (item) => {
-          try {
-            const nestedResponse = await axios.get(
-              `${BASE_URL}/api/history/${item.scheduleId}`
-            );
-            nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
-          } catch (err) {
-            console.error(
-              `Error fetching nested data for scheduleId ${item.scheduleId}:`,
-              err
-            );
-            nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
-          }
-        })
-      );
+      // await Promise.all(
+      //   sortedData.map(async (item) => {
+      //     try {
+      //       const nestedResponse = await axios.get(
+      //         `${BASE_URL}/api/history/${item.scheduleId}`
+      //       );
+      //       nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
+      //     } catch (err) {
+      //       console.error(
+      //         `Error fetching nested data for scheduleId ${item.scheduleId}:`,
+      //         err
+      //       );
+      //       nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+      //     }
+      //   })
+      // );
 
-      setLengthNested(nestedDataLengths);
+      // setLengthNested(nestedDataLengths);
     } catch (err) {
       setError(
         "Error fetching data: " +
@@ -259,47 +248,7 @@ export default function HistoryView() {
     }
   };
 
-console.log("data len"+data.length)
-
-const indexOfLastItem = currentPage * itemsPerPage;
-const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-const currentItems = filteredProducts.slice(
-  indexOfFirstItem,
-  indexOfLastItem
-);
-
-const totalPages = Math.ceil(data.length / itemsPerPage);
-
-const handlePageChange = (pageNumber) => {
-  setCurrentPage(pageNumber);
-};
-const renderPaginationButtons = () => {
-  const pageNumbers = [];
-  const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  for (let i = 1; i <= totalPages; i++) {
-    if (
-      i <= maxPagesToShow ||
-      i >= totalPages - maxPagesToShow ||
-      (i >= currentPage - 1 && i <= currentPage + 1)
-    ) {
-      pageNumbers.push(i);
-    } else if (pageNumbers[pageNumbers.length - 1] !== "...") {
-      pageNumbers.push("...");
-    }
-  }
-
-  return pageNumbers.map((page, index) => (
-    <Pagination.Item
-      key={index}
-      active={page === currentPage}
-      onClick={() => typeof page === "number" && handlePageChange(page)}
-    >
-      {page}
-    </Pagination.Item>
-  ));
-};
+  console.log("nested length" + JSON.stringify(lengthNested));
 
   const fetchNestedData = async (scheduleId) => {
     setLoadingNested(true);
@@ -317,7 +266,7 @@ const renderPaginationButtons = () => {
       setLoadingNested(false);
     }
   };
-/*
+
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -327,42 +276,10 @@ const renderPaginationButtons = () => {
         fetchNestedData(scheduleId);
       }
     }
-  };*/
-  // Fetch nested data only when a row is expanded
-const handleRowClick = async (scheduleId) => {
-  if (expandedRow === scheduleId) {
-    setExpandedRow(null); // Collapse the row if it's already expanded
-  } else {
-    setExpandedRow(scheduleId);
-
-    // Fetch nested data only if it hasn't been fetched before
-    if (!nestedData[scheduleId]) {
-      setLoadingNested(true);
-      try {
-        const nestedResponse = await axios.get(`${BASE_URL}/api/history/${scheduleId}`);
-        setNestedData((prevData) => ({
-          ...prevData,
-          [scheduleId]: nestedResponse.data,
-        }));
-      } catch (err) {
-        console.error(`Error fetching nested data for scheduleId ${scheduleId}:`, err);
-        setNestedData((prevData) => ({
-          ...prevData,
-          [scheduleId]: [], // Default to empty array if there's an error
-        }));
-      } finally {
-        setLoadingNested(false);
-      }
-    }
-  }
-};
-
+  };
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    const handlePageChange = (newPage) => {
-      setCurrentPage(newPage);
-    };
   };
   const handleClearInput = () => {
     setSearchTerm("");
@@ -427,7 +344,7 @@ const handleRowClick = async (scheduleId) => {
       )
       .join(", ");
   };
-/*
+
   const filteredData = data
     .filter((item) => {
       const displayData = getDisplayData(item);
@@ -473,58 +390,6 @@ const handleRowClick = async (scheduleId) => {
       }
       return true;
     });
-*/
-useEffect(() => {
-  const filteredData = data
-    .filter((item) => {
-      const displayData = getDisplayData(item);
-      return (
-        displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    })
-    .filter((item) => {
-      const displayData = getDisplayData(item);
-      const itemStartDate = displayData.startDate
-        ? new Date(displayData.startDate)
-        : null;
-      const itemEndDate = displayData.endDate
-        ? new Date(displayData.endDate)
-        : null;
-
-      if (filterStartDate && filterEndDate) {
-        const adjustedEndDate = new Date(filterEndDate);
-        adjustedEndDate.setHours(23, 59, 59, 999);
-        return (
-          (itemStartDate &&
-            itemStartDate >= filterStartDate &&
-            itemStartDate <= adjustedEndDate) ||
-          (itemEndDate &&
-            itemEndDate >= filterStartDate &&
-            itemEndDate <= adjustedEndDate)
-        );
-      } else if (filterStartDate) {
-        return (
-          (itemStartDate && itemStartDate >= filterStartDate) ||
-          (itemEndDate && itemEndDate >= filterStartDate)
-        );
-      } else if (filterEndDate) {
-        const adjustedEndDate = new Date(filterEndDate);
-        adjustedEndDate.setHours(23, 59, 59, 999);
-        return (
-          (itemStartDate && itemStartDate <= adjustedEndDate) ||
-          (itemEndDate && itemEndDate <= adjustedEndDate)
-        );
-      }
-      return true;
-    });
-
-  // Update the filteredProducts state with the filtered data
-  setFilteredProducts(filteredData);
-}, [data, searchTerm, filterStartDate, filterEndDate]); 
-
 
   if (loading)
     return (
@@ -693,8 +558,8 @@ useEffect(() => {
             lineHeight: "1.5",
           }}
         >
-          {filteredProducts.length > 0 ? (
-            currentItems.map((item, index) => {
+          {filteredData.length > 0 ? (
+            filteredData.map((item, index) => {
               const displayData = getDisplayData(item);
 
               const weeklyLabel = displayData?.weekly
@@ -753,7 +618,7 @@ useEffect(() => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {lengthNested[item.scheduleId] > 1 ? <GiPlainArrow /> : null}
+                      {/* {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null} */}
                       {displayData?.title || "N/A"}
                       <div>
                         <span
@@ -823,7 +688,6 @@ useEffect(() => {
                         height: "40px",
                       }}
                     >
-                 
                       {displayData.weekly ? (
                         <h2>Weekly</h2>
                       ) : displayData.monthly ? (
@@ -1719,23 +1583,6 @@ useEffect(() => {
           )}
         </tbody>
       </Table>
-      <Pagination className=" flex mb-3 justify-center">
-        <Pagination.First onClick={() => handlePageChange(1)} />
-        <Pagination.Prev
-          onClick={() =>
-            handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
-          }
-        />
-        {renderPaginationButtons()}
-        <Pagination.Next
-          onClick={() =>
-            handlePageChange(
-              currentPage < totalPages ? currentPage + 1 : totalPages
-            )
-          }
-        />
-        <Pagination.Last onClick={() => handlePageChange(totalPages)} />
-      </Pagination>
     </div>
   );
 }
