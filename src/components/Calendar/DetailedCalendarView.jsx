@@ -71,20 +71,24 @@ const CalendarView = ({ sku1 }) => {
               const startDateObj = new Date(startDate);
               const endDateObj = new Date(startDate);
 
+              const now = new Date();
+              const today = now.getDay();
 
               // targetDay = parseInt(day,10);
-              let dayDifference = parseInt(day, 10) - startDateObj.getDay();
+             let dayDifference = parseInt(day, 10) - startDateObj.getDay();
+             console.log("day diff"+dayDifference)
 
-              if(dayDifference< 0){
+              if(startDateObj>today){
                 dayDifference=dayDifference+7
               }
               // Adjust the date for the correct day of the week
-              // startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
+
+              // startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) + startDateObj.getDay()));
               // endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
 
               startDateObj.setDate(startDateObj.getDate()+dayDifference);
               endDateObj.setDate(endDateObj.getDate()+dayDifference);
-
+              // dayDifference=dayDifference+7
               // Set the time for the time slot
               const [startHour, startMinute] = startTime.split(":").map(Number);
               const [endHour, endMinute] = endTime.split(":").map(Number);
