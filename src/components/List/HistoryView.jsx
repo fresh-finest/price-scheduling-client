@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Table, Form, InputGroup, Spinner } from "react-bootstrap";
+import { Table, Form, InputGroup, Spinner, Pagination } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
-import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
-
+// import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
+import { GiPlainArrow } from "react-icons/gi";
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
@@ -13,9 +13,9 @@ import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
-// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -119,23 +119,7 @@ const displayTimeSlotsWithDayLabels = (
   );
 };
 
-// const displayWeekdays = (timeSlots) => {
-//   if (!timeSlots || Object.keys(timeSlots).length === 0) {
-//     return <p>No time slots available</p>; // Handle undefined or null timeSlots
-//   }
 
-//   // Array of weekdays to display based on your desired keys
-//   const weekdaysToDisplay = [1, 2, 3, 4, 5]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
-
-//   const displayedWeekdays = weekdaysToDisplay
-//     .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
-//     .map((day) => getDayLabelFromNumber(day)) // Get the day label
-//     .join(", "); // Join with a comma
-
-//   console.log("displayedWeekDays", displayedWeekdays);
-
-//   return <p>{displayedWeekdays}</p>; // Return the formatted string
-// };
 
 const displayWeekdays = (timeSlots) => {
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
@@ -185,6 +169,9 @@ export default function HistoryView() {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [lengthNested, setLengthNested] = useState(null);
+  const [currentPage, setCurrentPage] =  useState(1);
+  
+  const itemsPerPage = 10
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
@@ -220,24 +207,24 @@ export default function HistoryView() {
 
       setData(sortedData.filter((item) => item.action === "created"));
       const nestedDataLengths = {};
-      // await Promise.all(
-      //   sortedData.map(async (item) => {
-      //     try {
-      //       const nestedResponse = await axios.get(
-      //         `${BASE_URL}/api/history/${item.scheduleId}`
-      //       );
-      //       nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
-      //     } catch (err) {
-      //       console.error(
-      //         `Error fetching nested data for scheduleId ${item.scheduleId}:`,
-      //         err
-      //       );
-      //       nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
-      //     }
-      //   })
-      // );
+      await Promise.all(
+        sortedData.map(async (item) => {
+          try {
+            const nestedResponse = await axios.get(
+              `${BASE_URL}/api/history/${item.scheduleId}`
+            );
+            nestedDataLengths[item.scheduleId] = nestedResponse.data.length || 0;
+          } catch (err) {
+            console.error(
+              `Error fetching nested data for scheduleId ${item.scheduleId}:`,
+              err
+            );
+            nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+          }
+        })
+      );
 
-      // setLengthNested(nestedDataLengths);
+      setLengthNested(nestedDataLengths);
     } catch (err) {
       setError(
         "Error fetching data: " +
@@ -345,6 +332,7 @@ export default function HistoryView() {
       .join(", ");
   };
 
+  
   const filteredData = data
     .filter((item) => {
       const displayData = getDisplayData(item);
@@ -390,6 +378,47 @@ export default function HistoryView() {
       }
       return true;
     });
+    console.log("filter data:"+filteredData.length)
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = filteredData.slice(
+  indexOfFirstItem,
+  indexOfLastItem
+);
+const totalPages = Math.ceil(data.length / itemsPerPage);
+
+const handlePageChange = (pageNumber) => {
+  setCurrentPage(pageNumber);
+};
+
+const renderPaginationButtons = () => {
+  const pageNumbers = [];
+  const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i <= maxPagesToShow ||
+      i >= totalPages - maxPagesToShow ||
+      (i >= currentPage - 1 && i <= currentPage + 1)
+    ) {
+      pageNumbers.push(i);
+    } else if (pageNumbers[pageNumbers.length - 1] !== "...") {
+      pageNumbers.push("...");
+    }
+  }
+
+  return pageNumbers.map((page, index) => (
+    <Pagination.Item
+      key={index}
+      active={page === currentPage}
+      onClick={() => typeof page === "number" && handlePageChange(page)}
+    >
+      {page}
+    </Pagination.Item>
+  ));
+};
 
   if (loading)
     return (
@@ -559,7 +588,7 @@ export default function HistoryView() {
           }}
         >
           {filteredData.length > 0 ? (
-            filteredData.map((item, index) => {
+            currentItems.map((item, index) => {
               const displayData = getDisplayData(item);
 
               const weeklyLabel = displayData?.weekly
@@ -618,7 +647,7 @@ export default function HistoryView() {
                         verticalAlign: "middle",
                       }}
                     >
-                      {/* {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null} */}
+                      {lengthNested[item.scheduleId] > 1 ? <GiPlainArrow /> : null}
                       {displayData?.title || "N/A"}
                       <div>
                         <span
@@ -1583,6 +1612,24 @@ export default function HistoryView() {
           )}
         </tbody>
       </Table>
+      <Pagination className=" flex mb-3 justify-center">
+        <Pagination.First onClick={() => handlePageChange(1)} />
+        <Pagination.Prev
+          onClick={() =>
+            handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
+          }
+        />
+        {renderPaginationButtons()}
+        <Pagination.Next
+          onClick={() =>
+            handlePageChange(
+              currentPage < totalPages ? currentPage + 1 : totalPages
+            )
+          }
+        />
+        <Pagination.Last onClick={() => handlePageChange(totalPages)} />
+      </Pagination>
+
     </div>
   );
 }
