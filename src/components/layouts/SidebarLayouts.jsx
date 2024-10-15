@@ -27,7 +27,7 @@ const SidebarLayout = () => {
   return (
     <section className="relative">
       <div className="flex flex-col h-screen ">
-        <div className="absolute right-2 top-2">
+        <div className="absolute right-2 top-2 z-20">
           <AccountDropdown />
         </div>
         <div className="flex flex-1 ">
