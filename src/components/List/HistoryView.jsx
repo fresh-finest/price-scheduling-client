@@ -3,8 +3,8 @@ import { Table, Form, InputGroup, Spinner, Pagination } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
-import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
-
+// import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
+import { GiPlainArrow } from "react-icons/gi";
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
@@ -119,24 +119,6 @@ const displayTimeSlotsWithDayLabels = (
   );
 };
 
-// const displayWeekdays = (timeSlots) => {
-//   if (!timeSlots || Object.keys(timeSlots).length === 0) {
-//     return <p>No time slots available</p>; // Handle undefined or null timeSlots
-//   }
-
-//   // Array of weekdays to display based on your desired keys
-//   const weekdaysToDisplay = [1, 2, 3, 4, 5]; // Example: Monday (1), Tuesday (2), ..., Friday (5)
-
-//   const displayedWeekdays = weekdaysToDisplay
-//     .filter((day) => day in timeSlots) // Ensure the day exists in timeSlots
-//     .map((day) => getDayLabelFromNumber(day)) // Get the day label
-//     .join(", "); // Join with a comma
-
-//   console.log("displayedWeekDays", displayedWeekdays);
-
-//   return <p>{displayedWeekdays}</p>; // Return the formatted string
-// };
-
 const displayWeekdays = (timeSlots) => {
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Handle undefined or null timeSlots
@@ -186,7 +168,6 @@ export default function HistoryView() {
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [lengthNested, setLengthNested] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredProducts, setFilteredProducts] = useState([]);
 
   const itemsPerPage = 10;
 
@@ -224,8 +205,25 @@ export default function HistoryView() {
 
       setData(sortedData.filter((item) => item.action === "created"));
       const nestedDataLengths = {};
+      await Promise.all(
+        sortedData.map(async (item) => {
+          try {
+            const nestedResponse = await axios.get(
+              `${BASE_URL}/api/history/${item.scheduleId}`
+            );
+            nestedDataLengths[item.scheduleId] =
+              nestedResponse.data.length || 0;
+          } catch (err) {
+            console.error(
+              `Error fetching nested data for scheduleId ${item.scheduleId}:`,
+              err
+            );
+            nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+          }
+        })
+      );
 
-      // setLengthNested(nestedDataLengths);
+      setLengthNested(nestedDataLengths);
     } catch (err) {
       setError(
         "Error fetching data: " +
@@ -253,48 +251,6 @@ export default function HistoryView() {
     } finally {
       setLoadingNested(false);
     }
-  };
-
-  // calculate paginated data
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredProducts.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const renderPaginationButtons = () => {
-    const pageNumbers = [];
-    const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i <= maxPagesToShow ||
-        i >= totalPages - maxPagesToShow ||
-        (i >= currentPage - 1 && i <= currentPage + 1)
-      ) {
-        pageNumbers.push(i);
-      } else if (pageNumbers[pageNumbers.length - 1] !== "...") {
-        pageNumbers.push("...");
-      }
-    }
-
-    return pageNumbers.map((page, index) => (
-      <Pagination.Item
-        key={index}
-        active={page === currentPage}
-        onClick={() => typeof page === "number" && handlePageChange(page)}
-      >
-        {page}
-      </Pagination.Item>
-    ));
   };
 
   const handleRowClick = (scheduleId) => {
@@ -375,56 +331,89 @@ export default function HistoryView() {
       .join(", ");
   };
 
-  useEffect(() => {
-    const filteredData = data
-      .filter((item) => {
-        const displayData = getDisplayData(item);
+  const filteredData = data
+    .filter((item) => {
+      const displayData = getDisplayData(item);
+      return (
+        displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    })
+    .filter((item) => {
+      const displayData = getDisplayData(item);
+      const itemStartDate = displayData.startDate
+        ? new Date(displayData.startDate)
+        : null;
+      const itemEndDate = displayData.endDate
+        ? new Date(displayData.endDate)
+        : null;
+
+      if (filterStartDate && filterEndDate) {
+        const adjustedEndDate = new Date(filterEndDate);
+        adjustedEndDate.setHours(23, 59, 59, 999);
         return (
-          displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
+          (itemStartDate &&
+            itemStartDate >= filterStartDate &&
+            itemStartDate <= adjustedEndDate) ||
+          (itemEndDate &&
+            itemEndDate >= filterStartDate &&
+            itemEndDate <= adjustedEndDate)
         );
-      })
-      .filter((item) => {
-        const displayData = getDisplayData(item);
-        const itemStartDate = displayData.startDate
-          ? new Date(displayData.startDate)
-          : null;
-        const itemEndDate = displayData.endDate
-          ? new Date(displayData.endDate)
-          : null;
+      } else if (filterStartDate) {
+        return (
+          (itemStartDate && itemStartDate >= filterStartDate) ||
+          (itemEndDate && itemEndDate >= filterStartDate)
+        );
+      } else if (filterEndDate) {
+        const adjustedEndDate = new Date(filterEndDate);
+        adjustedEndDate.setHours(23, 59, 59, 999);
+        return (
+          (itemStartDate && itemStartDate <= adjustedEndDate) ||
+          (itemEndDate && itemEndDate <= adjustedEndDate)
+        );
+      }
+      return true;
+    });
+  console.log("filter data:" + filteredData.length);
 
-        if (filterStartDate && filterEndDate) {
-          const adjustedEndDate = new Date(filterEndDate);
-          adjustedEndDate.setHours(23, 59, 59, 999);
-          return (
-            (itemStartDate &&
-              itemStartDate >= filterStartDate &&
-              itemStartDate <= adjustedEndDate) ||
-            (itemEndDate &&
-              itemEndDate >= filterStartDate &&
-              itemEndDate <= adjustedEndDate)
-          );
-        } else if (filterStartDate) {
-          return (
-            (itemStartDate && itemStartDate >= filterStartDate) ||
-            (itemEndDate && itemEndDate >= filterStartDate)
-          );
-        } else if (filterEndDate) {
-          const adjustedEndDate = new Date(filterEndDate);
-          adjustedEndDate.setHours(23, 59, 59, 999);
-          return (
-            (itemStartDate && itemStartDate <= adjustedEndDate) ||
-            (itemEndDate && itemEndDate <= adjustedEndDate)
-          );
-        }
-        return true;
-      });
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(data.length / itemsPerPage);
 
-    // Update the filteredProducts state with the filtered data
-    setFilteredProducts(filteredData);
-  }, [data, searchTerm, filterStartDate, filterEndDate]); // Dependencies to trigger this effect
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPaginationButtons = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i <= maxPagesToShow ||
+        i >= totalPages - maxPagesToShow ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        pageNumbers.push(i);
+      } else if (pageNumbers[pageNumbers.length - 1] !== "...") {
+        pageNumbers.push("...");
+      }
+    }
+
+    return pageNumbers.map((page, index) => (
+      <Pagination.Item
+        key={index}
+        active={page === currentPage}
+        onClick={() => typeof page === "number" && handlePageChange(page)}
+      >
+        {page}
+      </Pagination.Item>
+    ));
+  };
 
   if (loading)
     return (
@@ -454,9 +443,9 @@ export default function HistoryView() {
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
   return (
-    <div>
-      <div className="">
-        <InputGroup className="max-w-[500px] absolute top-[7px] ">
+    <div className="bg-white">
+      <div className="bg-white fixed top-0 left-0 w-full ml-[10%] mr-[8%] z-10 p-4 show-md">
+        <InputGroup className="max-w-[500px] absolute top-2 ">
           <Form.Control
             type="text"
             placeholder="Search by Product Name, ASIN or SKU..."
@@ -474,7 +463,7 @@ export default function HistoryView() {
             </button>
           )}
         </InputGroup>
-        <div className="absolute top-[7px] right-[25%]">
+        <div className="absolute top-2 right-[25%]">
           <Form.Control
             as="select"
             value={selectedUser}
@@ -490,7 +479,7 @@ export default function HistoryView() {
             ))}
           </Form.Control>
         </div>
-        <div className="absolute top-[7px] right-[12%]">
+        <div className="absolute top-2 right-[12%]">
           <DatePicker
             className="custom-date-input"
             selected={filterStartDate}
@@ -505,954 +494,417 @@ export default function HistoryView() {
           />
         </div>
       </div>
-
-      <section
-        style={{
-          maxHeight: "91vh",
-          overflowY: "auto",
-          marginTop: "50px",
-          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-        }}
+      <Table
+        // hover
+        responsive
+        style={{ tableLayout: "fixed" }}
+        className="mt-14 historyCustomTable "
       >
-        <Table
-          // hover
-          responsive
+        <thead
           style={{
-            tableLayout: "fixed",
-            // overflowY: "scroll",
-
-            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-            // maxHeight: "50vh",
+            backgroundColor: "#f0f0f0",
+            color: "#333",
+            fontFamily: "Arial, sans-serif",
+            fontSize: "14px",
           }}
-          className=" historyCustomTable "
         >
-          <thead
-            style={{
-              backgroundColor: "#f0f0f0",
-              color: "#333",
-              fontFamily: "Arial, sans-serif",
-              fontSize: "14px",
-            }}
-          >
-            <tr>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "60px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Image
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "300px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Product Details
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "50px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Type
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "220px",
-                  overflowX: "auto",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  borderRight: "2px solid #C3C6D4",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Duration
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "90px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                User
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "60px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                }}
-              >
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody
-            style={{
-              fontSize: "12px",
-              fontFamily: "Arial, sans-serif",
-              lineHeight: "1.5",
-            }}
-          >
-            {filteredProducts.length > 0 ? (
-              currentItems.map((item, index) => {
-                // filteredData.map((item, index) => {
-                const displayData = getDisplayData(item);
+          <tr>
+            <th
+              className="tableHeader"
+              style={{
+                width: "80px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Image
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "300px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Product Details
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "60px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Type
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "200px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              Duration
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "90px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+                borderRight: "2px solid #C3C6D4",
+              }}
+            >
+              User
+            </th>
+            <th
+              className="tableHeader"
+              style={{
+                width: "60px",
+                position: "sticky", // Sticky header
+                textAlign: "center",
+              }}
+            >
+              Action
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          style={{
+            fontSize: "12px",
+            fontFamily: "Arial, sans-serif",
+            lineHeight: "1.5",
+          }}
+        >
+          {filteredData.length > 0 ? (
+            currentItems.map((item, index) => {
+              const displayData = getDisplayData(item);
 
-                const weeklyLabel = displayData?.weekly
-                  ? displayWeekdays(displayData?.weeklyTimeSlots)
-                  : null;
+              const weeklyLabel = displayData?.weekly
+                ? displayWeekdays(displayData?.weeklyTimeSlots)
+                : null;
 
-                const monthlyLabel = displayData?.monthly
-                  ? displayTimeSlotsWithDayLabels(
-                      displayData?.monthlyTimeSlots,
-                      6,
-                      false
-                    )
-                  : null;
+              const monthlyLabel = displayData?.monthly
+                ? displayTimeSlotsWithDayLabels(
+                    displayData?.monthlyTimeSlots,
+                    6,
+                    false
+                  )
+                : null;
 
-                return (
-                  <>
-                    <tr
-                      key={index}
+              return (
+                <>
+                  <tr
+                    key={index}
+                    style={{
+                      height: "50px",
+                      cursor: "pointer",
+                      margin: "20px 0",
+                    }}
+                    onClick={() => handleRowClick(item.scheduleId)}
+                    // className="borderless spacer-row"
+                  >
+                    {/* image  */}
+                    <td
                       style={{
-                        height: "50px",
                         cursor: "pointer",
-                        margin: "20px 0",
+                        height: "40px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
                       }}
-                      onClick={() => handleRowClick(item.scheduleId)}
-                      // className="borderless spacer-row"
                     >
-                      {/* image  */}
-                      <td
+                      <img
+                        src={displayData?.imageURL || "placeholder-image-url"}
+                        alt=""
                         style={{
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "contain",
+                          margin: "0 auto",
                         }}
-                      >
-                        <img
-                          src={displayData?.imageURL || "placeholder-image-url"}
-                          alt=""
+                      />
+                    </td>
+                    {/* product details */}
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        cursor: "pointer",
+                        height: "40px",
+                        textAlign: "start",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {lengthNested[item.scheduleId] > 1 ? (
+                        <GiPlainArrow />
+                      ) : null}
+                      {displayData?.title || "N/A"}
+                      <div>
+                        <span
+                          className="bubble-text"
                           style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "contain",
-                            margin: "0 auto",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
                           }}
-                        />
-                      </td>
-                      {/* product details */}
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "start",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {/* {lengthNested[item.scheduleId] > 1 ? <FaArrowRight /> : null} */}
-                        {displayData?.title || "N/A"}
-                        <div>
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            {displayData?.asin || "N/A"}
-                            {copiedAsinIndex === index ? (
-                              <MdCheck
-                                style={{
-                                  marginLeft: "5px",
-                                  cursor: "pointer",
-                                  color: "green",
-                                }}
-                              />
-                            ) : (
-                              <MdContentCopy
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(displayData.asin, "asin", index);
-                                }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
-                              />
-                            )}
-                          </span>{" "}
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            {displayData?.sku || "N/A"}
-                            {copiedSkuIndex === index ? (
-                              <MdCheck
-                                style={{
-                                  marginLeft: "5px",
-                                  cursor: "pointer",
-                                  color: "green",
-                                }}
-                              />
-                            ) : (
-                              <MdContentCopy
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(displayData.sku, "sku", index);
-                                }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
-                              />
-                            )}
-                          </span>
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          cursor: "pointer",
-                          height: "40px",
-                        }}
-                      >
-                        {displayData.weekly ? (
-                          <h2>Weekly</h2>
-                        ) : displayData.monthly ? (
-                          <h2>Monthly</h2>
-                        ) : (
-                          <h2>Single</h2>
-                        )}
-                      </td>
-                      {/* duration */}
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          cursor: "pointer",
-                          // height: "40px",
-                        }}
-                      >
-                        <div>
-                          {displayData?.weekly ? (
-                            <>
-                              <p className=" ">{weeklyLabel}</p>
-                            </>
-                          ) : displayData?.monthly ? (
-                            <>
-                              <span>{monthlyLabel}</span>
-                            </>
+                        >
+                          {displayData?.asin || "N/A"}
+                          {copiedAsinIndex === index ? (
+                            <MdCheck
+                              style={{
+                                marginLeft: "5px",
+                                cursor: "pointer",
+                                color: "green",
+                              }}
+                            />
                           ) : (
-                            <>
-                              {/* Single Entry Display */}
-                              <Card
-                                style={{ width: "full", overflowX: "auto" }}
-                                className="items-center p-2 border"
-                              >
-                                <div className="flex justify-between items-center gap-2 w-full">
-                                  {/* Start Date + Price */}
-                                  <div className="flex-grow flex justify-between items-center gap-2">
-                                    <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1 w-full">
-                                      {displayData?.startDate
-                                        ? formatDateTime(displayData.startDate)
-                                        : "N/A"}
-                                      {displayData.price && (
-                                        <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                          ${displayData?.price?.toFixed(2)}
+                            <MdContentCopy
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(displayData.asin, "asin", index);
+                              }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
+                            />
+                          )}
+                        </span>{" "}
+                        <span
+                          className="bubble-text"
+                          style={{
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          {displayData?.sku || "N/A"}
+                          {copiedSkuIndex === index ? (
+                            <MdCheck
+                              style={{
+                                marginLeft: "5px",
+                                cursor: "pointer",
+                                color: "green",
+                              }}
+                            />
+                          ) : (
+                            <MdContentCopy
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(displayData.sku, "sku", index);
+                              }}
+                              style={{ marginLeft: "5px", cursor: "pointer" }}
+                            />
+                          )}
+                        </span>
+                      </div>
+                    </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        cursor: "pointer",
+                        height: "40px",
+                      }}
+                    >
+                      {displayData.weekly ? (
+                        <h2>Weekly</h2>
+                      ) : displayData.monthly ? (
+                        <h2>Monthly</h2>
+                      ) : (
+                        <h2>Single</h2>
+                      )}
+                    </td>
+                    {/* duration */}
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        cursor: "pointer",
+                        // height: "40px",
+                        width: "50px",
+                      }}
+                    >
+                      <div>
+                        {displayData?.weekly ? (
+                          <>
+                            <p className=" ">{weeklyLabel}</p>
+                          </>
+                        ) : displayData?.monthly ? (
+                          <>
+                            <span>{monthlyLabel}</span>
+                          </>
+                        ) : (
+                          <>
+                            {/* Single Entry Display */}
+                            <Card className="flex justify-between items-center p-2 mb-2 border ">
+                              <div className="w-full flex gap-2">
+                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {displayData?.startDate
+                                    ? formatDateTime(displayData.startDate)
+                                    : "N/A"}
+                                  {displayData.price && (
+                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                      ${displayData?.price?.toFixed(2)}
+                                    </span>
+                                  )}
+                                </h3>
+                                <span className="flex justify-center items-center text-gray-400">
+                                  <FaArrowRightLong />
+                                </span>
+
+                                {displayData.endDate ? (
+                                  <div className="w-full">
+                                    <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                      {formatDateTime(displayData.endDate)}
+                                      {displayData.currentPrice && (
+                                        <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
+                                          $
+                                          {displayData?.currentPrice?.toFixed(
+                                            2
+                                          )}
                                         </span>
                                       )}
                                     </h3>
                                   </div>
-
-                                  {/* Arrow Icon */}
-                                  <div className="flex-shrink-0 text-gray-400 text-center">
-                                    <FaArrowRightLong />
-                                  </div>
-
-                                  {/* End Date + Current Price or Placeholder */}
-                                  {displayData.endDate ? (
-                                    <div className="flex-grow flex justify-between items-center gap-2">
-                                      <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1 w-full">
-                                        {formatDateTime(displayData.endDate)}
-                                        {displayData.currentPrice && (
-                                          <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                            $
-                                            {displayData?.currentPrice?.toFixed(
-                                              2
-                                            )}
-                                          </span>
-                                        )}
-                                      </h3>
-                                    </div>
-                                  ) : (
-                                    <div className="w-full">
-                                      <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                ) : (
+                                  <div className="w-full">
+                                    <h3 className="text-red-400  text-[12px]  text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                      <span className="">
                                         Until change back
-                                      </h3>
-                                    </div>
-                                  )}
-                                </div>
-                              </Card>
-                            </>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* user */}
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          cursor: "pointer",
-                          height: "40px",
-                        }}
-                      >
-                        {item.userName} <p>{formatDateTime(item.timestamp)}</p>
-                      </td>
-
-                      {/* action */}
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          cursor: "pointer",
-                          // height: "40px",
-                        }}
-                      >
-                        {item.action === "deleted" ? (
-                          <span style={{ color: "red" }}>Deleted</span>
-                        ) : item.action === "updated" ? (
-                          <span style={{ color: "orange" }}>Updated</span>
-                        ) : (
-                          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-                            Created
-                          </span>
+                                      </span>
+                                    </h3>
+                                  </div>
+                                )}
+                              </div>
+                            </Card>
+                          </>
                         )}
-                      </td>
-                    </tr>
+                      </div>
+                    </td>
 
-                    {expandedRow === item.scheduleId && (
-                      <tr>
-                        <td colSpan="5">
-                          {loadingNested && <Spinner animation="border" />}
-                          {!loadingNested && nestedData[item.scheduleId] && (
-                            <Table className="ml-[9%]" size="sm">
-                              <thead>
-                                <tr>
-                                  {/* <th>Image</th> */}
-                                  {/* <th>Duration</th> */}
-                                  {/* <th>User</th> */}
-                                  {/* <th>Action</th> */}
-                                  {/* <th>Product Details</th> */}
-                                </tr>
-                              </thead>
-                              <tbody
-                                style={{
-                                  fontSize: "12px",
-                                  fontFamily: "Arial, sans-serif",
-                                  lineHeight: "1.5",
-                                }}
-                              >
-                                {nestedData[item.scheduleId]
-                                  .filter(
-                                    (nestedItem) =>
-                                      !(
-                                        nestedItem.action === "created" &&
-                                        !nestedItem.weekly &&
-                                        !nestedItem.monthly
-                                      )
-                                  )
-                                  .map((nestedItem) => {
-                                    // console.log(nestedItem);
-                                    // Return JSX
-                                    return (
-                                      <tr key={nestedItem._id}>
-                                        {/* duration */}
-                                        {/* <td>
+                    {/* user */}
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        cursor: "pointer",
+                        height: "40px",
+                      }}
+                    >
+                      {item.userName} <p>{formatDateTime(item.timestamp)}</p>
+                    </td>
+
+                    {/* action */}
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        cursor: "pointer",
+                        // height: "40px",
+                      }}
+                    >
+                      {item.action === "deleted" ? (
+                        <span style={{ color: "red" }}>Deleted</span>
+                      ) : item.action === "updated" ? (
+                        <span style={{ color: "orange" }}>Updated</span>
+                      ) : (
+                        <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+                          Created
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+
+                  {expandedRow === item.scheduleId && (
+                    <tr>
+                      <td colSpan="5">
+                        {loadingNested && <Spinner animation="border" />}
+                        {!loadingNested && nestedData[item.scheduleId] && (
+                          <Table className="ml-[9%]" size="sm">
+                            <thead>
+                              <tr>
+                                {/* <th>Image</th> */}
+                                {/* <th>Duration</th> */}
+                                {/* <th>User</th> */}
+                                {/* <th>Action</th> */}
+                                {/* <th>Product Details</th> */}
+                              </tr>
+                            </thead>
+                            <tbody
+                              style={{
+                                fontSize: "12px",
+                                fontFamily: "Arial, sans-serif",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              {nestedData[item.scheduleId]
+                                .filter(
+                                  (nestedItem) =>
+                                    !(
+                                      nestedItem.action === "created" &&
+                                      !nestedItem.weekly &&
+                                      !nestedItem.monthly
+                                    )
+                                )
+                                .map((nestedItem) => {
+                                  // console.log(nestedItem);
+                                  // Return JSX
+                                  return (
+                                    <tr key={nestedItem._id}>
+                                      {/* duration */}
+                                      {/* <td>
                                         {formatDateTime(nestedItem.timestamp)}
                                       </td> */}
-                                        {/* <td width="80px">image</td>
+                                      {/* <td width="80px">image</td>
                                       <td width="300px">Description</td>
                                       <td>Type</td> */}
 
-                                        <td
-                                          style={{
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            textAlign: "center",
-                                            verticalAlign: "middle",
-                                          }}
-                                        >
-                                          <div>
-                                            {nestedItem?.action ===
-                                            "deleted" ? (
-                                              // Display previousState data when action is deleted
-                                              <>
-                                                {nestedItem?.previousState
-                                                  ?.weekly ? (
-                                                  <div className="grid grid-cols-3 gap-1 ">
-                                                    {Object.entries(
-                                                      nestedItem?.previousState
-                                                        ?.weeklyTimeSlots || {}
-                                                    ).map(
-                                                      ([day, timeSlots]) => (
-                                                        <div
-                                                          key={day}
-                                                          className=" border rounded shadow-md bg-white "
-                                                          // className=" border rounded shadow-md bg-white overflow-auto max-h-20"
-                                                        >
-                                                          <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm ">
-                                                            {/* Array of day names */}
-                                                            <h4 className=" text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                              {` ${
-                                                                [
-                                                                  "Sunday",
-                                                                  "Monday",
-                                                                  "Tuesday",
-                                                                  "Wednesday",
-                                                                  "Thursday",
-                                                                  "Friday",
-                                                                  "Saturday",
-                                                                ][parseInt(day)]
-                                                              }`}
-                                                            </h4>
-                                                          </div>
-                                                          {timeSlots.length >
-                                                          0 ? (
-                                                            <div className="flex flex-col gap-1">
-                                                              {timeSlots.map(
-                                                                (
-                                                                  slot,
-                                                                  index
-                                                                ) => (
-                                                                  <Card
-                                                                    key={index}
-                                                                    className="flex justify-between items-center p-2  border "
-                                                                  >
-                                                                    <div className="flex justify-between w-full gap-1">
-                                                                      <div className="w-full">
-                                                                        <h3 className="flex  text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                          {addHoursToTime(
-                                                                            slot.startTime,
-                                                                            6
-                                                                          )}
-
-                                                                          <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                            $
-                                                                            {
-                                                                              slot.newPrice
-                                                                            }
-                                                                          </span>
-                                                                        </h3>
-                                                                      </div>
-                                                                      <span className="flex justify-center items-center text-gray-400">
-                                                                        <FaArrowRightLong />
-                                                                      </span>
-
-                                                                      {slot.endTime ? (
-                                                                        <div className="w-full">
-                                                                          <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                            {addHoursToTime(
-                                                                              slot.endTime,
-                                                                              6
-                                                                            )}
-
-                                                                            <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
-                                                                              $
-                                                                              {slot.revertPrice ||
-                                                                                "N/A"}
-                                                                            </span>
-                                                                          </h3>
-                                                                        </div>
-                                                                      ) : (
-                                                                        <div className="w-full">
-                                                                          <h3 className="text-red-400  text-[12px]  text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                            <span className="">
-                                                                              Until
-                                                                              change
-                                                                              back
-                                                                            </span>
-                                                                          </h3>
-                                                                        </div>
-                                                                      )}
-                                                                    </div>
-                                                                  </Card>
-                                                                )
-                                                              )}
-                                                            </div>
-                                                          ) : (
-                                                            <p className="text-gray-500 italic">
-                                                              No time slots
-                                                              available for this
-                                                              day.
-                                                            </p>
-                                                          )}
-                                                        </div>
-                                                      )
-                                                    )}
-                                                  </div>
-                                                ) : nestedItem?.previousState
-                                                    ?.monthly ? (
-                                                  <div className="grid grid-cols-3 gap-1">
-                                                    {Object.entries(
-                                                      nestedItem?.previousState
-                                                        ?.monthlyTimeSlots || {}
-                                                    ).map(
-                                                      ([date, timeSlots]) => (
-                                                        <div
-                                                          key={date}
-                                                          className="border rounded shadow-md bg-white "
-                                                        >
-                                                          <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                            <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                              {date}th
-                                                            </h4>
-                                                          </div>
-                                                          <div className="flex flex-col gap-1">
-                                                            {timeSlots.map(
-                                                              (slot, index) => (
-                                                                <Card
-                                                                  key={index}
-                                                                  className="flex justify-between items-center p-2 border"
-                                                                >
-                                                                  <div className="flex justify-between w-full">
-                                                                    <div className="w-full">
-                                                                      <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                        {addHoursToTime(
-                                                                          slot.startTime,
-                                                                          6
-                                                                        )}
-                                                                        <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                          ${" "}
-                                                                          {
-                                                                            slot.newPrice
-                                                                          }
-                                                                        </span>
-                                                                      </h3>
-                                                                    </div>
-
-                                                                    <span className="flex justify-center items-center text-gray-400">
-                                                                      <FaArrowRightLong />
-                                                                    </span>
-                                                                    {slot.endTime ? (
-                                                                      <div className="w-full">
-                                                                        <div className="w-full">
-                                                                          <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                            {addHoursToTime(
-                                                                              slot.endTime,
-                                                                              6
-                                                                            )}
-                                                                            <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                              ${" "}
-                                                                              {slot.revertPrice ||
-                                                                                "N/A"}
-                                                                            </span>
-                                                                          </h3>
-                                                                        </div>
-                                                                      </div>
-                                                                    ) : (
-                                                                      <div className="w-full">
-                                                                        <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                          <span>
-                                                                            Until
-                                                                            change
-                                                                            back
-                                                                          </span>
-                                                                        </h3>
-                                                                      </div>
-                                                                    )}
-                                                                  </div>
-                                                                </Card>
-                                                              )
-                                                            )}
-                                                          </div>
-                                                        </div>
-                                                      )
-                                                    )}
-                                                  </div>
-                                                ) : (
-                                                  // single delete
-
-                                                  <Card className="flex flex-col  p-2 border rounded-lg w-[420px]">
-                                                    <div className="flex justify-center gap-1 items-center mb-2">
-                                                      <h3 className="flex items-center text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
-                                                        {nestedItem
-                                                          ?.previousState
-                                                          ?.startDate
-                                                          ? formatDateTime(
-                                                              nestedItem
-                                                                .previousState
-                                                                .startDate
-                                                            )
-                                                          : "N/A"}
-                                                        {nestedItem
-                                                          ?.previousState
-                                                          ?.price && (
-                                                          <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                            $
-                                                            {nestedItem.previousState.price?.toFixed(
-                                                              2
-                                                            )}
-                                                          </span>
-                                                        )}
-                                                      </h3>
-                                                      <span className="flex justify-center items-center text-gray-400">
-                                                        <FaArrowRightLong />
-                                                      </span>
-                                                      {nestedItem?.previousState
-                                                        ?.endDate ? (
-                                                        <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
-                                                          {formatDateTime(
-                                                            nestedItem
-                                                              .previousState
-                                                              .endDate
-                                                          )}
-                                                          {nestedItem
-                                                            .previousState
-                                                            .currentPrice && (
-                                                            <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                              $
-                                                              {nestedItem.previousState.currentPrice?.toFixed(
-                                                                2
-                                                              )}
-                                                            </span>
-                                                          )}
-                                                        </h3>
-                                                      ) : (
-                                                        <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                          <span>
-                                                            Until change back
-                                                          </span>
-                                                        </h3>
-                                                      )}
-                                                    </div>
-                                                  </Card>
-                                                )}
-                                              </>
-                                            ) : nestedItem?.updatedState
+                                      <td
+                                        style={{
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          textAlign: "center",
+                                          verticalAlign: "middle",
+                                        }}
+                                      >
+                                        <div>
+                                          {nestedItem?.action === "deleted" ? (
+                                            // Display previousState data when action is deleted
+                                            <>
+                                              {nestedItem?.previousState
                                                 ?.weekly ? (
-                                              // Display updatedState data when action is not deleted
-                                              <>
-                                                {nestedItem?.previousState
-                                                  ?.weekly ? (
-                                                  <div className="grid grid-cols-3 gap-1">
-                                                    {Object.entries(
-                                                      nestedItem?.previousState
-                                                        ?.weeklyTimeSlots || {}
-                                                    )
-                                                      .filter(
-                                                        ([, timeSlots]) =>
-                                                          timeSlots.length > 0
-                                                      ) // Filter out empty time slots
-                                                      .map(
-                                                        ([day, timeSlots]) => (
-                                                          <div
-                                                            key={day}
-                                                            className="border rounded shadow-md bg-white"
-                                                          >
-                                                            <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                              <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                                {
-                                                                  [
-                                                                    "Sunday",
-                                                                    "Monday",
-                                                                    "Tuesday",
-                                                                    "Wednesday",
-                                                                    "Thursday",
-                                                                    "Friday",
-                                                                    "Saturday",
-                                                                  ][
-                                                                    parseInt(
-                                                                      day
-                                                                    )
-                                                                  ]
-                                                                }
-                                                              </h4>
-                                                            </div>
-                                                            {timeSlots.length >
-                                                            0 ? (
-                                                              <div className="flex flex-col gap-1">
-                                                                {timeSlots.map(
-                                                                  (
-                                                                    slot,
-                                                                    index
-                                                                  ) => (
-                                                                    <Card
-                                                                      key={
-                                                                        index
-                                                                      }
-                                                                      className="flex justify-between items-center p-2 border"
-                                                                    >
-                                                                      <div className="flex justify-between w-full">
-                                                                        <div className="w-full">
-                                                                          <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                            {addHoursToTime(
-                                                                              slot.startTime,
-                                                                              6
-                                                                            )}
-                                                                            <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                              ${" "}
-                                                                              {
-                                                                                slot.newPrice
-                                                                              }
-                                                                            </span>
-                                                                          </h3>
-                                                                        </div>
-
-                                                                        <span className="flex justify-center items-center text-gray-400">
-                                                                          <FaArrowRightLong />
-                                                                        </span>
-                                                                        {slot.endTime ? (
-                                                                          <div className="w-full">
-                                                                            <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                              {addHoursToTime(
-                                                                                slot.endTime,
-                                                                                6
-                                                                              )}
-                                                                              <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                                ${" "}
-                                                                                {slot.revertPrice ||
-                                                                                  "N/A"}
-                                                                              </span>
-                                                                            </h3>
-                                                                          </div>
-                                                                        ) : (
-                                                                          <div className="w-full">
-                                                                            <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                              <span>
-                                                                                Until
-                                                                                change
-                                                                                back
-                                                                              </span>
-                                                                            </h3>
-                                                                          </div>
-                                                                        )}
-                                                                      </div>
-                                                                    </Card>
-                                                                  )
-                                                                )}
-                                                              </div>
-                                                            ) : (
-                                                              <p className="text-gray-500 italic">
-                                                                No time slots
-                                                                available for
-                                                                this day.
-                                                              </p>
-                                                            )}
-                                                          </div>
-                                                        )
-                                                      )}
-                                                  </div>
-                                                ) : (
-                                                  <p>
-                                                    No updated time slots
-                                                    available.
-                                                  </p>
-                                                )}
-                                              </>
-                                            ) : nestedItem?.updatedState
-                                                ?.monthly ? (
-                                              <div className="grid grid-cols-3 gap-1">
-                                                {Object.entries(
-                                                  nestedItem?.updatedState
-                                                    ?.monthlyTimeSlots || {}
-                                                ).map(([date, timeSlots]) => (
-                                                  <div
-                                                    key={date}
-                                                    className="border rounded shadow-md bg-white "
-                                                  >
-                                                    <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                      <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                        {date}th
-                                                      </h4>
-                                                    </div>
-                                                    <div className="flex flex-col gap-1">
-                                                      {timeSlots.map(
-                                                        (slot, index) => (
-                                                          <Card
-                                                            key={index}
-                                                            className="flex justify-between items-center p-2 border"
-                                                          >
-                                                            <div className="flex justify-between w-full">
-                                                              <div className="w-full">
-                                                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                  {addHoursToTime(
-                                                                    slot.startTime,
-                                                                    6
-                                                                  )}
-                                                                  <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                    ${" "}
-                                                                    {
-                                                                      slot.newPrice
-                                                                    }
-                                                                  </span>
-                                                                </h3>
-                                                              </div>
-
-                                                              <span className="flex justify-center items-center text-gray-400">
-                                                                <FaArrowRightLong />
-                                                              </span>
-                                                              {slot.endTime ? (
-                                                                <div className="w-full">
-                                                                  <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                    {addHoursToTime(
-                                                                      slot.endTime,
-                                                                      6
-                                                                    )}
-                                                                    <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                      ${" "}
-                                                                      {slot.revertPrice ||
-                                                                        "N/A"}
-                                                                    </span>
-                                                                  </h3>
-                                                                </div>
-                                                              ) : (
-                                                                <div className="w-full">
-                                                                  <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                    <span>
-                                                                      Until
-                                                                      change
-                                                                      back
-                                                                    </span>
-                                                                  </h3>
-                                                                </div>
-                                                              )}
-                                                            </div>
-                                                          </Card>
-                                                        )
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ) : nestedItem?.monthly ? (
-                                              <div className="grid grid-cols-3 gap-1">
-                                                {Object.entries(
-                                                  nestedItem?.monthlyTimeSlots ||
-                                                    {}
-                                                ).map(([date, timeSlots]) => (
-                                                  <div
-                                                    key={date}
-                                                    className="border rounded shadow-md bg-white "
-                                                  >
-                                                    <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                      <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                        {date}th
-                                                      </h4>
-                                                    </div>
-                                                    <div className="flex flex-col gap-1">
-                                                      {timeSlots.map(
-                                                        (slot, index) => (
-                                                          <Card
-                                                            key={index}
-                                                            className="flex justify-between items-center p-2 border"
-                                                          >
-                                                            <div className="flex justify-between w-full">
-                                                              <div className="w-full">
-                                                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                  {addHoursToTime(
-                                                                    slot.startTime,
-                                                                    6
-                                                                  )}
-                                                                  <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                    ${" "}
-                                                                    {
-                                                                      slot.newPrice
-                                                                    }
-                                                                  </span>
-                                                                </h3>
-                                                              </div>
-
-                                                              <span className="flex justify-center items-center text-gray-400">
-                                                                <FaArrowRightLong />
-                                                              </span>
-                                                              {slot.endTime ? (
-                                                                <div className="w-full">
-                                                                  <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                    {addHoursToTime(
-                                                                      slot.endTime,
-                                                                      6
-                                                                    )}
-                                                                    <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                      ${" "}
-                                                                      {slot.revertPrice ||
-                                                                        "N/A"}
-                                                                    </span>
-                                                                  </h3>
-                                                                </div>
-                                                              ) : (
-                                                                <div className="w-full">
-                                                                  <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                                    <span>
-                                                                      Until
-                                                                      change
-                                                                      back
-                                                                    </span>
-                                                                  </h3>
-                                                                </div>
-                                                              )}
-                                                            </div>
-                                                          </Card>
-                                                        )
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            ) : nestedItem?.weekly ? (
-                                              <div className="grid grid-cols-3 gap-1">
-                                                {Object.entries(
-                                                  nestedItem?.weeklyTimeSlots ||
-                                                    {}
-                                                )
-                                                  .filter(
-                                                    ([, timeSlots]) =>
-                                                      timeSlots.length > 0
-                                                  ) // Filter out empty time slots
-                                                  .map(([day, timeSlots]) => (
+                                                <div className="grid grid-cols-3 gap-1">
+                                                  {Object.entries(
+                                                    nestedItem?.previousState
+                                                      ?.weeklyTimeSlots || {}
+                                                  ).map(([day, timeSlots]) => (
                                                     <div
                                                       key={day}
-                                                      className="border rounded shadow-md bg-white "
+                                                      className=" border rounded shadow-md bg-white"
                                                     >
                                                       <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                        <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
-                                                          {
+                                                        {/* Array of day names */}
+                                                        <h4 className=" text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                          {` ${
                                                             [
                                                               "Sunday",
                                                               "Monday",
@@ -1462,7 +914,92 @@ export default function HistoryView() {
                                                               "Friday",
                                                               "Saturday",
                                                             ][parseInt(day)]
-                                                          }
+                                                          }`}
+                                                        </h4>
+                                                      </div>
+                                                      {timeSlots.length > 0 ? (
+                                                        <div className="flex flex-col gap-1">
+                                                          {timeSlots.map(
+                                                            (slot, index) => (
+                                                              <Card
+                                                                key={index}
+                                                                className="flex justify-between items-center p-2  border "
+                                                              >
+                                                                <div className="flex justify-between w-full gap-1">
+                                                                  <div className="w-full">
+                                                                    <h3 className="flex  text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                      {addHoursToTime(
+                                                                        slot.startTime,
+                                                                        6
+                                                                      )}
+
+                                                                      <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                        $
+                                                                        {
+                                                                          slot.newPrice
+                                                                        }
+                                                                      </span>
+                                                                    </h3>
+                                                                  </div>
+                                                                  <span className="flex justify-center items-center text-gray-400">
+                                                                    <FaArrowRightLong />
+                                                                  </span>
+
+                                                                  {slot.endTime ? (
+                                                                    <div className="w-full">
+                                                                      <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                        {addHoursToTime(
+                                                                          slot.endTime,
+                                                                          6
+                                                                        )}
+
+                                                                        <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
+                                                                          $
+                                                                          {slot.revertPrice ||
+                                                                            "N/A"}
+                                                                        </span>
+                                                                      </h3>
+                                                                    </div>
+                                                                  ) : (
+                                                                    <div className="w-full">
+                                                                      <h3 className="text-red-400  text-[12px]  text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                        <span className="">
+                                                                          Until
+                                                                          change
+                                                                          back
+                                                                        </span>
+                                                                      </h3>
+                                                                    </div>
+                                                                  )}
+                                                                </div>
+                                                              </Card>
+                                                            )
+                                                          )}
+                                                        </div>
+                                                      ) : (
+                                                        <p className="text-gray-500 italic">
+                                                          No time slots
+                                                          available for this
+                                                          day.
+                                                        </p>
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              ) : nestedItem?.previousState
+                                                  ?.monthly ? (
+                                                <div className="grid grid-cols-3 gap-1">
+                                                  {Object.entries(
+                                                    nestedItem?.previousState
+                                                      ?.monthlyTimeSlots || {}
+                                                  ).map(([date, timeSlots]) => (
+                                                    <div
+                                                      key={date}
+                                                      className="border rounded shadow-md bg-white "
+                                                    >
+                                                      <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                        <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                          {date}th
                                                         </h4>
                                                       </div>
                                                       <div className="flex flex-col gap-1">
@@ -1493,17 +1030,19 @@ export default function HistoryView() {
                                                                 </span>
                                                                 {slot.endTime ? (
                                                                   <div className="w-full">
-                                                                    <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                                      {addHoursToTime(
-                                                                        slot.endTime,
-                                                                        6
-                                                                      )}
-                                                                      <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                        ${" "}
-                                                                        {slot.revertPrice ||
-                                                                          "N/A"}
-                                                                      </span>
-                                                                    </h3>
+                                                                    <div className="w-full">
+                                                                      <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                        {addHoursToTime(
+                                                                          slot.endTime,
+                                                                          6
+                                                                        )}
+                                                                        <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                          ${" "}
+                                                                          {slot.revertPrice ||
+                                                                            "N/A"}
+                                                                        </span>
+                                                                      </h3>
+                                                                    </div>
                                                                   </div>
                                                                 ) : (
                                                                   <div className="w-full">
@@ -1523,173 +1062,571 @@ export default function HistoryView() {
                                                       </div>
                                                     </div>
                                                   ))}
-                                              </div>
-                                            ) : (
-                                              // single update and created
+                                                </div>
+                                              ) : (
+                                                // single delete
 
-                                              <Card className="flex flex-col p-2 border rounded-lg w-[420px]">
-                                                <div className="flex justify-center gap-1 items-center mb-2">
-                                                  {/* Start Date and Start Price */}
-                                                  <h3 className="flex items-center text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
-                                                    {nestedItem?.updatedState
-                                                      ?.startDate
-                                                      ? formatDateTime(
+                                                <Card className="flex flex-col  p-2 border rounded-lg w-[420px]">
+                                                  <div className="flex justify-center gap-1 items-center mb-2">
+                                                    <h3 className="flex items-center text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
+                                                      {nestedItem?.previousState
+                                                        ?.startDate
+                                                        ? formatDateTime(
+                                                            nestedItem
+                                                              .previousState
+                                                              .startDate
+                                                          )
+                                                        : "N/A"}
+                                                      {nestedItem?.previousState
+                                                        ?.price && (
+                                                        <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                          $
+                                                          {nestedItem.previousState.price?.toFixed(
+                                                            2
+                                                          )}
+                                                        </span>
+                                                      )}
+                                                    </h3>
+                                                    <span className="flex justify-center items-center text-gray-400">
+                                                      <FaArrowRightLong />
+                                                    </span>
+                                                    {nestedItem?.previousState
+                                                      ?.endDate ? (
+                                                      <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
+                                                        {formatDateTime(
                                                           nestedItem
-                                                            .updatedState
-                                                            .startDate
-                                                        )
-                                                      : nestedItem?.startDate
-                                                      ? formatDateTime(
-                                                          nestedItem.startDate
-                                                        )
-                                                      : "N/A"}
-                                                    {nestedItem?.updatedState
-                                                      ?.price && (
-                                                      <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                        $
-                                                        {nestedItem?.updatedState?.price?.toFixed(
-                                                          2
+                                                            .previousState
+                                                            .endDate
                                                         )}
-                                                      </span>
+                                                        {nestedItem
+                                                          .previousState
+                                                          .currentPrice && (
+                                                          <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                            $
+                                                            {nestedItem.previousState.currentPrice?.toFixed(
+                                                              2
+                                                            )}
+                                                          </span>
+                                                        )}
+                                                      </h3>
+                                                    ) : (
+                                                      <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                        <span>
+                                                          Until change back
+                                                        </span>
+                                                      </h3>
                                                     )}
-                                                    {nestedItem?.price && (
-                                                      <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                  </div>
+                                                </Card>
+                                              )}
+                                            </>
+                                          ) : nestedItem?.updatedState
+                                              ?.weekly ? (
+                                            // Display updatedState data when action is not deleted
+                                            <>
+                                              {nestedItem?.updatedState
+                                                ?.weekly ? (
+                                                <div className="grid grid-cols-3 gap-1">
+                                                  {Object.entries(
+                                                    nestedItem?.updatedState
+                                                      ?.weeklyTimeSlots || {}
+                                                  )
+                                                    .filter(
+                                                      ([, timeSlots]) =>
+                                                        timeSlots.length > 0
+                                                    ) // Filter out empty time slots
+                                                    .map(([day, timeSlots]) => (
+                                                      <div
+                                                        key={day}
+                                                        className="border rounded shadow-md bg-white"
+                                                      >
+                                                        <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                          <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                            {
+                                                              [
+                                                                "Sunday",
+                                                                "Monday",
+                                                                "Tuesday",
+                                                                "Wednesday",
+                                                                "Thursday",
+                                                                "Friday",
+                                                                "Saturday",
+                                                              ][parseInt(day)]
+                                                            }
+                                                          </h4>
+                                                        </div>
+                                                        {timeSlots.length >
+                                                        0 ? (
+                                                          <div className="flex flex-col gap-1">
+                                                            {timeSlots.map(
+                                                              (slot, index) => (
+                                                                <Card
+                                                                  key={index}
+                                                                  className="flex justify-between items-center p-2 border"
+                                                                >
+                                                                  <div className="flex justify-between w-full">
+                                                                    <div className="w-full">
+                                                                      <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                        {addHoursToTime(
+                                                                          slot.startTime,
+                                                                          6
+                                                                        )}
+                                                                        <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                          ${" "}
+                                                                          {
+                                                                            slot.newPrice
+                                                                          }
+                                                                        </span>
+                                                                      </h3>
+                                                                    </div>
+
+                                                                    <span className="flex justify-center items-center text-gray-400">
+                                                                      <FaArrowRightLong />
+                                                                    </span>
+                                                                    {slot.endTime ? (
+                                                                      <div className="w-full">
+                                                                        <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                          {addHoursToTime(
+                                                                            slot.endTime,
+                                                                            6
+                                                                          )}
+                                                                          <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                            ${" "}
+                                                                            {slot.revertPrice ||
+                                                                              "N/A"}
+                                                                          </span>
+                                                                        </h3>
+                                                                      </div>
+                                                                    ) : (
+                                                                      <div className="w-full">
+                                                                        <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                          <span>
+                                                                            Until
+                                                                            change
+                                                                            back
+                                                                          </span>
+                                                                        </h3>
+                                                                      </div>
+                                                                    )}
+                                                                  </div>
+                                                                </Card>
+                                                              )
+                                                            )}
+                                                          </div>
+                                                        ) : (
+                                                          <p className="text-gray-500 italic">
+                                                            No time slots
+                                                            available for this
+                                                            day.
+                                                          </p>
+                                                        )}
+                                                      </div>
+                                                    ))}
+                                                </div>
+                                              ) : (
+                                                <p>
+                                                  No updated time slots
+                                                  available.
+                                                </p>
+                                              )}
+                                            </>
+                                          ) : nestedItem?.updatedState
+                                              ?.monthly ? (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {Object.entries(
+                                                nestedItem?.updatedState
+                                                  ?.monthlyTimeSlots || {}
+                                              ).map(([date, timeSlots]) => (
+                                                <div
+                                                  key={date}
+                                                  className="border rounded shadow-md bg-white "
+                                                >
+                                                  <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                    <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                      {date}th
+                                                    </h4>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                    {timeSlots.map(
+                                                      (slot, index) => (
+                                                        <Card
+                                                          key={index}
+                                                          className="flex justify-between items-center p-2 border"
+                                                        >
+                                                          <div className="flex justify-between w-full">
+                                                            <div className="w-full">
+                                                              <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                {addHoursToTime(
+                                                                  slot.startTime,
+                                                                  6
+                                                                )}
+                                                                <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                  ${" "}
+                                                                  {
+                                                                    slot.newPrice
+                                                                  }
+                                                                </span>
+                                                              </h3>
+                                                            </div>
+
+                                                            <span className="flex justify-center items-center text-gray-400">
+                                                              <FaArrowRightLong />
+                                                            </span>
+                                                            {slot.endTime ? (
+                                                              <div className="w-full">
+                                                                <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                  {addHoursToTime(
+                                                                    slot.endTime,
+                                                                    6
+                                                                  )}
+                                                                  <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                    ${" "}
+                                                                    {slot.revertPrice ||
+                                                                      "N/A"}
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            ) : (
+                                                              <div className="w-full">
+                                                                <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                  <span>
+                                                                    Until change
+                                                                    back
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </Card>
+                                                      )
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          ) : nestedItem?.monthly ? (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {Object.entries(
+                                                nestedItem?.monthlyTimeSlots ||
+                                                  {}
+                                              ).map(([date, timeSlots]) => (
+                                                <div
+                                                  key={date}
+                                                  className="border rounded shadow-md bg-white "
+                                                >
+                                                  <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                    <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                      {date}th
+                                                    </h4>
+                                                  </div>
+                                                  <div className="flex flex-col gap-1">
+                                                    {timeSlots.map(
+                                                      (slot, index) => (
+                                                        <Card
+                                                          key={index}
+                                                          className="flex justify-between items-center p-2 border"
+                                                        >
+                                                          <div className="flex justify-between w-full">
+                                                            <div className="w-full">
+                                                              <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                {addHoursToTime(
+                                                                  slot.startTime,
+                                                                  6
+                                                                )}
+                                                                <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                  ${" "}
+                                                                  {
+                                                                    slot.newPrice
+                                                                  }
+                                                                </span>
+                                                              </h3>
+                                                            </div>
+
+                                                            <span className="flex justify-center items-center text-gray-400">
+                                                              <FaArrowRightLong />
+                                                            </span>
+                                                            {slot.endTime ? (
+                                                              <div className="w-full">
+                                                                <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                  {addHoursToTime(
+                                                                    slot.endTime,
+                                                                    6
+                                                                  )}
+                                                                  <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                    ${" "}
+                                                                    {slot.revertPrice ||
+                                                                      "N/A"}
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            ) : (
+                                                              <div className="w-full">
+                                                                <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                  <span>
+                                                                    Until change
+                                                                    back
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </Card>
+                                                      )
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          ) : nestedItem?.weekly ? (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {Object.entries(
+                                                nestedItem?.weeklyTimeSlots ||
+                                                  {}
+                                              )
+                                                .filter(
+                                                  ([, timeSlots]) =>
+                                                    timeSlots.length > 0
+                                                ) // Filter out empty time slots
+                                                .map(([day, timeSlots]) => (
+                                                  <div
+                                                    key={day}
+                                                    className="border rounded shadow-md bg-white "
+                                                  >
+                                                    <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                      <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                        {
+                                                          [
+                                                            "Sunday",
+                                                            "Monday",
+                                                            "Tuesday",
+                                                            "Wednesday",
+                                                            "Thursday",
+                                                            "Friday",
+                                                            "Saturday",
+                                                          ][parseInt(day)]
+                                                        }
+                                                      </h4>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                      {timeSlots.map(
+                                                        (slot, index) => (
+                                                          <Card
+                                                            key={index}
+                                                            className="flex justify-between items-center p-2 border"
+                                                          >
+                                                            <div className="flex justify-between w-full">
+                                                              <div className="w-full">
+                                                                <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                  {addHoursToTime(
+                                                                    slot.startTime,
+                                                                    6
+                                                                  )}
+                                                                  <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                                    ${" "}
+                                                                    {
+                                                                      slot.newPrice
+                                                                    }
+                                                                  </span>
+                                                                </h3>
+                                                              </div>
+
+                                                              <span className="flex justify-center items-center text-gray-400">
+                                                                <FaArrowRightLong />
+                                                              </span>
+                                                              {slot.endTime ? (
+                                                                <div className="w-full">
+                                                                  <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                                                    {addHoursToTime(
+                                                                      slot.endTime,
+                                                                      6
+                                                                    )}
+                                                                    <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                                      ${" "}
+                                                                      {slot.revertPrice ||
+                                                                        "N/A"}
+                                                                    </span>
+                                                                  </h3>
+                                                                </div>
+                                                              ) : (
+                                                                <div className="w-full">
+                                                                  <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                                    <span>
+                                                                      Until
+                                                                      change
+                                                                      back
+                                                                    </span>
+                                                                  </h3>
+                                                                </div>
+                                                              )}
+                                                            </div>
+                                                          </Card>
+                                                        )
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                ))}
+                                            </div>
+                                          ) : (
+                                            // single update and created
+
+                                            <Card className="flex flex-col p-2 border rounded-lg w-[420px]">
+                                              <div className="flex justify-center gap-1 items-center mb-2">
+                                                {/* Start Date and Start Price */}
+                                                <h3 className="flex items-center text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
+                                                  {nestedItem?.updatedState
+                                                    ?.startDate
+                                                    ? formatDateTime(
+                                                        nestedItem.updatedState
+                                                          .startDate
+                                                      )
+                                                    : nestedItem?.startDate
+                                                    ? formatDateTime(
+                                                        nestedItem.startDate
+                                                      )
+                                                    : "N/A"}
+                                                  {nestedItem?.updatedState
+                                                    ?.price && (
+                                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                      $
+                                                      {nestedItem?.updatedState?.price?.toFixed(
+                                                        2
+                                                      )}
+                                                    </span>
+                                                  )}
+                                                  {nestedItem?.price && (
+                                                    <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                                      $
+                                                      {nestedItem?.price?.toFixed(
+                                                        2
+                                                      )}
+                                                    </span>
+                                                  )}
+                                                </h3>
+
+                                                {/* Arrow Icon */}
+                                                <span className="flex justify-center items-center text-gray-400">
+                                                  <FaArrowRightLong />
+                                                </span>
+
+                                                {/* End Date and End Price */}
+                                                {nestedItem?.updatedState
+                                                  ?.endDate ? (
+                                                  <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
+                                                    {formatDateTime(
+                                                      nestedItem.updatedState
+                                                        .endDate
+                                                    )}
+                                                    {nestedItem?.updatedState
+                                                      ?.currentPrice && (
+                                                      <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                         $
-                                                        {nestedItem?.price?.toFixed(
+                                                        {nestedItem?.updatedState?.currentPrice?.toFixed(
                                                           2
                                                         )}
                                                       </span>
                                                     )}
                                                   </h3>
-
-                                                  {/* Arrow Icon */}
-                                                  <span className="flex justify-center items-center text-gray-400">
-                                                    <FaArrowRightLong />
-                                                  </span>
-
-                                                  {/* End Date and End Price */}
-                                                  {nestedItem?.updatedState
-                                                    ?.endDate ? (
-                                                    <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
-                                                      {formatDateTime(
-                                                        nestedItem.updatedState
-                                                          .endDate
-                                                      )}
-                                                      {nestedItem?.updatedState
-                                                        ?.currentPrice && (
-                                                        <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                          $
-                                                          {nestedItem?.updatedState?.currentPrice?.toFixed(
-                                                            2
-                                                          )}
-                                                        </span>
-                                                      )}
-                                                    </h3>
-                                                  ) : nestedItem?.endDate ? (
-                                                    <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
-                                                      {formatDateTime(
-                                                        nestedItem.endDate
-                                                      )}
-                                                      {nestedItem?.currentPrice && (
-                                                        <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                          $
-                                                          {nestedItem?.currentPrice?.toFixed(
-                                                            2
-                                                          )}
-                                                        </span>
-                                                      )}
-                                                    </h3>
-                                                  ) : (
-                                                    <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                                                      <span>Until Changed</span>
-                                                    </h3>
-                                                  )}
-                                                </div>
-                                              </Card>
-                                            )}
-                                          </div>
-                                        </td>
-                                        {/* user */}
-                                        <td
-                                          style={{
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            textAlign: "center",
-                                            verticalAlign: "middle",
-                                          }}
-                                        >
-                                          <h2>
-                                            {nestedItem.userName} -{" "}
-                                            {formatDateTime(
-                                              nestedItem.timestamp
-                                            )}
-                                          </h2>
-                                        </td>
-                                        {/* action */}
-                                        <td
-                                          style={{
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            textAlign: "center",
-                                            verticalAlign: "middle",
-                                          }}
-                                        >
-                                          {nestedItem.action === "deleted" ? (
-                                            <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-                                              {nestedItem.action}
-                                            </span>
-                                          ) : nestedItem.action ===
-                                            "updated" ? (
-                                            <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-                                              {nestedItem.action}
-                                            </span>
-                                          ) : (
-                                            <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-                                              {nestedItem.action}
-                                            </span>
+                                                ) : nestedItem?.endDate ? (
+                                                  <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
+                                                    {formatDateTime(
+                                                      nestedItem.endDate
+                                                    )}
+                                                    {nestedItem?.currentPrice && (
+                                                      <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                                        $
+                                                        {nestedItem?.currentPrice?.toFixed(
+                                                          2
+                                                        )}
+                                                      </span>
+                                                    )}
+                                                  </h3>
+                                                ) : (
+                                                  <h3 className="text-red-400 text-[12px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                                    <span>Until Changed</span>
+                                                  </h3>
+                                                )}
+                                              </div>
+                                            </Card>
                                           )}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                              </tbody>
-                            </Table>
-                          )}
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="7" className="text-center">
-                  No data found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-        <Pagination className=" flex mb-3 justify-center">
-          <Pagination.First onClick={() => handlePageChange(1)} />
-          <Pagination.Prev
-            onClick={() =>
-              handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
-            }
-          />
-          {renderPaginationButtons()}
-          <Pagination.Next
-            onClick={() =>
-              handlePageChange(
-                currentPage < totalPages ? currentPage + 1 : totalPages
-              )
-            }
-          />
-          <Pagination.Last onClick={() => handlePageChange(totalPages)} />
-        </Pagination>
-      </section>
+                                        </div>
+                                      </td>
+                                      {/* user */}
+                                      <td
+                                        style={{
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          textAlign: "center",
+                                          verticalAlign: "middle",
+                                        }}
+                                      >
+                                        <h2>
+                                          {nestedItem.userName} -{" "}
+                                          {formatDateTime(nestedItem.timestamp)}
+                                        </h2>
+                                      </td>
+                                      {/* action */}
+                                      <td
+                                        style={{
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          textAlign: "center",
+                                          verticalAlign: "middle",
+                                        }}
+                                      >
+                                        {nestedItem.action === "deleted" ? (
+                                          <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+                                            {nestedItem.action}
+                                          </span>
+                                        ) : nestedItem.action === "updated" ? (
+                                          <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
+                                            {nestedItem.action}
+                                          </span>
+                                        ) : (
+                                          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+                                            {nestedItem.action}
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                            </tbody>
+                          </Table>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan="7" className="text-center">
+                No data found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
+      <Pagination className=" flex mb-3 justify-center">
+        <Pagination.First onClick={() => handlePageChange(1)} />
+        <Pagination.Prev
+          onClick={() =>
+            handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
+          }
+        />
+        {renderPaginationButtons()}
+        <Pagination.Next
+          onClick={() =>
+            handlePageChange(
+              currentPage < totalPages ? currentPage + 1 : totalPages
+            )
+          }
+        />
+        <Pagination.Last onClick={() => handlePageChange(totalPages)} />
+      </Pagination>
     </div>
   );
 }
