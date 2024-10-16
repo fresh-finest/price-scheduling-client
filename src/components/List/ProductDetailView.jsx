@@ -111,6 +111,26 @@ function addHoursToTime(timeString, hoursToAdd) {
 
   return `${formattedHours}:${formattedMinutes} ${period}`; // Return time in 12-hour format with AM/PM
 }
+function convertToUserLocalTime(utcTimeString) {
+  if (!utcTimeString || typeof utcTimeString !== "string") {
+    console.error("Invalid timeString:", utcTimeString);
+    return "Invalid Time"; // Return a default value or handle it gracefully
+  }
+
+  // Parse the time string assuming it's in UTC
+  const [hours, minutes] = utcTimeString.split(":").map(Number);
+  
+  // Create a Date object using the current date and UTC time
+  const now = new Date();
+  const utcDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes));
+// Convert to the user's local time zone with AM/PM format
+const options = { hour: '2-digit', minute: '2-digit', hour12: true };
+const localTime = utcDate.toLocaleTimeString([], options);  // This will format with AM/PM
+  
+  return localTime;
+}
+
+
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -118,6 +138,7 @@ const getDayLabelFromNumber = (dayNumber) => {
 const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
+/*
 const displayTimeSlotsWithDayLabels = (
   timeSlots,
   addHours = 0,
@@ -138,7 +159,26 @@ const displayTimeSlotsWithDayLabels = (
       ))}
     </div>
   ));
+}; */
+const displayTimeSlotsWithDayLabels = (timeSlots, isWeekly = false) => {
+  return Object.entries(timeSlots).map(([key, slots]) => (
+    <div key={key}>
+      <strong>
+        {isWeekly
+          ? getDayLabelFromNumber(Number(key))
+          : getDateLabelFromNumber(Number(key))}
+      </strong>
+      {slots.map((slot, index) => (
+        <p key={index}>
+          {convertToUserLocalTime(slot.startTime)} -{" "}
+          {convertToUserLocalTime(slot.endTime)}
+        </p>
+      ))}
+    </div>
+  ));
 };
+
+
 const ProductDetailView = ({
   product,
   listing,
@@ -713,10 +753,11 @@ const ProductDetailView = ({
                                                   <div className="flex justify-center w-full gap-2 my-2 px-2 ">
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                        {addHoursToTime(
+                                                        {/* {addHoursToTime(
                                                           timeSlot?.startTime,
                                                           6
-                                                        )}
+                                                        )} */}
+                                                        {convertToUserLocalTime(timeSlot?.startTime)}
                                                         <span className="bg-blue-500 text-white p-1 rounded-sm">
                                                           $
                                                           {parseFloat(
@@ -730,10 +771,11 @@ const ProductDetailView = ({
                                                     </span>
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                        {addHoursToTime(
+                                                        {/* {addHoursToTime(
                                                           timeSlot.endTime,
                                                           6
-                                                        )}
+                                                        )} */}
+                                                        {convertToUserLocalTime(timeSlot?.endTime)}
                                                         {timeSlot.revertPrice ? (
                                                           <span className="bg-red-700 text-white p-1 rounded-sm">
                                                             $
@@ -836,10 +878,11 @@ const ProductDetailView = ({
                                     >
                                       <div className="w-full">
                                         <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                          {addHoursToTime(
+                                          {/* {addHoursToTime(
                                             timeSlot.startTime,
                                             6
-                                          )}
+                                          )} */}
+                                          {convertToUserLocalTime(timeSlot?.startTime)}
                                           <span className="bg-blue-500 text-white p-1 rounded-sm ">
                                             $
                                             {parseFloat(
@@ -855,7 +898,8 @@ const ProductDetailView = ({
 
                                       <div className="w-full">
                                         <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                          {addHoursToTime(timeSlot.endTime, 6)}
+                                          {/* {addHoursToTime(timeSlot.endTime, 6)} */}
+                                          {convertToUserLocalTime(timeSlot?.endTime)}
                                           {timeSlot?.revertPrice ? (
                                             <span className="bg-red-700 text-white p-1 rounded-sm">
                                               $

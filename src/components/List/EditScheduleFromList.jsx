@@ -195,6 +195,7 @@ const EditScheduleFromList = ({
   // const [datesOfMonth, setDatesOfMonth] = useState(
   //   existingSchedule.datesOfMonth || []
   // );
+  const [loading, setLoading] = useState(false);
   const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(
     existingSchedule.weeklyTimeSlots || {}
   );
@@ -375,32 +376,32 @@ const EditScheduleFromList = ({
 
   useEffect(() => {
     if (show && asin) {
-      fetchProductDetailsByAsin(asin);
+      // fetchProductDetailsByAsin(asin);
       setPrice(existingSchedule.price);
       setCurrentPrice(existingSchedule.currentPrice);
     }
   }, [show, asin]);
 
 
-  const fetchProductDetailsByAsin = async (asin) => {
-    try {
-      const data = await fetchProductDetails(asin);
-      const productDetails = data.payload[0].Product.Offers[0];
-      setSku(productDetails.SellerSKU);
-      // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+  // const fetchProductDetailsByAsin = async (asin) => {
+  //   try {
+  //     const data = await fetchProductDetails(asin);
+  //     const productDetails = data.payload[0].Product.Offers[0];
+  //     setSku(productDetails.SellerSKU);
+  //     // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
 
-      const additionalData = await fetchProductAdditionalDetails(asin);
-      setTitle(additionalData.payload.AttributeSets[0].Title);
-      setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-    } catch (error) {
-      setErrorMessage(
-        "Error fetching product details: " +
-          (error.response ? error.response.data.error : error.message)
-      );
-      console.error("Error fetching product details:", error);
-    }
-  };
+  //     const additionalData = await fetchProductAdditionalDetails(asin);
+  //     setTitle(additionalData.payload.AttributeSets[0].Title);
+  //     setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+  //   } catch (error) {
+  //     setErrorMessage(
+  //       "Error fetching product details: " +
+  //         (error.response ? error.response.data.error : error.message)
+  //     );
+  //     console.error("Error fetching product details:", error);
+  //   }
+  // };
 
 
   const handleTimeSlotPriceChange = (
@@ -527,9 +528,6 @@ const EditScheduleFromList = ({
 
 
   const validateTimeSlots = () => {
-    const now = new Date();
-    const today = now.getDay(); // Get today's day index
-  const currentDayOfMonth = now.getDate(); // Get today's date in the month
     const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
       return start1 < end2 && start2 < end1;
     };
@@ -539,32 +537,17 @@ const EditScheduleFromList = ({
       return `${hours}:${minutes}`;
     };
 
-
     for (const day in weeklyTimeSlots) {
       const slots = weeklyTimeSlots[day];
-
-      if (parseInt(day) === today) {
-        // If the selected day is today, check the time
-        for (let slot of slots) {
-          if (slot.startTime < now) {
-            setErrorMessage(
-              "The selected start time is in the past for today's time slot. Please select a future time."
-            );
-            return false;
-          }
-        }
-      }
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
-
-        if (slot1.startTime >= slot1.endTime) {
-          setErrorMessage(
-            `For day ${day}, start time must be earlier than end time.`
-          );
-          return false;
-        }
-
+        // if (slot1.startTime >= slot1.endTime) {
+        //   setErrorMessage(
+        //     `For day ${day}, start time must be earlier than end time.`
+        //   );
+        //   return false;
+        // }
 
         for (let j = i + 1; j < slots.length; j++) {
           const slot2 = slots[j];
@@ -589,33 +572,17 @@ const EditScheduleFromList = ({
       }
     }
 
-
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
-
-      if (parseInt(date) === currentDayOfMonth) {
-        // If the selected date is today, check the time
-        for (let slot of slots) {
-          if (slot.startTime < now) {
-            setErrorMessage(
-              "The selected start time is in the past for today's time slot. Please select a future time."
-            );
-            return false;
-          }
-        }
-      }
-
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
-
-        if (slot1.startTime >= slot1.endTime) {
-          setErrorMessage(
-            `For date ${date}, start time must be earlier than end time.`
-          );
-          return false;
-        }
-
+        // if (slot1.startTime >= slot1.endTime) {
+        //   setErrorMessage(
+        //     `For date ${date}, start time must be earlier than end time.`
+        //   );
+        //   return false;
+        // }
 
         for (let j = i + 1; j < slots.length; j++) {
           const slot2 = slots[j];
@@ -641,7 +608,12 @@ const EditScheduleFromList = ({
     }
     return true;
   };
-
+ 
+ 
+  
+  
+  
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -656,7 +628,8 @@ const EditScheduleFromList = ({
         return;
       }
       if (!validateTimeSlots()) {
-        setErrorMessage("Set correct time.");
+        // setErrorMessage("Set correct time.");
+        setLoading(false);
         return;
       }
 
@@ -1148,14 +1121,19 @@ const EditScheduleFromList = ({
                               }
                               className="form-control edit-modal-custom-input"
                             />
-                            <button
-                              onClick={() =>
-                                handleRemoveTimeSlot("weekly", day.value, index)
-                              }
-                              className="bg-red-700 text-white px-2 py-1 rounded-sm hover:bg-red-600"
-                            >
-                              <IoMdClose />
-                            </button>
+                            <Button
+                                variant="danger"
+                                onClick={() =>
+                                  handleRemoveTimeSlot(
+                                    "weekly",
+                                    day.value,
+                                    index
+                                  )
+                                }
+                                className="w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
+                              >
+                                <IoMdClose />
+                              </Button>
                           </div>
                         </Card>
                       ))}
