@@ -840,7 +840,7 @@ const EditScheduleFromList = ({
         <Modal.Header closeButton>
           <div className="flex flex-col  w-full">
             <h2 className="text-xl font-normal text-center mb-3 border w-[30%] mx-auto py-1 rounded bg-[#F1F1F2] shadow-sm">
-              Edit {editScheduleModalTitle} Schedule Price
+              Update {editScheduleModalTitle} Schedule & Price
             </h2>
             <div>
               <div className="flex gap-1">
