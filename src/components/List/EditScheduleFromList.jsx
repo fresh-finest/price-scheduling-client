@@ -16,8 +16,8 @@ import "./EditScheduleFromList.css";
 import { BsClipboardCheck } from "react-icons/bs";
 import { MdCheck } from "react-icons/md";
 
-const BASE_URL = "http://localhost:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -1058,6 +1058,7 @@ const EditScheduleFromList = ({
                               className="form-control edit-modal-custom-input"
                             />
                             <button
+                              type="button"
                               onClick={() =>
                                 handleRemoveTimeSlot("weekly", day.value, index)
                               }
@@ -1191,6 +1192,7 @@ const EditScheduleFromList = ({
                                 className=" edit-modal-custom-input"
                               />
                               <Button
+                                type="button"
                                 variant="danger"
                                 onClick={() =>
                                   handleRemoveTimeSlot(

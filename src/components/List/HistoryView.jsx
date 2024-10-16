@@ -173,10 +173,6 @@ export default function HistoryView() {
   const [showWeeklyType, setShowWeeklyType] = useState(false);
   const [showMonthlyType, setShowMonthlyType] = useState(false);
 
-  console.log(showSingleType);
-  console.log(showWeeklyType);
-  console.log(showMonthlyType);
-
   const itemsPerPage = 10;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
@@ -405,8 +401,6 @@ export default function HistoryView() {
 
       return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
     });
-
-  console.log(filteredData);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
