@@ -951,9 +951,9 @@ export default function HistoryView() {
                                                             key={day}
                                                             className=" border rounded shadow-md bg-white"
                                                           >
-                                                            <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
+                                                            <div className="bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm">
                                                               {/* Array of day names */}
-                                                              <h4 className=" text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                              <h4 className=" text-black text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                                 {` ${
                                                                   [
                                                                     "Sunday",
@@ -995,9 +995,9 @@ export default function HistoryView() {
 
                                                                             <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                               $
-                                                                              {
-                                                                                slot.newPrice
-                                                                              }
+                                                                              {slot?.newPrice?.toFixed(
+                                                                                2
+                                                                              )}
                                                                             </span>
                                                                           </h3>
                                                                         </div>
@@ -1015,7 +1015,9 @@ export default function HistoryView() {
 
                                                                               <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
                                                                                 $
-                                                                                {slot.revertPrice ||
+                                                                                {slot?.revertPrice?.toFixed(
+                                                                                  2
+                                                                                ) ||
                                                                                   "N/A"}
                                                                               </span>
                                                                             </h3>
@@ -1061,8 +1063,8 @@ export default function HistoryView() {
                                                             key={date}
                                                             className="border rounded shadow-md bg-white "
                                                           >
-                                                            <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                              <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                            <div className="bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm">
+                                                              <h4 className="text-black text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                                 {date}th
                                                               </h4>
                                                             </div>
@@ -1084,10 +1086,10 @@ export default function HistoryView() {
                                                                             6
                                                                           )}
                                                                           <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                            ${" "}
-                                                                            {
-                                                                              slot.newPrice
-                                                                            }
+                                                                            $
+                                                                            {slot?.newPrice?.toFixed(
+                                                                              2
+                                                                            )}
                                                                           </span>
                                                                         </h3>
                                                                       </div>
@@ -1104,8 +1106,10 @@ export default function HistoryView() {
                                                                                 6
                                                                               )}
                                                                               <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                                ${" "}
-                                                                                {slot.revertPrice ||
+                                                                                $
+                                                                                {slot?.revertPrice?.toFixed(
+                                                                                  2
+                                                                                ) ||
                                                                                   "N/A"}
                                                                               </span>
                                                                             </h3>
@@ -1151,7 +1155,7 @@ export default function HistoryView() {
                                                             ?.price && (
                                                             <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                               $
-                                                              {nestedItem.previousState.price?.toFixed(
+                                                              {nestedItem?.previousState.price?.toFixed(
                                                                 2
                                                               )}
                                                             </span>
@@ -1216,8 +1220,8 @@ export default function HistoryView() {
                                                               key={day}
                                                               className="border rounded shadow-md bg-white"
                                                             >
-                                                              <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                                <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                              <div className="bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm">
+                                                                <h4 className="text-black text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                                   {
                                                                     [
                                                                       "Sunday",
@@ -1257,10 +1261,10 @@ export default function HistoryView() {
                                                                                 6
                                                                               )}
                                                                               <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                                ${" "}
-                                                                                {
-                                                                                  slot.newPrice
-                                                                                }
+                                                                                $
+                                                                                {slot?.newPrice?.toFixed(
+                                                                                  2
+                                                                                )}
                                                                               </span>
                                                                             </h3>
                                                                           </div>
@@ -1276,8 +1280,10 @@ export default function HistoryView() {
                                                                                   6
                                                                                 )}
                                                                                 <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                                  ${" "}
-                                                                                  {slot.revertPrice ||
+                                                                                  $
+                                                                                  {slot?.revertPrice?.toFixed(
+                                                                                    2
+                                                                                  ) ||
                                                                                     "N/A"}
                                                                                 </span>
                                                                               </h3>
@@ -1327,8 +1333,8 @@ export default function HistoryView() {
                                                       key={date}
                                                       className="border rounded shadow-md bg-white "
                                                     >
-                                                      <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                        <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                      <div className="bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm">
+                                                        <h4 className="text-black text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                           {date}th
                                                         </h4>
                                                       </div>
@@ -1347,10 +1353,10 @@ export default function HistoryView() {
                                                                       6
                                                                     )}
                                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                      ${" "}
-                                                                      {
-                                                                        slot.newPrice
-                                                                      }
+                                                                      $
+                                                                      {slot?.newPrice?.toFixed(
+                                                                        2
+                                                                      )}
                                                                     </span>
                                                                   </h3>
                                                                 </div>
@@ -1366,8 +1372,10 @@ export default function HistoryView() {
                                                                         6
                                                                       )}
                                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                        ${" "}
-                                                                        {slot.revertPrice ||
+                                                                        $
+                                                                        {slot?.revertPrice?.toFixed(
+                                                                          2
+                                                                        ) ||
                                                                           "N/A"}
                                                                       </span>
                                                                     </h3>
@@ -1401,8 +1409,8 @@ export default function HistoryView() {
                                                       key={date}
                                                       className="border rounded shadow-md bg-white "
                                                     >
-                                                      <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                        <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                      <div className="bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm">
+                                                        <h4 className="text-black text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                           {date}th
                                                         </h4>
                                                       </div>
@@ -1421,10 +1429,10 @@ export default function HistoryView() {
                                                                       6
                                                                     )}
                                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                      ${" "}
-                                                                      {
-                                                                        slot.newPrice
-                                                                      }
+                                                                      $
+                                                                      {slot?.newPrice?.toFixed(
+                                                                        2
+                                                                      )}
                                                                     </span>
                                                                   </h3>
                                                                 </div>
@@ -1440,8 +1448,10 @@ export default function HistoryView() {
                                                                         6
                                                                       )}
                                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                        ${" "}
-                                                                        {slot.revertPrice ||
+                                                                        $
+                                                                        {slot?.revertPrice?.toFixed(
+                                                                          2
+                                                                        ) ||
                                                                           "N/A"}
                                                                       </span>
                                                                     </h3>
@@ -1480,8 +1490,8 @@ export default function HistoryView() {
                                                         key={day}
                                                         className="border rounded shadow-md bg-white "
                                                       >
-                                                        <div className="bg-[#707070] border-0 m-0 p-0 rounded-t-sm">
-                                                          <h4 className="text-white text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                                        <div className="bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm">
+                                                          <h4 className="text-black text-center text-xs py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                             {
                                                               [
                                                                 "Sunday",
@@ -1510,10 +1520,10 @@ export default function HistoryView() {
                                                                         6
                                                                       )}
                                                                       <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                                                                        ${" "}
-                                                                        {
-                                                                          slot.newPrice
-                                                                        }
+                                                                        $
+                                                                        {slot?.newPrice?.toFixed(
+                                                                          2
+                                                                        )}
                                                                       </span>
                                                                     </h3>
                                                                   </div>
@@ -1529,8 +1539,10 @@ export default function HistoryView() {
                                                                           6
                                                                         )}
                                                                         <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                                                          ${" "}
-                                                                          {slot.revertPrice ||
+                                                                          $
+                                                                          {slot?.revertPrice?.toFixed(
+                                                                            2
+                                                                          ) ||
                                                                             "N/A"}
                                                                         </span>
                                                                       </h3>
