@@ -4,7 +4,6 @@ import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
 // import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
-import { GiPlainArrow } from "react-icons/gi";
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
@@ -13,7 +12,8 @@ import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
-import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
+import { IoIosArrowForward } from "react-icons/io";
+import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 const BASE_URL = "http://localhost:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
@@ -169,6 +169,13 @@ export default function HistoryView() {
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [lengthNested, setLengthNested] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSingleType, setShowSingleType] = useState(false);
+  const [showWeeklyType, setShowWeeklyType] = useState(false);
+  const [showMonthlyType, setShowMonthlyType] = useState(false);
+
+  console.log(showSingleType);
+  console.log(showWeeklyType);
+  console.log(showMonthlyType);
 
   const itemsPerPage = 10;
 
@@ -335,6 +342,7 @@ export default function HistoryView() {
   const filteredData = data
     .filter((item) => {
       const displayData = getDisplayData(item);
+      // Filter by search term
       return (
         displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -351,6 +359,7 @@ export default function HistoryView() {
         ? new Date(displayData.endDate)
         : null;
 
+      // Date range filter
       if (filterStartDate && filterEndDate) {
         const adjustedEndDate = new Date(filterEndDate);
         adjustedEndDate.setHours(23, 59, 59, 999);
@@ -376,8 +385,28 @@ export default function HistoryView() {
         );
       }
       return true;
+    })
+    .filter((item) => {
+      const displayData = getDisplayData(item);
+
+      // Type filter logic
+      const isSingleTypeMatch =
+        showSingleType &&
+        displayData.weekly === false &&
+        displayData.monthly === false;
+      const isWeeklyTypeMatch = showWeeklyType && displayData.weekly === true;
+      const isMonthlyTypeMatch =
+        showMonthlyType && displayData.monthly === true;
+
+      // If all are unchecked, show all types
+      if (!showSingleType && !showWeeklyType && !showMonthlyType) {
+        return true;
+      }
+
+      return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
     });
-  console.log("filter data:" + filteredData.length);
+
+  console.log(filteredData);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -556,12 +585,21 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "60px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
+
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                Type
+                <p className="flex justify-center items-center gap-1">
+                  <span>Type</span>{" "}
+                  <ListTypeDropdown
+                    showSingleType={showSingleType}
+                    setShowSingleType={setShowSingleType}
+                    showWeeklyType={showWeeklyType}
+                    setShowWeeklyType={setShowWeeklyType}
+                    showMonthlyType={showMonthlyType}
+                    setShowMonthlyType={setShowMonthlyType}
+                  ></ListTypeDropdown>
+                </p>
               </th>
               <th
                 className="tableHeader"
