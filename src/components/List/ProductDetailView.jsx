@@ -15,7 +15,7 @@ import { MdCheck } from "react-icons/md";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { FaArrowRightLong, FaRankingStar } from "react-icons/fa6";
 import { Calendar } from "../ui/calendar";
-
+import { DateTime } from "luxon";
 import {
   Card as ShadCdnCard,
   CardContent,
@@ -119,6 +119,28 @@ function convertToUserLocalTime(utcTimeString) {
 
   // Parse the time string assuming it's in UTC
   const [hours, minutes] = utcTimeString.split(":").map(Number);
+
+  // Create a DateTime object from the current date with the time provided
+  const utcDateTime = DateTime.utc().set({ hour: hours, minute: minutes });
+
+  // Convert UTC DateTime to America/New_York time zone (EDT/EST depending on daylight savings)
+  const edtDateTime = utcDateTime.setZone("America/New_York");
+
+  // Format the time in EDT with AM/PM
+  return edtDateTime.toLocaleString(DateTime.TIME_SIMPLE);  // This will format with AM/PM
+  
+  return localTime;
+}
+
+/*
+function convertToUserLocalTime(utcTimeString) {
+  if (!utcTimeString || typeof utcTimeString !== "string") {
+    console.error("Invalid timeString:", utcTimeString);
+    return "Invalid Time"; // Return a default value or handle it gracefully
+  }
+
+  // Parse the time string assuming it's in UTC
+  const [hours, minutes] = utcTimeString.split(":").map(Number);
   
   // Create a Date object using the current date and UTC time
   const now = new Date();
@@ -129,8 +151,7 @@ const localTime = utcDate.toLocaleTimeString([], options);  // This will format 
   
   return localTime;
 }
-
-
+*/
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";

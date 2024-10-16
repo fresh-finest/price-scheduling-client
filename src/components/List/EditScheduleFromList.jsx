@@ -17,8 +17,8 @@ import { BsClipboardCheck } from "react-icons/bs";
 import { MdCheck } from "react-icons/md";
 
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 
 const dayNames = [
