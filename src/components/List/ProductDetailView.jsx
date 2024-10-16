@@ -111,6 +111,7 @@ function addHoursToTime(timeString, hoursToAdd) {
 
   return `${formattedHours}:${formattedMinutes} ${period}`; // Return time in 12-hour format with AM/PM
 }
+/*
 function convertToUserLocalTime(utcTimeString) {
   if (!utcTimeString || typeof utcTimeString !== "string") {
     console.error("Invalid timeString:", utcTimeString);
@@ -131,8 +132,8 @@ function convertToUserLocalTime(utcTimeString) {
   
   return localTime;
 }
+*/
 
-/*
 function convertToUserLocalTime(utcTimeString) {
   if (!utcTimeString || typeof utcTimeString !== "string") {
     console.error("Invalid timeString:", utcTimeString);
@@ -151,7 +152,7 @@ const localTime = utcDate.toLocaleTimeString([], options);  // This will format 
   
   return localTime;
 }
-*/
+
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
