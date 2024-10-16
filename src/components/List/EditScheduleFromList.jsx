@@ -612,193 +612,138 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       };
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      // const utcStartTime = convertTimeToUtc(startTime);
-      // const utcEndTime = convertTimeToUtc(endTime);
-
-      if (!indefiniteEndDate && endDate < startDate) {
-        setErrorMessage("End Date cannot be earlier than Start Date.");
-        setLoading(false);
-        return;
-      }
-      // if (!validateTimeSlots()) {
-      //   // setErrorMessage("Set correct time.");
-      //   setLoading(false);
-      //   return;
-      // }
-
-      if (!validateTimeSlots()) {
-        return;
-      }
-      const overlappingSchedule = existingSchedule && (() => {
-        console.log(existingSchedule.status);
-      
-        // Skip deleted schedules
-        if (existingSchedule.status === "deleted") return false;
-      
-        // Only consider single-day schedules for overlap checking
-        // if (!existingSchedule.singleDay) return false;
-      
-        const existingStart = new Date(existingSchedule.startDate);
-        const existingEnd = existingSchedule.endDate ? new Date(existingSchedule.endDate) : null;
-      
-        // If the existing schedule has no end date, treat it as indefinite
-        if (!existingEnd) {
-          return true; // Block any new schedule if an existing one is indefinite
-        }
-      
-        // Check for overlaps between the new schedule and the existing schedule
-        return (
-          (startDate <= existingStart) 
-         
-          
-        );
-      })();
-      
-      
-      // if (overlappingSchedule) {
-      //   setErrorMessage(
-      //     "Cannot create a schedule during an existing scheduled period."
-      //   );
-      //   setLoading(false);
-      //   return;
-      // }
-
-
-
-      // await updateSchedule(
-      //   asin,
-      //   sku,
-      //   existingSchedule._id,
-      //   startDate,
-      //   indefiniteEndDate ? null : endDate,
-      //   price,
-      //   currentPrice,
-      //   userName,
-      //   imageURL,
-      //   weekly,
-      //   daysOfWeek.map(day=>day.value),
-      //   monthly,
-      //   datesOfMonth.map(date=>date.value),
-      //   utcStartTime,
-      //   utcEndTime
-      // );
-
-      const utcWeeklySlots = {};
-      const utcMonthlySlots = {};
-      /*
-      if (weekly) {
-        console.log("weekly: "+weeklyTimeSlots)
-        for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
-          console.log("slots"+JSON.stringify(timeSlots.timeSlotScheduleId));
-          utcWeeklySlots[day] = timeSlots.map(
-            
-            ({ startTime, endTime, newPrice, revertPrice }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
-              newPrice: parseFloat(newPrice),
-              revertPrice: parseFloat(revertPrice),
-              timeSlotScheduleId:timeSlots.timeSlotScheduleId
-              
-            })
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+          // const utcStartTime = convertTimeToUtc(startTime);
+          // const utcEndTime = convertTimeToUtc(endTime);
+    
+    
+          if (!indefiniteEndDate && endDate < startDate) {
+            setErrorMessage("End Date cannot be earlier than Start Date.");
+            // setLoading(false);
+            return;
+          }
+          if (!validateTimeSlots()) {
+            // setErrorMessage("Set correct time.");
+            setLoading(false);
+            return;
+          }
+    
+    
+          // await updateSchedule(
+          //   asin,
+          //   sku,
+          //   existingSchedule._id,
+          //   startDate,
+          //   indefiniteEndDate ? null : endDate,
+          //   price,
+          //   currentPrice,
+          //   userName,
+          //   imageURL,
+          //   weekly,
+          //   daysOfWeek.map(day=>day.value),
+          //   monthly,
+          //   datesOfMonth.map(date=>date.value),
+          //   utcStartTime,
+          //   utcEndTime
+          // );
+    
+    
+          const utcWeeklySlots = {};
+          const utcMonthlySlots = {};
+          if (weekly) {
+            console.log("weekly: " + JSON.stringify(weeklyTimeSlots));
+            for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+              console.log(
+                "slots" +
+                  JSON.stringify(timeSlots.map((slot) => slot.timeSlotScheduleId))
+              );
+              utcWeeklySlots[day] = timeSlots.map(
+                ({
+                  startTime,
+                  endTime,
+                  newPrice,
+                  revertPrice,
+                  timeSlotScheduleId,
+                }) => ({
+                  startTime: convertTimeToUtc(startTime),
+                  endTime: convertTimeToUtc(endTime),
+                  newPrice: parseFloat(newPrice),
+                  revertPrice: parseFloat(revertPrice),
+                  timeSlotScheduleId: timeSlotScheduleId,
+                })
+              );
+            }
+          }
+    
+    
+          if (monthly) {
+            for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
+              utcMonthlySlots[date] = timeSlots.map(
+                ({
+                  startTime,
+                  endTime,
+                  newPrice,
+                  revertPrice,
+                  timeSlotScheduleId,
+                }) => ({
+                  startTime: convertTimeToUtc(startTime),
+                  endTime: convertTimeToUtc(endTime),
+                  newPrice: parseFloat(newPrice),
+                  revertPrice: parseFloat(revertPrice),
+                  timeSlotScheduleId: timeSlotScheduleId,
+                })
+              );
+            }
+          }
+    
+    
+          // const updatedDaysOfWeek = daysOfWeek.filter(day => day).map(day => day.value || day);
+          // const updatedDatesOfMonth = datesOfMonth.filter(date => date).map(date => date.value || date);
+          // console.log("time and sinn "+asin+utcStartTime+utcEndTime);
+          const updateData = {
+            startDate,
+            endDate: indefiniteEndDate ? null : endDate,
+            price: parseFloat(price), // Ensure price is a number
+            currentPrice: parseFloat(currentPrice), // Ensure currentPrice is a number
+            userName,
+            title,
+            asin,
+            sku,
+            imageURL,
+            weekly: scheduleType === "weekly",
+            weeklyTimeSlots: utcWeeklySlots,
+            monthly: scheduleType === "monthly",
+            monthlyTimeSlots: utcMonthlySlots,
+          };
+          //startTime:startTime.toTimeString().slice(0, 5),
+          //endTime:endTime.toTimeString().slice(0, 5)
+          await axios.put(
+            `${BASE_URL}/api/schedule/change/${existingSchedule._id}`,
+            updateData
           );
-        }
-      }
-      
-*/
-      if (weekly) {
-        console.log("weekly: " + JSON.stringify(weeklyTimeSlots));
-        for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
-          console.log(
-            "slots" +
-              JSON.stringify(timeSlots.map((slot) => slot.timeSlotScheduleId))
+    
+    
+          addEvent({
+            title: `SKU: ${sku} - $${price}`,
+            start: startDate,
+            end: indefiniteEndDate ? null : endDate,
+            allDay: false,
+          });
+    
+    
+          setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+          setShowSuccessModal(true);
+          onClose();
+        } catch (error) {
+          setErrorMessage(
+            "Error scheduling price update: " +
+              (error.response ? error.response.data.error : error.message)
           );
-          utcWeeklySlots[day] = timeSlots.map(
-            ({
-              startTime,
-              endTime,
-              newPrice,
-              revertPrice,
-              timeSlotScheduleId,
-            }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
-              newPrice: parseFloat(newPrice),
-              revertPrice: parseFloat(revertPrice),
-              timeSlotScheduleId: timeSlotScheduleId,
-            })
-          );
+          console.error("Error scheduling price update:", error);
         }
-      }
-
-      if (monthly) {
-        for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
-          utcMonthlySlots[date] = timeSlots.map(
-            ({
-              startTime,
-              endTime,
-              newPrice,
-              revertPrice,
-              timeSlotScheduleId,
-            }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
-              newPrice: parseFloat(newPrice),
-              revertPrice: parseFloat(revertPrice),
-              timeSlotScheduleId: timeSlotScheduleId,
-            })
-          );
-        }
-      }
-      // const updatedDaysOfWeek = daysOfWeek.filter(day => day).map(day => day.value || day);
-      // const updatedDatesOfMonth = datesOfMonth.filter(date => date).map(date => date.value || date);
-      // console.log("time and sinn "+asin+utcStartTime+utcEndTime);
-      const updateData = {
-        startDate,
-        endDate: indefiniteEndDate ? null : endDate,
-        price: parseFloat(price), // Ensure price is a number
-        currentPrice: parseFloat(currentPrice), // Ensure currentPrice is a number
-        userName,
-        title,
-        asin,
-        sku,
-        imageURL,
-        weekly: scheduleType === "weekly",
-        weeklyTimeSlots: utcWeeklySlots,
-        monthly: scheduleType === "monthly",
-        monthlyTimeSlots: utcMonthlySlots,
       };
-      //startTime:startTime.toTimeString().slice(0, 5),
-      //endTime:endTime.toTimeString().slice(0, 5)
-      await axios.put(
-        `${BASE_URL}/api/schedule/change/${existingSchedule._id}`,
-        updateData
-      );
-
-
-      
-      addEvent({
-        title: `SKU: ${sku} - $${price}`,
-        start: startDate,
-        end: indefiniteEndDate ? null : endDate,
-        allDay: false,
-      });
-
-      // setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-      setSuccessMessage(`Price schedule successfully ${isUpdateMode ? "updated" : "created"}`);
-
-      setShowSuccessModal(true);
-      onClose();
-    } catch (error) {
-      setErrorMessage(
-        "Error scheduling price update: " +
-          (error.response ? error.response.data.error : error.message)
-      );
-      console.error("Error scheduling price update:", error);
-    }
-  };
 
   const handleDelete = async () => {
     try {
