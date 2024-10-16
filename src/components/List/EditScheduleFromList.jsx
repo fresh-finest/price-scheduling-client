@@ -772,11 +772,11 @@ const EditScheduleFromList = ({ show, onClose, asin, existingSchedule }) => {
       };
       //startTime:startTime.toTimeString().slice(0, 5),
       //endTime:endTime.toTimeString().slice(0, 5)
-
       await axios.put(
         `${BASE_URL}/api/schedule/change/${existingSchedule._id}`,
         updateData
       );
+
 
       
       addEvent({

@@ -9,9 +9,9 @@ import EditScheduleFromList from "./EditScheduleFromList";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -185,7 +185,7 @@ const ProductDetailView = ({ product, listing, asin, sku1, price }) => {
     const getData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${asin}`);
+        const response = await axios.get(`${BASE_URL}/api/schedule/${sku1}`);
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
