@@ -253,12 +253,35 @@ const EditScheduleFromList = ({
     }
   };
   // Format 'Date' object to 'HH:mm' without converting to UTC
+  /*
   const formatTimeToHHMM = (date) => {
-    const adjustedDate = new Date(date.getTime() - 6 * 60 * 60 * 1000); // Subtract 6 hours
+    const adjustedDate = new Date(date.getTime() + 4 * 60 * 60 * 1000);
     const hours = adjustedDate.getHours().toString().padStart(2, "0");
     const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
   };
+*/
+
+const formatTimeToHHMM = (date) => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let offsetHours;
+
+  // Set offset hours based on the detected time zone
+  if (timeZone.includes("America")) {
+    offsetHours = 4; // Assuming 4 hours for EDT or adjust based on specific time zone
+  } else if (timeZone === "Asia/Dhaka") {
+    offsetHours = 6; // Bangladesh time (BST)
+  } else {
+    offsetHours = 0; // Default, no adjustment
+  }
+
+  // Adjust the date based on the offset
+  const adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
+  
+  const hours = adjustedDate.getHours().toString().padStart(2, "0");
+  const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
 
   const convertTimeToUtc = (timeString) => {
     const date = convertTimeStringToDate(timeString); // Convert time string to Date object
