@@ -967,11 +967,11 @@ const EditScheduleFromList = ({
                       {(weeklyTimeSlots[day.value] || []).map((slot, index) => (
                         <Card
                           key={index}
-                          className="p-2 border-0 bg-[#F1F1F2] shadow-md rounded-sm"
+                          className="p-2 border-0 bg-[#F1F1F2] shadow-md rounded-sm relative"
                         >
                           {/* Start Time and Price */}
-                          <div className="flex justify-between items-center gap-2 my-1">
-                            <h3 className=" text-center w-[40px]">Start</h3>
+                          <div className="flex justify-between items-center gap-2  mt-4">
+                            <h3 className=" text-center w-[80px]">Start</h3>
                             <DatePicker
                               selected={
                                 slot.startTime
@@ -1010,15 +1010,11 @@ const EditScheduleFromList = ({
                               }
                               className="form-control edit-modal-custom-input"
                             />
-
-                            <span className=" text-transparent px-2 py-1 rounded ">
-                              <IoMdClose />
-                            </span>
                           </div>
 
                           {/* End Time and Revert Price */}
                           <div className="flex justify-between items-center gap-2 my-1">
-                            <h3 className=" text-center w-[70px]">End</h3>
+                            <h3 className=" text-center w-[80px]">End</h3>
                             <DatePicker
                               selected={
                                 slot.endTime
@@ -1062,7 +1058,7 @@ const EditScheduleFromList = ({
                               onClick={() =>
                                 handleRemoveTimeSlot("weekly", day.value, index)
                               }
-                              className="bg-red-700 text-white px-2 py-1 rounded-sm hover:bg-red-600"
+                              className="border-0 flex items-center justify-center px-1 py-1 rounded-sm text-black shadow-sm absolute top-0 right-0"
                             >
                               <IoMdClose />
                             </button>
@@ -1102,10 +1098,10 @@ const EditScheduleFromList = ({
                         (slot, index) => (
                           <Card
                             key={index}
-                            className="my-2 px-1 py-1 border-0 bg-[#F1F1F2] rounded-sm"
+                            className="my-2 px-1 py-1 border-0 bg-[#F1F1F2] rounded-sm relative"
                           >
-                            <div className="flex justify-center items-center gap-1 my-1">
-                              <h3 className="w-[40px] flex justify-center items-center text-[13px]">
+                            <div className="flex justify-center items-center gap-1 mt-4 my-1">
+                              <h3 className="w-[50px] flex justify-center items-center text-[13px]">
                                 Start
                               </h3>
                               <DatePicker
@@ -1145,11 +1141,10 @@ const EditScheduleFromList = ({
                                 }
                                 className="form-control edit-modal-custom-input"
                               />
-                              <span className="w-[50px]  border-0 flex items-center justify-center px-1 py-1  text-white"></span>
                             </div>
 
                             <div className="flex justify-center items-center gap-1">
-                              <h3 className="flex justify-center items-center  text-[13px] w-[80px]">
+                              <h3 className="flex justify-center items-center  text-[13px] w-[60px]">
                                 End
                               </h3>
                               <DatePicker
@@ -1191,9 +1186,8 @@ const EditScheduleFromList = ({
                                 required
                                 className=" edit-modal-custom-input"
                               />
-                              <Button
+                              <button
                                 type="button"
-                                variant="danger"
                                 onClick={() =>
                                   handleRemoveTimeSlot(
                                     "monthly",
@@ -1201,10 +1195,10 @@ const EditScheduleFromList = ({
                                     index
                                   )
                                 }
-                                className="w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
+                                className="border-0 flex items-center justify-center px-1 py-1 rounded-sm text-black shadow-sm absolute top-0 right-0"
                               >
                                 <IoMdClose />
-                              </Button>
+                              </button>
                             </div>
                           </Card>
                         )

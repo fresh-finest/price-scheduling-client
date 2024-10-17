@@ -143,7 +143,7 @@ const CalendarView = () => {
 
   return (
     <>
-      <section>
+      <section className="">
         <div className="flex items-center justify-between  mt-[-0.5%]">
           {/* Left: Previous, Today, Next Buttons */}
           <div className="flex items-center justify-start">
@@ -258,7 +258,7 @@ const CalendarView = () => {
         <div
           style={{
             padding: "20px",
-            marginTop: "20px",
+            // marginTop: "20px",
             // border: "1px solid red",
           }}
         >
