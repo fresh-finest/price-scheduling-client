@@ -264,20 +264,19 @@ const EditScheduleFromList = ({
 
 const formatTimeToHHMM = (date) => {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  let offsetHours;
+  let offsetHours = 0; // Default to no adjustment
+  let adjustedDate = new Date(date.getTime());
 
-  // Set offset hours based on the detected time zone
+  // Set offset hours and adjust the date based on the detected time zone
   if (timeZone.includes("America")) {
-    offsetHours = 4; // Assuming 4 hours for EDT or adjust based on specific time zone
+    offsetHours = 4; // Add 4 hours for EDT
+    adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
   } else if (timeZone === "Asia/Dhaka") {
-    offsetHours = 6; // Bangladesh time (BST)
-  } else {
-    offsetHours = 0; // Default, no adjustment
+    offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
+    adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
   }
 
-  // Adjust the date based on the offset
-  const adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
-  
+  // Format the adjusted date to HH:mm format
   const hours = adjustedDate.getHours().toString().padStart(2, "0");
   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
