@@ -1100,7 +1100,7 @@ const EditScheduleFromList = ({
                             key={index}
                             className="my-2 px-1 py-1 border-0 bg-[#F1F1F2] rounded-sm relative"
                           >
-                            <div className="flex justify-center items-center gap-1 mt-4 my-1">
+                            <div className="flex justify-center items-center gap-1 mt-4">
                               <h3 className="w-[50px] flex justify-center items-center text-[13px]">
                                 Start
                               </h3>

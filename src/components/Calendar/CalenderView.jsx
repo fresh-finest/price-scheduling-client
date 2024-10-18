@@ -36,6 +36,9 @@ import {
 } from "@/components/ui/popover";
 import { FaChevronDown } from "react-icons/fa";
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
@@ -52,6 +55,8 @@ const CalendarView = () => {
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("Month");
+
+  console.log("showOptionModal", showOptionModal);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -140,6 +145,8 @@ const CalendarView = () => {
     setMoreEvents(eventsForDay);
     setShowMoreModal(true);
   };
+
+  console.log("events", events);
 
   return (
     <>
@@ -247,6 +254,23 @@ const CalendarView = () => {
                         />
                         Week
                       </CommandItem>
+                      {/* Week View */}
+                      <CommandItem
+                        value="Day"
+                        onSelect={() => {
+                          setValue("Day"); // Change the dropdown value
+                          handleViewChange(Views.DAY); // Trigger the view change
+                          setOpen(false); // Close the dropdown
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            value === "Day" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        Day
+                      </CommandItem>
                     </CommandGroup>
                   </CommandList>
                 </Command>
@@ -256,18 +280,20 @@ const CalendarView = () => {
         </div>
 
         <div
-          style={{
-            padding: "20px",
-            // marginTop: "20px",
-            // border: "1px solid red",
-          }}
+          style={
+            {
+              // padding: "20px",
+              // marginTop: "20px",
+              // border: "1px solid red",
+            }
+          }
         >
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: "20px",
+              marginBottom: "10px",
             }}
           >
             {/* Right: Dropdown for Views */}
@@ -289,7 +315,7 @@ const CalendarView = () => {
             events={events}
             startAccessor="start"
             endAccessor="end"
-            views={["month", "week"]}
+            views={["month", "week", "day"]}
             view={view}
             date={selectedDate}
             onNavigate={handleNavigate}
@@ -297,7 +323,8 @@ const CalendarView = () => {
             onSelectSlot={handleSelectSlot}
             onClickDay={handleDateClick}
             style={{
-              height: "calc(100vh - 160px)",
+              // height: "calc(100vh - 60px)",
+              height: "93vh",
               width: "100%",
               fontSize: "16px",
               borderRadius: "10px",
@@ -326,6 +353,33 @@ const CalendarView = () => {
             event={selectedEvent}
           />
 
+          {/* <Popover
+            className="animate-slide-in-left"
+            open={showOptionModal}
+            onOpenChange={setShowOptionModal}
+          >
+            <PopoverTrigger asChild>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[28rem]  shadow-lg "
+              style={{
+                top: `${modalPosition.top}px`,
+                left: `${modalPosition.left}px`,
+                position: "absolute", 
+                zIndex: 999, 
+              }}
+            >
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Dimensions</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Set the dimensions for the layer.
+                  </p>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover> */}
+
           <Modal
             show={showOptionModal}
             onHide={handleCloseOptionModal}
@@ -352,6 +406,7 @@ const CalendarView = () => {
               )}
             </Modal.Body>
           </Modal>
+
           <Modal
             show={showMoreModal}
             onHide={handleCloseMoreModal}

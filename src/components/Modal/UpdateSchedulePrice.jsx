@@ -270,7 +270,11 @@ const UpdatePrice = ({ show, onClose }) => {
 
   return (
     <>
-      <Modal show={show} onHide={onClose}>
+      <Modal
+        show={show}
+        onHide={onClose}
+        dialogClassName="update-price-list-modal"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Update Scheduled Price</Modal.Title>
         </Modal.Header>
