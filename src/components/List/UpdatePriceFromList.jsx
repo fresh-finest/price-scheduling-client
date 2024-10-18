@@ -19,8 +19,10 @@ import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 
-// const BASE_URL = "https://api.priceobo.com";
-const BASE_URL ='http://localhost:3000'
+
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const BASE_URL = "https://api.priceobo.com";
+// const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -88,7 +90,8 @@ const saveScheduleAndQueueJobs = async (
   weeklyTimeSlots = {},
   monthly = false,
   // datesOfMonth = [],
-  monthlyTimeSlots = {}
+  monthlyTimeSlots = {},
+  timeZone
 ) => {
   try {
     const response = await axios.post(`${BASE_URL}/api/schedule/change`, {
@@ -107,6 +110,7 @@ const saveScheduleAndQueueJobs = async (
       monthly,
       // datesOfMonth,
       monthlyTimeSlots,
+      timeZone
     });
     return response.data;
   } catch (error) {
@@ -633,7 +637,8 @@ const UpdatePriceFromList = ({
           weeklySlotsInUtc,
           monthly,
           // datesOfMonth.map((date) => date.value),
-          monthlySlotsInUtc
+          monthlySlotsInUtc,
+          timeZone
         );
       }
 
