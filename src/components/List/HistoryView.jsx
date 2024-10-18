@@ -14,9 +14,9 @@ import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
