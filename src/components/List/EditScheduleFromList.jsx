@@ -16,8 +16,9 @@ import "./EditScheduleFromList.css";
 import { BsClipboardCheck } from "react-icons/bs";
 import { MdCheck } from "react-icons/md";
 
-const BASE_URL = "http://localhost:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const dayNames = [
   "Sunday",
@@ -695,6 +696,7 @@ const formatTimeToHHMM = (date) => {
         weeklyTimeSlots: utcWeeklySlots,
         monthly: scheduleType === "monthly",
         monthlyTimeSlots: utcMonthlySlots,
+        timeZone
       };
       //startTime:startTime.toTimeString().slice(0, 5),
       //endTime:endTime.toTimeString().slice(0, 5)
