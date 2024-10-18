@@ -367,6 +367,7 @@ const UpdatePriceFromList = ({
     for (const day in weeklyTimeSlots) {
      
       const slots = weeklyTimeSlots[day];
+      /*
       if (parseInt(day) === today) {
         // If the selected day is today, check the time
         for (let slot of slots) {
@@ -377,7 +378,7 @@ const UpdatePriceFromList = ({
             return false;
           }
         }
-      }
+      } */
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -413,7 +414,7 @@ const UpdatePriceFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
-
+/*
       if (parseInt(date) === currentDayOfMonth) {
         // If the selected date is today, check the time
         for (let slot of slots) {
@@ -424,7 +425,7 @@ const UpdatePriceFromList = ({
             return false;
           }
         }
-      }
+      } */
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -459,6 +460,200 @@ const UpdatePriceFromList = ({
     }
     return true;
   };
+/*
+// Helper function to convert time to EDT if the timezone is Bangladesh
+const convertToEDT = (timeString, userTimeZone, date = new Date()) => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  date.setHours(hours, minutes, 0, 0); // Set the time
+
+  // Only convert if the user's time zone is Bangladesh (Asia/Dhaka)
+  if (userTimeZone === "Asia/Dhaka") {
+    const edtDate = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+
+    // Extract the converted hours and minutes in EDT
+    const edtHours = parseInt(edtDate.find((part) => part.type === "hour").value);
+    const edtMinutes = parseInt(edtDate.find((part) => part.type === "minute").value);
+
+    return new Date(date.setHours(edtHours, edtMinutes, 0, 0)); // Return as a Date object in EDT
+  } else {
+    // Return the original date object if no conversion is needed
+    return date;
+  }
+};
+
+// Helper function to format time for messages
+const formatTime = (date) => {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+// Main validation function
+const validateTimeSlots = () => {
+  const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
+    return start1 < end2 && start2 < end1;
+  };
+
+  const now = convertToEDT(formatTime(new Date()), timeZone); // Get the current time in EDT if in Bangladesh
+  const today = now.getDay(); // Get today's day index
+  const currentDayOfMonth = now.getDate(); // Get today's date in the month
+
+  // Validate schedules for overlapping
+  for (let i = 0; i < schedules.length; i++) {
+    const schedule1 = schedules[i];
+    const start1 = convertToEDT(formatTime(new Date(schedule1.startDate)), timeZone); // Convert start date to EDT if Bangladesh
+    const end1 = convertToEDT(formatTime(new Date(schedule1.endDate || schedule1.startDate)), timeZone); // Convert end date to EDT if Bangladesh
+
+    for (let j = i + 1; j < schedules.length; j++) {
+      const schedule2 = schedules[j];
+      const start2 = convertToEDT(formatTime(new Date(schedule2.startDate)), timeZone); // Convert start date to EDT if Bangladesh
+      const end2 = convertToEDT(formatTime(new Date(schedule2.endDate || schedule2.startDate)), timeZone); // Convert end date to EDT if Bangladesh
+
+      if (isTimeSlotOverlapping(start1, end1, start2, end2)) {
+        setErrorMessage("Schedules overlap.");
+        // Hide the error message after 3 seconds
+        setTimeout(() => {
+          setErrorMessage(""); // Clear the error message
+        }, 2000);
+        return false;
+      }
+    }
+  }
+
+  // Validate "Until Changed" option
+  for (let i = 0; i < schedules.length - 1; i++) {
+    const prevSchedule = schedules[i];
+    const currentSchedule = schedules[schedules.length - 1];
+
+    const prevEndDate = convertToEDT(formatTime(new Date(prevSchedule.endDate || prevSchedule.startDate)), timeZone);
+    const currentStartDate = convertToEDT(formatTime(new Date(currentSchedule.startDate)), timeZone);
+
+    if (
+      currentSchedule.indefiniteEndDate &&
+      currentStartDate <= prevEndDate
+    ) {
+      setErrorMessage(
+        `"Until Changed" option can only be selected if the start date is greater than the end date of all previous schedules.`
+      );
+      return false;
+    }
+  }
+
+  // Validate weekly time slots
+  for (const day in weeklyTimeSlots) {
+    const slots = weeklyTimeSlots[day];
+    if (parseInt(day) === today) {
+      for (let slot of slots) {
+        const startTimeEDT = convertToEDT(slot.startTime, timeZone);
+        if (startTimeEDT < now) {
+          setErrorMessage(
+            "The selected start time is in the past for today's time slot. Please select a future time."
+          );
+          return false;
+        }
+      }
+    }
+
+    for (let i = 0; i < slots.length; i++) {
+      const slot1 = slots[i];
+      const startTimeEDT1 = convertToEDT(slot1.startTime, timeZone);
+      const endTimeEDT1 = convertToEDT(slot1.endTime, timeZone);
+
+      if (startTimeEDT1 >= endTimeEDT1) {
+        setErrorMessage(
+          `For day ${day}, start time must be earlier than end time.`
+        );
+        return false;
+      }
+
+      for (let j = i + 1; j < slots.length; j++) {
+        const slot2 = slots[j];
+        const startTimeEDT2 = convertToEDT(slot2.startTime, timeZone);
+        const endTimeEDT2 = convertToEDT(slot2.endTime, timeZone);
+
+        if (
+          isTimeSlotOverlapping(
+            startTimeEDT1,
+            endTimeEDT1,
+            startTimeEDT2,
+            endTimeEDT2
+          )
+        ) {
+          setErrorMessage(
+            `Time slots for day ${day} overlap between ${formatTime(
+              startTimeEDT1
+            )} - ${formatTime(endTimeEDT1)} and ${formatTime(
+              startTimeEDT2
+            )} - ${formatTime(endTimeEDT2)}.`
+          );
+          return false;
+        }
+      }
+    }
+  }
+
+  // Validate monthly time slots
+  for (const date in monthlyTimeSlots) {
+    const slots = monthlyTimeSlots[date];
+    if (parseInt(date) === currentDayOfMonth) {
+      for (let slot of slots) {
+        const startTimeEDT = convertToEDT(slot.startTime, timeZone);
+        if (startTimeEDT < now) {
+          setErrorMessage(
+            "The selected start time is in the past for today's time slot. Please select a future time."
+          );
+          return false;
+        }
+      }
+    }
+
+    for (let i = 0; i < slots.length; i++) {
+      const slot1 = slots[i];
+      const startTimeEDT1 = convertToEDT(slot1.startTime, timeZone);
+      const endTimeEDT1 = convertToEDT(slot1.endTime, timeZone);
+
+      if (startTimeEDT1 >= endTimeEDT1) {
+        setErrorMessage(
+          `For date ${date}, start time must be earlier than end time.`
+        );
+        return false;
+      }
+
+      for (let j = i + 1; j < slots.length; j++) {
+        const slot2 = slots[j];
+        const startTimeEDT2 = convertToEDT(slot2.startTime, timeZone);
+        const endTimeEDT2 = convertToEDT(slot2.endTime, timeZone);
+
+        if (
+          isTimeSlotOverlapping(
+            startTimeEDT1,
+            endTimeEDT1,
+            startTimeEDT2,
+            endTimeEDT2
+          )
+        ) {
+          setErrorMessage(
+            `Time slots for date ${date} overlap between ${formatTime(
+              startTimeEDT1
+            )} - ${formatTime(endTimeEDT1)} and ${formatTime(
+              startTimeEDT2
+            )} - ${formatTime(endTimeEDT2)}.`
+          );
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+};
+
+*/
 
   const fetchSchedules = async (asin) => {
     try {
