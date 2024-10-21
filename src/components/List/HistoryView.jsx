@@ -317,7 +317,7 @@ const handleRowClick = async (scheduleId) => {
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-/*
+
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -329,8 +329,8 @@ const handleRowClick = async (scheduleId) => {
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-  */
-  const formatDateTime = (dateString) => {
+  
+  const formatDateTimeCreated = (dateString) => {
     const options = {
       day: "2-digit",
       month: "short",
@@ -927,7 +927,7 @@ const handleRowClick = async (scheduleId) => {
                           height: "40px",
                         }}
                       >
-                        {item.userName} <p>{formatDateTime(item.timestamp)}</p>
+                        {item.userName} <p>{formatDateTimeCreated(item.timestamp)}</p>
                       </td>
 
                       {/* action */}
@@ -1749,7 +1749,7 @@ const handleRowClick = async (scheduleId) => {
                                           >
                                             <h2>
                                               {nestedItem.userName} -{" "}
-                                              {formatDateTime(
+                                              {formatDateTimeCreated(
                                                 nestedItem.timestamp
                                               )}
                                             </h2>
