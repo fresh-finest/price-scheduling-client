@@ -62,10 +62,10 @@ const fetchPriceBySku = async (sku) => {
   }
 };
 
-const fetchExistingSchedules = async (asin) => {
+const fetchExistingSchedules = async (sku) => {
   try {
     const response = await axios.get(`${BASE_URL}/api/schedule`);
-    return response.data.result.filter((schedule) => schedule.asin === asin);
+    return response.data.result.filter((schedule) => schedule.sku === sku);
   } catch (error) {
     console.error(
       "Error fetching existing schedules:",
@@ -184,7 +184,7 @@ const UpdatePriceFromList = ({
       fetchProductPriceBySku(sku1);
       fetchProductDetailsByAsin(asin);
 
-      fetchSchedules(asin);
+      fetchSchedules(sku1);
     } else if (show && !asin) {
       onClose();
     }
@@ -655,10 +655,10 @@ const validateTimeSlots = () => {
 
 */
 
-  const fetchSchedules = async (asin) => {
+  const fetchSchedules = async (sku1) => {
     try {
       setLoading(true);
-      const schedules = await fetchExistingSchedules(asin);
+      const schedules = await fetchExistingSchedules(sku1);
       setExistingSchedules(schedules);
 
       const hasWeekly = schedules.some(
