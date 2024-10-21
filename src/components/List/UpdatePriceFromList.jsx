@@ -869,7 +869,8 @@ const validateTimeSlots = () => {
           weeklySlotsInUtc,
           monthly,
           // datesOfMonth.map((date) => date.value),
-          monthlySlotsInUtc
+          monthlySlotsInUtc,
+          timeZone
         );
       }
 
@@ -897,7 +898,8 @@ const validateTimeSlots = () => {
             weeklySlotsInUtc,
             monthly,
             // datesOfMonth.map((date) => date.value),
-            monthlySlotsInUtc
+            monthlySlotsInUtc,
+            timeZone
           );
           // Log event or update UI after successful submission
         }
