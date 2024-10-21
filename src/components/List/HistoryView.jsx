@@ -8,13 +8,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
+import moment from "moment-timezone";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
-const BASE_URLS = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -316,7 +317,7 @@ const handleRowClick = async (scheduleId) => {
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-
+/*
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -328,6 +329,21 @@ const handleRowClick = async (scheduleId) => {
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
+  */
+  const formatDateTime = (dateString) => {
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+      timeZone: "America/New_York" // Set timezone to EDT (Eastern Time Zone)
+    };
+    
+    return new Date(dateString).toLocaleString("en-US", options);
+  };
+  
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
