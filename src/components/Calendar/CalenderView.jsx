@@ -56,8 +56,6 @@ const CalendarView = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("Month");
 
-  console.log("showOptionModal", showOptionModal);
-
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -97,7 +95,8 @@ const CalendarView = () => {
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
-    setShowOptionModal(true);
+    // setShowOptionModal(true);
+    setShowUpdateModal(true);
   };
 
   const handleSelectSlot = (slotInfo) => {
@@ -124,7 +123,8 @@ const CalendarView = () => {
       top: top,
       left: left,
     });
-    setShowOptionModal(true);
+    // setShowOptionModal(true);
+    setShowUpdateModal(true);
   };
 
   const goToPreviousDate = () => {
@@ -146,7 +146,7 @@ const CalendarView = () => {
     setShowMoreModal(true);
   };
 
-  console.log("events", events);
+  console.log("selected date", selectedDate);
 
   return (
     <>
@@ -196,13 +196,74 @@ const CalendarView = () => {
               </Tooltip>
             </TooltipProvider>
             {/* Center: Month and Year */}
+            {/* Center: Month, Week Range, or Day */}
             <h3 className="text-2xl mx-3 mt-[-10px]" style={{ margin: 0 }}>
-              {moment(selectedDate).format("MMMM YYYY")}
+              {value === "Month"
+                ? moment(selectedDate).format("MMMM YYYY") // Display month and year
+                : value === "Week"
+                ? `${moment(selectedDate)
+                    .startOf("week")
+                    .format("MMMM D")} - ${moment(selectedDate)
+                    .endOf("week")
+                    .format("MMMM D, YYYY")}` // Display week range
+                : moment(selectedDate).format("MMMM D, YYYY")}{" "}
+              {/* Display specific day */}
             </h3>
           </div>
 
+          {/* Calendar page buttons */}
+          <div className="mr-[13%] flex space-x-2">
+            {/* Month View Button */}
+            <Button
+              variant="outline"
+              className={`w-[80px]  justify-center ${
+                value === "Month"
+                  ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                  : ""
+              }`}
+              onClick={() => {
+                setValue("Month"); // Change the button state
+                handleViewChange(Views.MONTH); // Trigger the view change
+              }}
+            >
+              Month
+            </Button>
+
+            {/* Week View Button */}
+            <Button
+              variant="outline"
+              className={`w-[80px] justify-center ${
+                value === "Week"
+                  ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                  : ""
+              }`}
+              onClick={() => {
+                setValue("Week"); // Change the button state
+                handleViewChange(Views.WEEK); // Trigger the view change
+              }}
+            >
+              Week
+            </Button>
+
+            {/* Day View Button */}
+            <Button
+              variant="outline"
+              className={`w-[80px] justify-center ${
+                value === "Day"
+                  ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                  : ""
+              }`}
+              onClick={() => {
+                setValue("Day"); // Change the button state
+                handleViewChange(Views.DAY); // Trigger the view change
+              }}
+            >
+              Day
+            </Button>
+          </div>
+
           {/* calender page dropdown */}
-          <div className="mr-[13%]">
+          {/* <div className="mr-[13%]">
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -219,13 +280,12 @@ const CalendarView = () => {
                 <Command>
                   <CommandList>
                     <CommandGroup>
-                      {/* Month View */}
                       <CommandItem
                         value="Month"
                         onSelect={() => {
-                          setValue("Month"); // Change the dropdown value
-                          handleViewChange(Views.MONTH); // Trigger the view change
-                          setOpen(false); // Close the dropdown
+                          setValue("Month");
+                          handleViewChange(Views.MONTH); 
+                          setOpen(false); 
                         }}
                       >
                         <Check
@@ -237,13 +297,12 @@ const CalendarView = () => {
                         Month
                       </CommandItem>
 
-                      {/* Week View */}
                       <CommandItem
                         value="Week"
                         onSelect={() => {
-                          setValue("Week"); // Change the dropdown value
-                          handleViewChange(Views.WEEK); // Trigger the view change
-                          setOpen(false); // Close the dropdown
+                          setValue("Week"); 
+                          handleViewChange(Views.WEEK); 
+                          setOpen(false); 
                         }}
                       >
                         <Check
@@ -254,13 +313,12 @@ const CalendarView = () => {
                         />
                         Week
                       </CommandItem>
-                      {/* Week View */}
                       <CommandItem
                         value="Day"
                         onSelect={() => {
-                          setValue("Day"); // Change the dropdown value
-                          handleViewChange(Views.DAY); // Trigger the view change
-                          setOpen(false); // Close the dropdown
+                          setValue("Day"); 
+                          handleViewChange(Views.DAY); 
+                          setOpen(false); 
                         }}
                       >
                         <Check
@@ -276,7 +334,7 @@ const CalendarView = () => {
                 </Command>
               </PopoverContent>
             </Popover>
-          </div>
+          </div> */}
         </div>
 
         <div
@@ -351,6 +409,7 @@ const CalendarView = () => {
             show={showUpdateModal}
             onClose={handleCloseUpdateModal}
             event={selectedEvent}
+            selectedDate={selectedDate}
           />
 
           {/* <Popover
@@ -392,7 +451,14 @@ const CalendarView = () => {
             }}
           >
             <Modal.Header closeButton>
-              <Modal.Title>Options</Modal.Title>
+              <Modal.Title>
+                {/* Options{" "} */}
+                {new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}{" "}
+              </Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <Button

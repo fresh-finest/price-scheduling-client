@@ -18,7 +18,6 @@ export const PriceScheduleProvider = ({ children }) => {
       const events = [];
 
       schedules.forEach((schedule) => {
-        console.log(schedule);
         const {
           startDate,
           endDate,
