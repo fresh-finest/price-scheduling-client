@@ -18,6 +18,10 @@ const fetchProductDetails = async (asin) => {
       "Error fetching product details:",
       error.response ? error.response.data : error.message
     );
+    console.error(
+      "Error fetching product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
@@ -31,11 +35,14 @@ const fetchProductAdditionalDetails = async (asin) => {
       "Error fetching additional product details:",
       error.response ? error.response.data : error.message
     );
+    console.error(
+      "Error fetching additional product details:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
-
-const updateProductPrice = async (sku, value) => {
+const fetchPriceBySku = async (sku) => {
   try {
     const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
       value: parseFloat(value),
@@ -83,7 +90,16 @@ const saveSchedule = async (
   }
 };
 
-const UpdatePrice = ({ show, onClose }) => {
+const UpdatePriceFromList = ({
+  show,
+  onClose,
+  asin,
+  sku1,
+  product,
+  fnSku,
+  channelStockValue,
+  fulfillmentChannel,
+}) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [asin, setAsin] = useState("");
   const [sku, setSku] = useState("");
@@ -94,6 +110,8 @@ const UpdatePrice = ({ show, onClose }) => {
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [startTimerId, setStartTimerId] = useState(null);
   const [endTimerId, setEndTimerId] = useState(null);
@@ -101,13 +119,43 @@ const UpdatePrice = ({ show, onClose }) => {
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
-  const userName = currentUser.userName;
+
+  const userName = currentUser?.userName || "";
+
+  const [weeklyExists, setWeeklyExists] = useState(false);
+  const [monthlyExists, setMonthlyExists] = useState(false);
+
+  const [activeTab, setActiveTab] = useState("single");
+  // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
+  //   label: `${i + 1}`,
+  //   value: i + 1,
+  // }));
 
   useEffect(() => {
-    if (show) {
+    if (show && asin) {
+      setActiveTab("single");
       resetForm();
+      fetchProductPriceBySku(sku1);
+      fetchProductDetailsByAsin(asin);
+
+      fetchSchedules(asin);
+    } else if (show && !asin) {
+      onClose();
     }
-  }, [show]);
+  }, [show, asin]);
+
+  useEffect(() => {
+    if (activeTab === "weekly") {
+      setWeekly(true);
+      setMonthly(false);
+    } else if (activeTab === "monthly") {
+      setMonthly(true);
+      setWeekly(false);
+    } else {
+      setMonthly(false);
+      setWeekly(false);
+    }
+  }, [activeTab]);
 
   const resetForm = () => {
     setAsin("");
@@ -116,6 +164,8 @@ const UpdatePrice = ({ show, onClose }) => {
     setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
+    // setStartTime(new Date());
+    // setEndTime(new Date());
     setIndefiniteEndDate(false);
     setSuccessMessage("");
     setErrorMessage("");
@@ -130,8 +180,8 @@ const UpdatePrice = ({ show, onClose }) => {
       try {
         const data = await fetchProductDetails(asinValue);
         const productDetails = data.payload[0].Product.Offers[0];
-        setSku(productDetails.SellerSKU);
-        setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+        // setSku(productDetails.SellerSKU);
+        // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
         const additionalData = await fetchProductAdditionalDetails(asinValue);
         setTitle(additionalData.payload.AttributeSets[0].Title);
@@ -178,8 +228,8 @@ const UpdatePrice = ({ show, onClose }) => {
       // Add event to the context
       addEvent({
         title: `SKU: ${sku} - $${price}`,
-        start: startDate,
-        end: indefiniteEndDate ? null : endDate,
+        start: new Date(startDate), // Use the original date object for UI purposes
+        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
         allDay: false,
       });
 
@@ -345,6 +395,7 @@ const UpdatePrice = ({ show, onClose }) => {
           </Button>
         </Modal.Body>
       </Modal>
+
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Successfully updated price!</Modal.Title>
@@ -354,4 +405,4 @@ const UpdatePrice = ({ show, onClose }) => {
   );
 };
 
-export default UpdatePrice;
+export default UpdatePriceFromList;

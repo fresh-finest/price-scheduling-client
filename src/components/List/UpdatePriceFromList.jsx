@@ -62,8 +62,10 @@ const fetchPriceBySku = async (sku) => {
 };
 
 const fetchExistingSchedules = async (sku) => {
+const fetchExistingSchedules = async (sku) => {
   try {
     const response = await axios.get(`${BASE_URL}/api/schedule`);
+    return response.data.result.filter((schedule) => schedule.sku === sku);
     return response.data.result.filter((schedule) => schedule.sku === sku);
   } catch (error) {
     console.error(
@@ -89,6 +91,8 @@ const saveScheduleAndQueueJobs = async (
   weeklyTimeSlots = {},
   monthly = false,
   // datesOfMonth = [],
+  monthlyTimeSlots = {},
+  timeZone
   monthlyTimeSlots = {},
   timeZone
 ) => {
@@ -183,6 +187,7 @@ const UpdatePriceFromList = ({
       fetchProductPriceBySku(sku1);
       fetchProductDetailsByAsin(asin);
 
+      fetchSchedules(sku1);
       fetchSchedules(sku1);
     } else if (show && !asin) {
       onClose();
@@ -309,6 +314,9 @@ const UpdatePriceFromList = ({
     }
   };
 
+ 
+  
+  
   const validateTimeSlots = () => {
     const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
       return start1 < end2 && start2 < end1;
@@ -366,6 +374,7 @@ const UpdatePriceFromList = ({
     const currentDayOfMonth = now.getDate(); // Get today's date in the month
 
     for (const day in weeklyTimeSlots) {
+     
       const slots = weeklyTimeSlots[day];
       /*
       if (parseInt(day) === today) {
@@ -659,6 +668,7 @@ const validateTimeSlots = () => {
     try {
       setLoading(true);
       const schedules = await fetchExistingSchedules(sku1);
+      const schedules = await fetchExistingSchedules(sku1);
       setExistingSchedules(schedules);
 
       const hasWeekly = schedules.some(
@@ -730,7 +740,9 @@ const validateTimeSlots = () => {
   const convertTimeToUtc = (time) => {
     return moment(time).utc().format("HH:mm");
   };
-
+  const convertTimeToLocalFormat = (time) => {
+    return moment(time).format("HH:mm");
+  };
   const addNewSchedule = () => {
     setSchedules([
       ...schedules,
@@ -807,11 +819,21 @@ const validateTimeSlots = () => {
           return;
         }
 
+        // for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+        //   weeklySlotsInUtc[day] = timeSlots.map(
+        //     ({ startTime, endTime, newPrice, revertPrice }) => ({
+        //       startTime: convertTimeToUtc(startTime),
+        //       endTime: convertTimeToUtc(endTime),
+        //       newPrice: parseFloat(newPrice),
+        //       revertPrice: parseFloat(revertPrice),
+        //     })
+        //   );
+        // }
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           weeklySlotsInUtc[day] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
             })
@@ -834,6 +856,8 @@ const validateTimeSlots = () => {
           // datesOfMonth.map((date) => date.value),
           monthlySlotsInUtc,
           timeZone
+          monthlySlotsInUtc,
+          timeZone
         );
       }
 
@@ -844,11 +868,22 @@ const validateTimeSlots = () => {
           return;
         }
 
+        // for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
+        //   monthlySlotsInUtc[date] = timeSlots.map(
+        //     ({ startTime, endTime, newPrice, revertPrice }) => ({
+        //       startTime: convertTimeToUtc(startTime),
+        //       endTime: convertTimeToUtc(endTime),
+        //       newPrice: parseFloat(newPrice),
+        //       revertPrice: parseFloat(revertPrice),
+        //     })
+        //   );
+        // }
+
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           monthlySlotsInUtc[date] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
             })
@@ -869,7 +904,8 @@ const validateTimeSlots = () => {
           weeklySlotsInUtc,
           monthly,
           // datesOfMonth.map((date) => date.value),
-          monthlySlotsInUtc
+          monthlySlotsInUtc,
+          timeZone
         );
       }
 
@@ -897,7 +933,8 @@ const validateTimeSlots = () => {
             weeklySlotsInUtc,
             monthly,
             // datesOfMonth.map((date) => date.value),
-            monthlySlotsInUtc
+            monthlySlotsInUtc,
+            timeZone
           );
           // Log event or update UI after successful submission
         }

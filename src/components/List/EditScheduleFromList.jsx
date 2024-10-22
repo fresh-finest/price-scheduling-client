@@ -253,8 +253,9 @@ const EditScheduleFromList = ({
     }
   };
   // Format 'Date' object to 'HH:mm' without converting to UTC
+  /*
   const formatTimeToHHMM = (date) => {
-    const adjustedDate = new Date(date.getTime() - 6 * 60 * 60 * 1000); // Subtract 6 hours
+    const adjustedDate = new Date(date.getTime() + 4 * 60 * 60 * 1000);
     const hours = adjustedDate.getHours().toString().padStart(2, "0");
     const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
@@ -301,12 +302,12 @@ const EditScheduleFromList = ({
     if (typeof timeString === "string" && timeString.includes(":")) {
       const [hours, minutes] = timeString.split(":").map(Number);
       if (!isNaN(hours) && !isNaN(minutes)) {
-        const now = new Date();
-        now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
-        return now; // Local time will be automatically adjusted
+        const date = new Date(); // Create a new Date object with the current date
+        date.setHours(hours, minutes, 0, 0); // Set the time without adjusting for time zones
+        return date;
       }
     }
-    return new Date(); // Fallback to current time if the timeString is invalid
+    return new Date(); // Return the current date and time if the input is invalid
   };
 
   useEffect(() => {
@@ -504,6 +505,8 @@ const EditScheduleFromList = ({
     };
 
     for (const day in weeklyTimeSlots) {
+
+
       const slots = weeklyTimeSlots[day];
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
@@ -540,6 +543,9 @@ const EditScheduleFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
+
+
+
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -626,8 +632,8 @@ const EditScheduleFromList = ({
               revertPrice,
               timeSlotScheduleId,
             }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
               timeSlotScheduleId: timeSlotScheduleId,
@@ -646,8 +652,8 @@ const EditScheduleFromList = ({
               revertPrice,
               timeSlotScheduleId,
             }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
               timeSlotScheduleId: timeSlotScheduleId,
@@ -673,6 +679,7 @@ const EditScheduleFromList = ({
         weeklyTimeSlots: utcWeeklySlots,
         monthly: scheduleType === "monthly",
         monthlyTimeSlots: utcMonthlySlots,
+        timeZone
       };
       //startTime:startTime.toTimeString().slice(0, 5),
       //endTime:endTime.toTimeString().slice(0, 5)
@@ -782,7 +789,7 @@ const EditScheduleFromList = ({
         <Modal.Header closeButton>
           <div className="flex flex-col  w-full">
             <h2 className="text-xl font-normal text-center mb-3 border w-[30%] mx-auto py-1 rounded bg-[#F1F1F2] shadow-sm">
-              Edit {editScheduleModalTitle} Schedule Price
+              Update {editScheduleModalTitle} Schedule & Price
             </h2>
             <div>
               <div className="flex gap-1">
@@ -847,6 +854,7 @@ const EditScheduleFromList = ({
               >
                 <Form.Label>New Price</Form.Label>
                 <Form.Control
+                  step="0.01"
                   step="0.01"
                   type="number"
                   placeholder="Enter New Price"
@@ -999,6 +1007,7 @@ const EditScheduleFromList = ({
                               value={slot.newPrice}
                               placeholder="Start Price"
                               step="0.01"
+                              step="0.01"
                               onChange={(e) =>
                                 handleTimeSlotPriceChange(
                                   "weekly",
@@ -1054,6 +1063,7 @@ const EditScheduleFromList = ({
                               className="form-control edit-modal-custom-input"
                             />
                             <button
+                              type="button"
                               type="button"
                               onClick={() =>
                                 handleRemoveTimeSlot("weekly", day.value, index)

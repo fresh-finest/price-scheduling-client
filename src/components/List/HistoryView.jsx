@@ -8,13 +8,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
+import moment from "moment-timezone";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
@@ -173,6 +174,10 @@ export default function HistoryView() {
   const [showWeeklyType, setShowWeeklyType] = useState(false);
   const [showMonthlyType, setShowMonthlyType] = useState(false);
 
+  console.log(showSingleType);
+  console.log(showWeeklyType);
+  console.log(showMonthlyType);
+
   const itemsPerPage = 10;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
@@ -256,7 +261,7 @@ export default function HistoryView() {
       setLoadingNested(false);
     }
   };
-
+  /*
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -267,7 +272,40 @@ export default function HistoryView() {
       }
     }
   };
+*/
 
+  const handleRowClick = async (scheduleId) => {
+    if (expandedRow === scheduleId) {
+      setExpandedRow(null); // Collapse the row if it's already expanded
+    } else {
+      setExpandedRow(scheduleId);
+
+      // Fetch nested data only if it hasn't been fetched before
+      if (!nestedData[scheduleId]) {
+        setLoadingNested(true);
+        try {
+          const nestedResponse = await axios.get(
+            `${BASE_URL}/api/history/${scheduleId}`
+          );
+          setNestedData((prevData) => ({
+            ...prevData,
+            [scheduleId]: nestedResponse.data,
+          }));
+        } catch (err) {
+          console.error(
+            `Error fetching nested data for scheduleId ${scheduleId}:`,
+            err
+          );
+          setNestedData((prevData) => ({
+            ...prevData,
+            [scheduleId]: [], // Default to empty array if there's an error
+          }));
+        } finally {
+          setLoadingNested(false);
+        }
+      }
+    }
+  };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -294,6 +332,20 @@ export default function HistoryView() {
       minute: "numeric",
       hour12: true,
     };
+    return new Date(dateString).toLocaleString("en-US", options);
+  };
+
+  const formatDateTimeCreated = (dateString) => {
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+      timeZone: "America/New_York", // Set timezone to EDT (Eastern Time Zone)
+    };
+
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
@@ -401,6 +453,8 @@ export default function HistoryView() {
 
       return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
     });
+
+  console.log(filteredData);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -877,7 +931,8 @@ export default function HistoryView() {
                           height: "40px",
                         }}
                       >
-                        {item.userName} <p>{formatDateTime(item.timestamp)}</p>
+                        {item.userName}{" "}
+                        <p>{formatDateTimeCreated(item.timestamp)}</p>
                       </td>
 
                       {/* action */}
@@ -1022,7 +1077,7 @@ export default function HistoryView() {
                                                                           <h3 className="flex  text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                             {addHoursToTime(
                                                                               slot.startTime,
-                                                                              6
+                                                                              0
                                                                             )}
 
                                                                             <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
@@ -1042,7 +1097,7 @@ export default function HistoryView() {
                                                                             <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                               {addHoursToTime(
                                                                                 slot.endTime,
-                                                                                6
+                                                                                0
                                                                               )}
 
                                                                               <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
@@ -1115,8 +1170,9 @@ export default function HistoryView() {
                                                                         <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                           {addHoursToTime(
                                                                             slot.startTime,
-                                                                            6
+                                                                            0
                                                                           )}
+
                                                                           <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                             $
                                                                             {slot?.newPrice?.toFixed(
@@ -1135,7 +1191,7 @@ export default function HistoryView() {
                                                                             <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                               {addHoursToTime(
                                                                                 slot.endTime,
-                                                                                6
+                                                                                0
                                                                               )}
                                                                               <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                                 $
@@ -1290,7 +1346,7 @@ export default function HistoryView() {
                                                                             <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                               {addHoursToTime(
                                                                                 slot.startTime,
-                                                                                6
+                                                                                0
                                                                               )}
                                                                               <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                                 $
@@ -1309,7 +1365,7 @@ export default function HistoryView() {
                                                                               <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                                 {addHoursToTime(
                                                                                   slot.endTime,
-                                                                                  6
+                                                                                  0
                                                                                 )}
                                                                                 <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                                   $
@@ -1382,7 +1438,7 @@ export default function HistoryView() {
                                                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                     {addHoursToTime(
                                                                       slot.startTime,
-                                                                      6
+                                                                      0
                                                                     )}
                                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                       $
@@ -1401,7 +1457,7 @@ export default function HistoryView() {
                                                                     <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                       {addHoursToTime(
                                                                         slot.endTime,
-                                                                        6
+                                                                        0
                                                                       )}
                                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                         $
@@ -1458,7 +1514,7 @@ export default function HistoryView() {
                                                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                     {addHoursToTime(
                                                                       slot.startTime,
-                                                                      6
+                                                                      0
                                                                     )}
                                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                       $
@@ -1477,7 +1533,7 @@ export default function HistoryView() {
                                                                     <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                       {addHoursToTime(
                                                                         slot.endTime,
-                                                                        6
+                                                                        0
                                                                       )}
                                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                         $
@@ -1549,7 +1605,7 @@ export default function HistoryView() {
                                                                     <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                       {addHoursToTime(
                                                                         slot.startTime,
-                                                                        6
+                                                                        0
                                                                       )}
                                                                       <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                         $
@@ -1568,7 +1624,7 @@ export default function HistoryView() {
                                                                       <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                         {addHoursToTime(
                                                                           slot.endTime,
-                                                                          6
+                                                                          0
                                                                         )}
                                                                         <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                           $
@@ -1699,7 +1755,7 @@ export default function HistoryView() {
                                           >
                                             <h2>
                                               {nestedItem.userName} -{" "}
-                                              {formatDateTime(
+                                              {formatDateTimeCreated(
                                                 nestedItem.timestamp
                                               )}
                                             </h2>
