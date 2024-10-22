@@ -1072,7 +1072,7 @@ const handleRowClick = async (scheduleId) => {
                                                                           <h3 className="flex  text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                             {addHoursToTime(
                                                                               slot.startTime,
-                                                                              6
+                                                                              0
                                                                             )}
 
                                                                             <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
@@ -1092,7 +1092,7 @@ const handleRowClick = async (scheduleId) => {
                                                                             <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                               {addHoursToTime(
                                                                                 slot.endTime,
-                                                                                6
+                                                                                0
                                                                               )}
 
                                                                               <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
@@ -1165,8 +1165,9 @@ const handleRowClick = async (scheduleId) => {
                                                                         <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                           {addHoursToTime(
                                                                             slot.startTime,
-                                                                            6
+                                                                            0
                                                                           )}
+                                                                         
                                                                           <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                             $
                                                                             {slot?.newPrice?.toFixed(
@@ -1185,7 +1186,7 @@ const handleRowClick = async (scheduleId) => {
                                                                             <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                               {addHoursToTime(
                                                                                 slot.endTime,
-                                                                                6
+                                                                                0
                                                                               )}
                                                                               <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                                 $
@@ -1340,7 +1341,7 @@ const handleRowClick = async (scheduleId) => {
                                                                             <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                               {addHoursToTime(
                                                                                 slot.startTime,
-                                                                                6
+                                                                                0
                                                                               )}
                                                                               <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                                 $
@@ -1359,7 +1360,7 @@ const handleRowClick = async (scheduleId) => {
                                                                               <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                                 {addHoursToTime(
                                                                                   slot.endTime,
-                                                                                  6
+                                                                                  0
                                                                                 )}
                                                                                 <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                                   $
@@ -1432,7 +1433,7 @@ const handleRowClick = async (scheduleId) => {
                                                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                     {addHoursToTime(
                                                                       slot.startTime,
-                                                                      6
+                                                                      0
                                                                     )}
                                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                       $
@@ -1451,7 +1452,7 @@ const handleRowClick = async (scheduleId) => {
                                                                     <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                       {addHoursToTime(
                                                                         slot.endTime,
-                                                                        6
+                                                                        0
                                                                       )}
                                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                         $
@@ -1508,7 +1509,7 @@ const handleRowClick = async (scheduleId) => {
                                                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                     {addHoursToTime(
                                                                       slot.startTime,
-                                                                      6
+                                                                      0
                                                                     )}
                                                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                       $
@@ -1527,7 +1528,7 @@ const handleRowClick = async (scheduleId) => {
                                                                     <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                       {addHoursToTime(
                                                                         slot.endTime,
-                                                                        6
+                                                                        0
                                                                       )}
                                                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                         $
@@ -1599,7 +1600,7 @@ const handleRowClick = async (scheduleId) => {
                                                                     <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                       {addHoursToTime(
                                                                         slot.startTime,
-                                                                        6
+                                                                        0
                                                                       )}
                                                                       <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                         $
@@ -1618,7 +1619,7 @@ const handleRowClick = async (scheduleId) => {
                                                                       <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
                                                                         {addHoursToTime(
                                                                           slot.endTime,
-                                                                          6
+                                                                          0
                                                                         )}
                                                                         <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                                                           $
