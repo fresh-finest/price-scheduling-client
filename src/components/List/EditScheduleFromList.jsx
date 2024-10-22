@@ -263,30 +263,36 @@ const EditScheduleFromList = ({
   };
 */
 
+// const formatTimeToHHMM = (date) => {
+//   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+//   let offsetHours = 0; // Default to no adjustment
+//   let adjustedDate = new Date(date.getTime());
+
+//   // Set offset hours and adjust the date based on the detected time zone
+//   if (timeZone.includes("America")) {
+//     offsetHours = 4; // Add 4 hours for EDT
+//     adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
+//   } else if (timeZone === "Asia/Dhaka") {
+//     offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
+//     adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
+//   }
+
+//   // Format the adjusted date to HH:mm format
+//   const hours = adjustedDate.getHours().toString().padStart(2, "0");
+//   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
+//   return `${hours}:${minutes}`;
+// };
 const formatTimeToHHMM = (date) => {
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  let offsetHours = 0; // Default to no adjustment
-  let adjustedDate = new Date(date.getTime());
-
-  // Set offset hours and adjust the date based on the detected time zone
-  if (timeZone.includes("America")) {
-    offsetHours = 4; // Add 4 hours for EDT
-    adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
-  } else if (timeZone === "Asia/Dhaka") {
-    offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
-    adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
-  }
-
-  // Format the adjusted date to HH:mm format
-  const hours = adjustedDate.getHours().toString().padStart(2, "0");
-  const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
+  // Format the date object directly to HH:mm without time zone adjustments
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 };
 
-  const convertTimeToUtc = (timeString) => {
-    const date = convertTimeStringToDate(timeString); // Convert time string to Date object
-    return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
-  };
+  // const convertTimeToUtc = (timeString) => {
+  //   const date = convertTimeStringToDate(timeString); // Convert time string to Date object
+  //   return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
+  // };
 
   useEffect(() => {
     const encodedSku = encodeURIComponent(existingSchedule.sku); // Replace with your actual SKU value
@@ -320,17 +326,35 @@ const formatTimeToHHMM = (date) => {
   //   }
   // };
 
+  // const convertTimeStringToDate = (timeString) => {
+  //   if (typeof timeString === "string" && timeString.includes(":")) {
+  //     const [hours, minutes] = timeString.split(":").map(Number);
+  //     if (!isNaN(hours) && !isNaN(minutes)) {
+  //       const now = new Date();
+  //       now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
+  //       return now; // Local time will be automatically adjusted
+  //     }
+  //   }
+  //   return new Date(); 
+  // };
+  const convertTimeToLocalFormat = (timeString) => {
+    console.log("convert ")
+    const date = convertTimeStringToDate(timeString); 
+    return moment(date).format("HH:mm");
+  };
+
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
       const [hours, minutes] = timeString.split(":").map(Number);
       if (!isNaN(hours) && !isNaN(minutes)) {
-        const now = new Date();
-        now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
-        return now; // Local time will be automatically adjusted
+        const date = new Date(); // Create a new Date object with the current date
+        date.setHours(hours, minutes, 0, 0); // Set the time without adjusting for time zones
+        return date;
       }
     }
-    return new Date(); // Fallback to current time if the timeString is invalid
+    return new Date(); // Return the current date and time if the input is invalid
   };
+  
 
   useEffect(() => {
     if (show && existingSchedule) {
@@ -527,6 +551,8 @@ const formatTimeToHHMM = (date) => {
     };
 
     for (const day in weeklyTimeSlots) {
+
+
       const slots = weeklyTimeSlots[day];
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
@@ -563,6 +589,9 @@ const formatTimeToHHMM = (date) => {
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
+
+
+
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -603,6 +632,10 @@ const formatTimeToHHMM = (date) => {
     try {
       // const utcStartTime = convertTimeToUtc(startTime);
       // const utcEndTime = convertTimeToUtc(endTime);
+      // const convertTimeToUtc = (timeString) => {
+      //   // const date = convertTimeStringToDate(timeString); 
+      //   return moment(date).utc().format("HH:mm"); 
+      // };
 
       if (!indefiniteEndDate && endDate < startDate) {
         setErrorMessage("End Date cannot be earlier than Start Date.");
@@ -631,7 +664,7 @@ const formatTimeToHHMM = (date) => {
       //   utcStartTime,
       //   utcEndTime
       // );
-
+    
       const utcWeeklySlots = {};
       const utcMonthlySlots = {};
       if (weekly) {
@@ -649,8 +682,8 @@ const formatTimeToHHMM = (date) => {
               revertPrice,
               timeSlotScheduleId,
             }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
               timeSlotScheduleId: timeSlotScheduleId,
@@ -669,8 +702,8 @@ const formatTimeToHHMM = (date) => {
               revertPrice,
               timeSlotScheduleId,
             }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
               timeSlotScheduleId: timeSlotScheduleId,

@@ -775,11 +775,12 @@ const ProductDetailView = ({
                                                   <div className="flex justify-center w-full gap-2 my-2 px-2 ">
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                        {/* {addHoursToTime(
+                                                      {/* {timeSlot.startTime} */}
+                                                        {addHoursToTime(
                                                           timeSlot?.startTime,
-                                                          6
-                                                        )} */}
-                                                        {convertToUserLocalTime(timeSlot?.startTime)}
+                                                          0
+                                                        )}
+                                                        {/* {convertToUserLocalTime(timeSlot?.startTime)} */}
                                                         <span className="bg-blue-500 text-white p-1 rounded-sm">
                                                           $
                                                           {parseFloat(
@@ -793,11 +794,12 @@ const ProductDetailView = ({
                                                     </span>
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                        {/* {addHoursToTime(
+                                                      {/* {timeSlot.endTime} */}
+                                                        {addHoursToTime(
                                                           timeSlot.endTime,
-                                                          6
-                                                        )} */}
-                                                        {convertToUserLocalTime(timeSlot?.endTime)}
+                                                          0
+                                                        )}
+                                                        {/* {convertToUserLocalTime(timeSlot?.endTime)} */}
                                                         {timeSlot.revertPrice ? (
                                                           <span className="bg-red-700 text-white p-1 rounded-sm">
                                                             $
@@ -900,11 +902,11 @@ const ProductDetailView = ({
                                     >
                                       <div className="w-full">
                                         <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                          {/* {addHoursToTime(
+                                          {addHoursToTime(
                                             timeSlot.startTime,
-                                            6
-                                          )} */}
-                                          {convertToUserLocalTime(timeSlot?.startTime)}
+                                            0
+                                          )}
+                                          {/* {convertToUserLocalTime(timeSlot?.startTime)} */}
                                           <span className="bg-blue-500 text-white p-1 rounded-sm ">
                                             $
                                             {parseFloat(
@@ -920,8 +922,8 @@ const ProductDetailView = ({
 
                                       <div className="w-full">
                                         <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                          {/* {addHoursToTime(timeSlot.endTime, 6)} */}
-                                          {convertToUserLocalTime(timeSlot?.endTime)}
+                                          {addHoursToTime(timeSlot.endTime, 0)}
+                                          {/* {convertToUserLocalTime(timeSlot?.endTime)} */}
                                           {timeSlot?.revertPrice ? (
                                             <span className="bg-red-700 text-white p-1 rounded-sm">
                                               $
