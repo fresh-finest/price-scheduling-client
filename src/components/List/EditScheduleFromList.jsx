@@ -18,6 +18,7 @@ import { MdCheck } from "react-icons/md";
 
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 const dayNames = [
   "Sunday",
@@ -260,11 +261,38 @@ const EditScheduleFromList = ({
     const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
   };
+*/
 
-  const convertTimeToUtc = (timeString) => {
-    const date = convertTimeStringToDate(timeString); // Convert time string to Date object
-    return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
+  // const formatTimeToHHMM = (date) => {
+  //   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  //   let offsetHours = 0; // Default to no adjustment
+  //   let adjustedDate = new Date(date.getTime());
+
+  //   // Set offset hours and adjust the date based on the detected time zone
+  //   if (timeZone.includes("America")) {
+  //     offsetHours = 4; // Add 4 hours for EDT
+  //     adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
+  //   } else if (timeZone === "Asia/Dhaka") {
+  //     offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
+  //     adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
+  //   }
+
+  //   // Format the adjusted date to HH:mm format
+  //   const hours = adjustedDate.getHours().toString().padStart(2, "0");
+  //   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
+  //   return `${hours}:${minutes}`;
+  // };
+  const formatTimeToHHMM = (date) => {
+    // Format the date object directly to HH:mm without time zone adjustments
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
   };
+
+  // const convertTimeToUtc = (timeString) => {
+  //   const date = convertTimeStringToDate(timeString); // Convert time string to Date object
+  //   return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
+  // };
 
   useEffect(() => {
     const encodedSku = encodeURIComponent(existingSchedule.sku); // Replace with your actual SKU value
@@ -297,6 +325,23 @@ const EditScheduleFromList = ({
   //     throw error;
   //   }
   // };
+
+  // const convertTimeStringToDate = (timeString) => {
+  //   if (typeof timeString === "string" && timeString.includes(":")) {
+  //     const [hours, minutes] = timeString.split(":").map(Number);
+  //     if (!isNaN(hours) && !isNaN(minutes)) {
+  //       const now = new Date();
+  //       now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
+  //       return now; // Local time will be automatically adjusted
+  //     }
+  //   }
+  //   return new Date();
+  // };
+  const convertTimeToLocalFormat = (timeString) => {
+    console.log("convert ");
+    const date = convertTimeStringToDate(timeString);
+    return moment(date).format("HH:mm");
+  };
 
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
@@ -505,18 +550,16 @@ const EditScheduleFromList = ({
     };
 
     for (const day in weeklyTimeSlots) {
-
-
       const slots = weeklyTimeSlots[day];
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
-        if (slot1.startTime >= slot1.endTime) {
-          setErrorMessage(
-            `For day ${day}, start time must be earlier than end time.`
-          );
-          return false;
-        }
+        // if (slot1.startTime >= slot1.endTime) {
+        //   setErrorMessage(
+        //     `For day ${day}, start time must be earlier than end time.`
+        //   );
+        //   return false;
+        // }
 
         for (let j = i + 1; j < slots.length; j++) {
           const slot2 = slots[j];
@@ -544,17 +587,15 @@ const EditScheduleFromList = ({
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
 
-
-
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
-        if (slot1.startTime >= slot1.endTime) {
-          setErrorMessage(
-            `For date ${date}, start time must be earlier than end time.`
-          );
-          return false;
-        }
+        // if (slot1.startTime >= slot1.endTime) {
+        //   setErrorMessage(
+        //     `For date ${date}, start time must be earlier than end time.`
+        //   );
+        //   return false;
+        // }
 
         for (let j = i + 1; j < slots.length; j++) {
           const slot2 = slots[j];
@@ -586,6 +627,10 @@ const EditScheduleFromList = ({
     try {
       // const utcStartTime = convertTimeToUtc(startTime);
       // const utcEndTime = convertTimeToUtc(endTime);
+      // const convertTimeToUtc = (timeString) => {
+      //   // const date = convertTimeStringToDate(timeString);
+      //   return moment(date).utc().format("HH:mm");
+      // };
 
       if (!indefiniteEndDate && endDate < startDate) {
         setErrorMessage("End Date cannot be earlier than Start Date.");
@@ -679,7 +724,7 @@ const EditScheduleFromList = ({
         weeklyTimeSlots: utcWeeklySlots,
         monthly: scheduleType === "monthly",
         monthlyTimeSlots: utcMonthlySlots,
-        timeZone
+        timeZone,
       };
       //startTime:startTime.toTimeString().slice(0, 5),
       //endTime:endTime.toTimeString().slice(0, 5)
@@ -855,7 +900,6 @@ const EditScheduleFromList = ({
                 <Form.Label>New Price</Form.Label>
                 <Form.Control
                   step="0.01"
-                  step="0.01"
                   type="number"
                   placeholder="Enter New Price"
                   value={price}
@@ -975,11 +1019,11 @@ const EditScheduleFromList = ({
                       {(weeklyTimeSlots[day.value] || []).map((slot, index) => (
                         <Card
                           key={index}
-                          className="p-2 border-0 bg-[#F1F1F2] shadow-md rounded-sm relative"
+                          className="p-2 border-0 bg-[#F1F1F2] shadow-md rounded-sm"
                         >
                           {/* Start Time and Price */}
-                          <div className="flex justify-between items-center gap-2  mt-4">
-                            <h3 className=" text-center w-[80px]">Start</h3>
+                          <div className="flex justify-between items-center gap-2 my-1">
+                            <h3 className=" text-center w-[40px]">Start</h3>
                             <DatePicker
                               selected={
                                 slot.startTime
@@ -1007,7 +1051,6 @@ const EditScheduleFromList = ({
                               value={slot.newPrice}
                               placeholder="Start Price"
                               step="0.01"
-                              step="0.01"
                               onChange={(e) =>
                                 handleTimeSlotPriceChange(
                                   "weekly",
@@ -1019,11 +1062,15 @@ const EditScheduleFromList = ({
                               }
                               className="form-control edit-modal-custom-input"
                             />
+
+                            <span className=" text-transparent px-2 py-1 rounded ">
+                              <IoMdClose />
+                            </span>
                           </div>
 
                           {/* End Time and Revert Price */}
                           <div className="flex justify-between items-center gap-2 my-1">
-                            <h3 className=" text-center w-[80px]">End</h3>
+                            <h3 className=" text-center w-[70px]">End</h3>
                             <DatePicker
                               selected={
                                 slot.endTime
@@ -1064,11 +1111,10 @@ const EditScheduleFromList = ({
                             />
                             <button
                               type="button"
-                              type="button"
                               onClick={() =>
                                 handleRemoveTimeSlot("weekly", day.value, index)
                               }
-                              className="border-0 flex items-center justify-center px-1 py-1 rounded-sm text-black shadow-sm absolute top-0 right-0"
+                              className="bg-red-700 text-white px-2 py-1 rounded-sm hover:bg-red-600"
                             >
                               <IoMdClose />
                             </button>
@@ -1108,10 +1154,10 @@ const EditScheduleFromList = ({
                         (slot, index) => (
                           <Card
                             key={index}
-                            className="my-2 px-1 py-1 border-0 bg-[#F1F1F2] rounded-sm relative"
+                            className="my-2 px-1 py-1 border-0 bg-[#F1F1F2] rounded-sm"
                           >
-                            <div className="flex justify-center items-center gap-1 mt-4">
-                              <h3 className="w-[50px] flex justify-center items-center text-[13px]">
+                            <div className="flex justify-center items-center gap-1 my-1">
+                              <h3 className="w-[40px] flex justify-center items-center text-[13px]">
                                 Start
                               </h3>
                               <DatePicker
@@ -1151,10 +1197,11 @@ const EditScheduleFromList = ({
                                 }
                                 className="form-control edit-modal-custom-input"
                               />
+                              <span className="w-[50px]  border-0 flex items-center justify-center px-1 py-1  text-white"></span>
                             </div>
 
                             <div className="flex justify-center items-center gap-1">
-                              <h3 className="flex justify-center items-center  text-[13px] w-[60px]">
+                              <h3 className="flex justify-center items-center  text-[13px] w-[80px]">
                                 End
                               </h3>
                               <DatePicker
@@ -1196,8 +1243,9 @@ const EditScheduleFromList = ({
                                 required
                                 className=" edit-modal-custom-input"
                               />
-                              <button
+                              <Button
                                 type="button"
+                                variant="danger"
                                 onClick={() =>
                                   handleRemoveTimeSlot(
                                     "monthly",
@@ -1205,10 +1253,10 @@ const EditScheduleFromList = ({
                                     index
                                   )
                                 }
-                                className="border-0 flex items-center justify-center px-1 py-1 rounded-sm text-black shadow-sm absolute top-0 right-0"
+                                className="w-[40px] bg-red-600 border-0 flex items-center justify-center hover:bg-red-500 px-1 py-1 rounded-sm text-white"
                               >
                                 <IoMdClose />
-                              </button>
+                              </Button>
                             </div>
                           </Card>
                         )

@@ -62,10 +62,8 @@ const fetchPriceBySku = async (sku) => {
 };
 
 const fetchExistingSchedules = async (sku) => {
-const fetchExistingSchedules = async (sku) => {
   try {
     const response = await axios.get(`${BASE_URL}/api/schedule`);
-    return response.data.result.filter((schedule) => schedule.sku === sku);
     return response.data.result.filter((schedule) => schedule.sku === sku);
   } catch (error) {
     console.error(
@@ -91,8 +89,6 @@ const saveScheduleAndQueueJobs = async (
   weeklyTimeSlots = {},
   monthly = false,
   // datesOfMonth = [],
-  monthlyTimeSlots = {},
-  timeZone
   monthlyTimeSlots = {},
   timeZone
 ) => {
@@ -187,7 +183,6 @@ const UpdatePriceFromList = ({
       fetchProductPriceBySku(sku1);
       fetchProductDetailsByAsin(asin);
 
-      fetchSchedules(sku1);
       fetchSchedules(sku1);
     } else if (show && !asin) {
       onClose();
@@ -314,9 +309,6 @@ const UpdatePriceFromList = ({
     }
   };
 
- 
-  
-  
   const validateTimeSlots = () => {
     const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
       return start1 < end2 && start2 < end1;
@@ -372,10 +364,52 @@ const UpdatePriceFromList = ({
     const now = new Date();
     const today = now.getDay(); // Get today's day index
     const currentDayOfMonth = now.getDate(); // Get today's date in the month
-
+    const tenHoursAgo = new Date(now.getTime() - 10 * 60 * 60 * 1000); // Calculate the time 10 hours ago from now
     for (const day in weeklyTimeSlots) {
-     
       const slots = weeklyTimeSlots[day];
+
+      if (timeZone === "America/New_York") {
+        console.log("timeZone " + timeZone);
+        if (parseInt(day) === today) {
+          // If the selected day is today, check the time
+          for (let slot of slots) {
+            if (slot.startTime < now) {
+              setErrorMessage(
+                "The selected start time is in the past for today's time slot. Please select a future time."
+              );
+              return false;
+            }
+          }
+        }
+      } else if (timeZone === "Asia/Dhaka") {
+        console.log("timeZone from asia " + timeZone);
+        if (parseInt(day) === today) {
+          // If the selected day is today, check the time
+          for (let slot of slots) {
+            let slotStart;
+
+            // Check if slot.startTime is a Date object or a string
+            if (slot.startTime instanceof Date) {
+              slotStart = slot.startTime;
+            } else if (typeof slot.startTime === "string") {
+              // If startTime is a string in "HH:mm" format, convert it to a Date object
+              const [hours, minutes] = slot.startTime.split(":").map(Number);
+              slotStart = new Date(now);
+              slotStart.setHours(hours, minutes, 0, 0);
+            } else {
+              console.error("Invalid startTime format:", slot.startTime);
+              continue;
+            }
+            if (slotStart < tenHoursAgo) {
+              setErrorMessage(
+                "The selected start time is in the past for today's time slot. Please select a future time."
+              );
+              return false;
+            }
+          }
+        }
+      }
+
       /*
       if (parseInt(day) === today) {
         // If the selected day is today, check the time
@@ -435,6 +469,49 @@ const UpdatePriceFromList = ({
           }
         }
       } */
+
+      if (timeZone === "America/New_York") {
+        console.log("timeZone " + timeZone);
+        if (parseInt(date) === currentDayOfMonth) {
+          // If the selected day is today, check the time
+          for (let slot of slots) {
+            if (slot.startTime < now) {
+              setErrorMessage(
+                "The selected start time is in the past for today's time slot. Please select a future time."
+              );
+              return false;
+            }
+          }
+        }
+      } else if (timeZone === "Asia/Dhaka") {
+        console.log("timeZone from asia " + timeZone);
+        if (parseInt(date) === currentDayOfMonth) {
+          // If the selected day is today, check the time
+          for (let slot of slots) {
+            let slotStart;
+
+            // Check if slot.startTime is a Date object or a string
+            if (slot.startTime instanceof Date) {
+              slotStart = slot.startTime;
+            } else if (typeof slot.startTime === "string") {
+              // If startTime is a string in "HH:mm" format, convert it to a Date object
+              const [hours, minutes] = slot.startTime.split(":").map(Number);
+              slotStart = new Date(now);
+              slotStart.setHours(hours, minutes, 0, 0);
+            } else {
+              console.error("Invalid startTime format:", slot.startTime);
+              continue;
+            }
+            if (slotStart < tenHoursAgo) {
+              setErrorMessage(
+                "The selected start time is in the past for today's time slot. Please select a future time."
+              );
+              return false;
+            }
+          }
+        }
+      }
+
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -668,7 +745,6 @@ const validateTimeSlots = () => {
     try {
       setLoading(true);
       const schedules = await fetchExistingSchedules(sku1);
-      const schedules = await fetchExistingSchedules(sku1);
       setExistingSchedules(schedules);
 
       const hasWeekly = schedules.some(
@@ -854,8 +930,6 @@ const validateTimeSlots = () => {
           weeklySlotsInUtc,
           monthly,
           // datesOfMonth.map((date) => date.value),
-          monthlySlotsInUtc,
-          timeZone
           monthlySlotsInUtc,
           timeZone
         );
@@ -1107,7 +1181,7 @@ const validateTimeSlots = () => {
                                     onChange={(e) =>
                                       handleScheduleChange(
                                         index,
-                                        "startPrice",
+                                        "price",
                                         e.target.value
                                       )
                                     }

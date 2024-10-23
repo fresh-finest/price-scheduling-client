@@ -17,6 +17,7 @@ import moment from "moment-timezone";
 import Loading from "../shared/ui/Loading";
 import { MdOutlineClose } from "react-icons/md";
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 // const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
 // const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
 // const BASE_URL = `https://api.priceobo.com`;
@@ -212,15 +213,16 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
 
   const fetchProductBySku = async (sku) => {
     setImageUrl("");
-    setProductName("");
+    setTitle("");
     setLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}/image/${sku}`);
+      const encodedSku = encodeURIComponent(sku);
+      const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
       const image = response?.data?.summaries[0].mainImage?.link;
       const productName = response?.data?.summaries[0].itemName;
       const asin = response?.data?.summaries[0].asin;
       setImageUrl(image);
-      setProductName(productName);
+      setTitle(productName);
       setAsin(asin);
       setLoading(false);
     } catch (error) {
@@ -451,16 +453,16 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     }
     return true;
   };
-  // Convert time to UTC before sending to backend
-  const convertTimeToUtc = (time) => {
-    return moment(time).utc().format("HH:mm");
+
+  const convertTimeToLocalFormat = (time) => {
+    return moment(time).format("HH:mm");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!userName || !sku) {
+      if (!userName || !asin || !sku) {
         setErrorMessage("All fields are required to update the price.");
         setLoading(false);
         return;
@@ -503,17 +505,27 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       const monthlySlotsInUtc = {};
 
       if (weekly) {
-        if (!userName || !sku || !hasWeeklyTimeSlots) {
+        if (!userName || !asin || !sku || !hasWeeklyTimeSlots) {
           setErrorMessage("Not provided weekly values.");
           setLoading(false);
           return;
         }
 
+        // for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
+        //   weeklySlotsInUtc[day] = timeSlots.map(
+        //     ({ startTime, endTime, newPrice, revertPrice }) => ({
+        //       startTime: convertTimeToUtc(startTime),
+        //       endTime: convertTimeToUtc(endTime),
+        //       newPrice: parseFloat(newPrice),
+        //       revertPrice: parseFloat(revertPrice),
+        //     })
+        //   );
+        // }
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           weeklySlotsInUtc[day] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
             })
@@ -523,7 +535,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
           userName,
           asin,
           sku,
-          productName,
           title,
           price,
           currentPrice,
@@ -541,17 +552,28 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       }
 
       if (monthly) {
-        if (!userName || !sku || !hasMonthlyTimeSlots) {
+        if (!userName || !asin || !sku || !hasMonthlyTimeSlots) {
           setErrorMessage("Not provided monthly values");
           setLoading(false);
           return;
         }
 
+        // for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
+        //   monthlySlotsInUtc[date] = timeSlots.map(
+        //     ({ startTime, endTime, newPrice, revertPrice }) => ({
+        //       startTime: convertTimeToUtc(startTime),
+        //       endTime: convertTimeToUtc(endTime),
+        //       newPrice: parseFloat(newPrice),
+        //       revertPrice: parseFloat(revertPrice),
+        //     })
+        //   );
+        // }
+
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           monthlySlotsInUtc[date] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
-              startTime: convertTimeToUtc(startTime),
-              endTime: convertTimeToUtc(endTime),
+              startTime: convertTimeToLocalFormat(startTime),
+              endTime: convertTimeToLocalFormat(endTime),
               newPrice: parseFloat(newPrice),
               revertPrice: parseFloat(revertPrice),
             })
@@ -561,7 +583,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
           userName,
           asin,
           sku,
-          productName,
           title,
           price,
           currentPrice,
@@ -591,7 +612,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
             userName,
             asin,
             sku,
-            productName,
             title,
             price,
             currentPrice,
@@ -834,7 +854,7 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
               src={imageURL}
               alt=""
             />
-            <h3>{productName}</h3>
+            <h3>{title}</h3>
           </div>
         </Modal.Header>
         <Modal.Body>

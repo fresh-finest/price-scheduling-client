@@ -3,9 +3,9 @@ import axios from "axios";
 
 export const PriceScheduleContext = createContext();
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-// const BASE_URL = 'http://localhost:3000';
+const BASE_URL = "http://localhost:3000";
 export const PriceScheduleProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
 
