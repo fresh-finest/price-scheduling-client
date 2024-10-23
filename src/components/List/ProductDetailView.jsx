@@ -8,7 +8,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
-import DetailedCalendarView from "../Calendar/DetailedCalendarView"
+import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
@@ -33,7 +33,7 @@ import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL ='http://localhost:3000'
+const BASE_URL = "http://localhost:3000";
 const dayNames = [
   "Sunday",
   "Monday",
@@ -211,7 +211,6 @@ const ProductDetailView = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -296,7 +295,6 @@ const ProductDetailView = ({
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
-  
 
     if (validSchedule) {
       setCurrentPrice(validSchedule.currentPrice);
@@ -320,7 +318,9 @@ const ProductDetailView = ({
       try {
         setLoading(true);
         const encodedSku = encodeURIComponent(sku1);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
+        const response = await axios.get(
+          `${BASE_URL}/api/schedule/${encodedSku}`
+        );
 
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -335,7 +335,6 @@ const ProductDetailView = ({
         setPriceSchedule(data.result || []);
       } catch (err) {
         if (err.name !== "AbortError") {
-          
           setError("Error fetching schedule data.");
         }
       } finally {
@@ -612,10 +611,8 @@ const ProductDetailView = ({
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
 
-        
               <div className="m-3 ">
-              
-               <DetailedCalendarView sku1={sku1}/>
+                <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}
 
@@ -750,8 +747,8 @@ const ProductDetailView = ({
                                         >
                                           <div className=" ">
                                             {/* <div className="grid grid-cols-[93%_7%] "> */}
-                                            <div className=" bg-[#707070] border-0 m-0 p-0 rounded-t-sm ">
-                                              <span className="text-white text-start text-sm py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                            <div className=" bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm ">
+                                              <span className="text-black text-start text-sm py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                 {getDayLabelFromNumber(day)}
                                               </span>
                                             </div>
@@ -889,8 +886,8 @@ const ProductDetailView = ({
                                 key={index}
                                 className="flex flex-col mb-1"
                               >
-                                <div className="bg-[#707070] px-2 rounded-t py-1">
-                                  <h5 className="text-white text-start text-sm">
+                                <div className="bg-[#DCDCDC] px-2 rounded-t py-1">
+                                  <h5 className="text-black text-start text-sm">
                                     {getDateLabelFromNumber(date)}
                                   </h5>
                                 </div>

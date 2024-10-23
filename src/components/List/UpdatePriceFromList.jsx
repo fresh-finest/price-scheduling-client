@@ -110,7 +110,7 @@ const saveScheduleAndQueueJobs = async (
       monthly,
       // datesOfMonth,
       monthlyTimeSlots,
-      timeZone
+      timeZone,
     });
     return response.data;
   } catch (error) {
@@ -216,13 +216,15 @@ const UpdatePriceFromList = ({
     setErrorMessage("");
     setWeeklyTimeSlots({});
     setMonthlyTimeSlots({});
-    setSchedules([ {
-      price: "",
-      currentPrice: "",
-      startDate: new Date(),
-      endDate: new Date(),
-      indefiniteEndDate: false,
-    }]);
+    setSchedules([
+      {
+        price: "",
+        currentPrice: "",
+        startDate: new Date(),
+        endDate: new Date(),
+        indefiniteEndDate: false,
+      },
+    ]);
   };
 
   const addWeeklyTimeSlot = (day) => {
@@ -308,9 +310,6 @@ const UpdatePriceFromList = ({
     }
   };
 
- 
-  
-  
   const validateTimeSlots = () => {
     const isTimeSlotOverlapping = (start1, end1, start2, end2) => {
       return start1 < end2 && start2 < end1;
@@ -368,11 +367,10 @@ const UpdatePriceFromList = ({
     const currentDayOfMonth = now.getDate(); // Get today's date in the month
     const tenHoursAgo = new Date(now.getTime() - 10 * 60 * 60 * 1000); // Calculate the time 10 hours ago from now
     for (const day in weeklyTimeSlots) {
-     
       const slots = weeklyTimeSlots[day];
-     
-      if(timeZone ==='America/New_York'){
-        console.log("timeZone "+timeZone)
+
+      if (timeZone === "America/New_York") {
+        console.log("timeZone " + timeZone);
         if (parseInt(day) === today) {
           // If the selected day is today, check the time
           for (let slot of slots) {
@@ -383,14 +381,14 @@ const UpdatePriceFromList = ({
               return false;
             }
           }
-        } 
-      } else if(timeZone ==="Asia/Dhaka") {
-        console.log("timeZone from asia "+timeZone)
+        }
+      } else if (timeZone === "Asia/Dhaka") {
+        console.log("timeZone from asia " + timeZone);
         if (parseInt(day) === today) {
           // If the selected day is today, check the time
           for (let slot of slots) {
             let slotStart;
-        
+
             // Check if slot.startTime is a Date object or a string
             if (slot.startTime instanceof Date) {
               slotStart = slot.startTime;
@@ -405,12 +403,12 @@ const UpdatePriceFromList = ({
             }
             if (slotStart < tenHoursAgo) {
               setErrorMessage(
-                 "The selected start time is in the past for today's time slot. Please select a future time."
+                "The selected start time is in the past for today's time slot. Please select a future time."
               );
               return false;
             }
           }
-        } 
+        }
       }
 
       /*
@@ -460,7 +458,7 @@ const UpdatePriceFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
-/*
+      /*
       if (parseInt(date) === currentDayOfMonth) {
         // If the selected date is today, check the time
         for (let slot of slots) {
@@ -473,48 +471,48 @@ const UpdatePriceFromList = ({
         }
       } */
 
-        if(timeZone ==='America/New_York'){
-          console.log("timeZone "+timeZone)
-          if (parseInt(date) === currentDayOfMonth)  {
-            // If the selected day is today, check the time
-            for (let slot of slots) {
-              if (slot.startTime < now) {
-                setErrorMessage(
-                  "The selected start time is in the past for today's time slot. Please select a future time."
-                );
-                return false;
-              }
+      if (timeZone === "America/New_York") {
+        console.log("timeZone " + timeZone);
+        if (parseInt(date) === currentDayOfMonth) {
+          // If the selected day is today, check the time
+          for (let slot of slots) {
+            if (slot.startTime < now) {
+              setErrorMessage(
+                "The selected start time is in the past for today's time slot. Please select a future time."
+              );
+              return false;
             }
-          } 
-        } else if(timeZone ==="Asia/Dhaka") {
-          console.log("timeZone from asia "+timeZone)
-          if (parseInt(date) === currentDayOfMonth)  {
-            // If the selected day is today, check the time
-            for (let slot of slots) {
-              let slotStart;
-          
-              // Check if slot.startTime is a Date object or a string
-              if (slot.startTime instanceof Date) {
-                slotStart = slot.startTime;
-              } else if (typeof slot.startTime === "string") {
-                // If startTime is a string in "HH:mm" format, convert it to a Date object
-                const [hours, minutes] = slot.startTime.split(":").map(Number);
-                slotStart = new Date(now);
-                slotStart.setHours(hours, minutes, 0, 0);
-              } else {
-                console.error("Invalid startTime format:", slot.startTime);
-                continue;
-              }
-              if (slotStart < tenHoursAgo) {
-                setErrorMessage(
-                   "The selected start time is in the past for today's time slot. Please select a future time."
-                );
-                return false;
-              }
-            }
-          } 
+          }
         }
-  
+      } else if (timeZone === "Asia/Dhaka") {
+        console.log("timeZone from asia " + timeZone);
+        if (parseInt(date) === currentDayOfMonth) {
+          // If the selected day is today, check the time
+          for (let slot of slots) {
+            let slotStart;
+
+            // Check if slot.startTime is a Date object or a string
+            if (slot.startTime instanceof Date) {
+              slotStart = slot.startTime;
+            } else if (typeof slot.startTime === "string") {
+              // If startTime is a string in "HH:mm" format, convert it to a Date object
+              const [hours, minutes] = slot.startTime.split(":").map(Number);
+              slotStart = new Date(now);
+              slotStart.setHours(hours, minutes, 0, 0);
+            } else {
+              console.error("Invalid startTime format:", slot.startTime);
+              continue;
+            }
+            if (slotStart < tenHoursAgo) {
+              setErrorMessage(
+                "The selected start time is in the past for today's time slot. Please select a future time."
+              );
+              return false;
+            }
+          }
+        }
+      }
+
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -549,7 +547,7 @@ const UpdatePriceFromList = ({
     }
     return true;
   };
-/*
+  /*
 // Helper function to convert time to EDT if the timezone is Bangladesh
 const convertToEDT = (timeString, userTimeZone, date = new Date()) => {
   const [hours, minutes] = timeString.split(":").map(Number);
@@ -1039,18 +1037,15 @@ const validateTimeSlots = () => {
     (schedule) => schedule.indefiniteEndDate
   );
 
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 1000); // 1000ms = 1 second
 
-  
-    useEffect(() => {
-      if (showSuccessModal) {
-        const timer = setTimeout(() => {
-          setShowSuccessModal(false);
-        }, 1000); // 1000ms = 1 second
-  
-        return () => clearTimeout(timer); // Clean up the timeout when component unmounts or when the modal closes
-      }
-    }, [showSuccessModal, setShowSuccessModal]);
-
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessModal, setShowSuccessModal]);
 
   return (
     <>

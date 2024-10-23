@@ -5,19 +5,19 @@ import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { current } from "@reduxjs/toolkit";
 
-const BASE_URL = "https://api.priceobo.com";
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL ='http://dynamic-price-schedule.us-east-1.elasticbeanstalk.com';
+// const BASE_URL = 'https://dps-server-b829cf5871b7.herokuapp.com'
+const BASE_URL = `https://api.priceobo.com`;
+
+// const BASE_URL ='http://localhost:3000'
 
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
     return response.data;
   } catch (error) {
-    console.error(
-      "Error fetching product details:",
-      error.response ? error.response.data : error.message
-    );
     console.error(
       "Error fetching product details:",
       error.response ? error.response.data : error.message
@@ -35,18 +35,24 @@ const fetchProductAdditionalDetails = async (asin) => {
       "Error fetching additional product details:",
       error.response ? error.response.data : error.message
     );
-    console.error(
-      "Error fetching additional product details:",
-      error.response ? error.response.data : error.message
-    );
     throw error;
   }
 };
-const fetchPriceBySku = async (sku) => {
+
+const updateProductPrice = async (sku, value) => {
   try {
+    console.log(
+      `Attempting to update price for SKU: ${sku} to value: ${value}`
+    );
     const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
       value: parseFloat(value),
     });
+    console.log("Update response:", response.data);
+
+    if (response.data.issues && response.data.issues.length > 0) {
+      console.warn("Price update issues:", response.data.issues);
+    }
+
     return response.data;
   } catch (error) {
     console.error(
@@ -90,16 +96,7 @@ const saveSchedule = async (
   }
 };
 
-const UpdatePriceFromList = ({
-  show,
-  onClose,
-  asin,
-  sku1,
-  product,
-  fnSku,
-  channelStockValue,
-  fulfillmentChannel,
-}) => {
+const UpdatePrice = ({ show, onClose }) => {
   const { addEvent } = useContext(PriceScheduleContext);
   const [asin, setAsin] = useState("");
   const [sku, setSku] = useState("");
@@ -107,55 +104,24 @@ const UpdatePriceFromList = ({
   const [price, setPrice] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [indefiniteEndDate, setIndefiniteEndDate] = useState(false); // New state for indefinite end date
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [startTimerId, setStartTimerId] = useState(null);
-  const [endTimerId, setEndTimerId] = useState(null);
 
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
 
-  const userName = currentUser?.userName || "";
+  // const userName = JSON.stringify(currentUser.userName);
+  const userName = currentUser.userName;
 
-  const [weeklyExists, setWeeklyExists] = useState(false);
-  const [monthlyExists, setMonthlyExists] = useState(false);
-
-  const [activeTab, setActiveTab] = useState("single");
-  // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
-  //   label: `${i + 1}`,
-  //   value: i + 1,
-  // }));
-
+  console.log("current user " + userName);
   useEffect(() => {
-    if (show && asin) {
-      setActiveTab("single");
+    if (show) {
       resetForm();
-      fetchProductPriceBySku(sku1);
-      fetchProductDetailsByAsin(asin);
-
-      fetchSchedules(asin);
-    } else if (show && !asin) {
-      onClose();
     }
-  }, [show, asin]);
-
-  useEffect(() => {
-    if (activeTab === "weekly") {
-      setWeekly(true);
-      setMonthly(false);
-    } else if (activeTab === "monthly") {
-      setMonthly(true);
-      setWeekly(false);
-    } else {
-      setMonthly(false);
-      setWeekly(false);
-    }
-  }, [activeTab]);
+  }, [show]);
 
   const resetForm = () => {
     setAsin("");
@@ -164,13 +130,9 @@ const UpdatePriceFromList = ({
     setPrice("");
     setStartDate(new Date());
     setEndDate(new Date());
-    // setStartTime(new Date());
-    // setEndTime(new Date());
-    setIndefiniteEndDate(false);
+    setIndefiniteEndDate(false); // Reset the checkbox
     setSuccessMessage("");
     setErrorMessage("");
-    if (startTimerId) clearTimeout(startTimerId);
-    if (endTimerId) clearTimeout(endTimerId);
   };
 
   const handleAsinChange = async (e) => {
@@ -180,8 +142,8 @@ const UpdatePriceFromList = ({
       try {
         const data = await fetchProductDetails(asinValue);
         const productDetails = data.payload[0].Product.Offers[0];
-        // setSku(productDetails.SellerSKU);
-        // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+        setSku(productDetails.SellerSKU);
+        setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
         const additionalData = await fetchProductAdditionalDetails(asinValue);
         setTitle(additionalData.payload.AttributeSets[0].Title);
@@ -199,18 +161,14 @@ const UpdatePriceFromList = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Schedule the price update and store the timer IDs
-      const { startTimer, endTimer } = await schedulePriceUpdate(
+      // First, schedule the price update
+      await schedulePriceUpdate(
         sku,
         currentPrice,
         price,
         startDate,
         indefiniteEndDate ? null : endDate
       );
-
-      // Store timer IDs in state for potential future cancellation
-      setStartTimerId(startTimer);
-      setEndTimerId(endTimer);
 
       // Log the scheduling in MongoDB
       await saveSchedule(
@@ -228,13 +186,18 @@ const UpdatePriceFromList = ({
       // Add event to the context
       addEvent({
         title: `SKU: ${sku} - $${price}`,
-        start: new Date(startDate), // Use the original date object for UI purposes
-        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
+        start: startDate,
+        end: indefiniteEndDate ? null : endDate,
         allDay: false,
       });
 
+      // Set success message
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+
+      // Show success modal
       setShowSuccessModal(true);
+
+      // Close the main modal
       onClose();
     } catch (error) {
       setErrorMessage(
@@ -254,15 +217,16 @@ const UpdatePriceFromList = ({
   ) => {
     const now = new Date();
     const delayStart = startDate - now;
-    const delayEnd = endDate ? endDate - now : null;
-    let startTimer = null;
-    let endTimer = null;
 
     // Schedule the price update at the start date
     if (delayStart > 0) {
-      startTimer = setTimeout(async () => {
+      setTimeout(async () => {
         try {
+          console.log("Price is getting updated.");
           await updateProductPrice(sku, newPrice);
+          console.log(
+            `Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`
+          );
         } catch (error) {
           console.error("Error updating to new price:", error);
         }
@@ -270,30 +234,29 @@ const UpdatePriceFromList = ({
     } else {
       try {
         await updateProductPrice(sku, newPrice);
+        console.log(`Price updated to ${newPrice} immediately for SKU ${sku}`);
       } catch (error) {
         console.error("Error updating to new price:", error);
       }
     }
 
     // Schedule the price revert at the end date if endDate is provided
-    if (endDate && delayEnd > 0) {
-      endTimer = setTimeout(async () => {
-        try {
-          await updateProductPrice(sku, originalPrice);
-        } catch (error) {
-          console.error("Error reverting to original price:", error);
-        }
-      }, delayEnd);
+    if (endDate) {
+      const delayEnd = endDate - now;
+      if (delayEnd > 0) {
+        setTimeout(async () => {
+          try {
+            console.log("Price is getting reverted...");
+            await updateProductPrice(sku, originalPrice);
+            console.log(
+              `Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`
+            );
+          } catch (error) {
+            console.error("Error reverting to original price:", error);
+          }
+        }, delayEnd);
+      }
     }
-
-    return { startTimer, endTimer };
-  };
-
-  const handleCancel = () => {
-    if (startTimerId) clearTimeout(startTimerId);
-    if (endTimerId) clearTimeout(endTimerId);
-    setSuccessMessage(`Price update for SKU ${sku} has been canceled.`);
-    onClose();
   };
 
   const modalStyles = {
@@ -307,7 +270,11 @@ const UpdatePriceFromList = ({
 
   return (
     <>
-      <Modal show={show} onHide={onClose}>
+      <Modal
+        show={show}
+        onHide={onClose}
+        dialogClassName="update-price-list-modal"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Update Scheduled Price</Modal.Title>
         </Modal.Header>
@@ -361,7 +328,7 @@ const UpdatePriceFromList = ({
             >
               <Form.Check
                 type="checkbox"
-                label="Until I change it."
+                label="Untill I change it."
                 checked={indefiniteEndDate}
                 onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
               />
@@ -378,7 +345,7 @@ const UpdatePriceFromList = ({
                   showTimeSelect
                   dateFormat="Pp"
                   className="form-control"
-                  required={!indefiniteEndDate}
+                  required={!indefiniteEndDate} // Only required if not indefinite
                 />
               </Form.Group>
             )}
@@ -386,16 +353,8 @@ const UpdatePriceFromList = ({
               Schedule Price Update
             </Button>
           </Form>
-          <Button
-            variant="danger"
-            onClick={handleCancel}
-            style={{ ...modalStyles.button, marginTop: "15px" }}
-          >
-            Cancel Price Update
-          </Button>
         </Modal.Body>
       </Modal>
-
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Successfully updated price!</Modal.Title>
@@ -405,4 +364,4 @@ const UpdatePriceFromList = ({
   );
 };
 
-export default UpdatePriceFromList;
+export default UpdatePrice;

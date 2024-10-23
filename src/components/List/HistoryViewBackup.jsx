@@ -83,7 +83,10 @@ const displayTimeSlotsWithDayLabels = (
   addHours = 0,
   isWeekly = false
 ) => {
+<<<<<<< HEAD
+=======
   console.log("history timeslots: " + timeSlots);
+>>>>>>> 776ed2b2864050a43da4e7a07f87303d632661da
   if (!timeSlots || Object.keys(timeSlots).length === 0) {
     return <p>No time slots available</p>; // Add this check to handle undefined or null timeSlots
   }
@@ -119,8 +122,11 @@ export default function HistoryView() {
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
+<<<<<<< HEAD
+=======
   // console.log(baseUrl);
 
+>>>>>>> 776ed2b2864050a43da4e7a07f87303d632661da
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -189,7 +195,10 @@ export default function HistoryView() {
   };
 
   const handleCopy = (text, type, index) => {
+<<<<<<< HEAD
+=======
     console.log("text: " + text + "type: " + type + "index: " + index);
+>>>>>>> 776ed2b2864050a43da4e7a07f87303d632661da
     navigator.clipboard
       .writeText(text)
       .then(() => {

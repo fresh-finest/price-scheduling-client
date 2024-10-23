@@ -1,0 +1,211 @@
+[33m26434ef[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mds[m[33m)[m update
+[33m69ed6ae[m[33m ([m[1;31morigin/ds[m[33m)[m handle update function problem solved
+[33m51f6f66[m input field decimal input problem solved
+[33m4188036[m list page UI some changes
+[33m625574f[m update
+[33m888c552[m list page UI major changes and history page nested table data is OKay
+[33m9c5565f[m product details view some Ui changed
+[33md29dae3[m product details some UI changed
+[33m28fd3c8[m list table header update price placed in middle
+[33m0833d84[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m updated ui
+[33m372ca03[m code modified
+[33m2a8689b[m list view page UI changed and sidebar layout Ui changed
+[33m60fc1c6[m fix prop issue
+[33m2484eb1[m update by sku all
+[33mf79ba5b[m changed ui
+[33m01ea011[m update table view
+[33m8a1c123[m fbm fixed to show quantity
+[33mbe2424f[m Your commit message
+[33m90a8315[m fetched FnSku
+[33m62989ce[m Ui changing 1
+[33m698c5d7[m fixed edit,  time invalid issues
+[33mb604d6f[m set new price for each slot
+[33mc8af2cb[m net error
+[33m15fde5f[m time slot integrated
+[33mf9dd1cd[m changed few
+[33ma5a086c[m login page logo changed
+[33m63fdb53[m Resolved merge conflict in vite.config.js
+[33ma3db2a1[m change
+[33m1421c75[m Merge pull request #6 from fresh-finest/ds
+[33m0957393[m update-01
+[33mb154480[m favicon icon added
+[33md750d26[m caleder page top feature and sidebar userInformation feature added
+[33mddd640c[m resolve
+[33m0a95f68[m pull problem
+[33m17b12e1[m Merge pull request #5 from fresh-finest/ds
+[33mc5fdabc[m sidebar layout added
+[33m336ceb6[m Merge pull request #4 from fresh-finest/main
+[33mfc04f93[m Merge pull request #3 from fresh-finest/ds
+[33mcffb402[m sds
+[33m89cf7db[m Merge pull request #2 from fresh-finest/ds
+[33mc3b0dbd[m readme file updated
+[33mf86772b[m end time and update issue fix
+[33mdae6df2[m fix search issues
+[33m987245f[m fix null product and image
+[33m6a7336d[m fbm and image fixed
+[33m11f7be5[m update api for signin
+[33ma2e5262[m time issue from history
+[33m2e2f62f[m timezone
+[33m6e0c365[m fix time issue
+[33mce05ded[m utc update
+[33m3dc0a3f[m weekly fixed
+[33m8e75cac[m updated with https
+[33m5d87b99[m changed-uri
+[33m078336a[m render
+[33me821647[m fix unavailbe issue
+[33m54b101d[m sustomized time
+[33md5f15eb[m refactored
+[33m370924b[m fixed local
+[33m861da65[m changes
+[33m7ab925f[m route to calendar
+[33mc61a0a9[m fix disabled
+[33mefb7d2b[m added url
+[33m5144873[m implement update schedule and prevent exist
+[33mfd01151[m fixed update issues
+[33mc3956db[m fix fetch issue
+[33mcfa7793[m u-2
+[33m60cf755[m u-update
+[33m0a03cec[m monthly implemented
+[33m7c46ac4[m changed ip
+[33m5114134[m change list
+[33m6659592[m updated few
+[33m95b62e6[m fix filter issue
+[33me9dfd32[m apply list
+[33m086400b[m cors
+[33m143ef3d[m proxy
+[33m0b0c530[m ec2
+[33me18a3c5[m beanstalk
+[33mea38131[m md
+[33m0016c4a[m implemented weekly schedule
+[33m30c8b1a[m re c
+[33ma7dabfa[m re
+[33m76323ca[m allow http
+[33mb8b73e4[m updated server
+[33mb9db0ce[m imlemented prevent exist schedule and few bugs
+[33mfcd77ef[m changed update icon
+[33m529bbb7[m set new price
+[33m047b8bc[m excluded deleted scheduled
+[33m02abfae[m implemented filter by schedule data and fixed few bugs
+[33m3fff2ab[m added checked mark
+[33md19ba38[m implemented copy Butten by asin and sku
+[33mabe94df[m set permissions
+[33m575bf2d[m fix username
+[33m9537790[m user set
+[33mdf6cf51[m implemented invite user
+[33m8c5cb77[m sorted schedule
+[33m430b397[m implemented delete user for admin
+[33m5293ecc[m implemented logging data
+[33ma168ee6[m asin
+[33m40354ac[m update for sku
+[33m0fcc79c[m crud on price schedule
+[33m5502df9[m c-style
+[33mf5aea73[m cancel schedule
+[33md466ede[m fixed search bar
+[33m247a1eb[m fixed date range issue
+[33mbc4d8b1[m set action for changing history
+[33mbf9b4b6[m added edit for schedule
+[33md0126f4[m Schedule is editable
+[33m087377a[m filtered by date range
+[33m406bb07[m get image and title in history section
+[33mf415eb2[m changed list view
+[33mf8f4ebd[m fixed for admin permissions
+[33m33d34c8[m permission set
+[33mc93b27c[m set userrole routing
+[33m6750d03[m filtered by user
+[33md0f230b[m get user name
+[33m367d643[m fix undefined issues
+[33m7833870[m set private route for history
+[33m5122629[m added asin and current price
+[33mabb15f8[m update-4
+[33m22c532d[m updated styles
+[33mbf01d76[m changed ico
+[33me096d41[m changed icon
+[33m2a319e2[m added untill option to update price
+[33m329a8b7[m update stayle for details view
+[33m6996a3d[m  style changing
+[33m27a93dc[m make good performance
+[33m7cab935[m add url
+[33m5130ecf[m added schdeule details
+[33m86abee3[m asin added
+[33mccb734b[m update details
+[33m71d7316[m fix aligning to selected date
+[33m5fdefda[m view time
+[33m8f05b0d[m updated url
+[33m9db40c6[m developed seleted date updated list
+[33meb6ae7f[m update price-3
+[33m3a3a58b[m popup-2
+[33m1729a98[m popup-1
+[33m4e29469[m updated server
+[33md9e634d[m fixed dynamic scheduling
+[33m2903fb4[m wild check
+[33mcfff62d[m wild
+[33m527ecae[m comment-1
+[33mddaee3a[m updated api
+[33mf5880a2[m ui designed for list view
+[33m0a1532e[m update-3
+[33mc2643ed[m updatelist-2
+[33maed56dc[m list view styled
+[33m9e2cb4b[m fix issue
+[33m2f777a1[m updated detail view
+[33m5984b45[m updated list view
+[33m2c6fcfb[m implement list view
+[33m930cedc[m changed-2-update
+[33m979d498[m modified not found
+[33mc9f9a02[m implemeted private route
+[33m83a42d4[m complete login functionality
+[33me780f5a[m header imported
+[33m42dd10c[m import changed
+[33m8df0f61[m implemented signout
+[33m86e4c33[m private route set
+[33me4d1843[m redux is set up
+[33m6f2a4aa[m created store
+[33mc3eeffe[m created user slice
+[33m5a6ff9b[m baseurl slice is created
+[33ma2ada6d[m reduxt initial
+[33mbc04c93[m changed of
+[33m712472d[m logo style fixed
+[33mb85a31c[m Designed login UI
+[33mf8286d1[m changed few
+[33m3428e87[m demo list is created
+[33m1a880ab[m react-router-dom
+[33me838a2c[m added router dom
+[33mf042555[m create Calendar view
+[33m1a193e3[m update price-3
+[33mdc90b1e[m updated api
+[33mda9498d[m dynamic the list
+[33m42186a9[m dynamic the context
+[33m4c462fb[m update price-2
+[33m8386df6[m update pricing
+[33m47c0726[m change importing
+[33m88895f0[m update price
+[33m7043826[m updated hove effect
+[33m8fcb091[m updated base url
+[33mc91db92[m written update price logic
+[33m4e1cf71[m created demo view list
+[33m1906aee[m update price -1
+[33mc40e9e0[m written logic for submit
+[33mf3b0954[m complete handling sku
+[33m476db4f[m completed fetchCurrentPrice function
+[33m8454cf0[m hooks are defined
+[33m8cd125f[m weekly hover resolved
+[33m5f32c91[m hover issue resolved
+[33m3d184cb[m Price modal created
+[33m192fec2[m issue
+[33m0c0d4ff[m calendar css
+[33m222a908[m return modal
+[33mbbf658d[m custonized calendar view
+[33mc71cde2[m set provider
+[33m51020ae[m created hooks for usePriceScheduler
+[33me0069ed[m complete Price schedule context
+[33m8e0afca[m changed favico and title
+[33m4976c47[m complete api
+[33md8714a6[m complete update product price function
+[33m3126bac[m complete fetch product price
+[33m38566ca[m update calendar
+[33m88fe784[m Restructured of folder created
+[33m56a43aa[m update header file
+[33m5169ae0[m added package
+[33mcd71d0d[m Header template added
+[33m54ec126[m created components and pages structure
+[33m24b7e0a[m tailwind configuration
+[33md31da40[m initial setup

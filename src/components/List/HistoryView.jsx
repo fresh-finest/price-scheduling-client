@@ -261,7 +261,7 @@ export default function HistoryView() {
       setLoadingNested(false);
     }
   };
-/*
+  /*
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -274,33 +274,38 @@ export default function HistoryView() {
   };
 */
 
-const handleRowClick = async (scheduleId) => {
-  if (expandedRow === scheduleId) {
-    setExpandedRow(null); // Collapse the row if it's already expanded
-  } else {
-    setExpandedRow(scheduleId);
+  const handleRowClick = async (scheduleId) => {
+    if (expandedRow === scheduleId) {
+      setExpandedRow(null); // Collapse the row if it's already expanded
+    } else {
+      setExpandedRow(scheduleId);
 
-    // Fetch nested data only if it hasn't been fetched before
-    if (!nestedData[scheduleId]) {
-      setLoadingNested(true);
-      try {
-        const nestedResponse = await axios.get(`${BASE_URL}/api/history/${scheduleId}`);
-        setNestedData((prevData) => ({
-          ...prevData,
-          [scheduleId]: nestedResponse.data,
-        }));
-      } catch (err) {
-        console.error(`Error fetching nested data for scheduleId ${scheduleId}:`, err);
-        setNestedData((prevData) => ({
-          ...prevData,
-          [scheduleId]: [], // Default to empty array if there's an error
-        }));
-      } finally {
-        setLoadingNested(false);
+      // Fetch nested data only if it hasn't been fetched before
+      if (!nestedData[scheduleId]) {
+        setLoadingNested(true);
+        try {
+          const nestedResponse = await axios.get(
+            `${BASE_URL}/api/history/${scheduleId}`
+          );
+          setNestedData((prevData) => ({
+            ...prevData,
+            [scheduleId]: nestedResponse.data,
+          }));
+        } catch (err) {
+          console.error(
+            `Error fetching nested data for scheduleId ${scheduleId}:`,
+            err
+          );
+          setNestedData((prevData) => ({
+            ...prevData,
+            [scheduleId]: [], // Default to empty array if there's an error
+          }));
+        } finally {
+          setLoadingNested(false);
+        }
       }
     }
-  }
-};
+  };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -329,7 +334,7 @@ const handleRowClick = async (scheduleId) => {
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-  
+
   const formatDateTimeCreated = (dateString) => {
     const options = {
       day: "2-digit",
@@ -338,12 +343,11 @@ const handleRowClick = async (scheduleId) => {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York" // Set timezone to EDT (Eastern Time Zone)
+      timeZone: "America/New_York", // Set timezone to EDT (Eastern Time Zone)
     };
-    
+
     return new Date(dateString).toLocaleString("en-US", options);
   };
-  
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
@@ -383,7 +387,6 @@ const handleRowClick = async (scheduleId) => {
       .join(", ");
   };
 
-  
   const filteredData = data
     .filter((item) => {
       const displayData = getDisplayData(item);
@@ -928,7 +931,8 @@ const handleRowClick = async (scheduleId) => {
                           height: "40px",
                         }}
                       >
-                        {item.userName} <p>{formatDateTimeCreated(item.timestamp)}</p>
+                        {item.userName}{" "}
+                        <p>{formatDateTimeCreated(item.timestamp)}</p>
                       </td>
 
                       {/* action */}
@@ -1168,7 +1172,7 @@ const handleRowClick = async (scheduleId) => {
                                                                             slot.startTime,
                                                                             0
                                                                           )}
-                                                                         
+
                                                                           <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                             $
                                                                             {slot?.newPrice?.toFixed(

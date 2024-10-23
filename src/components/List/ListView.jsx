@@ -21,7 +21,7 @@ import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-const BASE_URL ='http://localhost:3000'
+const BASE_URL = "http://localhost:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
@@ -74,7 +74,6 @@ const ListView = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || "";
-  
 
   const {
     data: productData,
@@ -111,8 +110,6 @@ const ListView = () => {
     indexOfFirstItem,
     indexOfLastItem
   );
-
-  
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
@@ -291,7 +288,7 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
-       
+
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -1013,11 +1010,16 @@ const ListView = () => {
           ) : (
             filterScheduled && (
               <div
-                style={{
-                  marginTop: "20px",
-                  color: "#888",
-                  textAlign: "center",
-                }}
+                // style={{
+                //   marginTop: "20px",
+                //   height: "20vh",
+                //   color: "#888",
+                //   display: "flex",
+                //   textAlign: "center",
+                //   justifyContent: "center",
+                // }}
+
+                className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]"
               >
                 There is no active schedule.
               </div>
@@ -1053,7 +1055,7 @@ const ListView = () => {
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
               />
-               {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
+              {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div

@@ -263,31 +263,31 @@ const EditScheduleFromList = ({
   };
 */
 
-// const formatTimeToHHMM = (date) => {
-//   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-//   let offsetHours = 0; // Default to no adjustment
-//   let adjustedDate = new Date(date.getTime());
+  // const formatTimeToHHMM = (date) => {
+  //   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  //   let offsetHours = 0; // Default to no adjustment
+  //   let adjustedDate = new Date(date.getTime());
 
-//   // Set offset hours and adjust the date based on the detected time zone
-//   if (timeZone.includes("America")) {
-//     offsetHours = 4; // Add 4 hours for EDT
-//     adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
-//   } else if (timeZone === "Asia/Dhaka") {
-//     offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
-//     adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
-//   }
+  //   // Set offset hours and adjust the date based on the detected time zone
+  //   if (timeZone.includes("America")) {
+  //     offsetHours = 4; // Add 4 hours for EDT
+  //     adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
+  //   } else if (timeZone === "Asia/Dhaka") {
+  //     offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
+  //     adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
+  //   }
 
-//   // Format the adjusted date to HH:mm format
-//   const hours = adjustedDate.getHours().toString().padStart(2, "0");
-//   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
-//   return `${hours}:${minutes}`;
-// };
-const formatTimeToHHMM = (date) => {
-  // Format the date object directly to HH:mm without time zone adjustments
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
+  //   // Format the adjusted date to HH:mm format
+  //   const hours = adjustedDate.getHours().toString().padStart(2, "0");
+  //   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
+  //   return `${hours}:${minutes}`;
+  // };
+  const formatTimeToHHMM = (date) => {
+    // Format the date object directly to HH:mm without time zone adjustments
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
 
   // const convertTimeToUtc = (timeString) => {
   //   const date = convertTimeStringToDate(timeString); // Convert time string to Date object
@@ -335,11 +335,11 @@ const formatTimeToHHMM = (date) => {
   //       return now; // Local time will be automatically adjusted
   //     }
   //   }
-  //   return new Date(); 
+  //   return new Date();
   // };
   const convertTimeToLocalFormat = (timeString) => {
-    console.log("convert ")
-    const date = convertTimeStringToDate(timeString); 
+    console.log("convert ");
+    const date = convertTimeStringToDate(timeString);
     return moment(date).format("HH:mm");
   };
 
@@ -354,7 +354,6 @@ const formatTimeToHHMM = (date) => {
     }
     return new Date(); // Return the current date and time if the input is invalid
   };
-  
 
   useEffect(() => {
     if (show && existingSchedule) {
@@ -551,8 +550,6 @@ const formatTimeToHHMM = (date) => {
     };
 
     for (const day in weeklyTimeSlots) {
-
-
       const slots = weeklyTimeSlots[day];
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
@@ -589,8 +586,6 @@ const formatTimeToHHMM = (date) => {
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
-
-
 
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
@@ -633,8 +628,8 @@ const formatTimeToHHMM = (date) => {
       // const utcStartTime = convertTimeToUtc(startTime);
       // const utcEndTime = convertTimeToUtc(endTime);
       // const convertTimeToUtc = (timeString) => {
-      //   // const date = convertTimeStringToDate(timeString); 
-      //   return moment(date).utc().format("HH:mm"); 
+      //   // const date = convertTimeStringToDate(timeString);
+      //   return moment(date).utc().format("HH:mm");
       // };
 
       if (!indefiniteEndDate && endDate < startDate) {
@@ -664,7 +659,7 @@ const formatTimeToHHMM = (date) => {
       //   utcStartTime,
       //   utcEndTime
       // );
-    
+
       const utcWeeklySlots = {};
       const utcMonthlySlots = {};
       if (weekly) {
@@ -729,7 +724,7 @@ const formatTimeToHHMM = (date) => {
         weeklyTimeSlots: utcWeeklySlots,
         monthly: scheduleType === "monthly",
         monthlyTimeSlots: utcMonthlySlots,
-        timeZone
+        timeZone,
       };
       //startTime:startTime.toTimeString().slice(0, 5),
       //endTime:endTime.toTimeString().slice(0, 5)

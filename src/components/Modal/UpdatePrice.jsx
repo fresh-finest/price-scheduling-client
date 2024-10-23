@@ -1,55 +1,64 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { PriceScheduleContext } from '../../contexts/PriceScheduleContext';
-import axios from 'axios';
+import React, { useState, useContext, useEffect } from "react";
+import { Modal, Button, Form, Alert } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+import axios from "axios";
 
-const BASE_URL = 'https://price-scheduling-server-2.onrender.com';
+const BASE_URL = "https://price-scheduling-server-2.onrender.com";
 
 const updateProductPrice = async (sku, value) => {
   try {
-    console.log(`Updating price for SKU: ${sku} with value: ${value}`);
-    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, { value: parseFloat(value) });
-    console.log('Response:', response.data);
+    const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
+      value: parseFloat(value),
+    });
     return response.data;
   } catch (error) {
-    console.error('Error updating product price:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error updating product price:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
 const saveSchedule = async (sku, price, startDate, endDate) => {
   try {
-    console.log(`Saving schedule for SKU: ${sku} with price: ${price}, startDate: ${startDate}, endDate: ${endDate}`);
-    const response = await axios.post(`${BASE_URL}/api/schedule`, { sku, price: parseFloat(price), startDate, endDate });
-    console.log('Response:', response.data);
+    const response = await axios.post(`${BASE_URL}/api/schedule`, {
+      sku,
+      price: parseFloat(price),
+      startDate,
+      endDate,
+    });
     return response.data;
   } catch (error) {
-    console.error('Error saving schedule:', error.response ? error.response.data : error.message);
+    console.error(
+      "Error saving schedule:",
+      error.response ? error.response.data : error.message
+    );
     throw error;
   }
 };
 
 const UpdatePrice = ({ show, onClose }) => {
   const { addEvent } = useContext(PriceScheduleContext);
-  const [sku, setSku] = useState('');
-  const [currentPrice, setCurrentPrice] = useState('');
-  const [price, setPrice] = useState('');
+  const [sku, setSku] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (show) {
-      setSku('');
-      setCurrentPrice('');
-      setPrice('');
+      setSku("");
+      setCurrentPrice("");
+      setPrice("");
       setStartDate(new Date());
       setEndDate(new Date());
-      setSuccessMessage('');
-      setErrorMessage('');
+      setSuccessMessage("");
+      setErrorMessage("");
     }
   }, [show]);
 
@@ -60,7 +69,12 @@ const UpdatePrice = ({ show, onClose }) => {
       await updateProductPrice(sku, currentPrice);
 
       // Save the schedule
-      const scheduleResponse = await saveSchedule(sku, price, startDate, endDate);
+      const scheduleResponse = await saveSchedule(
+        sku,
+        price,
+        startDate,
+        endDate
+      );
 
       // Schedule the price update and the revert to original price
       const now = new Date();
@@ -71,7 +85,10 @@ const UpdatePrice = ({ show, onClose }) => {
         try {
           await updateProductPrice(sku, newPrice);
         } catch (error) {
-          console.error(`Error updating SKU ${sku}:`, error.response ? error.response.data : error.message);
+          console.error(
+            `Error updating SKU ${sku}:`,
+            error.response ? error.response.data : error.message
+          );
         }
       };
 
@@ -98,22 +115,27 @@ const UpdatePrice = ({ show, onClose }) => {
       });
 
       // Set success message
-      setSuccessMessage(`Price update accepted. SKU: ${scheduleResponse.sku}, Submission ID: ${scheduleResponse.submissionId}`);
+      setSuccessMessage(
+        `Price update accepted. SKU: ${scheduleResponse.sku}, Submission ID: ${scheduleResponse.submissionId}`
+      );
 
       // Close the modal
       onClose();
     } catch (error) {
-      setErrorMessage('Error updating price: ' + (error.response ? error.response.data.error : error.message));
-      console.error('Error updating price:', error);
+      setErrorMessage(
+        "Error updating price: " +
+          (error.response ? error.response.data.error : error.message)
+      );
+      console.error("Error updating price:", error);
     }
   };
 
   const modalStyles = {
     formControl: {
-      marginBottom: '15px',
+      marginBottom: "15px",
     },
     button: {
-      width: '100%',
+      width: "100%",
     },
   };
 
@@ -137,7 +159,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formCurrentPrice" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formCurrentPrice"
+              style={modalStyles.formControl}
+            >
               <Form.Label>Current Price</Form.Label>
               <Form.Control
                 type="number"
@@ -157,7 +182,10 @@ const UpdatePrice = ({ show, onClose }) => {
                 required
               />
             </Form.Group>
-            <Form.Group controlId="formStartDate" style={modalStyles.formControl}>
+            <Form.Group
+              controlId="formStartDate"
+              style={modalStyles.formControl}
+            >
               <Form.Label>Start Date and Time</Form.Label>
               <DatePicker
                 selected={startDate}
@@ -186,7 +214,7 @@ const UpdatePrice = ({ show, onClose }) => {
         </Modal.Body>
       </Modal>
       {successMessage && (
-        <Modal show onHide={() => setSuccessMessage('')}>
+        <Modal show onHide={() => setSuccessMessage("")}>
           <Modal.Header closeButton>
             <Modal.Title>Successfully updated price!</Modal.Title>
           </Modal.Header>
