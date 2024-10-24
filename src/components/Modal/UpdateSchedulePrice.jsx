@@ -171,7 +171,7 @@ const saveSchedule = async (
 };
 
 const UpdatePrice = ({ show, onClose, selectedDate }) => {
-  console.log("selected date", selectedDate);
+
   const { addEvent } = useContext(PriceScheduleContext);
   const [asin, setAsin] = useState("");
   const [sku, setSku] = useState("");
@@ -206,7 +206,7 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     },
   ]);
 
-  console.log("schedules", schedules);
+ 
 
   // const userName = JSON.stringify(currentUser.userName);
   const userName = currentUser.userName;

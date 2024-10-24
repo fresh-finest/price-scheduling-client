@@ -10,7 +10,8 @@ import {
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-
+import { AiOutlineFilter } from "react-icons/ai"; // Funnel icon from react-icons
+import { IoFunnelOutline } from "react-icons/io5";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -25,8 +26,8 @@ const BASE_URL = "http://localhost:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST = `https://api.priceobo.com`;
-// const BASE_URL_LIST = "http://localhost:3000";
+// const BASE_URL_LIST = `https://api.priceobo.com`;
+const BASE_URL_LIST = "http://localhost:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
@@ -50,7 +51,7 @@ const ListView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 80, 90, 80, 90,
+    80, 80, 350, 80, 80, 90, 90, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -67,6 +68,18 @@ const ListView = () => {
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
   const [filterScheduled, setFilterScheduled] = useState(false);
+  const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+
+  const getUnitCountForTimePeriod = (salesMetrics, timePeriod) => {
+    const metric = salesMetrics.find((metric) => metric.time === timePeriod);
+    return metric ? metric.totalUnits : "N/A";
+  };
+  const handleTimePeriodChange = (timePeriod) => {
+    setSelectedTimePeriod(timePeriod);
+    setShowFilterDropdown(false); // Close the dropdown after selection
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 20;
@@ -665,7 +678,80 @@ const ListView = () => {
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Sale
+                      Sale{" "}
+                      <div
+                        style={{
+                          position: "relative",
+                          float: "right",
+                          marginRight: "10px",
+                        }}
+                      >
+                        <IoFunnelOutline
+                          size={18}
+                          style={{ cursor: "pointer" }}
+                          onClick={() =>
+                            setShowFilterDropdown(!showFilterDropdown)
+                          }
+                        />
+
+                        {/* Dropdown menu */}
+                        {showFilterDropdown && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              right: 0,
+                              backgroundColor: "#fff",
+                              border: "1px solid #ddd",
+                              borderRadius: "4px",
+                              padding: "10px",
+                              zIndex: 1,
+                              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                            }}
+                          >
+                            <ul
+                              style={{
+                                listStyle: "none",
+                                padding: 0,
+                                margin: 0,
+                                cursor: "pointer",
+                              }}
+                            >
+                              <li onClick={() => handleTimePeriodChange("1 D")}>
+                                1D
+                              </li>
+                              <li onClick={() => handleTimePeriodChange("7 D")}>
+                                7D
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("15 D")}
+                              >
+                                15D
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("30 D")}
+                              >
+                                30D
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("60 D")}
+                              >
+                                60D
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("90 D")}
+                              >
+                                90D
+                              </li>
+                              <li onClick={() => handleTimePeriodChange("6 M")}>
+                                6M
+                              </li>
+                              <li onClick={() => handleTimePeriodChange("1 Y")}>
+                                1Y
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                       <div
                         style={{
                           width: "5px",
@@ -948,7 +1034,12 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
-                        N/A
+                        {item?.salesMetrics
+                          ? `${selectedTimePeriod}: ${getUnitCountForTimePeriod(
+                              item.salesMetrics,
+                              selectedTimePeriod
+                            )}`
+                          : "N/A"}
                       </td>
                       <td
                         style={{

@@ -38,21 +38,26 @@ import { FaChevronDown } from "react-icons/fa";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ScheduleDetailsModal from "../Modal/ScheduleDetailsModal";
+
 
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
   const { events } = useContext(PriceScheduleContext);
+  const { singleDayEvents, weeklyEvents, monthlyEvents } = useContext(PriceScheduleContext);
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState(Views.MONTH);
   const [showOptionModal, setShowOptionModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedScheduledEvent, setSelectedScheduledEvent] = useState(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const [moreEvents, setMoreEvents] = useState([]); // State to store additional events
   const [showMoreModal, setShowMoreModal] = useState(false); // State to control more events modal\
-
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("Month");
 
@@ -98,6 +103,21 @@ const CalendarView = () => {
     // setShowOptionModal(true);
     setShowUpdateModal(true);
   };
+
+  const handleEventClick = (event) => {
+    setSelectedScheduledEvent(event);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowDetailsModal(false);
+    setSelectedScheduledEvent(null);
+  };
+  const allEvents = [
+    ...singleDayEvents.map(event => ({ ...event, eventType: 'single' })),
+    ...weeklyEvents.map(event => ({ ...event, eventType: 'weekly' })),
+    ...monthlyEvents.map(event => ({ ...event, eventType: 'monthly' }))
+  ];
 
   const handleSelectSlot = (slotInfo) => {
     const calendarElement = document.querySelector(".rbc-calendar");
@@ -146,8 +166,52 @@ const CalendarView = () => {
     setShowMoreModal(true);
   };
 
-  console.log("selected date", selectedDate);
+  // console.log("selected date", selectedDate);
+  const EventWithImage = ({ event }) => {
+    return (
+      <div className="event-container" style={{ display: "flex", alignItems: "center" }}>
+      {event.image && (
+        <img
+          src={event.image}
+          alt="Event"
+          style={{
+            width: "30px",
+            height: "30px",
+            marginRight: "8px",
+          }}
+        />
+      )}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span>{event.title}</span>
+        <p style={{ margin: "0" }}>
+          {event?.productName?.split(" ").slice(0, 10).join(" ") + (event?.productName?.split(" ").length > 10 ? "..." : "")}
+        </p>
+      </div>
+    </div>
+    
+    );
+  };
 
+
+  console.log("selected event: "+JSON.stringify(selectedScheduledEvent))
+  const eventsToShow =
+  view === Views.WEEK
+    ? weeklyEvents
+    : view === Views.MONTH
+    ? monthlyEvents
+    : singleDayEvents;
+
+
+    // const eventsToShow = () => {
+    //   if (view === Views.WEEK) {
+    //     return weeklyEvents; // Show only weekly events in week view
+    //   } else if (view === Views.MONTH) {
+    //     return monthlyEvents; // Show only monthly events in month view
+    //   } else {
+    //     return singleDayEvents; // Show single-day events for day view
+    //   }
+    // };
+  
   return (
     <>
       <section className="">
@@ -370,13 +434,15 @@ const CalendarView = () => {
 
           <Calendar
             localizer={localizer}
-            events={events}
+            events={eventsToShow}
+            // events={allEvents}
             startAccessor="start"
             endAccessor="end"
             views={["month", "week", "day"]}
             view={view}
             date={selectedDate}
             onNavigate={handleNavigate}
+            onSelectEvent={handleEventClick}
             selectable
             onSelectSlot={handleSelectSlot}
             onClickDay={handleDateClick}
@@ -399,7 +465,7 @@ const CalendarView = () => {
               }
             }}
             components={{
-              toolbar: () => null, // Disable the default toolbar
+              event: EventWithImage, // Custom event component
             }}
             onDrillDown={(date, view) => handleNavigate(date, view)}
             onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
@@ -411,7 +477,15 @@ const CalendarView = () => {
             event={selectedEvent}
             selectedDate={selectedDate}
           />
-
+ {selectedScheduledEvent &&  (
+  <ScheduleDetailsModal
+    show={showDetailsModal}
+    onClose={handleCloseModal}
+    sku={selectedScheduledEvent?.sku} // Pass the SKU
+    selectedDate={selectedScheduledEvent?.start} // Pass the selected date of the event
+    eventType={selectedScheduledEvent?.eventType} // Pass the event type (single, weekly, monthly)
+  />
+)}
           {/* <Popover
             className="animate-slide-in-left"
             open={showOptionModal}

@@ -132,7 +132,7 @@ const UpdatePriceFromList = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  const { addEvent } = useContext(PriceScheduleContext);
+  const { addSingleDayEvent, addWeeklyEvent, addMonthlyEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -984,7 +984,7 @@ const validateTimeSlots = () => {
         );
       }
 
-      if (!weekly && !monthly)
+      if (!weekly && !monthly){
         for (const schedule of schedules) {
           const { price, currentPrice, startDate, endDate, indefiniteEndDate } =
             schedule;
@@ -1013,12 +1013,8 @@ const validateTimeSlots = () => {
           );
           // Log event or update UI after successful submission
         }
-      addEvent({
-        title: `SKU: ${sku} - $${price}`,
-        start: new Date(startDate), // Use the original date object for UI purposes
-        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
-        allDay: false,
-      });
+      }
+        addScheduledEvent();
 
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
@@ -1046,6 +1042,25 @@ const validateTimeSlots = () => {
       return () => clearTimeout(timer);
     }
   }, [showSuccessModal, setShowSuccessModal]);
+  const addScheduledEvent = () => {
+    const eventTitle = `SKU: ${sku} - $${price}`;
+    const newEvent = {
+      title: eventTitle,
+      start: new Date(startDate),
+      end: endDate ? new Date(endDate) : null,
+      allDay: false,
+      image: imageURL,
+    };
+
+    if (weekly) {
+      addWeeklyEvent(newEvent);
+    } else if (monthly) {
+      addMonthlyEvent(newEvent);
+    } else {
+      addSingleDayEvent(newEvent);
+    }
+  };
+
 
   return (
     <>
