@@ -51,7 +51,7 @@ const ListView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 80, 90, 90, 90,
+    80, 80, 350, 80, 80, 90, 100, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -702,51 +702,164 @@ const ListView = () => {
                               right: 0,
                               backgroundColor: "#fff",
                               border: "1px solid #ddd",
-                              borderRadius: "4px",
-                              padding: "10px",
+                              borderRadius: "8px", // Rounded corners
+                              padding: "0px", // No padding around the list container
                               zIndex: 1,
-                              boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)", // Slightly stronger shadow for depth
+                              minWidth: "150px", // Ensure minimum width for the dropdown
+                              fontFamily: "'Roboto', sans-serif", // Use a clean font style
                             }}
                           >
                             <ul
                               style={{
                                 listStyle: "none",
-                                padding: 0,
+                                padding: "5px 0",
                                 margin: 0,
                                 cursor: "pointer",
                               }}
                             >
-                              <li onClick={() => handleTimePeriodChange("1 D")}>
-                                1D
+                              <li
+                                onClick={() => handleTimePeriodChange("1 D")}
+                                style={{
+                                  padding: "10px 15px", // Padding inside each list item
+                                  transition:
+                                    "background-color 0.2s ease-in-out", // Smooth hover effect
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
+                              >
+                                Yesterday
                               </li>
-                              <li onClick={() => handleTimePeriodChange("7 D")}>
-                                7D
+                              <li
+                                onClick={() => handleTimePeriodChange("7 D")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
+                              >
+                                last 7 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("15 D")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
                               >
-                                15D
+                                last 15 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("30 D")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
                               >
-                                30D
+                                last 30 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("60 D")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
                               >
-                                60D
+                                last 60 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("90 D")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
                               >
-                                90D
+                                last 90 Days
                               </li>
-                              <li onClick={() => handleTimePeriodChange("6 M")}>
-                                6M
+                              <li
+                                onClick={() => handleTimePeriodChange("6 M")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
+                              >
+                                last 6 Months
                               </li>
-                              <li onClick={() => handleTimePeriodChange("1 Y")}>
-                                1Y
+                              <li
+                                onClick={() => handleTimePeriodChange("1 Y")}
+                                style={{
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    "transparent")
+                                }
+                              >
+                                last year
                               </li>
                             </ul>
                           </div>
@@ -1035,7 +1148,7 @@ const ListView = () => {
                         }}
                       >
                         {item?.salesMetrics
-                          ? `${selectedTimePeriod}: ${getUnitCountForTimePeriod(
+                          ? `${getUnitCountForTimePeriod(
                               item.salesMetrics,
                               selectedTimePeriod
                             )}`
