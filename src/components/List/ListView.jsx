@@ -10,7 +10,8 @@ import {
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-
+import { IoFunnelOutline } from "react-icons/io5";
+import { FaCheck } from 'react-icons/fa'; // Using Font Awesome check icon for better visuals
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -67,6 +68,8 @@ const ListView = () => {
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
   const [filterScheduled, setFilterScheduled] = useState(false);
+  const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 20;
@@ -74,7 +77,15 @@ const ListView = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser?.userName || "";
-  
+  const getUnitCountForTimePeriod = (salesMetrics, timePeriod) => {
+    const metric = salesMetrics.find((metric) => metric.time === timePeriod);
+    return metric ? metric.totalUnits : "N/A";
+  };
+  const handleTimePeriodChange = (timePeriod) => {
+    setSelectedTimePeriod(timePeriod);
+    setShowFilterDropdown(false); // Close the dropdown after selection
+  };
+
 
   const {
     data: productData,
@@ -671,6 +682,352 @@ const ListView = () => {
                       Sale
                       <div
                         style={{
+                          position: "relative",
+                          float: "right",
+                          marginRight: "10px",
+                        }}
+                      >
+                        <IoFunnelOutline
+                          size={15}
+                          style={{ cursor: "pointer" }}
+                          onClick={() =>
+                            setShowFilterDropdown(!showFilterDropdown)
+                          }
+                        />
+
+                        {/* Dropdown menu */}
+                        {showFilterDropdown && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              right: 0,
+                              backgroundColor: "#fff",
+                              border: "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "0px",
+                              zIndex: 1,
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                              minWidth: "150px",
+                              fontFamily: "'Roboto', sans-serif",
+                            }}
+                          >
+                            <ul
+                              style={{
+                                listStyle: "none",
+                                padding: "5px 0",
+                                margin: 0,
+                                cursor: "pointer",
+                              }}
+                            >
+                              <li
+                                onClick={() => handleTimePeriodChange("1 D")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "1 D"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "1 D"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "1 D"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "1 D" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                Yesterday
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("7 D")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "7 D"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "7 D"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "7 D"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "7 D" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last 7 Days
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("15 D")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "15 D"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "15 D"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "15 D"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "15 D" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last 15 Days
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("30 D")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "30 D"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "30 D"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "30 D"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "30 D" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last 30 Days
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("60 D")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "60 D"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "60 D"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "60 D"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "60 D" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last 60 Days
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("90 D")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "90 D"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "90 D"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "90 D"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "90 D" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last 90 Days
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("6 M")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  borderBottom: "1px solid #eee",
+                                  backgroundColor:
+                                    selectedTimePeriod === "6 M"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "6 M"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "6 M"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "6 M" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last 6 Months
+                              </li>
+                              <li
+                                onClick={() => handleTimePeriodChange("1 Y")}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  padding: "10px 15px",
+                                  transition:
+                                    "background-color 0.2s ease-in-out",
+                                  backgroundColor:
+                                    selectedTimePeriod === "1 Y"
+                                      ? "#e0f7fa"
+                                      : "transparent",
+                                  fontWeight:
+                                    selectedTimePeriod === "1 Y"
+                                      ? "bold"
+                                      : "normal",
+                                }}
+                                onMouseEnter={(e) =>
+                                  (e.target.style.backgroundColor = "#f7f7f7")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.target.style.backgroundColor =
+                                    selectedTimePeriod === "1 Y"
+                                      ? "#e0f7fa"
+                                      : "transparent")
+                                }
+                              >
+                                {selectedTimePeriod === "1 Y" && (
+                                  <FaCheck
+                                    style={{
+                                      marginRight: "8px",
+                                      color: "green",
+                                    }}
+                                  />
+                                )}
+                                last Year
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        style={{
                           width: "5px",
                           height: "100%",
                           position: "absolute",
@@ -951,7 +1308,12 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
-                        N/A
+                      {item?.salesMetrics
+                          ? `${getUnitCountForTimePeriod(
+                              item.salesMetrics,
+                              selectedTimePeriod
+                            )}`
+                          : "N/A"}
                       </td>
                       <td
                         style={{
