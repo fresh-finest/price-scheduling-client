@@ -221,7 +221,7 @@ const ProductDetailView = ({
   const [editSchedule, setEditSchedule] = useState(null);
   const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
   const [currentPrice, setCurrentPrice] = useState("");
-  const { addEvent, removeEvent } = useContext(PriceScheduleContext);
+  const { addEvent} = useContext(PriceScheduleContext);
 
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);

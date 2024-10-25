@@ -1014,7 +1014,7 @@ const validateTimeSlots = () => {
           // Log event or update UI after successful submission
         }
       }
-        addScheduledEvent();
+      
 
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
@@ -1042,24 +1042,24 @@ const validateTimeSlots = () => {
       return () => clearTimeout(timer);
     }
   }, [showSuccessModal, setShowSuccessModal]);
-  const addScheduledEvent = () => {
-    const eventTitle = `SKU: ${sku} - $${price}`;
-    const newEvent = {
-      title: eventTitle,
-      start: new Date(startDate),
-      end: endDate ? new Date(endDate) : null,
-      allDay: false,
-      image: imageURL,
-    };
+  // const addScheduledEvent = () => {
+  //   const eventTitle = `SKU: ${sku} - $${price}`;
+  //   const newEvent = {
+  //     title: eventTitle,
+  //     start: new Date(startDate),
+  //     end: endDate ? new Date(endDate) : null,
+  //     allDay: false,
+  //     image: imageURL,
+  //   };
 
-    if (weekly) {
-      addWeeklyEvent(newEvent);
-    } else if (monthly) {
-      addMonthlyEvent(newEvent);
-    } else {
-      addSingleDayEvent(newEvent);
-    }
-  };
+  //   if (weekly) {
+  //     addWeeklyEvent(newEvent);
+  //   } else if (monthly) {
+  //     addMonthlyEvent(newEvent);
+  //   } else {
+  //     addSingleDayEvent(newEvent);
+  //   }
+  // };
 
 
   return (

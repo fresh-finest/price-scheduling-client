@@ -169,7 +169,7 @@ const EditScheduleFromList = ({
   editScheduleModalTitle,
 }) => {
   console.log("existing schedule", existingSchedule);
-  const { addEvent, removeEvent } = useContext(PriceScheduleContext);
+  // const { addEvent, removeEvent } = useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [price, setPrice] = useState("");
@@ -733,12 +733,7 @@ const EditScheduleFromList = ({
         updateData
       );
 
-      addEvent({
-        title: `SKU: ${sku} - $${price}`,
-        start: startDate,
-        end: indefiniteEndDate ? null : endDate,
-        allDay: false,
-      });
+    
 
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
@@ -755,7 +750,7 @@ const EditScheduleFromList = ({
   const handleDelete = async () => {
     try {
       await deleteSchedule(existingSchedule._id);
-      removeEvent(existingSchedule._id);
+      // removeEvent(existingSchedule._id);
       setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
       onClose();
