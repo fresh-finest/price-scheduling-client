@@ -169,7 +169,7 @@ const EditScheduleFromList = ({
   editScheduleModalTitle,
 }) => {
   console.log("existing schedule", existingSchedule);
-  const { addEvent, removeEvent } = useContext(PriceScheduleContext);
+
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [price, setPrice] = useState("");
