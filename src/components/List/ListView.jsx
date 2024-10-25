@@ -795,7 +795,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 7 Days
+                                Last 7 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("15 D")}
@@ -833,7 +833,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 15 Days
+                                Last 15 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("30 D")}
@@ -871,7 +871,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 30 Days
+                                Last 30 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("60 D")}
@@ -909,7 +909,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 60 Days
+                                Last 60 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("90 D")}
@@ -947,7 +947,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 90 Days
+                                Last 90 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("6 M")}
@@ -985,7 +985,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 6 Months
+                                Last 6 Months
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("1 Y")}
@@ -1022,7 +1022,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last Year
+                                Last 1 Year
                               </li>
                             </ul>
                           </div>
