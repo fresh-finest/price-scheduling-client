@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import {
   Table,
   Form,
@@ -73,6 +73,7 @@ const ListView = () => {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
+  const dropdownRef = useRef(null);
   const getUnitCountForTimePeriod = (salesMetrics, timePeriod) => {
     const metric = salesMetrics.find((metric) => metric.time === timePeriod);
     return metric ? metric.totalUnits : "N/A";
@@ -81,6 +82,25 @@ const ListView = () => {
     setSelectedTimePeriod(timePeriod);
     setShowFilterDropdown(false); // Close the dropdown after selection
   };
+
+  const toggleDropdown = () => {
+    setShowFilterDropdown((prev) => !prev);
+  };
+
+  // Close dropdown if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -693,9 +713,10 @@ const ListView = () => {
                         <IoFunnelOutline
                           size={15}
                           style={{ cursor: "pointer" }}
-                          onClick={() =>
-                            setShowFilterDropdown(!showFilterDropdown)
-                          }
+                          // onClick={() =>
+                          //   setShowFilterDropdown(!showFilterDropdown)
+                          // }
+                          onClick={toggleDropdown}
                         />
 
                         {/* Dropdown menu */}
@@ -796,7 +817,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 7 Days
+                                Last 7 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("15 D")}
@@ -834,7 +855,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 15 Days
+                                Last 15 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("30 D")}
@@ -872,7 +893,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 30 Days
+                                Last 30 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("60 D")}
@@ -910,7 +931,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 60 Days
+                                Last 60 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("90 D")}
@@ -948,7 +969,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 90 Days
+                                Last 90 Days
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("6 M")}
@@ -986,7 +1007,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last 6 Months
+                                Last 6 Months
                               </li>
                               <li
                                 onClick={() => handleTimePeriodChange("1 Y")}
@@ -1023,7 +1044,7 @@ const ListView = () => {
                                     }}
                                   />
                                 )}
-                                last year
+                                Last 1 Year
                               </li>
                             </ul>
                           </div>

@@ -114,9 +114,9 @@ const CalendarView = () => {
     setSelectedScheduledEvent(null);
   };
   const allEvents = [
-    ...singleDayEvents.map(event => ({ ...event, eventType: 'single' })),
-    ...weeklyEvents.map(event => ({ ...event, eventType: 'weekly' })),
-    ...monthlyEvents.map(event => ({ ...event, eventType: 'monthly' }))
+    ...singleDayEvents.map(event => ({ ...event})),
+    ...weeklyEvents.map(event => ({ ...event})),
+    ...monthlyEvents.map(event => ({ ...event}))
   ];
 
   const handleSelectSlot = (slotInfo) => {
@@ -182,7 +182,7 @@ const CalendarView = () => {
         />
       )}
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <span>{event.title}</span>
+        {/* <span>{event.title}</span> */}
         <p style={{ margin: "0" }}>
           {event?.productName?.split(" ").slice(0, 10).join(" ") + (event?.productName?.split(" ").length > 10 ? "..." : "")}
         </p>
@@ -434,8 +434,8 @@ const CalendarView = () => {
 
           <Calendar
             localizer={localizer}
-            events={eventsToShow}
-            // events={allEvents}
+            // events={eventsToShow}
+            events={allEvents}
             startAccessor="start"
             endAccessor="end"
             views={["month", "week", "day"]}
