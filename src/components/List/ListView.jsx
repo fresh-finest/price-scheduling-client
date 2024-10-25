@@ -281,6 +281,7 @@ const ListView = () => {
       setSelectedPrice("");
       handleSetChannelStockValue(null);
       setFulfillmentChannel(null);
+      setShowFilterDropdown(false);
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
@@ -288,6 +289,7 @@ const ListView = () => {
       setSelectedFnSku(fnSku);
       setSelectedPrice(price);
       setFulfillmentChannel(fulfillmentChannel);
+      setShowFilterDropdown(false);
       handleSetChannelStockValue(
         fulfillmentChannel,
         quantity,
