@@ -31,9 +31,9 @@ import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -981,6 +981,7 @@ const ProductDetailView = ({
           show={!!editSchedule}
           onClose={handleClose}
           asin={asin}
+          sku1={sku1}
           existingSchedule={editSchedule}
         />
       )}
