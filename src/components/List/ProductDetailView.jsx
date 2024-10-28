@@ -8,7 +8,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
-import DetailedCalendarView from "../Calendar/DetailedCalendarView"
+import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
@@ -33,7 +33,7 @@ import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL ='http://localhost:3000'
+const BASE_URL = "http://localhost:3000";
 const dayNames = [
   "Sunday",
   "Monday",
@@ -77,22 +77,6 @@ const dateNames = [
   "31st",
 ];
 
-// function addHoursToTime(timeString, hoursToAdd) {
-//   const [hours, minutes] = timeString.split(":").map(Number);
-//   const newHours = (hours + hoursToAdd) % 24;
-//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours;
-//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`;
-// }
-// function addHoursToTime(timeString, hoursToAdd) {
-//   if (!timeString || typeof timeString !== "string") {
-//     console.error("Invalid timeString:", timeString);
-//     return "Invalid Time"; // Return a default value or handle it gracefully
-//   }
-
-//   const [hours, minutes] = timeString.split(":").map(Number);
-//   const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
-//   const formattedHours = newHours < 10 ? `0${newHours}` : newHours; // Add leading zero if necessary
-//   return `${formattedHours}:${minutes < 10 ? `0${minutes}` : minutes}`; // Add leading zero to minutes if necessary
 // }
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
@@ -111,28 +95,6 @@ function addHoursToTime(timeString, hoursToAdd) {
 
   return `${formattedHours}:${formattedMinutes} ${period}`; // Return time in 12-hour format with AM/PM
 }
-/*
-function convertToUserLocalTime(utcTimeString) {
-  if (!utcTimeString || typeof utcTimeString !== "string") {
-    console.error("Invalid timeString:", utcTimeString);
-    return "Invalid Time"; // Return a default value or handle it gracefully
-  }
-
-  // Parse the time string assuming it's in UTC
-  const [hours, minutes] = utcTimeString.split(":").map(Number);
-
-  // Create a DateTime object from the current date with the time provided
-  const utcDateTime = DateTime.utc().set({ hour: hours, minute: minutes });
-
-  // Convert UTC DateTime to America/New_York time zone (EDT/EST depending on daylight savings)
-  const edtDateTime = utcDateTime.setZone("America/New_York");
-
-  // Format the time in EDT with AM/PM
-  return edtDateTime.toLocaleString(DateTime.TIME_SIMPLE);  // This will format with AM/PM
-  
-  return localTime;
-}
-*/
 
 function convertToUserLocalTime(utcTimeString) {
   if (!utcTimeString || typeof utcTimeString !== "string") {
@@ -142,17 +104,18 @@ function convertToUserLocalTime(utcTimeString) {
 
   // Parse the time string assuming it's in UTC
   const [hours, minutes] = utcTimeString.split(":").map(Number);
-  
+
   // Create a Date object using the current date and UTC time
   const now = new Date();
-  const utcDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes));
-// Convert to the user's local time zone with AM/PM format
-const options = { hour: '2-digit', minute: '2-digit', hour12: true };
-const localTime = utcDate.toLocaleTimeString([], options);  // This will format with AM/PM
-  
+  const utcDate = new Date(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes)
+  );
+  // Convert to the user's local time zone with AM/PM format
+  const options = { hour: "2-digit", minute: "2-digit", hour12: true };
+  const localTime = utcDate.toLocaleTimeString([], options); // This will format with AM/PM
+
   return localTime;
 }
-
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -160,28 +123,7 @@ const getDayLabelFromNumber = (dayNumber) => {
 const getDateLabelFromNumber = (dateNumber) => {
   return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
 };
-/*
-const displayTimeSlotsWithDayLabels = (
-  timeSlots,
-  addHours = 0,
-  isWeekly = false
-) => {
-  return Object.entries(timeSlots).map(([key, slots]) => (
-    <div key={key}>
-      <strong>
-        {isWeekly
-          ? getDayLabelFromNumber(Number(key))
-          : getDateLabelFromNumber(Number(key))}
-      </strong>
-      {slots.map((slot, index) => (
-        <p key={index}>
-          {addHoursToTime(slot.startTime, addHours)} -{" "}
-          {addHoursToTime(slot.endTime, addHours)}
-        </p>
-      ))}
-    </div>
-  ));
-}; */
+
 const displayTimeSlotsWithDayLabels = (timeSlots, isWeekly = false) => {
   return Object.entries(timeSlots).map(([key, slots]) => (
     <div key={key}>
@@ -200,7 +142,6 @@ const displayTimeSlotsWithDayLabels = (timeSlots, isWeekly = false) => {
   ));
 };
 
-
 const ProductDetailView = ({
   product,
   listing,
@@ -211,7 +152,6 @@ const ProductDetailView = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -234,33 +174,8 @@ const ProductDetailView = ({
   const [weeklyLength, setWeeklyLength] = useState("");
   const [monthlyLength, setMonthlyLength] = useState("");
 
-  // const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(
-  //   editSchedule.weeklyTimeSlots || {}
-  // );
-  // const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(
-  //   existingSchedule.weeklyTimeSlots || {}
-  // );
-  // const [monthlyTimeSlots, setMonthlyTimeSlots] = useState(
-  //   editSchedule.monthlyTimeSlots || {}
-  // );
-  // const [monthlyTimeSlots, setMonthlyTimeSlots] = useState(
-  //   existingSchedule.monthlyTimeSlots || {}
-  // );
-
   const { currentUser } = useSelector((state) => state.user);
 
-  // const { events } = useContext(PriceScheduleContext); 
-  // const [selectedDays, setSelectedDays] = useState([]);
-
-  // useEffect(() => {
-    
-  //   const scheduleDates = events.map((event) => new Date(event.start));
-  //   setSelectedDays(scheduleDates); // Set the selected dates
-  // }, [events]);
-
-  // const handleDateSelect = (dates) => {
-  //   setSelectedDays(dates);
-  // };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
@@ -296,7 +211,6 @@ const ProductDetailView = ({
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
-  
 
     if (validSchedule) {
       setCurrentPrice(validSchedule.currentPrice);
@@ -320,7 +234,9 @@ const ProductDetailView = ({
       try {
         setLoading(true);
         const encodedSku = encodeURIComponent(sku1);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
+        const response = await axios.get(
+          `${BASE_URL}/api/schedule/${encodedSku}`
+        );
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -334,7 +250,6 @@ const ProductDetailView = ({
         setPriceSchedule(data.result || []);
       } catch (err) {
         if (err.name !== "AbortError") {
-          
           setError("Error fetching schedule data.");
         }
       } finally {
@@ -376,51 +291,6 @@ const ProductDetailView = ({
     }
   };
 
-  // const handleDelete = async () => {
-  //   try {
-  //     await deleteSchedule(editSchedule._id);
-  //     // await deleteSchedule(existingSchedule._id);
-  //     removeEvent(editSchedule._id);
-  //     setSuccessMessage(`Schedule deleted successfully for SKU: ${sku1}`);
-  //     setShowSuccessModal(true);
-  //     handleClose();
-  //   } catch (error) {
-  //     setErrorMessage(
-  //       "Error deleting schedule: " +
-  //         (error.response ? error.response.data.error : error.message)
-  //     );
-  //     console.error("Error deleting schedule:", error);
-  //   }
-  // };
-
-  // const handleRemoveTimeSlot = (scheduleType, identifier, index) => {
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const updatedSlots = { ...prevSlots };
-  //       updatedSlots[identifier] = updatedSlots[identifier].filter(
-  //         (_, i) => i !== index
-  //       );
-  //       // If no more time slots remain for the day, remove the day entirely
-  //       if (updatedSlots[identifier].length === 0) {
-  //         delete updatedSlots[identifier];
-  //       }
-  //       return updatedSlots;
-  //     });
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const updatedSlots = { ...prevSlots };
-  //       updatedSlots[identifier] = updatedSlots[identifier].filter(
-  //         (_, i) => i !== index
-  //       );
-  //       // If no more time slots remain for the date, remove the date entirely
-  //       if (updatedSlots[identifier].length === 0) {
-  //         delete updatedSlots[identifier];
-  //       }
-  //       return updatedSlots;
-  //     });
-  //   }
-  // };
-
   const handleClose = () => {
     setEditSchedule(null);
   };
@@ -444,12 +314,6 @@ const ProductDetailView = ({
         console.error("Failed to copy text: ", err);
       });
   };
-
-  // const price = listing?.payload?.[0]?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice;
-  // const offer = listing?.payload?.[0]?.Product?.Offers?.[0];
-  // const price = offer?.BuyingPrice?.ListingPrice;
-  // const sellerSKU = offer?.SellerSKU;
-  // const amount = product?.AttributeSets[0]?.ListPrice?.Amount;
 
   const detailStyles = {
     container: {
@@ -611,10 +475,8 @@ const ProductDetailView = ({
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
 
-        
               <div className="m-3 ">
-              
-               <DetailedCalendarView sku1={sku1}/>
+                <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}
 
@@ -748,22 +610,11 @@ const ProductDetailView = ({
                                           className="flex flex-col mb-1"
                                         >
                                           <div className=" ">
-                                            {/* <div className="grid grid-cols-[93%_7%] "> */}
                                             <div className=" bg-[#707070] border-0 m-0 p-0 rounded-t-sm ">
                                               <span className="text-white text-start text-sm py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                 {getDayLabelFromNumber(day)}
                                               </span>
                                             </div>
-
-                                            {/* <button
-                                              onClick={() => handleEdit(sc)}
-                                              className="bg-[#0662BB] py-1 px-1 rounded-sm ml-2"
-                                            >
-                                              <PenLine
-                                                size={20}
-                                                className="text-white"
-                                              />
-                                            </button> */}
                                           </div>
                                           <div>
                                             {sc.weeklyTimeSlots[day].map(
@@ -775,7 +626,7 @@ const ProductDetailView = ({
                                                   <div className="flex justify-center w-full gap-2 my-2 px-2 ">
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                      {/* {timeSlot.startTime} */}
+                                                        {/* {timeSlot.startTime} */}
                                                         {addHoursToTime(
                                                           timeSlot?.startTime,
                                                           0
@@ -794,7 +645,7 @@ const ProductDetailView = ({
                                                     </span>
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                      {/* {timeSlot.endTime} */}
+                                                        {/* {timeSlot.endTime} */}
                                                         {addHoursToTime(
                                                           timeSlot.endTime,
                                                           0
@@ -858,17 +709,6 @@ const ProductDetailView = ({
 
                   <TabsContent value="monthly">
                     <>
-                      {/* <div className="flex justify-center w-full gap-2 px-2">
-                        <p className="text-center text-[14px] font-semibold flex items-center justify-center w-full">
-                          <Timer size={16} className="mr-1" /> Start
-                        </p>
-                        <p className="text-center text-[14px] font-semibold flex items-center justify-center w-full">
-                          <TimerOff size={16} className="mr-1" /> End
-                        </p>
-                        <p className="w-[20%]"></p>
-                        <p className="w-[20%]"></p>
-                      </div> */}
-
                       {priceSchedule.filter(
                         (sc) =>
                           sc.status !== "deleted" &&

@@ -62,6 +62,8 @@ const CalendarView = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("Month");
 
+  console.log(showDetailsModal);
+
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -150,14 +152,20 @@ const CalendarView = () => {
 
   const goToPreviousDate = () => {
     const newDate = moment(selectedDate)
-      .subtract(1, view === Views.MONTH ? "month" : "week")
+      .subtract(
+        1,
+        view === Views.MONTH ? "month" : view === Views.WEEK ? "week" : "day"
+      )
       .toDate();
     setSelectedDate(newDate);
   };
 
   const goToNextDate = () => {
     const newDate = moment(selectedDate)
-      .add(1, view === Views.MONTH ? "month" : "week")
+      .add(
+        1,
+        view === Views.MONTH ? "month" : view === Views.WEEK ? "week" : "day"
+      )
       .toDate();
     setSelectedDate(newDate);
   };
@@ -169,6 +177,7 @@ const CalendarView = () => {
 
   // console.log("selected date", selectedDate);
   const EventWithImage = ({ event }) => {
+    console.log("event", event);
     return (
       <div
         className="event-container"
@@ -185,12 +194,15 @@ const CalendarView = () => {
             }}
           />
         )}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {/* <span>{event.price}</span> */}
-          <p style={{ margin: "0" }}>
+        <div className="flex justify-center items-center gap-1">
+          <p>${event?.price}</p>
+          <p>-</p>
+          <p className="capitalize">{event?.eventType}</p>
+
+          {/* <p style={{ margin: "0" }}>
             {event?.productName?.split(" ").slice(0, 10).join(" ") +
               (event?.productName?.split(" ").length > 10 ? "..." : "")}
-          </p>
+          </p> */}
         </div>
       </div>
     );
@@ -270,7 +282,7 @@ const CalendarView = () => {
                     .format("MMMM D")} - ${moment(selectedDate)
                     .endOf("week")
                     .format("MMMM D, YYYY")}`
-                : moment(selectedDate).format("MMMM D, YYYY")}{" "}
+                : moment(selectedDate).format("MMMM D, YYYY")}
             </h3>
           </div>
 
@@ -382,6 +394,8 @@ const CalendarView = () => {
               sku={selectedScheduledEvent?.sku}
               selectedDate={selectedScheduledEvent?.start}
               eventType={selectedScheduledEvent?.eventType}
+              weekly={selectedScheduledEvent?.weekly}
+              monthly={selectedScheduledEvent?.monthly}
             />
           )}
           {/* {selectedScheduledEvent && (

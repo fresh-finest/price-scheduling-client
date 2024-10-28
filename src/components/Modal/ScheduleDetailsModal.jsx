@@ -6,6 +6,7 @@ import "./ScheduleDetailsModal.css";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { PenLine } from "lucide-react";
+import EditScheduleFromList from "../List/EditScheduleFromList";
 
 const BASE_URL = "http://localhost:3000";
 // const BASE_URL = `https://api.priceobo.com`;
@@ -59,10 +60,14 @@ const ScheduleDetailsModal = ({
   sku,
   selectedDate,
   eventType,
+  weekly,
+  monthly,
 }) => {
   const [scheduleData, setScheduleData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editSchedule, setEditSchedule] = useState(null);
+  const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
 
   console.log("eventType:" + eventType);
   useEffect(() => {
@@ -80,6 +85,8 @@ const ScheduleDetailsModal = ({
       // Filter the data according to event type and selected date
       const filteredData = filterDataByEventTypeAndDate(data);
 
+      console.log("filtered Data", filteredData);
+
       setScheduleData(filteredData);
       setLoading(false);
     } catch (error) {
@@ -88,38 +95,94 @@ const ScheduleDetailsModal = ({
     }
   };
 
-  const filterDataByEventTypeAndDate = (data) => {
-    // Assuming data is an array, and we select the first match
-    const schedule = data[0];
-
-    if (!schedule) return null;
-
-    const filteredSchedule = { ...schedule }; // Clone the schedule data
-
-    if (eventType === "monthly") {
-      // Filter monthlyTimeSlots based on the selected date
-      const dayOfMonth = moment(selectedDate).date(); // Get day of the month (1-31)
-      filteredSchedule.monthlyTimeSlots = {
-        [dayOfMonth]: schedule.monthlyTimeSlots[dayOfMonth] || [],
-      };
-    }
-
-    if (eventType === "weekly") {
-      filteredSchedule.weeklyTimeSlots = { ...schedule.weeklyTimeSlots };
-      // const dayOfWeek = moment(selectedDate).day();
-      // filteredSchedule.weeklyTimeSlots = {
-      //   [dayOfWeek]: schedule.weeklyTimeSlots[dayOfWeek] || [],
-      // };
-    }
-
-    return filteredSchedule;
+  const formatDateTime = (dateString) => {
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    };
+    return new Date(dateString).toLocaleString("en-US", options);
   };
+
+  console.log("scheduleData", scheduleData);
+
+  const filterDataByEventTypeAndDate = (data) => {
+    console.log("data", data);
+    const now = new Date();
+
+    let schedule = [];
+    if (eventType === "monthly") {
+      schedule = data.filter(
+        (sc) =>
+          sc.status !== "deleted" &&
+          sc.monthly &&
+          Object.keys(sc.monthlyTimeSlots).length > 0
+      );
+
+      console.log(schedule);
+    } else if (eventType === "weekly") {
+      schedule = data.filter(
+        (sc) =>
+          sc.status !== "deleted" &&
+          sc.weekly &&
+          Object.keys(sc.weeklyTimeSlots).length > 0
+      );
+    } else {
+      schedule = data.filter(
+        (sc) =>
+          sc.status !== "deleted" &&
+          !sc.weekly &&
+          !sc.monthly &&
+          (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
+      );
+    }
+
+    return schedule;
+  };
+
+  // const filterDataByEventTypeAndDate = (data) => {
+
+  //   console.log("props data", data);
+  //   const schedule = data[0];
+
+  //   console.log("schedule", schedule);
+
+  //   if (!schedule) return null;
+
+  //   const filteredSchedule = { ...schedule };
+
+  //   console.log(filteredSchedule);
+
+  //   if (eventType === "monthly") {
+
+  //     filteredSchedule.monthlyTimeSlots = { ...schedule.monthlyTimeSlots };
+  //   }
+
+  //   if (eventType === "weekly" && weekly) {
+  //     filteredSchedule.weeklyTimeSlots = { ...schedule.weeklyTimeSlots };
+
+  //   }
+
+  //   return filteredSchedule;
+  // };
 
   const getDayLabelFromNumber = (dayNumber) => {
     return dayNames[dayNumber] || "";
   };
+
   const getDateLabelFromNumber = (dateNumber) => {
     return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
+  };
+
+  const handleEdit = (schedule, scheduleType) => {
+    setEditSchedule(schedule);
+    setEditScheduleModalTitle(scheduleType);
+  };
+  const handleClose = () => {
+    setEditSchedule(null);
   };
 
   if (loading) {
@@ -153,60 +216,210 @@ const ScheduleDetailsModal = ({
   }
 
   return (
-    <Modal
-      show={show}
-      onHide={onClose}
-      dialogClassName="schedule-details-list-modal"
-    >
-      <Modal.Header closeButton>
-        <Modal.Title>
-          {" "}
-          {eventType === "monthly" && "Monthly"}{" "}
-          {eventType === "weekly" && "Weekly"}{" "}
-          {eventType === "single" && "Single"} Schedule Details
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {schedule ? (
-          <div>
-            <img
-              src={schedule.imageURL}
-              alt={schedule.title}
-              style={{ width: "100px", height: "100px" }}
-            />
-            <h4>{schedule.title}</h4>
-            <p>
-              <strong>SKU:</strong> {schedule.sku}
-            </p>
-            <p>
-              <strong>ASIN:</strong> {schedule.asin}
-            </p>
-            {/* <p><strong>Price:</strong> ${schedule.price || schedule.currentPrice}</p>
-            <p><strong>Start Date:</strong> {new Date(schedule.startDate).toLocaleString()}</p>
-            <p><strong>End Date:</strong> {new Date(schedule.endDate).toLocaleString()}</p> */}
+    <>
+      <Modal
+        show={show}
+        onHide={onClose}
+        dialogClassName="schedule-details-list-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {" "}
+            {eventType === "monthly" && "Monthly"}{" "}
+            {eventType === "weekly" && "Weekly"}{" "}
+            {eventType === "single" && "Single"} Schedule Details
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {scheduleData ? (
+            <div className="">
+              <div className="flex justify-center items-start mb-3 gap-2">
+                <img
+                  src={scheduleData[0].imageURL}
+                  alt={scheduleData[0].title}
+                  style={{ width: "80px", height: "80px" }}
+                />
+                <div>
+                  <h4>{scheduleData[0].title}</h4>
+                  <div className="flex gap-1 text-sm mt-1">
+                    <p>
+                      <span>SKU:</span> {schedule[0].sku}
+                    </p>
+                    <p>
+                      <span>ASIN:</span> {schedule[0].asin}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            {/* Weekly Schedule */}
-            {eventType === "weekly" && (
-              <div>
-                {Object.entries(schedule.weeklyTimeSlots).map(
-                  ([day, timeSlots], index) => (
+              {/* Weekly Schedule */}
+              {eventType === "weekly" && scheduleData[0]?.weeklyTimeSlots && (
+                <div>
+                  {Object.keys(scheduleData[0].weeklyTimeSlots).map((day) => {
+                    console.log("Day:", day); // Log each key (day) in the weeklyTimeSlots
+
+                    // Ensure there are time slots for the day
+                    const timeSlots = scheduleData[0].weeklyTimeSlots[day];
+                    if (!timeSlots || timeSlots.length === 0) {
+                      console.warn(`No time slots for day: ${day}`); // Log a warning if no time slots exist
+                      return null; // Skip rendering if there are no time slots
+                    }
+
+                    return (
+                      <Card className="mb-2" key={day}>
+                        <div className="bg-[#DCDCDC] border-0 m-0 px-1 rounded-t-sm text-black">
+                          <span>{moment().day(day).format("dddd")}</span>{" "}
+                          {/* Display the weekday */}
+                        </div>
+
+                        {timeSlots.map((slot, idx) => {
+                          console.log("Slot for day", day, ":", slot); // Log each slot for the current day
+
+                          return (
+                            <div
+                              key={idx}
+                              className="flex justify-center w-full gap-2 my-2 px-2"
+                            >
+                              <div className="w-full">
+                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {addHoursToTime(slot.startTime, 0)}{" "}
+                                  {/* Display start time */}
+                                  <span className="bg-blue-500 text-white p-1 rounded-sm">
+                                    ${parseFloat(slot.newPrice).toFixed(2)}
+                                  </span>
+                                </h3>
+                              </div>
+
+                              <span className="flex justify-center items-center text-gray-400">
+                                <FaArrowRightLong />
+                              </span>
+
+                              <div className="w-full">
+                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {addHoursToTime(slot.endTime, 0)}{" "}
+                                  {/* Display end time */}
+                                  {slot.revertPrice ? (
+                                    <span className="bg-red-700 text-white p-1 rounded-sm">
+                                      ${parseFloat(slot.revertPrice).toFixed(2)}
+                                    </span>
+                                  ) : (
+                                    <span className="p-1">
+                                      <p className="py-2"></p>
+                                    </span>
+                                  )}
+                                </h3>
+                              </div>
+
+                              <div className="w-[20%] text-center flex justify-center items-center mt-0">
+                                <button
+                                  onClick={() =>
+                                    handleEdit(scheduleData[0], "Weekly")
+                                  }
+                                  className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                                >
+                                  <PenLine size={20} className="text-white" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {eventType === "monthly" && scheduleData[0]?.monthlyTimeSlots && (
+                <div>
+                  {Object.keys(scheduleData[0].monthlyTimeSlots).map((date) => {
+                    console.log("Day:", date); // Log each key (day) in the weeklyTimeSlots
+
+                    // Ensure there are time slots for the day
+                    const timeSlots = scheduleData[0].monthlyTimeSlots[date];
+                    if (!timeSlots || timeSlots.length === 0) {
+                      console.warn(`No time slots for day: ${date}`); // Log a warning if no time slots exist
+                      return null; // Skip rendering if there are no time slots
+                    }
+
+                    return (
+                      <Card className="mb-2" key={date}>
+                        <div className="bg-[#DCDCDC] border-0 m-0 px-1 rounded-t-sm text-black">
+                          {getDateLabelFromNumber(date)}
+                          {/* Display the weekday */}
+                        </div>
+
+                        {timeSlots.map((slot, idx) => {
+                          console.log("Slot for day", date, ":", slot); // Log each slot for the current day
+
+                          return (
+                            <div
+                              key={idx}
+                              className="flex justify-center w-full gap-2 my-2 px-2"
+                            >
+                              <div className="w-full">
+                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {addHoursToTime(slot.startTime, 0)}{" "}
+                                  {/* Display start time */}
+                                  <span className="bg-blue-500 text-white p-1 rounded-sm">
+                                    ${parseFloat(slot.newPrice).toFixed(2)}
+                                  </span>
+                                </h3>
+                              </div>
+
+                              <span className="flex justify-center items-center text-gray-400">
+                                <FaArrowRightLong />
+                              </span>
+
+                              <div className="w-full">
+                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {addHoursToTime(slot.endTime, 0)}{" "}
+                                  {/* Display end time */}
+                                  {slot.revertPrice ? (
+                                    <span className="bg-red-700 text-white p-1 rounded-sm">
+                                      ${parseFloat(slot.revertPrice).toFixed(2)}
+                                    </span>
+                                  ) : (
+                                    <span className="p-1">
+                                      <p className="py-2"></p>
+                                    </span>
+                                  )}
+                                </h3>
+                              </div>
+
+                              <div className="w-[20%] text-center flex justify-center items-center mt-0">
+                                <button
+                                  onClick={() =>
+                                    handleEdit(scheduleData[0], "Weekly")
+                                  }
+                                  className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                                >
+                                  <PenLine size={20} className="text-white" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Monthly Schedule */}
+              {/* {eventType === "monthly" && (
+                <div>
+                  {schedule.map(([date, timeSlots], index) => (
                     <Card className="mb-2" key={index}>
-                      {/* Display day name above each day's schedule */}
-
                       <div className=" bg-[#DCDCDC] border-0 m-0 px-1  rounded-t-sm text-black ">
-                        <span>{moment().day(day).format("dddd")}</span>
+                        {getDateLabelFromNumber(date)}
                       </div>
-                      {/* <strong>
-                        Weekly Schedule for {moment().day(day).format("dddd")}:
-                      </strong> */}
+
                       {timeSlots.map((slot, idx) => (
                         <div key={idx} className="">
                           <div className="flex justify-center w-full gap-2 my-2 px-2 ">
                             <div className="w-full">
                               <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                {/* {timeSlot.startTime} */}
                                 {addHoursToTime(slot?.startTime, 0)}
-                                {/* {convertToUserLocalTime(timeSlot?.startTime)} */}
                                 <span className="bg-blue-500 text-white p-1 rounded-sm">
                                   ${parseFloat(slot.newPrice).toFixed(2)}
                                 </span>
@@ -218,7 +431,6 @@ const ScheduleDetailsModal = ({
                             <div className="w-full">
                               <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                 {addHoursToTime(slot?.endTime, 0)}
-                                {/* {convertToUserLocalTime(timeSlot?.endTime)} */}
                                 {slot.revertPrice ? (
                                   <span className="bg-red-700 text-white p-1 rounded-sm">
                                     ${parseFloat(slot.revertPrice).toFixed(2)}
@@ -233,7 +445,9 @@ const ScheduleDetailsModal = ({
 
                             <div className="w-[20%] text-center flex justify-center items-center mt-0">
                               <button
-                                onClick={() => handleEdit(sc, "Weekly")}
+                                onClick={() =>
+                                  handleEdit(scheduleData, "Monthly")
+                                }
                                 className="bg-[#0662BB] py-1  px-1 rounded-sm "
                               >
                                 <PenLine size={20} className="text-white" />
@@ -241,71 +455,86 @@ const ScheduleDetailsModal = ({
                             </div>
                           </div>
                         </div>
-
-                        // <div key={idx}>
-                        //   <p>
-                        //     Start: {slot.startTime}, End: {slot.endTime}, New
-                        //     Price: ${slot.newPrice}, Revert Price: $
-                        //     {slot.revertPrice}
-                        //   </p>
-
-                        // </div>
                       ))}
                     </Card>
-                  )
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              )} */}
 
-            {/* Monthly Schedule */}
-            {eventType === "monthly" && (
-              <div>
-                <p>Month</p>
-                <strong>
-                  Monthly Schedule for {moment(selectedDate).format("Do")}:
-                </strong>
-                {Object.entries(schedule.monthlyTimeSlots).map(
-                  ([date, timeSlots], index) => (
-                    <div key={index}>
-                      {timeSlots.map((slot, idx) => {
-                        console.log(slot);
-                        return (
-                          <div key={idx}>
-                            <p>
-                              Start: {slot.startTime}, End: {slot.endTime}, New
-                              Price: ${slot.newPrice}, Revert Price: $
-                              {slot.revertPrice}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
-                )}
-              </div>
-            )}
+              {/* Single Day Schedule */}
+              {eventType === "single" && (
+                <div>
+                  {/* <strong>Single Day Schedule:</strong>
+                  <p>
+                    Start: {new Date(schedule.startDate).toLocaleTimeString()},
+                    End: {new Date(schedule.endDate).toLocaleTimeString()}
+                  </p> */}
 
-            {/* Single Day Schedule */}
-            {eventType === "single" && (
-              <div>
-                <strong>Single Day Schedule:</strong>
-                <p>
-                  Start: {new Date(schedule.startDate).toLocaleTimeString()},
-                  End: {new Date(schedule.endDate).toLocaleTimeString()}
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p>No schedule data available.</p>
-        )}
-      </Modal.Body>
-      {/* <Modal.Footer>
-        <Button variant="secondary" onClick={onClose}>
-          Close
-        </Button>
-      </Modal.Footer> */}
-    </Modal>
+                  {scheduleData.map((sc, index) => (
+                    <Card
+                      className="flex justify-center w-full gap-2 mb-2 px-2 py-2"
+                      key={sc.id}
+                    >
+                      <div key={index} className="w-full">
+                        <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                          {formatDateTime(sc.startDate)}
+                          {sc.price && (
+                            <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                              ${sc?.price?.toFixed(2)}
+                            </span>
+                          )}
+                        </h3>
+                      </div>
+                      <span className="flex justify-center items-center text-gray-400">
+                        <FaArrowRightLong />
+                      </span>
+                      {sc.endDate ? (
+                        <div className="w-full">
+                          <h3 className="flex justify-between text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                            {formatDateTime(sc.endDate)}
+                            {sc.currentPrice && (
+                              <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                ${sc?.currentPrice?.toFixed(2)}
+                              </span>
+                            )}
+                          </h3>
+                        </div>
+                      ) : (
+                        <div className="w-full">
+                          <h3 className="text-red-400 font-semibold text-[14px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                            <span className="">Until change back</span>
+                          </h3>
+                        </div>
+                      )}
+                      <div className="w-[20%] text-center flex justify-center items-start mt-1">
+                        <button
+                          onClick={() => handleEdit(sc, "Single")}
+                          className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                        >
+                          <PenLine size={18} className="text-white" />
+                        </button>
+                      </div>
+                    </Card> // Use a unique key
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p>No schedule data available.</p>
+          )}
+        </Modal.Body>
+      </Modal>
+
+      {editSchedule && (
+        <EditScheduleFromList
+          show={!!editSchedule}
+          onClose={handleClose}
+          asin={schedule.asin}
+          existingSchedule={editSchedule}
+          editScheduleModalTitle={editScheduleModalTitle}
+        />
+      )}
+    </>
   );
 };
 

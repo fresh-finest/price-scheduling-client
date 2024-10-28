@@ -518,9 +518,9 @@ const ListView = () => {
                     // backgroundColor: "#f0f0f0",
                     fontFamily: "Arial, sans-serif",
                     fontSize: "13px",
-                    position: "sticky",
-                    top: 0,
-                    fontWeight: 0,
+                    // position: "sticky",
+                    // top: 0,
+                    // fontWeight: 0,
                   }}
                 >
                   <tr className="">
