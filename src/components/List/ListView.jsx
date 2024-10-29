@@ -26,8 +26,8 @@ const BASE_URL = "http://localhost:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
-// const BASE_URL_LIST = `https://api.priceobo.com`;
-const BASE_URL_LIST = "http://localhost:3000";
+const BASE_URL_LIST = `https://api.priceobo.com`;
+// const BASE_URL_LIST = "http://localhost:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";

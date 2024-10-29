@@ -171,8 +171,6 @@ const saveSchedule = async (
 };
 
 const UpdatePrice = ({ show, onClose, selectedDate }) => {
-
-  const { addEvent } = useContext(PriceScheduleContext);
   const [asin, setAsin] = useState("");
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
@@ -205,8 +203,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       indefiniteEndDate: false,
     },
   ]);
-
- 
 
   // const userName = JSON.stringify(currentUser.userName);
   const userName = currentUser.userName;
@@ -403,7 +399,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
         }
       }
 
-    
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -439,7 +434,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
-    
 
       if (timeZone === "America/New_York") {
         console.log("timeZone " + timeZone);
@@ -691,12 +685,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
           );
           // Log event or update UI after successful submission
         }
-      addEvent({
-        title: `SKU: ${sku} - $${price}`,
-        start: new Date(startDate), // Use the original date object for UI purposes
-        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
-        allDay: false,
-      });
 
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);

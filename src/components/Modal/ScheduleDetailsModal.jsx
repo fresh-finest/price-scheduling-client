@@ -195,7 +195,7 @@ const ScheduleDetailsModal = ({
 
   const schedule = scheduleData; // After filtering
 
-  console.log("schedule", schedule);
+  console.log("schedule from schedule details modal", schedule);
 
   function addHoursToTime(timeString, hoursToAdd) {
     if (!timeString || typeof timeString !== "string") {
@@ -405,62 +405,6 @@ const ScheduleDetailsModal = ({
                 </div>
               )}
 
-              {/* Monthly Schedule */}
-              {/* {eventType === "monthly" && (
-                <div>
-                  {schedule.map(([date, timeSlots], index) => (
-                    <Card className="mb-2" key={index}>
-                      <div className=" bg-[#DCDCDC] border-0 m-0 px-1  rounded-t-sm text-black ">
-                        {getDateLabelFromNumber(date)}
-                      </div>
-
-                      {timeSlots.map((slot, idx) => (
-                        <div key={idx} className="">
-                          <div className="flex justify-center w-full gap-2 my-2 px-2 ">
-                            <div className="w-full">
-                              <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                {addHoursToTime(slot?.startTime, 0)}
-                                <span className="bg-blue-500 text-white p-1 rounded-sm">
-                                  ${parseFloat(slot.newPrice).toFixed(2)}
-                                </span>
-                              </h3>
-                            </div>
-                            <span className="flex justify-center items-center text-gray-400">
-                              <FaArrowRightLong />
-                            </span>
-                            <div className="w-full">
-                              <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                {addHoursToTime(slot?.endTime, 0)}
-                                {slot.revertPrice ? (
-                                  <span className="bg-red-700 text-white p-1 rounded-sm">
-                                    ${parseFloat(slot.revertPrice).toFixed(2)}
-                                  </span>
-                                ) : (
-                                  <span className="p-1">
-                                    <p className="py-2"></p>
-                                  </span>
-                                )}
-                              </h3>
-                            </div>
-
-                            <div className="w-[20%] text-center flex justify-center items-center mt-0">
-                              <button
-                                onClick={() =>
-                                  handleEdit(scheduleData, "Monthly")
-                                }
-                                className="bg-[#0662BB] py-1  px-1 rounded-sm "
-                              >
-                                <PenLine size={20} className="text-white" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </Card>
-                  ))}
-                </div>
-              )} */}
-
               {/* Single Day Schedule */}
               {eventType === "single" && (
                 <div>
@@ -508,7 +452,7 @@ const ScheduleDetailsModal = ({
                       )}
                       <div className="w-[20%] text-center flex justify-center items-start mt-1">
                         <button
-                          onClick={() => handleEdit(sc, "Single")}
+                          onClick={() => handleEdit(scheduleData[0], "Single")}
                           className="bg-[#0662BB] py-1 px-1 rounded-sm"
                         >
                           <PenLine size={18} className="text-white" />
