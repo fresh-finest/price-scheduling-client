@@ -132,7 +132,7 @@ const UpdatePriceFromList = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  const { addEvent } = useContext(PriceScheduleContext);
+
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -1015,13 +1015,7 @@ const validateTimeSlots = () => {
           );
           // Log event or update UI after successful submission
         }
-      addEvent({
-        title: `SKU: ${sku} - $${price}`,
-        start: new Date(startDate), // Use the original date object for UI purposes
-        end: indefiniteEndDate ? null : new Date(endDate), // Handle indefinite end date in UI
-        allDay: false,
-      });
-
+   
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
       onClose();

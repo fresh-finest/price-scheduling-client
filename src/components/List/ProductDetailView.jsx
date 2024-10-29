@@ -6,7 +6,7 @@ import { CiEdit } from "react-icons/ci";
 import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+// import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
 import DetailedCalendarView from "../Calendar/DetailedCalendarView"
 import { daysOptions, datesOptions } from "../../utils/staticValue";
@@ -221,7 +221,7 @@ const ProductDetailView = ({
   const [editSchedule, setEditSchedule] = useState(null);
   const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
   const [currentPrice, setCurrentPrice] = useState("");
-  const { addEvent, removeEvent } = useContext(PriceScheduleContext);
+  // const { addEvent, removeEvent } = useContext(PriceScheduleContext);
 
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
@@ -249,14 +249,14 @@ const ProductDetailView = ({
 
   const { currentUser } = useSelector((state) => state.user);
 
-  const { events } = useContext(PriceScheduleContext); // Get the events from the context
+  // const { events } = useContext(PriceScheduleContext); 
   const [selectedDays, setSelectedDays] = useState([]);
 
-  useEffect(() => {
-    // Map the events' start dates to selectedDays array
-    const scheduleDates = events.map((event) => new Date(event.start));
-    setSelectedDays(scheduleDates); // Set the selected dates
-  }, [events]);
+  // useEffect(() => {
+  //   // Map the events' start dates to selectedDays array
+  //   const scheduleDates = events.map((event) => new Date(event.start));
+  //   setSelectedDays(scheduleDates); // Set the selected dates
+  // }, [events]);
 
   const handleDateSelect = (dates) => {
     setSelectedDays(dates); // Update the selected days on user interaction

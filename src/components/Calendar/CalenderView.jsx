@@ -36,22 +36,33 @@ import {
 } from "@/components/ui/popover";
 import { FaChevronDown } from "react-icons/fa";
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import ScheduleDetailsModal from "../Modal/ScheduleDetailsModal";
+import ScheduleDetailsPopover from "../Modal/ScheduleDetailsPopover";
+
 const localizer = momentLocalizer(moment);
 
 const CalendarView = () => {
   const { events } = useContext(PriceScheduleContext);
+  const { singleDayEvents, weeklyEvents, monthlyEvents } =
+    useContext(PriceScheduleContext);
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState(Views.MONTH);
   const [showOptionModal, setShowOptionModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedScheduledEvent, setSelectedScheduledEvent] = useState(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const [moreEvents, setMoreEvents] = useState([]); // State to store additional events
   const [showMoreModal, setShowMoreModal] = useState(false); // State to control more events modal\
-
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("Month");
+
+  console.log(showDetailsModal);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -92,8 +103,24 @@ const CalendarView = () => {
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
-    setShowOptionModal(true);
+    // setShowOptionModal(true);
+    setShowUpdateModal(true);
   };
+
+  const handleEventClick = (event) => {
+    setSelectedScheduledEvent(event);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowDetailsModal(false);
+    setSelectedScheduledEvent(null);
+  };
+  const allEvents = [
+    ...singleDayEvents.map((event) => ({ ...event })),
+    ...weeklyEvents.map((event) => ({ ...event })),
+    ...monthlyEvents.map((event) => ({ ...event })),
+  ];
 
   const handleSelectSlot = (slotInfo) => {
     const calendarElement = document.querySelector(".rbc-calendar");
@@ -119,19 +146,26 @@ const CalendarView = () => {
       top: top,
       left: left,
     });
-    setShowOptionModal(true);
+    // setShowOptionModal(true);
+    setShowUpdateModal(true);
   };
 
   const goToPreviousDate = () => {
     const newDate = moment(selectedDate)
-      .subtract(1, view === Views.MONTH ? "month" : "week")
+      .subtract(
+        1,
+        view === Views.MONTH ? "month" : view === Views.WEEK ? "week" : "day"
+      )
       .toDate();
     setSelectedDate(newDate);
   };
 
   const goToNextDate = () => {
     const newDate = moment(selectedDate)
-      .add(1, view === Views.MONTH ? "month" : "week")
+      .add(
+        1,
+        view === Views.MONTH ? "month" : view === Views.WEEK ? "week" : "day"
+      )
       .toDate();
     setSelectedDate(newDate);
   };
@@ -141,11 +175,62 @@ const CalendarView = () => {
     setShowMoreModal(true);
   };
 
+  // console.log("selected date", selectedDate);
+  const EventWithImage = ({ event }) => {
+    console.log("event", event);
+    return (
+      <div
+        className="event-container"
+        style={{ display: "flex", alignItems: "center" }}
+      >
+        {event.image && (
+          <img
+            src={event.image}
+            alt="Event"
+            style={{
+              width: "30px",
+              height: "30px",
+              marginRight: "8px",
+            }}
+          />
+        )}
+        <div className="flex justify-center items-center gap-1">
+        <p>${parseFloat(event?.price).toFixed(2)}</p>
+
+          <p>-</p>
+          <p className="capitalize">{event?.eventType}</p>
+
+          {/* <p style={{ margin: "0" }}>
+            {event?.productName?.split(" ").slice(0, 10).join(" ") +
+              (event?.productName?.split(" ").length > 10 ? "..." : "")}
+          </p> */}
+        </div>
+      </div>
+    );
+  };
+
+  console.log("selected event: " + JSON.stringify(selectedScheduledEvent));
+  const eventsToShow =
+    view === Views.WEEK
+      ? weeklyEvents
+      : view === Views.MONTH
+      ? monthlyEvents
+      : singleDayEvents;
+
+  // const eventsToShow = () => {
+  //   if (view === Views.WEEK) {
+  //     return weeklyEvents; // Show only weekly events in week view
+  //   } else if (view === Views.MONTH) {
+  //     return monthlyEvents; // Show only monthly events in month view
+  //   } else {
+  //     return singleDayEvents; // Show single-day events for day view
+  //   }
+  // };
+
   return (
     <>
-      <section>
-        <div className="flex items-center justify-between  mt-[-0.5%]">
-          {/* Left: Previous, Today, Next Buttons */}
+      <section className="">
+        <div className="flex items-center justify-between  mt-[-0.5%] mb-[10px]">
           <div className="flex items-center justify-start">
             <Button
               onClick={() => handleNavigate(new Date())}
@@ -188,116 +273,93 @@ const CalendarView = () => {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {/* Center: Month and Year */}
+
             <h3 className="text-2xl mx-3 mt-[-10px]" style={{ margin: 0 }}>
-              {moment(selectedDate).format("MMMM YYYY")}
+              {value === "Month"
+                ? moment(selectedDate).format("MMMM YYYY")
+                : value === "Week"
+                ? `${moment(selectedDate)
+                    .startOf("week")
+                    .format("MMMM D")} - ${moment(selectedDate)
+                    .endOf("week")
+                    .format("MMMM D, YYYY")}`
+                : moment(selectedDate).format("MMMM D, YYYY")}
             </h3>
           </div>
 
-          {/* calender page dropdown */}
-          <div className="mr-[13%]">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-[150px] justify-between px-1"
-                >
-                  {value}
-                  <FaChevronDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[150px] p-0">
-                <Command>
-                  <CommandList>
-                    <CommandGroup>
-                      {/* Month View */}
-                      <CommandItem
-                        value="Month"
-                        onSelect={() => {
-                          setValue("Month"); // Change the dropdown value
-                          handleViewChange(Views.MONTH); // Trigger the view change
-                          setOpen(false); // Close the dropdown
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value === "Month" ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        Month
-                      </CommandItem>
+          <div className="mr-[13%] flex space-x-2">
+            <Button
+              variant="outline"
+              className={`w-[80px]  justify-center ${
+                value === "Month"
+                  ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                  : ""
+              }`}
+              onClick={() => {
+                setValue("Month");
+                handleViewChange(Views.MONTH);
+              }}
+            >
+              Month
+            </Button>
 
-                      {/* Week View */}
-                      <CommandItem
-                        value="Week"
-                        onSelect={() => {
-                          setValue("Week"); // Change the dropdown value
-                          handleViewChange(Views.WEEK); // Trigger the view change
-                          setOpen(false); // Close the dropdown
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value === "Week" ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        Week
-                      </CommandItem>
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Button
+              variant="outline"
+              className={`w-[80px] justify-center ${
+                value === "Week"
+                  ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                  : ""
+              }`}
+              onClick={() => {
+                setValue("Week");
+                handleViewChange(Views.WEEK);
+              }}
+            >
+              Week
+            </Button>
+
+            <Button
+              variant="outline"
+              className={`w-[80px] justify-center ${
+                value === "Day"
+                  ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                  : ""
+              }`}
+              onClick={() => {
+                setValue("Day");
+                handleViewChange(Views.DAY);
+              }}
+            >
+              Day
+            </Button>
           </div>
         </div>
 
         <div
-          style={{
-            padding: "20px",
-            marginTop: "20px",
-            // border: "1px solid red",
-          }}
+          style={
+            {
+              // padding: "20px",
+              // marginTop: "20px",
+              // border: "1px solid red",
+            }
+          }
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "20px",
-            }}
-          >
-            {/* Right: Dropdown for Views */}
-            {/* <DropdownButton
-            id="dropdown-basic-button"
-            title={view.charAt(0).toUpperCase() + view.slice(1)}
-          >
-            <Dropdown.Item onClick={() => handleViewChange(Views.MONTH)}>
-              Month
-            </Dropdown.Item>
-            <Dropdown.Item onClick={() => handleViewChange(Views.WEEK)}>
-              Week
-            </Dropdown.Item>
-          </DropdownButton> */}
-          </div>
-
           <Calendar
             localizer={localizer}
-            events={events}
+            events={allEvents}
+            // events={allEvents}
             startAccessor="start"
             endAccessor="end"
-            views={["month", "week"]}
+            views={["month", "week", "day"]}
             view={view}
             date={selectedDate}
             onNavigate={handleNavigate}
+            onSelectEvent={handleEventClick}
             selectable
             onSelectSlot={handleSelectSlot}
             onClickDay={handleDateClick}
             style={{
-              height: "calc(100vh - 160px)",
+              height: "93vh",
               width: "100%",
               fontSize: "16px",
               borderRadius: "10px",
@@ -309,12 +371,12 @@ const CalendarView = () => {
                 date.getMonth() === today.getMonth() &&
                 date.getFullYear() === today.getFullYear()
               ) {
-                return { style: { backgroundColor: "#C2D2FB" } }; // Highlight today's date
-                // return { style: { backgroundColor: "#eaf6ff" } }; // Highlight today's date
+                return { style: { backgroundColor: "#C2D2FB" } };
               }
             }}
             components={{
-              toolbar: () => null, // Disable the default toolbar
+              toolbar: () => null, // default calender navigation button turns off
+              event: EventWithImage,
             }}
             onDrillDown={(date, view) => handleNavigate(date, view)}
             onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
@@ -324,7 +386,28 @@ const CalendarView = () => {
             show={showUpdateModal}
             onClose={handleCloseUpdateModal}
             event={selectedEvent}
+            selectedDate={selectedDate}
           />
+          {selectedScheduledEvent && (
+            <ScheduleDetailsModal
+              show={showDetailsModal}
+              onClose={handleCloseModal}
+              sku={selectedScheduledEvent?.sku}
+              selectedDate={selectedScheduledEvent?.start}
+              eventType={selectedScheduledEvent?.eventType}
+              weekly={selectedScheduledEvent?.weekly}
+              monthly={selectedScheduledEvent?.monthly}
+            />
+          )}
+          {/* {selectedScheduledEvent && (
+            <ScheduleDetailsPopover
+              show={showDetailsModal}
+              onClose={handleCloseModal}
+              sku={selectedScheduledEvent?.sku}
+              selectedDate={selectedScheduledEvent?.start}
+              eventType={selectedScheduledEvent?.eventType}
+            />
+          )} */}
 
           <Modal
             show={showOptionModal}
@@ -338,7 +421,14 @@ const CalendarView = () => {
             }}
           >
             <Modal.Header closeButton>
-              <Modal.Title>Options</Modal.Title>
+              <Modal.Title>
+                {/* Options{" "} */}
+                {new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}{" "}
+              </Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <Button
@@ -352,6 +442,7 @@ const CalendarView = () => {
               )}
             </Modal.Body>
           </Modal>
+
           <Modal
             show={showMoreModal}
             onHide={handleCloseMoreModal}
