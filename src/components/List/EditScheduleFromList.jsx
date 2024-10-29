@@ -166,6 +166,7 @@ const EditScheduleFromList = ({
   onClose,
   asin,
   existingSchedule,
+  sku1,
   editScheduleModalTitle,
 }) => {
   console.log(
@@ -723,7 +724,7 @@ const EditScheduleFromList = ({
         userName,
         title,
         asin,
-        sku,
+        sku:sku1,
         imageURL,
         weekly: scheduleType === "weekly",
         weeklyTimeSlots: utcWeeklySlots,

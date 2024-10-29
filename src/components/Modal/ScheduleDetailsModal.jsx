@@ -7,6 +7,7 @@ import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { PenLine } from "lucide-react";
 import EditScheduleFromList from "../List/EditScheduleFromList";
+import Loading from "../shared/ui/Loading";
 
 const BASE_URL = "http://localhost:3000";
 // const BASE_URL = `https://api.priceobo.com`;
@@ -185,9 +186,9 @@ const ScheduleDetailsModal = ({
     setEditSchedule(null);
   };
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+  // if (loading) {
+  //   return <p>Loading...</p>;
+  // }
 
   if (error) {
     return <p>{error}</p>;
@@ -222,251 +223,302 @@ const ScheduleDetailsModal = ({
         onHide={onClose}
         dialogClassName="schedule-details-list-modal"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {" "}
-            {eventType === "monthly" && "Monthly"}{" "}
-            {eventType === "weekly" && "Weekly"}{" "}
-            {eventType === "single" && "Single"} Schedule Details
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {scheduleData ? (
-            <div className="">
-              <div className="flex justify-center items-start mb-3 gap-2">
-                <img
-                  src={scheduleData[0].imageURL}
-                  alt={scheduleData[0].title}
-                  style={{ width: "80px", height: "80px" }}
-                />
-                <div>
-                  <h4>{scheduleData[0].title}</h4>
-                  <div className="flex gap-1 text-sm mt-1">
-                    <p>
-                      <span>SKU:</span> {schedule[0].sku}
-                    </p>
-                    <p>
-                      <span>ASIN:</span> {schedule[0].asin}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Weekly Schedule */}
-              {eventType === "weekly" && scheduleData[0]?.weeklyTimeSlots && (
-                <div>
-                  {Object.keys(scheduleData[0].weeklyTimeSlots).map((day) => {
-                    console.log("Day:", day); // Log each key (day) in the weeklyTimeSlots
-
-                    // Ensure there are time slots for the day
-                    const timeSlots = scheduleData[0].weeklyTimeSlots[day];
-                    if (!timeSlots || timeSlots.length === 0) {
-                      console.warn(`No time slots for day: ${day}`); // Log a warning if no time slots exist
-                      return null; // Skip rendering if there are no time slots
-                    }
-
-                    return (
-                      <Card className="mb-2" key={day}>
-                        <div className="bg-[#DCDCDC] border-0 m-0 px-1 rounded-t-sm text-black">
-                          <span>{moment().day(day).format("dddd")}</span>{" "}
-                          {/* Display the weekday */}
+        <div>
+          {!loading ? (
+            <div>
+              <Modal.Header closeButton>
+                <Modal.Title>
+                  {" "}
+                  {eventType === "monthly" && "Monthly"}{" "}
+                  {eventType === "weekly" && "Weekly"}{" "}
+                  {eventType === "single" && "Single"} Schedule Details
+                </Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {scheduleData ? (
+                  <div className="">
+                    <div className="flex justify-center items-start mb-3 gap-2">
+                      <img
+                        src={scheduleData[0].imageURL}
+                        alt={scheduleData[0].title}
+                        style={{ width: "80px", height: "80px" }}
+                      />
+                      <div>
+                        <h4>{scheduleData[0].title}</h4>
+                        <div className="flex gap-1 text-sm mt-1">
+                          <p>
+                            <span>SKU:</span> {schedule[0].sku}
+                          </p>
+                          <p>
+                            <span>ASIN:</span> {schedule[0].asin}
+                          </p>
                         </div>
+                      </div>
+                    </div>
 
-                        {timeSlots.map((slot, idx) => {
-                          console.log("Slot for day", day, ":", slot); // Log each slot for the current day
+                    {/* Weekly Schedule */}
+                    {eventType === "weekly" &&
+                      scheduleData[0]?.weeklyTimeSlots && (
+                        <div>
+                          {Object.keys(scheduleData[0].weeklyTimeSlots).map(
+                            (day) => {
+                              console.log("Day:", day); // Log each key (day) in the weeklyTimeSlots
 
-                          return (
-                            <div
-                              key={idx}
-                              className="flex justify-center w-full gap-2 my-2 px-2"
-                            >
-                              <div className="w-full">
-                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {addHoursToTime(slot.startTime, 0)}{" "}
-                                  {/* Display start time */}
-                                  <span className="bg-blue-500 text-white p-1 rounded-sm">
-                                    ${parseFloat(slot.newPrice).toFixed(2)}
-                                  </span>
-                                </h3>
-                              </div>
+                              // Ensure there are time slots for the day
+                              const timeSlots =
+                                scheduleData[0].weeklyTimeSlots[day];
+                              if (!timeSlots || timeSlots.length === 0) {
+                                console.warn(`No time slots for day: ${day}`); // Log a warning if no time slots exist
+                                return null; // Skip rendering if there are no time slots
+                              }
 
-                              <span className="flex justify-center items-center text-gray-400">
-                                <FaArrowRightLong />
-                              </span>
+                              return (
+                                <Card className="mb-2" key={day}>
+                                  <div className="bg-[#DCDCDC] border-0 m-0 px-1 rounded-t-sm text-black">
+                                    <span>
+                                      {moment().day(day).format("dddd")}
+                                    </span>{" "}
+                                    {/* Display the weekday */}
+                                  </div>
 
-                              <div className="w-full">
-                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {addHoursToTime(slot.endTime, 0)}{" "}
-                                  {/* Display end time */}
-                                  {slot.revertPrice ? (
-                                    <span className="bg-red-700 text-white p-1 rounded-sm">
-                                      ${parseFloat(slot.revertPrice).toFixed(2)}
-                                    </span>
-                                  ) : (
-                                    <span className="p-1">
-                                      <p className="py-2"></p>
-                                    </span>
-                                  )}
-                                </h3>
-                              </div>
+                                  {timeSlots.map((slot, idx) => {
+                                    console.log("Slot for day", day, ":", slot); // Log each slot for the current day
 
-                              <div className="w-[20%] text-center flex justify-center items-center mt-0">
-                                <button
-                                  onClick={() =>
-                                    handleEdit(scheduleData[0], "Weekly")
-                                  }
-                                  className="bg-[#0662BB] py-1 px-1 rounded-sm"
-                                >
-                                  <PenLine size={20} className="text-white" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-center w-full gap-2 my-2 px-2"
+                                      >
+                                        <div className="w-full">
+                                          <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                            {addHoursToTime(slot.startTime, 0)}{" "}
+                                            {/* Display start time */}
+                                            <span className="bg-blue-500 text-white p-1 rounded-sm">
+                                              $
+                                              {parseFloat(
+                                                slot.newPrice
+                                              ).toFixed(2)}
+                                            </span>
+                                          </h3>
+                                        </div>
 
-              {eventType === "monthly" && scheduleData[0]?.monthlyTimeSlots && (
-                <div>
-                  {Object.keys(scheduleData[0].monthlyTimeSlots).map((date) => {
-                    console.log("Day:", date); // Log each key (day) in the weeklyTimeSlots
+                                        <span className="flex justify-center items-center text-gray-400">
+                                          <FaArrowRightLong />
+                                        </span>
 
-                    // Ensure there are time slots for the day
-                    const timeSlots = scheduleData[0].monthlyTimeSlots[date];
-                    if (!timeSlots || timeSlots.length === 0) {
-                      console.warn(`No time slots for day: ${date}`); // Log a warning if no time slots exist
-                      return null; // Skip rendering if there are no time slots
-                    }
+                                        <div className="w-full">
+                                          <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                            {addHoursToTime(slot.endTime, 0)}{" "}
+                                            {/* Display end time */}
+                                            {slot.revertPrice ? (
+                                              <span className="bg-red-700 text-white p-1 rounded-sm">
+                                                $
+                                                {parseFloat(
+                                                  slot.revertPrice
+                                                ).toFixed(2)}
+                                              </span>
+                                            ) : (
+                                              <span className="p-1">
+                                                <p className="py-2"></p>
+                                              </span>
+                                            )}
+                                          </h3>
+                                        </div>
 
-                    return (
-                      <Card className="mb-2" key={date}>
-                        <div className="bg-[#DCDCDC] border-0 m-0 px-1 rounded-t-sm text-black">
-                          {getDateLabelFromNumber(date)}
-                          {/* Display the weekday */}
+                                        <div className="w-[20%] text-center flex justify-center items-center mt-0">
+                                          <button
+                                            onClick={() =>
+                                              handleEdit(
+                                                scheduleData[0],
+                                                "Weekly"
+                                              )
+                                            }
+                                            className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                                          >
+                                            <PenLine
+                                              size={20}
+                                              className="text-white"
+                                            />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </Card>
+                              );
+                            }
+                          )}
                         </div>
+                      )}
 
-                        {timeSlots.map((slot, idx) => {
-                          console.log("Slot for day", date, ":", slot); // Log each slot for the current day
+                    {eventType === "monthly" &&
+                      scheduleData[0]?.monthlyTimeSlots && (
+                        <div>
+                          {Object.keys(scheduleData[0].monthlyTimeSlots).map(
+                            (date) => {
+                              console.log("Day:", date); // Log each key (day) in the weeklyTimeSlots
 
-                          return (
-                            <div
-                              key={idx}
-                              className="flex justify-center w-full gap-2 my-2 px-2"
-                            >
-                              <div className="w-full">
-                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {addHoursToTime(slot.startTime, 0)}{" "}
-                                  {/* Display start time */}
-                                  <span className="bg-blue-500 text-white p-1 rounded-sm">
-                                    ${parseFloat(slot.newPrice).toFixed(2)}
-                                  </span>
-                                </h3>
-                              </div>
+                              // Ensure there are time slots for the day
+                              const timeSlots =
+                                scheduleData[0].monthlyTimeSlots[date];
+                              if (!timeSlots || timeSlots.length === 0) {
+                                console.warn(`No time slots for day: ${date}`); // Log a warning if no time slots exist
+                                return null; // Skip rendering if there are no time slots
+                              }
 
-                              <span className="flex justify-center items-center text-gray-400">
-                                <FaArrowRightLong />
-                              </span>
+                              return (
+                                <Card className="mb-2" key={date}>
+                                  <div className="bg-[#DCDCDC] border-0 m-0 px-1 rounded-t-sm text-black">
+                                    {getDateLabelFromNumber(date)}
+                                    {/* Display the weekday */}
+                                  </div>
 
-                              <div className="w-full">
-                                <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {addHoursToTime(slot.endTime, 0)}{" "}
-                                  {/* Display end time */}
-                                  {slot.revertPrice ? (
-                                    <span className="bg-red-700 text-white p-1 rounded-sm">
-                                      ${parseFloat(slot.revertPrice).toFixed(2)}
-                                    </span>
-                                  ) : (
-                                    <span className="p-1">
-                                      <p className="py-2"></p>
-                                    </span>
-                                  )}
-                                </h3>
-                              </div>
+                                  {timeSlots.map((slot, idx) => {
+                                    console.log(
+                                      "Slot for day",
+                                      date,
+                                      ":",
+                                      slot
+                                    ); // Log each slot for the current day
 
-                              <div className="w-[20%] text-center flex justify-center items-center mt-0">
-                                <button
-                                  onClick={() =>
-                                    handleEdit(scheduleData[0], "Weekly")
-                                  }
-                                  className="bg-[#0662BB] py-1 px-1 rounded-sm"
-                                >
-                                  <PenLine size={20} className="text-white" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-center w-full gap-2 my-2 px-2"
+                                      >
+                                        <div className="w-full">
+                                          <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                            {addHoursToTime(slot.startTime, 0)}{" "}
+                                            {/* Display start time */}
+                                            <span className="bg-blue-500 text-white p-1 rounded-sm">
+                                              $
+                                              {parseFloat(
+                                                slot.newPrice
+                                              ).toFixed(2)}
+                                            </span>
+                                          </h3>
+                                        </div>
 
-              {/* Single Day Schedule */}
-              {eventType === "single" && (
-                <div>
-                  {/* <strong>Single Day Schedule:</strong>
+                                        <span className="flex justify-center items-center text-gray-400">
+                                          <FaArrowRightLong />
+                                        </span>
+
+                                        <div className="w-full">
+                                          <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                            {addHoursToTime(slot.endTime, 0)}{" "}
+                                            {/* Display end time */}
+                                            {slot.revertPrice ? (
+                                              <span className="bg-red-700 text-white p-1 rounded-sm">
+                                                $
+                                                {parseFloat(
+                                                  slot.revertPrice
+                                                ).toFixed(2)}
+                                              </span>
+                                            ) : (
+                                              <span className="p-1">
+                                                <p className="py-2"></p>
+                                              </span>
+                                            )}
+                                          </h3>
+                                        </div>
+
+                                        <div className="w-[20%] text-center flex justify-center items-center mt-0">
+                                          <button
+                                            onClick={() =>
+                                              handleEdit(
+                                                scheduleData[0],
+                                                "Weekly"
+                                              )
+                                            }
+                                            className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                                          >
+                                            <PenLine
+                                              size={20}
+                                              className="text-white"
+                                            />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </Card>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+
+                    {/* Single Day Schedule */}
+                    {eventType === "single" && (
+                      <div>
+                        {/* <strong>Single Day Schedule:</strong>
                   <p>
                     Start: {new Date(schedule.startDate).toLocaleTimeString()},
                     End: {new Date(schedule.endDate).toLocaleTimeString()}
                   </p> */}
 
-                  {scheduleData.map((sc, index) => (
-                    <Card
-                      className="flex justify-center w-full gap-2 mb-2 px-2 py-2"
-                      key={sc.id}
-                    >
-                      <div key={index} className="w-full">
-                        <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                          {formatDateTime(sc.startDate)}
-                          {sc.price && (
-                            <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
-                              ${sc?.price?.toFixed(2)}
+                        {scheduleData.map((sc, index) => (
+                          <Card
+                            className="flex justify-center w-full gap-2 mb-2 px-2 py-2"
+                            key={sc.id}
+                          >
+                            <div key={index} className="w-full">
+                              <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                {formatDateTime(sc.startDate)}
+                                {sc.price && (
+                                  <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
+                                    ${sc?.price?.toFixed(2)}
+                                  </span>
+                                )}
+                              </h3>
+                            </div>
+                            <span className="flex justify-center items-center text-gray-400">
+                              <FaArrowRightLong />
                             </span>
-                          )}
-                        </h3>
-                      </div>
-                      <span className="flex justify-center items-center text-gray-400">
-                        <FaArrowRightLong />
-                      </span>
-                      {sc.endDate ? (
-                        <div className="w-full">
-                          <h3 className="flex justify-between text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                            {formatDateTime(sc.endDate)}
-                            {sc.currentPrice && (
-                              <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
-                                ${sc?.currentPrice?.toFixed(2)}
-                              </span>
+                            {sc.endDate ? (
+                              <div className="w-full">
+                                <h3 className="flex justify-between text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
+                                  {formatDateTime(sc.endDate)}
+                                  {sc.currentPrice && (
+                                    <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
+                                      ${sc?.currentPrice?.toFixed(2)}
+                                    </span>
+                                  )}
+                                </h3>
+                              </div>
+                            ) : (
+                              <div className="w-full">
+                                <h3 className="text-red-400 font-semibold text-[14px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
+                                  <span className="">Until change back</span>
+                                </h3>
+                              </div>
                             )}
-                          </h3>
-                        </div>
-                      ) : (
-                        <div className="w-full">
-                          <h3 className="text-red-400 font-semibold text-[14px] text-center px-2 py-[6px] rounded bg-[#F5F5F5]">
-                            <span className="">Until change back</span>
-                          </h3>
-                        </div>
-                      )}
-                      <div className="w-[20%] text-center flex justify-center items-start mt-1">
-                        <button
-                          onClick={() => handleEdit(scheduleData[0], "Single")}
-                          className="bg-[#0662BB] py-1 px-1 rounded-sm"
-                        >
-                          <PenLine size={18} className="text-white" />
-                        </button>
+                            <div className="w-[20%] text-center flex justify-center items-start mt-1">
+                              <button
+                                onClick={() =>
+                                  handleEdit(scheduleData[0], "Single")
+                                }
+                                className="bg-[#0662BB] py-1 px-1 rounded-sm"
+                              >
+                                <PenLine size={18} className="text-white" />
+                              </button>
+                            </div>
+                          </Card> // Use a unique key
+                        ))}
                       </div>
-                    </Card> // Use a unique key
-                  ))}
-                </div>
-              )}
+                    )}
+                  </div>
+                ) : (
+                  <p>No schedule data available.</p>
+                )}
+              </Modal.Body>
             </div>
           ) : (
-            <p>No schedule data available.</p>
+            <div className="flex justify-center items-center h-[60vh]">
+              <Loading></Loading>
+            </div>
           )}
-        </Modal.Body>
+        </div>
       </Modal>
 
       {editSchedule && (

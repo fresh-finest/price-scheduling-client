@@ -821,6 +821,7 @@ const ProductDetailView = ({
           show={!!editSchedule}
           onClose={handleClose}
           asin={asin}
+          sku1={sku1}
           existingSchedule={editSchedule}
         />
       )}
