@@ -11,8 +11,7 @@ import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
 import { IoFunnelOutline } from "react-icons/io5";
-import { FaCheck } from 'react-icons/fa'; // Using Font Awesome check icon for better visuals
-import { FaArrowUp } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa"; // Using Font Awesome check icon for better visuals
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -23,17 +22,25 @@ import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL = "http://localhost:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
+import {
+  BsClipboardCheck,
+  BsFillInfoSquareFill,
+  BsSortNumericDownAlt,
+} from "react-icons/bs";
 import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 import CalendarView from "../Calendar/DetailedCalendarView";
+import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
+import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
+// import { ListStatusDropdown } from "../shared/ui/ListStatusDropdown";
+import { LuArrowUpDown } from "react-icons/lu";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -52,7 +59,7 @@ const ListView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 80, 90, 80, 90,
+    80, 80, 350, 80, 90, 110, 90, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -71,11 +78,10 @@ const ListView = () => {
   const [filterScheduled, setFilterScheduled] = useState(false);
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [displayedProducts, setDisplayedProducts] = useState([]); // New state for displayed products
   const [channelStockSortOrder, setChannelStockSortOrder] = useState(null); // State for sorting order
   const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null); // State for FBA/FBM sorting order
-  const [statusSortOrder, setStatusSortOrder] = useState(null); // State for Status sorting order
-
+  const [statusSortOrder, setStatusSortOrder] = useState("asc");
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 20;
@@ -92,7 +98,6 @@ const ListView = () => {
     setShowFilterDropdown(false); // Close the dropdown after selection
   };
 
-
   const {
     data: productData,
     error,
@@ -101,9 +106,6 @@ const ListView = () => {
     onSuccess: (data) => {
       if (!filterScheduled) {
         setFilteredProducts(data.listings);
-      }
-      if(!searchTerm){
-        setDisplayedProducts(data.listings);
       }
     },
   });
@@ -132,54 +134,81 @@ const ListView = () => {
     indexOfLastItem
   );
 
-  
-
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
-
   const toggleChannelStockSort = () => {
     const newOrder = channelStockSortOrder === "asc" ? "desc" : "asc";
     setChannelStockSortOrder(newOrder);
 
     // Sort displayedProducts based on channel stock value
     const sortedProducts = [...filteredProducts].sort((a, b) => {
-      const stockA = a.fulfillmentChannel === "DEFAULT" ? a.quantity ?? 0 : (a.fulfillableQuantity ?? 0) + (a.pendingTransshipmentQuantity ?? 0);
-      const stockB = b.fulfillmentChannel === "DEFAULT" ? b.quantity ?? 0 : (b.fulfillableQuantity ?? 0) + (b.pendingTransshipmentQuantity ?? 0);
-      
+      const stockA =
+        a.fulfillmentChannel === "DEFAULT"
+          ? a.quantity ?? 0
+          : (a.fulfillableQuantity ?? 0) +
+            (a.pendingTransshipmentQuantity ?? 0);
+      const stockB =
+        b.fulfillmentChannel === "DEFAULT"
+          ? b.quantity ?? 0
+          : (b.fulfillableQuantity ?? 0) +
+            (b.pendingTransshipmentQuantity ?? 0);
+
       if (newOrder === "asc") {
         return stockA - stockB;
       } else {
         return stockB - stockA;
       }
     });
-    
+
     setFilteredProducts(sortedProducts);
   };
 
-   // Function to toggle sorting for FBA/FBM column
-   const toggleFbaFbmSort = () => {
-    const newOrder = fbaFbmSortOrder === "asc" ? "desc" : "asc";
-    setFbaFbmSortOrder(newOrder);
+  // Function to toggle sorting for FBA/FBM column
+  // const toggleFbaFbmSort = () => {
+  //   const newOrder = fbaFbmSortOrder === "asc" ? "desc" : "asc";
+  //   setFbaFbmSortOrder(newOrder);
 
-    // Sort displayedProducts based on FBA/FBM value
-    const sortedProducts = [...filteredProducts].sort((a, b) => {
-      const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-      const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-      
-      if (newOrder === "asc") {
-        return fulfillmentA.localeCompare(fulfillmentB);
-      } else {
-        return fulfillmentB.localeCompare(fulfillmentA);
-      }
-    });
-    
+  //   // Sort displayedProducts based on FBA/FBM value
+  //   const sortedProducts = [...filteredProducts].sort((a, b) => {
+  //     const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+  //     const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+
+  //     if (newOrder === "asc") {
+  //       return fulfillmentA.localeCompare(fulfillmentB);
+  //     } else {
+  //       return fulfillmentB.localeCompare(fulfillmentA);
+  //     }
+  //   });
+
+  //   setFilteredProducts(sortedProducts);
+  // };
+
+  // Function to toggle sorting for FBA/FBM column based on selected option
+  const toggleFbaFbmSort = (option) => {
+    let sortedProducts;
+
+    if (option === "All") {
+      sortedProducts = [...filteredProducts];
+    } else {
+      sortedProducts = [...filteredProducts].sort((a, b) => {
+        const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+        const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+
+        if (option === "FBA") {
+          return fulfillmentA === "FBA" ? -1 : 1;
+        } else if (option === "FBM") {
+          return fulfillmentA === "FBM" ? -1 : 1;
+        }
+      });
+    }
+
     setFilteredProducts(sortedProducts);
   };
-   // Define priority order for status
-   const statusPriority = {
+  // Define priority order for status
+  const statusPriority = {
     Active: 1,
     Inactive: 3,
     Incomplete: 2,
@@ -192,9 +221,16 @@ const ListView = () => {
 
     // Sort displayedProducts based on Status priority
     const sortedProducts = [...filteredProducts].sort((a, b) => {
-      const statusA = statusPriority[a.status] ?? Number.MAX_VALUE; // Fallback for unlisted statuses
-      const statusB = statusPriority[b.status] ?? Number.MAX_VALUE;
-
+      const statusA =
+        statusPriority[
+          a.status.trim().toLowerCase().charAt(0).toUpperCase() +
+            a.status.slice(1)
+        ] ?? Number.MAX_VALUE;
+      const statusB =
+        statusPriority[
+          b.status.trim().toLowerCase().charAt(0).toUpperCase() +
+            b.status.slice(1)
+        ] ?? Number.MAX_VALUE;
 
       if (newOrder === "asc") {
         return statusA - statusB;
@@ -202,6 +238,18 @@ const ListView = () => {
         return statusB - statusA;
       }
     });
+
+    // Sort displayedProducts based on Status priority
+    // const sortedProducts = [...filteredProducts].sort((a, b) => {
+    //   const statusA = statusPriority[a.status] ?? Number.MAX_VALUE; // Fallback for unlisted statuses
+    //   const statusB = statusPriority[b.status] ?? Number.MAX_VALUE;
+
+    //   if (newOrder === "asc") {
+    //     return statusA - statusB;
+    //   } else {
+    //     return statusB - statusA;
+    //   }
+    // });
 
     setFilteredProducts(sortedProducts);
   };
@@ -251,8 +299,11 @@ const ListView = () => {
     debouncedFilterProducts(value); // Apply debounced filtering
   };
 
+  const handleClearInput = () => {
+    setSearchTerm("");
+    debouncedFilterProducts("");
+  };
 
- 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       const value = event.target.value || "";
@@ -288,7 +339,7 @@ const ListView = () => {
         scheduledAsins.includes(product.sellerSku)
       );
     }
- 
+
     if (searchValue) {
       filtered = filtered.filter(
         (product) =>
@@ -303,8 +354,6 @@ const ListView = () => {
 
     setFilteredProducts(filtered);
   };
-
-
 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
@@ -378,7 +427,7 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
-       
+
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -502,10 +551,7 @@ const ListView = () => {
       </div>
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
-  const handleClearInput = () => {
-    setSearchTerm("");
-    debouncedFilterProducts("");
-  };
+
   return (
     <>
       <UpdatePriceFromList
@@ -586,21 +632,21 @@ const ListView = () => {
                 maxHeight: "91vh",
               }}
             >
-              <Table
-                hover
-                responsive
+              <table
+                // hover
+                // responsive
                 style={{ width: "100%", tableLayout: "fixed" }}
-                className="listCustomTable  "
+                className="listCustomTable  table "
               >
                 <thead
-                  className=""
+                  className="tableHeader"
                   style={{
                     // backgroundColor: "#f0f0f0",
                     fontFamily: "Arial, sans-serif",
                     fontSize: "13px",
                     position: "sticky",
                     top: 0,
-                    fontWeight: 0,
+                    // fontWeight: 0,
                   }}
                 >
                   <tr className="">
@@ -608,19 +654,22 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[0]}px`,
-                        minWidth: "80px",
+                        // minWidth: "80px",
                         // position: "relative",
-                        position: "sticky", // Sticky header
+                        // position: "sticky", // Sticky header
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Status
-                      <IoFunnelOutline
-                size={15}
-                style={{ cursor: "pointer", marginLeft: "8px" }}
-                onClick={toggleStatusSort}
-              />
+                      <p className="flex  items-center justify-center gap-1">
+                        Status
+                        {/* <ListStatusDropdown></ListStatusDropdown>
+                        <IoFunnelOutline
+                          size={15}
+                          style={{ cursor: "pointer", marginLeft: "8px" }}
+                          onClick={toggleStatusSort}
+                        /> */}
+                      </p>
                       <div
                         style={{
                           width: "5px",
@@ -637,8 +686,8 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[1]}px`,
-                        minWidth: "80px",
-                        position: "relative",
+                        // minWidth: "80px",
+                        // position: "relative",
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -662,8 +711,8 @@ const ListView = () => {
                       style={{
                         width: `${columnWidths[2]}px`,
                         minWidth: "80px",
-                        position: "relative",
-                        whiteSpace: "nowrap",
+                        // position: "relative",
+                        // whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         textAlign: "center",
@@ -687,8 +736,8 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[3]}px`,
-                        minWidth: "80px",
-                        position: "relative",
+                        // minWidth: "80px",
+                        // position: "relative",
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -710,21 +759,26 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[4]}px`,
-                        minWidth: "80px",
-                        position: "relative",
+                        // minWidth: "80px",
+                        // position: "relative",
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      FBA/FBM
-                      <IoFunnelOutline
-                size={15}
-                style={{ cursor: "pointer", marginLeft: "8px" }}
-                onClick={toggleFbaFbmSort}
-              />
+                      <p className="flex  items-center justify-center gap-1">
+                        FBA/FBM
+                        <ListFbaDropdown
+                          toggleFbaFbmSort={toggleFbaFbmSort}
+                        ></ListFbaDropdown>
+                        {/* <IoFunnelOutline
+                          size={15}
+                          style={{ cursor: "pointer", marginLeft: "8px" }}
+                          onClick={toggleFbaFbmSort}
+                        /> */}
+                      </p>
                       <div
                         style={{
-                          width: "5px",
+                          width: "1px",
                           height: "100%",
                           position: "absolute",
                           right: "0",
@@ -744,12 +798,15 @@ const ListView = () => {
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Channel Stock
-                      <IoFunnelOutline
-                size={15}
-                style={{ cursor: "pointer", marginLeft: "8px" }}
-                onClick={toggleChannelStockSort}
-              />
+                      <p className="flex  justify-center items-center gap-1">
+                        {" "}
+                        Channel Stock
+                        <LuArrowUpDown
+                          className="text-[15px] font-thin cursor-pointer"
+                          onClick={toggleChannelStockSort}
+                        />{" "}
+                      </p>
+
                       <div
                         style={{
                           width: "5px",
@@ -773,353 +830,19 @@ const ListView = () => {
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Sale
+                      <p className="flex  items-center justify-center gap-1">
+                        Sale
+                        <ListSaleDropdown
+                          handleTimePeriodChange={handleTimePeriodChange}
+                        ></ListSaleDropdown>
+                      </p>
                       <div
                         style={{
                           position: "relative",
                           float: "right",
                           marginRight: "10px",
                         }}
-                      >
-                        <IoFunnelOutline
-                          size={15}
-                          style={{ cursor: "pointer" }}
-                          onClick={() =>
-                            setShowFilterDropdown(!showFilterDropdown)
-                          }
-                        />
-
-                        {/* Dropdown menu */}
-                        {showFilterDropdown && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              right: 0,
-                              backgroundColor: "#fff",
-                              border: "1px solid #ddd",
-                              borderRadius: "8px",
-                              padding: "0px",
-                              zIndex: 1,
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                              minWidth: "150px",
-                              fontFamily: "'Roboto', sans-serif",
-                            }}
-                          >
-                            <ul
-                              style={{
-                                listStyle: "none",
-                                padding: "5px 0",
-                                margin: 0,
-                                cursor: "pointer",
-                              }}
-                            >
-                              <li
-                                onClick={() => handleTimePeriodChange("1 D")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "1 D"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "1 D"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "1 D"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "1 D" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Yesterday
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("7 D")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "7 D"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "7 D"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "7 D"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "7 D" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 7 Days
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("15 D")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "15 D"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "15 D"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "15 D"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "15 D" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 15 Days
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("30 D")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "30 D"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "30 D"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "30 D"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "30 D" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 30 Days
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("60 D")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "60 D"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "60 D"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "60 D"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "60 D" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 60 Days
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("90 D")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "90 D"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "90 D"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "90 D"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "90 D" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 90 Days
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("6 M")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  borderBottom: "1px solid #eee",
-                                  backgroundColor:
-                                    selectedTimePeriod === "6 M"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "6 M"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "6 M"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "6 M" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 6 Months
-                              </li>
-                              <li
-                                onClick={() => handleTimePeriodChange("1 Y")}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "10px 15px",
-                                  transition:
-                                    "background-color 0.2s ease-in-out",
-                                  backgroundColor:
-                                    selectedTimePeriod === "1 Y"
-                                      ? "#e0f7fa"
-                                      : "transparent",
-                                  fontWeight:
-                                    selectedTimePeriod === "1 Y"
-                                      ? "bold"
-                                      : "normal",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.target.style.backgroundColor = "#f7f7f7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.target.style.backgroundColor =
-                                    selectedTimePeriod === "1 Y"
-                                      ? "#e0f7fa"
-                                      : "transparent")
-                                }
-                              >
-                                {selectedTimePeriod === "1 Y" && (
-                                  <FaCheck
-                                    style={{
-                                      marginRight: "8px",
-                                      color: "green",
-                                    }}
-                                  />
-                                )}
-                                Last 1 Year
-                              </li>
-                            </ul>
-                          </div>
-                        )}
-                      </div>
+                      ></div>
                       <div
                         style={{
                           width: "5px",
@@ -1184,19 +907,22 @@ const ListView = () => {
                         cursor: "pointer",
                         height: "40px",
                         margin: "20px 0",
-                        backgroundColor:
-                          selectedRowIndex === index ? "#F1F1F2" : "#ccc",
                       }}
-                      className="borderless spacer-row"
+                      className={`borderless spacer-row ${
+                        selectedRowIndex === index ? "selected-row" : ""
+                      }`}
                     >
                       <td
+                        className={` ${
+                          selectedRowIndex === index ? "selected-row" : ""
+                        }`}
                         style={{
                           cursor: "pointer",
                           height: "40px",
                           textAlign: "center",
                           verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
                         {item.status}
@@ -1208,7 +934,7 @@ const ListView = () => {
                           textAlign: "center",
                           verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
                         <img
@@ -1233,7 +959,7 @@ const ListView = () => {
                           textAlign: "center",
                           verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
                         {item.itemName}
@@ -1344,7 +1070,7 @@ const ListView = () => {
                           textAlign: "center",
                           verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
                         ${item?.price}
@@ -1359,7 +1085,7 @@ const ListView = () => {
                           textAlign: "center",
                           verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
                         {item.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
@@ -1374,7 +1100,7 @@ const ListView = () => {
                           textAlign: "center",
                           verticalAlign: "middle",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
                         <span>
@@ -1399,10 +1125,10 @@ const ListView = () => {
                           cursor: "pointer",
                           height: "40px",
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
-                      {item?.salesMetrics
+                        {item?.salesMetrics
                           ? `${getUnitCountForTimePeriod(
                               item.salesMetrics,
                               selectedTimePeriod
@@ -1412,7 +1138,7 @@ const ListView = () => {
                       <td
                         style={{
                           backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "#fff",
+                            selectedRowIndex === index ? "#F1F1F2" : "",
                           textAlign: "center",
                           verticalAlign: "middle",
                         }}
@@ -1447,7 +1173,7 @@ const ListView = () => {
                     </tr>
                   ))}
                 </tbody>
-              </Table>
+              </table>
               <Pagination className=" flex mb-3 justify-center">
                 <Pagination.First onClick={() => handlePageChange(1)} />
                 <Pagination.Prev
@@ -1469,11 +1195,16 @@ const ListView = () => {
           ) : (
             filterScheduled && (
               <div
-                style={{
-                  marginTop: "20px",
-                  color: "#888",
-                  textAlign: "center",
-                }}
+                // style={{
+                //   marginTop: "20px",
+                //   height: "20vh",
+                //   color: "#888",
+                //   display: "flex",
+                //   textAlign: "center",
+                //   justifyContent: "center",
+                // }}
+
+                className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]"
               >
                 There is no active schedule.
               </div>
@@ -1509,7 +1240,7 @@ const ListView = () => {
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
               />
-               {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
+              {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div
