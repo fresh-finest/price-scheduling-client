@@ -22,9 +22,9 @@ import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
@@ -39,7 +39,7 @@ import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 import CalendarView from "../Calendar/DetailedCalendarView";
 import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
 import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
-// import { ListStatusDropdown } from "../shared/ui/ListStatusDropdown";
+import { ListStatusDropdown } from "../shared/ui/ListStatusDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
 
 const fetchProducts = async () => {

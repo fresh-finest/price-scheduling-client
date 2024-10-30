@@ -20,10 +20,6 @@ th .resizer:hover {
   transition: all 0.3s ease;
 }
 
-.card:hover {
-  /* transform: translateY(-3px); */
-}
-
 .copy-container {
   display: inline-block;
   position: relative;
@@ -54,16 +50,6 @@ th .resizer:hover {
   content: "📋";
   font-size: 14px;
 }
-/* .bubble-text {
-  background-color: #EEF1FB;
-  color: #64748B;
-  padding: 5px 10px;
- 
-  font-weight: bold;
-  display: inline-block;
-  font-family: 'Arial', sans-serif;
-  font-size: 14px;
-} */
 
 .bubble-text {
   /* background-color: #eef1fb80; The light blue background color */
@@ -81,9 +67,7 @@ th .resizer:hover {
 .details {
   text-align: left;
 }
-.selected-row {
-  background-color: #553838 !important;
-}
+
 .listCustomTable {
   /* border: 1px solid lightgray; */
   /* box-shadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"; */
@@ -97,28 +81,17 @@ th .resizer:hover {
   /* overflow: auto; */
 }
 .listCustomTable .tableHeader {
-  position: sticky;
+  /* position: sticky; */
   background-color: #f6f6f8;
-  top: 0;
+  /* top: 0; */
   /* padding: 13px; */
   font-weight: normal;
   font-size: 12px;
 }
 .listCustomTable .tableHeader th {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-::-webkit-scrollbar {
-  width: 7px;
-}
-::-webkit-scrollbar-track {
-  background: #ebedf0;
-}
-::-webkit-scrollbar-thumb {
-  background: #c3c6d4 !important;
-  border-radius: 5px;
+  /* position: sticky; */
+  /* top: 0; */
+  /* z-index: 1000; */
 }
 
 .table {
@@ -129,14 +102,20 @@ th .resizer:hover {
 .table tbody tr {
   /* background-color: white; Set a background to see the effect */
   /* box-shadow: 0 4px 2px -2px gray; */
+
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  /* margin-top: 200px; */
+  margin-top: 20px;
 }
-.table tr:hover {
-  /* transform: translateY(-3px); */
-  /* box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); */
+.table tbody tr.selected-row {
+  background-color: #f1f1f2;
 }
 
-.table tbody tr td {
+.table tbody tr:hover {
+  background-color: #e0e0e0 !important;
+}
+
+.listCustomTable tbody tr td {
   padding: 15px 10px;
 }
 
@@ -172,4 +151,16 @@ th .resizer:hover {
 .updatePriceBtn svg {
   color: white !important;
   /* background-color: red; */
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #ebedf0;
+}
+::-webkit-scrollbar-thumb {
+  background: #c3c6d4 !important;
+  border-radius: 5px;
 }
