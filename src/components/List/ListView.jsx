@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Table,
   Form,
@@ -10,10 +10,9 @@ import {
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-import { AiOutlineFilter } from "react-icons/ai"; // Funnel icon from react-icons
 import { IoFunnelOutline } from "react-icons/io5";
 import { FaCheck } from 'react-icons/fa'; // Using Font Awesome check icon for better visuals
-
+import { FaArrowUp } from "react-icons/fa";
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -24,9 +23,9 @@ import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL ='http://localhost:3000'
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
@@ -53,7 +52,7 @@ const ListView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 80, 90, 100, 90,
+    80, 80, 350, 80, 80, 90, 80, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -72,8 +71,18 @@ const ListView = () => {
   const [filterScheduled, setFilterScheduled] = useState(false);
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [displayedProducts, setDisplayedProducts] = useState([]); // New state for displayed products
+  const [channelStockSortOrder, setChannelStockSortOrder] = useState(null); // State for sorting order
+  const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null); // State for FBA/FBM sorting order
+  const [statusSortOrder, setStatusSortOrder] = useState(null); // State for Status sorting order
 
-  const dropdownRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 20;
+
+  const { currentUser } = useSelector((state) => state.user);
+
+  const userName = currentUser?.userName || "";
   const getUnitCountForTimePeriod = (salesMetrics, timePeriod) => {
     const metric = salesMetrics.find((metric) => metric.time === timePeriod);
     return metric ? metric.totalUnits : "N/A";
@@ -83,32 +92,6 @@ const ListView = () => {
     setShowFilterDropdown(false); // Close the dropdown after selection
   };
 
-  const toggleDropdown = () => {
-    setShowFilterDropdown((prev) => !prev);
-  };
-
-  // Close dropdown if clicked outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowFilterDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const itemsPerPage = 20;
-
-  const { currentUser } = useSelector((state) => state.user);
-
-  const userName = currentUser?.userName || "";
 
   const {
     data: productData,
@@ -118,6 +101,9 @@ const ListView = () => {
     onSuccess: (data) => {
       if (!filterScheduled) {
         setFilteredProducts(data.listings);
+      }
+      if(!searchTerm){
+        setDisplayedProducts(data.listings);
       }
     },
   });
@@ -146,10 +132,78 @@ const ListView = () => {
     indexOfLastItem
   );
 
+  
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+  };
+
+  const toggleChannelStockSort = () => {
+    const newOrder = channelStockSortOrder === "asc" ? "desc" : "asc";
+    setChannelStockSortOrder(newOrder);
+
+    // Sort displayedProducts based on channel stock value
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+      const stockA = a.fulfillmentChannel === "DEFAULT" ? a.quantity ?? 0 : (a.fulfillableQuantity ?? 0) + (a.pendingTransshipmentQuantity ?? 0);
+      const stockB = b.fulfillmentChannel === "DEFAULT" ? b.quantity ?? 0 : (b.fulfillableQuantity ?? 0) + (b.pendingTransshipmentQuantity ?? 0);
+      
+      if (newOrder === "asc") {
+        return stockA - stockB;
+      } else {
+        return stockB - stockA;
+      }
+    });
+    
+    setFilteredProducts(sortedProducts);
+  };
+
+   // Function to toggle sorting for FBA/FBM column
+   const toggleFbaFbmSort = () => {
+    const newOrder = fbaFbmSortOrder === "asc" ? "desc" : "asc";
+    setFbaFbmSortOrder(newOrder);
+
+    // Sort displayedProducts based on FBA/FBM value
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+      const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+      const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+      
+      if (newOrder === "asc") {
+        return fulfillmentA.localeCompare(fulfillmentB);
+      } else {
+        return fulfillmentB.localeCompare(fulfillmentA);
+      }
+    });
+    
+    setFilteredProducts(sortedProducts);
+  };
+   // Define priority order for status
+   const statusPriority = {
+    Active: 1,
+    Inactive: 3,
+    Incomplete: 2,
+  };
+
+  // Function to toggle sorting for Status column
+  const toggleStatusSort = () => {
+    const newOrder = statusSortOrder === "asc" ? "desc" : "asc";
+    setStatusSortOrder(newOrder);
+
+    // Sort displayedProducts based on Status priority
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+      const statusA = statusPriority[a.status] ?? Number.MAX_VALUE; // Fallback for unlisted statuses
+      const statusB = statusPriority[b.status] ?? Number.MAX_VALUE;
+
+
+      if (newOrder === "asc") {
+        return statusA - statusB;
+      } else {
+        return statusB - statusA;
+      }
+    });
+
+    setFilteredProducts(sortedProducts);
   };
 
   const renderPaginationButtons = () => {
@@ -197,11 +251,8 @@ const ListView = () => {
     debouncedFilterProducts(value); // Apply debounced filtering
   };
 
-  const handleClearInput = () => {
-    setSearchTerm("");
-    debouncedFilterProducts("");
-  };
 
+ 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       const value = event.target.value || "";
@@ -237,7 +288,7 @@ const ListView = () => {
         scheduledAsins.includes(product.sellerSku)
       );
     }
-
+ 
     if (searchValue) {
       filtered = filtered.filter(
         (product) =>
@@ -252,6 +303,8 @@ const ListView = () => {
 
     setFilteredProducts(filtered);
   };
+
+
 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
@@ -325,7 +378,7 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
-
+       
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -449,7 +502,10 @@ const ListView = () => {
       </div>
     );
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
-
+  const handleClearInput = () => {
+    setSearchTerm("");
+    debouncedFilterProducts("");
+  };
   return (
     <>
       <UpdatePriceFromList
@@ -560,6 +616,11 @@ const ListView = () => {
                       }}
                     >
                       Status
+                      <IoFunnelOutline
+                size={15}
+                style={{ cursor: "pointer", marginLeft: "8px" }}
+                onClick={toggleStatusSort}
+              />
                       <div
                         style={{
                           width: "5px",
@@ -656,6 +717,11 @@ const ListView = () => {
                       }}
                     >
                       FBA/FBM
+                      <IoFunnelOutline
+                size={15}
+                style={{ cursor: "pointer", marginLeft: "8px" }}
+                onClick={toggleFbaFbmSort}
+              />
                       <div
                         style={{
                           width: "5px",
@@ -679,9 +745,14 @@ const ListView = () => {
                       }}
                     >
                       Channel Stock
+                      <IoFunnelOutline
+                size={15}
+                style={{ cursor: "pointer", marginLeft: "8px" }}
+                onClick={toggleChannelStockSort}
+              />
                       <div
                         style={{
-                          width: "150px",
+                          width: "5px",
                           height: "100%",
                           position: "absolute",
 
@@ -702,7 +773,7 @@ const ListView = () => {
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
-                      Sale{" "}
+                      Sale
                       <div
                         style={{
                           position: "relative",
@@ -713,10 +784,9 @@ const ListView = () => {
                         <IoFunnelOutline
                           size={15}
                           style={{ cursor: "pointer" }}
-                          // onClick={() =>
-                          //   setShowFilterDropdown(!showFilterDropdown)
-                          // }
-                          onClick={toggleDropdown}
+                          onClick={() =>
+                            setShowFilterDropdown(!showFilterDropdown)
+                          }
                         />
 
                         {/* Dropdown menu */}
@@ -1332,7 +1402,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "#fff",
                         }}
                       >
-                        {item?.salesMetrics
+                      {item?.salesMetrics
                           ? `${getUnitCountForTimePeriod(
                               item.salesMetrics,
                               selectedTimePeriod
@@ -1399,16 +1469,11 @@ const ListView = () => {
           ) : (
             filterScheduled && (
               <div
-                // style={{
-                //   marginTop: "20px",
-                //   height: "20vh",
-                //   color: "#888",
-                //   display: "flex",
-                //   textAlign: "center",
-                //   justifyContent: "center",
-                // }}
-
-                className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]"
+                style={{
+                  marginTop: "20px",
+                  color: "#888",
+                  textAlign: "center",
+                }}
               >
                 There is no active schedule.
               </div>
@@ -1444,7 +1509,7 @@ const ListView = () => {
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
               />
-              {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
+               {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div
