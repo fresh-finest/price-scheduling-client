@@ -180,7 +180,7 @@ export default function HistoryView() {
   // console.log(showWeeklyType);
   // console.log(showMonthlyType);
 
-  const itemsPerPage = 15;
+  const itemsPerPage = 20;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
@@ -198,52 +198,62 @@ export default function HistoryView() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch the main data
+        const mainUrl = selectedUser
+          ? `${BASE_URL}/api/schedule/${selectedUser}/list`
+          : `${BASE_URL}/api/history`;
 
-  const fetchData = async () => {
-    const url = selectedUser
-      ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-      : `${BASE_URL}/api/history`;
-    setLoading(true);
-    try {
-      const response = await axios.get(url);
-      const sortedData = Array.isArray(response.data.result)
-        ? response.data.result.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          )
-        : [];
+        const mainResponse = await axios.get(mainUrl);
+        const mainData = mainResponse.data.result || [];
 
-      setData(sortedData.filter((item) => item.action === "created"));
-      const nestedDataLengths = {};
-      await Promise.all(
-        sortedData.map(async (item) => {
+        // Sort and filter main data
+        const sortedData = mainData
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .filter((item) => item.action === "created");
+        setData(sortedData);
+
+        // Fetch nested data in parallel
+        const nestedDataPromises = sortedData.map(async (item) => {
           try {
-            const nestedResponse = await axios.get(
-              `${BASE_URL}/api/history/${item.scheduleId}`
-            );
-            nestedDataLengths[item.scheduleId] =
-              nestedResponse.data.length || 0;
-          } catch (err) {
-            console.error(
-              `Error fetching nested data for scheduleId ${item.scheduleId}:`,
-              err
-            );
-            nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+            const nestedUrl = `${BASE_URL}/api/history/${item.scheduleId}`;
+            const nestedResponse = await axios.get(nestedUrl);
+            return {
+              scheduleId: item.scheduleId,
+              length: nestedResponse.data.length || 0,
+            };
+          } catch {
+            return { scheduleId: item.scheduleId, length: 0 }; // Default to 0 on error
           }
-        })
-      );
+        });
 
-      setLengthNested(nestedDataLengths);
-    } catch (err) {
-      setError(
-        "Error fetching data: " +
-          (err.response ? err.response.data.message : err.message)
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Resolve all nested data promises
+        const nestedDataResults = await Promise.all(nestedDataPromises);
+        const nestedDataLengths = nestedDataResults.reduce(
+          (acc, { scheduleId, length }) => {
+            acc[scheduleId] = length;
+            return acc;
+          },
+          {}
+        );
+
+        setLengthNested(nestedDataLengths);
+      } catch (error) {
+        console.error("Data fetch error:", error);
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "An error occurred while fetching data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []); // Add selectedUser as a dependency if the data should refresh when it changes
 
   console.log("nested length" + JSON.stringify(lengthNested));
 
@@ -732,9 +742,14 @@ export default function HistoryView() {
                   <>
                     <tr
                       key={index}
+                      className={`${
+                        lengthNested[item.scheduleId] > 1
+                          ? "cursor-pointer"
+                          : ""
+                      }`}
                       style={{
                         height: "50px",
-                        cursor: "pointer",
+                        // cursor: "pointer",
                         margin: "20px 0",
                       }}
                       onClick={() => handleRowClick(item.scheduleId)}
@@ -743,19 +758,21 @@ export default function HistoryView() {
                       {/* arrow sign */}
                       <td
                         style={{
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                           textAlign: "center",
                           verticalAlign: "middle",
                         }}
                       >
-                        {lengthNested[item.scheduleId] > 1 ? (
+                        {lengthNested[item.scheduleId] >
+                        (item.weekly || item.monthly ? 0 : 1) ? (
                           <IoIosArrowForward
-                            className={`text-base transition-all duration-300 ${
+                            className={`text-base transition-all cursor-pointer duration-300 ${
                               expandedRow === item.scheduleId ? "rotate-90" : ""
                             }`}
                           />
                         ) : null}
+
                         {/* {lengthNested[item.scheduleId] > 1 &&
                         expandedRow === item.scheduleId ? (
                           <IoIosArrowForward className="text-base" />
@@ -764,7 +781,7 @@ export default function HistoryView() {
                       {/* image  */}
                       <td
                         style={{
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                           textAlign: "center",
                           verticalAlign: "middle",
@@ -787,7 +804,7 @@ export default function HistoryView() {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                           textAlign: "start",
                           verticalAlign: "middle",
@@ -858,7 +875,7 @@ export default function HistoryView() {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                         }}
                       >
@@ -878,7 +895,7 @@ export default function HistoryView() {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           // height: "40px",
                           width: "50px",
                         }}
@@ -949,7 +966,7 @@ export default function HistoryView() {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                         }}
                       >
@@ -965,7 +982,7 @@ export default function HistoryView() {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           // height: "40px",
                         }}
                       >
