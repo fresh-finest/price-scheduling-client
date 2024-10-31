@@ -9,10 +9,9 @@ const CalendarView = ({ sku1 }) => {
   const [events, setEvents] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
-  const [selectedEndDays, setSelectedEndDays] = useState([]);
-
   const now = new Date();
-
+  const endPeriod = new Date(now);
+  endPeriod.setMonth(now.getMonth() + 5); // Extend to 5 months ahead
 
   const fetchSchedules = async () => {
     if (!sku1) {
@@ -24,138 +23,99 @@ const CalendarView = ({ sku1 }) => {
       const encodedSku = encodeURIComponent(sku1);
       const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
       const schedules = response.data.result;
-
-      console.log("Fetched schedules:", schedules);
-
       const events = [];
 
       const filteredSchedules = schedules.filter(
-        (sc)=> 
-
-        (sc.monthly || sc.weekly  ) && sc.status !=="deleted"  ||
-
-        ((sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)) && sc.status !=="deleted")
-
-      )
+        (sc) =>
+          ((sc.monthly || sc.weekly) && sc.status !== "deleted") ||
+          ((sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now)) &&
+            sc.status !== "deleted")
+      );
 
       filteredSchedules.forEach((schedule) => {
         const { startDate, endDate, price, currentPrice, sku, weekly, weeklyTimeSlots, monthly, monthlyTimeSlots } = schedule;
+        const start = new Date(startDate);
+        const end = endDate ? new Date(endDate) : endPeriod;
 
         if (!weekly && !monthly) {
-          const start = new Date(startDate);
-          const end = endDate ? new Date(endDate) : new Date(startDate);
-
-          // Generate the range of dates between startDate and endDate
           const dateRange = generateDateRange(start, end);
-          // Single-day schedule
           events.push({
             title: `SKU: ${sku} - $${price || currentPrice}`,
-            start: new Date(startDate),
-            end: endDate ? new Date(endDate) : new Date(startDate), // If endDate is null, use startDate
+            start,
+            end,
             allDay: false,
             price: price || currentPrice,
-            dateRange
+            dateRange,
           });
-          // events.push({
-          //   title: `SKU: ${sku} - $${price || currentPrice}`,
-          //   start: endDate ? new Date(endDate) : new Date(startDate),
-          //   end: endDate ? new Date(endDate) : new Date(startDate),
-          //   allDay: false,
-          //   price: price || currentPrice,
-          //   dateRange
-          // });
         } else if (weekly) {
-          // Weekly schedule with multiple time slots
-          Object.entries(weeklyTimeSlots).forEach(([day, timeSlots]) => {
-            timeSlots.forEach(({ startTime, endTime, newPrice, revertPrice }) => {
-              const startDateObj = new Date(startDate);
-              const endDateObj = new Date(startDate);
+          // Repeat weekly schedules within the next 5 months
+          for (let date = new Date(start); date <= endPeriod; date.setDate(date.getDate() + 7)) {
+            Object.entries(weeklyTimeSlots).forEach(([day, timeSlots]) => {
+              const dayOffset = (parseInt(day, 10) - date.getDay() + 7) % 7;
+              const targetDate = new Date(date);
+              targetDate.setDate(targetDate.getDate() + dayOffset);
+              
+              timeSlots.forEach(({ startTime, endTime, newPrice, revertPrice }) => {
+                const [startHour, startMinute] = startTime.split(":").map(Number);
+                const [endHour, endMinute] = endTime.split(":").map(Number);
+                const slotStart = new Date(targetDate);
+                const slotEnd = new Date(targetDate);
+                slotStart.setHours(startHour, startMinute, 0);
+                slotEnd.setHours(endHour, endMinute, 0);
 
-              const now = new Date();
-              const today = now.getDay();
-
-              // targetDay = parseInt(day,10);
-             let dayDifference = parseInt(day, 10) - startDateObj.getDay();
-             console.log("day diff"+dayDifference)
-
-              if(startDateObj>today){
-                dayDifference=dayDifference+7
-              }
-              // Adjust the date for the correct day of the week
-
-              // startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) + startDateObj.getDay()));
-              // endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
-
-              startDateObj.setDate(startDateObj.getDate()+dayDifference);
-              endDateObj.setDate(endDateObj.getDate()+dayDifference);
-              // dayDifference=dayDifference+7
-              // Set the time for the time slot
-              const [startHour, startMinute] = startTime.split(":").map(Number);
-              const [endHour, endMinute] = endTime.split(":").map(Number);
-              startDateObj.setHours(startHour, startMinute, 0);
-              endDateObj.setHours(endHour, endMinute, 0);
-
-              events.push({
-                title: `SKU: ${sku} - $${newPrice}`,
-                start: startDateObj,
-                end: endDateObj,
-                allDay: false,
-                description: `Revert Price: $${revertPrice}`,
+                if (slotStart <= endPeriod) {
+                  events.push({
+                    title: `SKU: ${sku} - $${newPrice}`,
+                    start: slotStart,
+                    end: slotEnd,
+                    allDay: false,
+                    description: `Revert Price: $${revertPrice}`,
+                  });
+                }
               });
             });
-          });
+          }
         } else if (monthly) {
-          // Monthly schedule with multiple time slots
-          Object.entries(monthlyTimeSlots).forEach(([date, timeSlots]) => {
-            timeSlots.forEach(({ startTime, endTime, newPrice, revertPrice }) => {
-              const startDateObj = new Date(startDate);
-              const endDateObj = new Date(startDate);
+          // Repeat monthly schedules within the next 5 months
+          for (let date = new Date(start); date <= endPeriod; date.setMonth(date.getMonth() + 1)) {
+            Object.entries(monthlyTimeSlots).forEach(([day, timeSlots]) => {
+              timeSlots.forEach(({ startTime, endTime, newPrice, revertPrice }) => {
+                const slotStart = new Date(date);
+                const slotEnd = new Date(date);
+                slotStart.setDate(parseInt(day, 10));
+                slotEnd.setDate(parseInt(day, 10));
+                const [startHour, startMinute] = startTime.split(":").map(Number);
+                const [endHour, endMinute] = endTime.split(":").map(Number);
+                slotStart.setHours(startHour, startMinute, 0);
+                slotEnd.setHours(endHour, endMinute, 0);
 
-              // Adjust the date for the correct day of the month
-              startDateObj.setDate(parseInt(date, 10));
-              endDateObj.setDate(parseInt(date, 10));
-
-              // Set the time for the time slot
-              const [startHour, startMinute] = startTime.split(":").map(Number);
-              const [endHour, endMinute] = endTime.split(":").map(Number);
-              startDateObj.setHours(startHour, startMinute, 0);
-              endDateObj.setHours(endHour, endMinute, 0);
-
-              events.push({
-                title: `SKU: ${sku} - $${newPrice}`,
-                start: startDateObj,
-                end: endDateObj,
-                allDay: false,
-                description: `Revert Price: $${revertPrice}`,
+                if (slotStart <= endPeriod) {
+                  events.push({
+                    title: `SKU: ${sku} - $${newPrice}`,
+                    start: slotStart,
+                    end: slotEnd,
+                    allDay: false,
+                    description: `Revert Price: $${revertPrice}`,
+                  });
+                }
               });
             });
-          });
+          }
         }
       });
 
       setEvents(events); // Update the state with parsed events
     } catch (error) {
-      console.error('Error fetching schedules:', error);
+      console.error("Error fetching schedules:", error);
     }
   };
 
-  const generateDateRange = (start, end) => {
-    const dateRange = [];
-    let currentDate = new Date(start);
-
-    while (currentDate <= end) {
-      dateRange.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
-    }
-
-    return dateRange;
-  };
-  
   useEffect(() => {
     if (sku1) {
       fetchSchedules();
     }
   }, [sku1]);
+
 
  
   useEffect(() => {
