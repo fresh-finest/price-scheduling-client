@@ -15,9 +15,10 @@ import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
-const BASE_URL = "http://localhost:3000";
+import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
+// const BASE_URL = "http://localhost:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -159,7 +160,7 @@ export default function HistoryView() {
   const [users, setUsers] = useState([]);
   const [nestedData, setNestedData] = useState({});
   const [expandedRow, setExpandedRow] = useState(null);
-  const [selectedUser, setSelectedUser] = useState("");
+  // const [selectedUser, setSelectedUser] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingNested, setLoadingNested] = useState(false);
@@ -173,12 +174,13 @@ export default function HistoryView() {
   const [showSingleType, setShowSingleType] = useState(false);
   const [showWeeklyType, setShowWeeklyType] = useState(false);
   const [showMonthlyType, setShowMonthlyType] = useState(false);
+  const [selectedUser, setSelectedUser] = useState("");
 
-  console.log(showSingleType);
-  console.log(showWeeklyType);
-  console.log(showMonthlyType);
+  // console.log(showSingleType);
+  // console.log(showWeeklyType);
+  // console.log(showMonthlyType);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 15;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
@@ -197,7 +199,7 @@ export default function HistoryView() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedUser]);
+  }, []);
 
   const fetchData = async () => {
     const url = selectedUser
@@ -452,6 +454,13 @@ export default function HistoryView() {
       }
 
       return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
+    })
+    .filter((item) => {
+      // User filter logic
+      if (selectedUser === "") {
+        return true; // Show all users if "All Users" is selected
+      }
+      return item.userName === selectedUser;
     });
 
   console.log(filteredData);
@@ -523,7 +532,7 @@ export default function HistoryView() {
   return (
     <div>
       <div className="">
-        <InputGroup className="max-w-[500px] absolute top-[7px] ">
+        <InputGroup className="max-w-[500px] absolute top-[11px] ">
           <Form.Control
             type="text"
             placeholder="Search by Product Name, ASIN or SKU..."
@@ -541,7 +550,7 @@ export default function HistoryView() {
             </button>
           )}
         </InputGroup>
-        <div className="absolute top-[7px] right-[25%]">
+        {/* <div className="absolute top-[7px] right-[25%]">
           <Form.Control
             as="select"
             value={selectedUser}
@@ -556,8 +565,8 @@ export default function HistoryView() {
               </option>
             ))}
           </Form.Control>
-        </div>
-        <div className="absolute top-[7px] right-[12%]">
+        </div> */}
+        <div className="absolute top-[11px] right-[12%]">
           <DatePicker
             className="custom-date-input"
             selected={filterStartDate}
@@ -581,13 +590,13 @@ export default function HistoryView() {
           boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Table
+        <table
           // hover
-          responsive
+          // responsive
           style={{
             tableLayout: "fixed",
           }}
-          className=" historyCustomTable "
+          className=" historyCustomTable table"
         >
           <thead
             style={{
@@ -604,6 +613,7 @@ export default function HistoryView() {
                   width: "20px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               ></th>
@@ -613,6 +623,7 @@ export default function HistoryView() {
                   width: "60px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -624,6 +635,7 @@ export default function HistoryView() {
                   width: "255px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -633,7 +645,9 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "60px",
-
+                  position: "sticky", // Sticky header
+                  textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -655,6 +669,7 @@ export default function HistoryView() {
                   width: "200px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -666,10 +681,16 @@ export default function HistoryView() {
                   width: "90px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                User
+                {/* User  */}
+                <HistoryUserFilterDropdown
+                  users={users}
+                  value={selectedUser}
+                  onSelect={setSelectedUser}
+                ></HistoryUserFilterDropdown>
               </th>
               <th
                 className="tableHeader"
@@ -677,6 +698,7 @@ export default function HistoryView() {
                   width: "60px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                 }}
               >
                 Action
@@ -1805,7 +1827,7 @@ export default function HistoryView() {
               </tr>
             )}
           </tbody>
-        </Table>
+        </table>
         {filteredData.length > 0 && (
           <Pagination className=" flex mb-3 justify-center">
             <Pagination.First onClick={() => handlePageChange(1)} />

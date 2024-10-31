@@ -27,10 +27,10 @@ export function ListTypeDropdown({
         </Button> */}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 ">
-        <DropdownMenuLabel className="text-start">
+        {/* <DropdownMenuLabel className="text-start">
           Choose Types
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator /> */}
         <DropdownMenuCheckboxItem
           checked={showSingleType}
           onCheckedChange={setShowSingleType}

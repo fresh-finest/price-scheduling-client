@@ -42,3 +42,28 @@
   /* color: #c8c8c8; You can also change the placeholder color */
   /* color: black; */
 }
+
+.table {
+  border-spacing: 0 3px;
+  border-collapse: separate;
+  transition: all 0.3s ease;
+}
+.table tbody tr {
+  /* background-color: white; Set a background to see the effect */
+  /* box-shadow: 0 4px 2px -2px gray; */
+
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  /* margin-top: 200px; */
+  margin-top: 20px;
+}
+.table tbody tr.selected-row {
+  background-color: #f1f1f2;
+}
+
+.table tbody tr:hover {
+  background-color: #e0e0e0 !important;
+}
+
+/* .historyCustomTable tbody tr td {
+  padding: 15px 10px;
+} */
