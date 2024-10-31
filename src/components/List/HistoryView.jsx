@@ -15,6 +15,7 @@ import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
+import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -159,7 +160,7 @@ export default function HistoryView() {
   const [users, setUsers] = useState([]);
   const [nestedData, setNestedData] = useState({});
   const [expandedRow, setExpandedRow] = useState(null);
-  const [selectedUser, setSelectedUser] = useState("");
+  // const [selectedUser, setSelectedUser] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingNested, setLoadingNested] = useState(false);
@@ -173,12 +174,13 @@ export default function HistoryView() {
   const [showSingleType, setShowSingleType] = useState(false);
   const [showWeeklyType, setShowWeeklyType] = useState(false);
   const [showMonthlyType, setShowMonthlyType] = useState(false);
+  const [selectedUser, setSelectedUser] = useState("");
 
-  console.log(showSingleType);
-  console.log(showWeeklyType);
-  console.log(showMonthlyType);
+  // console.log(showSingleType);
+  // console.log(showWeeklyType);
+  // console.log(showMonthlyType);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
 
@@ -196,52 +198,62 @@ export default function HistoryView() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [selectedUser]);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch the main data
+        const mainUrl = selectedUser
+          ? `${BASE_URL}/api/schedule/${selectedUser}/list`
+          : `${BASE_URL}/api/history`;
 
-  const fetchData = async () => {
-    const url = selectedUser
-      ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-      : `${BASE_URL}/api/history`;
-    setLoading(true);
-    try {
-      const response = await axios.get(url);
-      const sortedData = Array.isArray(response.data.result)
-        ? response.data.result.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-          )
-        : [];
+        const mainResponse = await axios.get(mainUrl);
+        const mainData = mainResponse.data.result || [];
 
-      setData(sortedData.filter((item) => item.action === "created"));
-      const nestedDataLengths = {};
-      await Promise.all(
-        sortedData.map(async (item) => {
+        // Sort and filter main data
+        const sortedData = mainData
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .filter((item) => item.action === "created");
+        setData(sortedData);
+
+        // Fetch nested data in parallel
+        const nestedDataPromises = sortedData.map(async (item) => {
           try {
-            const nestedResponse = await axios.get(
-              `${BASE_URL}/api/history/${item.scheduleId}`
-            );
-            nestedDataLengths[item.scheduleId] =
-              nestedResponse.data.length || 0;
-          } catch (err) {
-            console.error(
-              `Error fetching nested data for scheduleId ${item.scheduleId}:`,
-              err
-            );
-            nestedDataLengths[item.scheduleId] = 0; // Default to 0 if there's an error
+            const nestedUrl = `${BASE_URL}/api/history/${item.scheduleId}`;
+            const nestedResponse = await axios.get(nestedUrl);
+            return {
+              scheduleId: item.scheduleId,
+              length: nestedResponse.data.length || 0,
+            };
+          } catch {
+            return { scheduleId: item.scheduleId, length: 0 }; // Default to 0 on error
           }
-        })
-      );
+        });
 
-      setLengthNested(nestedDataLengths);
-    } catch (err) {
-      setError(
-        "Error fetching data: " +
-          (err.response ? err.response.data.message : err.message)
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Resolve all nested data promises
+        const nestedDataResults = await Promise.all(nestedDataPromises);
+        const nestedDataLengths = nestedDataResults.reduce(
+          (acc, { scheduleId, length }) => {
+            acc[scheduleId] = length;
+            return acc;
+          },
+          {}
+        );
+
+        setLengthNested(nestedDataLengths);
+      } catch (error) {
+        console.error("Data fetch error:", error);
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "An error occurred while fetching data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []); // Add selectedUser as a dependency if the data should refresh when it changes
 
   console.log("nested length" + JSON.stringify(lengthNested));
 
@@ -261,7 +273,7 @@ export default function HistoryView() {
       setLoadingNested(false);
     }
   };
-/*
+  /*
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -274,33 +286,38 @@ export default function HistoryView() {
   };
 */
 
-const handleRowClick = async (scheduleId) => {
-  if (expandedRow === scheduleId) {
-    setExpandedRow(null); // Collapse the row if it's already expanded
-  } else {
-    setExpandedRow(scheduleId);
+  const handleRowClick = async (scheduleId) => {
+    if (expandedRow === scheduleId) {
+      setExpandedRow(null); // Collapse the row if it's already expanded
+    } else {
+      setExpandedRow(scheduleId);
 
-    // Fetch nested data only if it hasn't been fetched before
-    if (!nestedData[scheduleId]) {
-      setLoadingNested(true);
-      try {
-        const nestedResponse = await axios.get(`${BASE_URL}/api/history/${scheduleId}`);
-        setNestedData((prevData) => ({
-          ...prevData,
-          [scheduleId]: nestedResponse.data,
-        }));
-      } catch (err) {
-        console.error(`Error fetching nested data for scheduleId ${scheduleId}:`, err);
-        setNestedData((prevData) => ({
-          ...prevData,
-          [scheduleId]: [], // Default to empty array if there's an error
-        }));
-      } finally {
-        setLoadingNested(false);
+      // Fetch nested data only if it hasn't been fetched before
+      if (!nestedData[scheduleId]) {
+        setLoadingNested(true);
+        try {
+          const nestedResponse = await axios.get(
+            `${BASE_URL}/api/history/${scheduleId}`
+          );
+          setNestedData((prevData) => ({
+            ...prevData,
+            [scheduleId]: nestedResponse.data,
+          }));
+        } catch (err) {
+          console.error(
+            `Error fetching nested data for scheduleId ${scheduleId}:`,
+            err
+          );
+          setNestedData((prevData) => ({
+            ...prevData,
+            [scheduleId]: [], // Default to empty array if there's an error
+          }));
+        } finally {
+          setLoadingNested(false);
+        }
       }
     }
-  }
-};
+  };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -329,7 +346,7 @@ const handleRowClick = async (scheduleId) => {
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-  
+
   const formatDateTimeCreated = (dateString) => {
     const options = {
       day: "2-digit",
@@ -338,12 +355,11 @@ const handleRowClick = async (scheduleId) => {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York" // Set timezone to EDT (Eastern Time Zone)
+      timeZone: "America/New_York", // Set timezone to EDT (Eastern Time Zone)
     };
-    
+
     return new Date(dateString).toLocaleString("en-US", options);
   };
-  
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
@@ -448,6 +464,13 @@ const handleRowClick = async (scheduleId) => {
       }
 
       return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
+    })
+    .filter((item) => {
+      // User filter logic
+      if (selectedUser === "") {
+        return true; // Show all users if "All Users" is selected
+      }
+      return item.userName === selectedUser;
     });
 
   console.log(filteredData);
@@ -519,7 +542,7 @@ const handleRowClick = async (scheduleId) => {
   return (
     <div>
       <div className="">
-        <InputGroup className="max-w-[500px] absolute top-[7px] ">
+        <InputGroup className="max-w-[500px] absolute top-[11px] ">
           <Form.Control
             type="text"
             placeholder="Search by Product Name, ASIN or SKU..."
@@ -537,7 +560,7 @@ const handleRowClick = async (scheduleId) => {
             </button>
           )}
         </InputGroup>
-        <div className="absolute top-[7px] right-[25%]">
+        {/* <div className="absolute top-[7px] right-[25%]">
           <Form.Control
             as="select"
             value={selectedUser}
@@ -552,8 +575,8 @@ const handleRowClick = async (scheduleId) => {
               </option>
             ))}
           </Form.Control>
-        </div>
-        <div className="absolute top-[7px] right-[12%]">
+        </div> */}
+        <div className="absolute top-[11px] right-[12%]">
           <DatePicker
             className="custom-date-input"
             selected={filterStartDate}
@@ -577,13 +600,13 @@ const handleRowClick = async (scheduleId) => {
           boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Table
+        <table
           // hover
-          responsive
+          // responsive
           style={{
             tableLayout: "fixed",
           }}
-          className=" historyCustomTable "
+          className=" historyCustomTable table"
         >
           <thead
             style={{
@@ -600,6 +623,7 @@ const handleRowClick = async (scheduleId) => {
                   width: "20px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               ></th>
@@ -609,6 +633,7 @@ const handleRowClick = async (scheduleId) => {
                   width: "60px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -620,6 +645,7 @@ const handleRowClick = async (scheduleId) => {
                   width: "255px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -629,7 +655,9 @@ const handleRowClick = async (scheduleId) => {
                 className="tableHeader"
                 style={{
                   width: "60px",
-
+                  position: "sticky", // Sticky header
+                  textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -651,6 +679,7 @@ const handleRowClick = async (scheduleId) => {
                   width: "200px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
@@ -662,10 +691,16 @@ const handleRowClick = async (scheduleId) => {
                   width: "90px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                User
+                {/* User  */}
+                <HistoryUserFilterDropdown
+                  users={users}
+                  value={selectedUser}
+                  onSelect={setSelectedUser}
+                ></HistoryUserFilterDropdown>
               </th>
               <th
                 className="tableHeader"
@@ -673,6 +708,7 @@ const handleRowClick = async (scheduleId) => {
                   width: "60px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
+                  verticalAlign: "middle",
                 }}
               >
                 Action
@@ -706,9 +742,14 @@ const handleRowClick = async (scheduleId) => {
                   <>
                     <tr
                       key={index}
+                      className={`${
+                        lengthNested[item.scheduleId] > 1
+                          ? "cursor-pointer"
+                          : ""
+                      }`}
                       style={{
                         height: "50px",
-                        cursor: "pointer",
+                        // cursor: "pointer",
                         margin: "20px 0",
                       }}
                       onClick={() => handleRowClick(item.scheduleId)}
@@ -717,19 +758,21 @@ const handleRowClick = async (scheduleId) => {
                       {/* arrow sign */}
                       <td
                         style={{
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                           textAlign: "center",
                           verticalAlign: "middle",
                         }}
                       >
-                        {lengthNested[item.scheduleId] > 1 ? (
+                        {lengthNested[item.scheduleId] >
+                        (item.weekly || item.monthly ? 0 : 1) ? (
                           <IoIosArrowForward
-                            className={`text-base transition-all duration-300 ${
+                            className={`text-base transition-all cursor-pointer duration-300 ${
                               expandedRow === item.scheduleId ? "rotate-90" : ""
                             }`}
                           />
                         ) : null}
+
                         {/* {lengthNested[item.scheduleId] > 1 &&
                         expandedRow === item.scheduleId ? (
                           <IoIosArrowForward className="text-base" />
@@ -738,7 +781,7 @@ const handleRowClick = async (scheduleId) => {
                       {/* image  */}
                       <td
                         style={{
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                           textAlign: "center",
                           verticalAlign: "middle",
@@ -761,7 +804,7 @@ const handleRowClick = async (scheduleId) => {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                           textAlign: "start",
                           verticalAlign: "middle",
@@ -832,7 +875,7 @@ const handleRowClick = async (scheduleId) => {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                         }}
                       >
@@ -852,7 +895,7 @@ const handleRowClick = async (scheduleId) => {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           // height: "40px",
                           width: "50px",
                         }}
@@ -923,11 +966,12 @@ const handleRowClick = async (scheduleId) => {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           height: "40px",
                         }}
                       >
-                        {item.userName} <p>{formatDateTimeCreated(item.timestamp)}</p>
+                        {item.userName}{" "}
+                        <p>{formatDateTimeCreated(item.timestamp)}</p>
                       </td>
 
                       {/* action */}
@@ -938,7 +982,7 @@ const handleRowClick = async (scheduleId) => {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-                          cursor: "pointer",
+                          // cursor: "pointer",
                           // height: "40px",
                         }}
                       >
@@ -1167,7 +1211,7 @@ const handleRowClick = async (scheduleId) => {
                                                                             slot.startTime,
                                                                             0
                                                                           )}
-                                                                         
+
                                                                           <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                                                             $
                                                                             {slot?.newPrice?.toFixed(
@@ -1766,16 +1810,16 @@ const handleRowClick = async (scheduleId) => {
                                             }}
                                           >
                                             {nestedItem.action === "deleted" ? (
-                                              <span className="bg-red-100 capitalize px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+                                              <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
                                                 {nestedItem.action}
                                               </span>
                                             ) : nestedItem.action ===
                                               "updated" ? (
-                                              <span className="bg-blue-100 px-2 capitalize py-2 text-blue-700 text-xs font-semibold rounded-sm">
+                                              <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
                                                 {nestedItem.action}
                                               </span>
                                             ) : (
-                                              <span className="bg-green-100 capitalize px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+                                              <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
                                                 {nestedItem.action}
                                               </span>
                                             )}
@@ -1800,7 +1844,7 @@ const handleRowClick = async (scheduleId) => {
               </tr>
             )}
           </tbody>
-        </Table>
+        </table>
         {filteredData.length > 0 && (
           <Pagination className=" flex mb-3 justify-center">
             <Pagination.First onClick={() => handlePageChange(1)} />
