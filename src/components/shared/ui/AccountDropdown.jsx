@@ -17,21 +17,17 @@ import {
 import { FaChevronDown } from "react-icons/fa";
 const AccountDropdown = () => {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [value, setValue] = React.useState("ATVPDKIKX0DER");
 
   const accounts = [
     {
-      value: "Account 1",
-      label: "Account 1",
+      value: "ATVPDKIKX0DER",
+      label: "FF-US",
     },
     {
-      value: "Account 2",
-      label: "Account 2",
-    },
-    {
-      value: "Account 3",
-      label: "Account 3",
-    },
+      value: "A2EUQ1WTGCTBG2",
+      label: "FF-CA",
+    }
   ];
 
   return (
