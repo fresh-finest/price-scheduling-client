@@ -334,7 +334,6 @@ export default function HistoryView() {
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -343,9 +342,11 @@ export default function HistoryView() {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
+      timeZone: "America/New_York" // Ensures display in New York time zone
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
+  
 
   const formatDateTimeCreated = (dateString) => {
     const options = {

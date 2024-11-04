@@ -12,6 +12,7 @@ import ManageUserByAdmin from "./pages/ManageUserByAdmin";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import SidebarLayout from "./components/layouts/SidebarLayouts";
 import { AxiosProvider } from "./contexts/AxiosProdiver";
+import Job from "./pages/Job";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               </PrivateRoute>
             }
           >
+          <Route path="/report" element={<Job/>}/>
             <Route path="/list" element={<List />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/history" element={<History />} />

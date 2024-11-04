@@ -23,7 +23,7 @@ export const PriceScheduleProvider = ({ children }) => {
         return item.weekly || item.monthly;
       });
 
-      console.log("filtered schedules: "+JSON.stringify(filteredSchedules))
+      
       filteredSchedules?.forEach((schedule) => {
         console.log("sc: "+schedule);
         const {
