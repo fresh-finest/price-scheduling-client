@@ -31,9 +31,9 @@ import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL ='http://localhost:3000'
+// const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -263,7 +263,7 @@ const ProductDetailView = ({
   };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
-
+/*
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -275,7 +275,19 @@ const ProductDetailView = ({
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-
+*/
+const formatDateTime = (dateString) => {
+  const options = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+    timeZone: "America/New_York" // Ensures display in New York time zone
+  };
+  return new Date(dateString).toLocaleString("en-US", options);
+};
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
       .map((day) => daysOptions.find((option) => option.value === day)?.label)
