@@ -320,9 +320,11 @@ export default function HistoryView() {
   };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   };
   const handleClearInput = () => {
     setSearchTerm("");
+    setCurrentPage(1);
   };
 
   const handleUserChange = (e) => {

@@ -297,11 +297,13 @@ const ListView = () => {
     const value = e.target.value;
     setSearchTerm(value); // Update search term immediately in the input
     debouncedFilterProducts(value); // Apply debounced filtering
+    setCurrentPage(1);
   };
 
   const handleClearInput = () => {
     setSearchTerm("");
     debouncedFilterProducts("");
+    setCurrentPage(1);
   };
 
   const handleKeyPress = (event) => {
