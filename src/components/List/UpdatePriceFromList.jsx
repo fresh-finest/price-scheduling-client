@@ -19,10 +19,9 @@ import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 
-
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 // const BASE_URL = "https://api.priceobo.com";
-const BASE_URL ='http://localhost:3000'
+const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -132,7 +131,8 @@ const UpdatePriceFromList = ({
   channelStockValue,
   fulfillmentChannel,
 }) => {
-  const { addSingleDayEvent, addWeeklyEvent, addMonthlyEvent } = useContext(PriceScheduleContext);
+  const { addSingleDayEvent, addWeeklyEvent, addMonthlyEvent } =
+    useContext(PriceScheduleContext);
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -984,7 +984,7 @@ const validateTimeSlots = () => {
         );
       }
 
-      if (!weekly && !monthly){
+      if (!weekly && !monthly) {
         for (const schedule of schedules) {
           const { price, currentPrice, startDate, endDate, indefiniteEndDate } =
             schedule;
@@ -1014,7 +1014,7 @@ const validateTimeSlots = () => {
           // Log event or update UI after successful submission
         }
       }
-        addScheduledEvent();
+      addScheduledEvent();
 
       setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
@@ -1060,7 +1060,6 @@ const validateTimeSlots = () => {
       addSingleDayEvent(newEvent);
     }
   };
-
 
   return (
     <>

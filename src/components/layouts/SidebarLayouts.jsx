@@ -4,6 +4,7 @@ import { RiArrowLeftSLine } from "react-icons/ri";
 import { FaListUl, FaRegCalendarAlt } from "react-icons/fa";
 import { GoGear, GoHistory } from "react-icons/go";
 import { MdOutlineManageAccounts } from "react-icons/md";
+import { HiOutlineDocumentReport } from "react-icons/hi";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import AccountDropdown from "../shared/ui/AccountDropdown";
 import UserDropdown from "../shared/ui/UserDropDown";
@@ -17,6 +18,7 @@ const SidebarLayout = () => {
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
     { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "History", icon: <GoHistory />, path: "/history" },
+    { title: "status", icon: <HiOutlineDocumentReport />, path: "/status" },
     {
       title: "Manage User",
       icon: <MdOutlineManageAccounts />,

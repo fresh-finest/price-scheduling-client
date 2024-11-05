@@ -743,7 +743,8 @@ export default function HistoryView() {
                     <tr
                       key={index}
                       className={`${
-                        lengthNested[item.scheduleId] > 1
+                        lengthNested[item.scheduleId] >
+                        (item.weekly || item.monthly ? 0 : 1)
                           ? "cursor-pointer"
                           : ""
                       }`}

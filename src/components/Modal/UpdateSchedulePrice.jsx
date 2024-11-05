@@ -1398,6 +1398,27 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
                     }
                   </TabsContent>
                 </Tabs>
+                {/* <Button
+                  style={{
+                    width: "20%",
+                    backgroundColor: "#0662BB",
+
+                    margin: "0 auto",
+                    display: "block",
+                    position: "absolute",
+                    bottom: 22,
+                    right: 30,
+                  }}
+                  type="submit"
+                  disabled={weeklyExists || monthlyExists}
+                >
+                  {weekly
+                    ? "Weekly Update"
+                    : monthly
+                    ? "Monthly Update Price"
+                    : "Update Price"}
+                </Button> */}
+
                 <Button
                   style={{
                     width: "20%",
@@ -1410,8 +1431,10 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
                     right: 30,
                   }}
                   type="submit"
+                  disabled={
+                    (weekly && weeklyExists) || (monthly && monthlyExists)
+                  }
                 >
-                  {/* Schedule Price Update */}
                   {weekly
                     ? "Weekly Update"
                     : monthly
@@ -1421,79 +1444,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
               </div>
             )}
           </Form>
-
-          {/* <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formAsin" style={modalStyles.formControl}>
-              <Form.Label>ASIN</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter ASIN"
-                value={asin}
-                onChange={handleAsinChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group
-              controlId="formCurrentPrice"
-              style={modalStyles.formControl}
-            >
-              <Form.Label>Current Price: ${currentPrice}</Form.Label>
-            </Form.Group>
-            <Form.Group controlId="formPrice" style={modalStyles.formControl}>
-              <Form.Label>New Price</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter New Price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-              />
-            </Form.Group>
-            <Form.Group
-              controlId="formStartDate"
-              style={modalStyles.formControl}
-            >
-              <Form.Label>Start Date and Time</Form.Label>
-              <DatePicker
-                selected={startDate}
-                onChange={(date) => setStartDate(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                className="form-control"
-                required
-              />
-            </Form.Group>
-            <Form.Group
-              controlId="formIndefiniteEndDate"
-              style={modalStyles.formControl}
-            >
-              <Form.Check
-                type="checkbox"
-                label="Untill I change it."
-                checked={indefiniteEndDate}
-                onChange={() => setIndefiniteEndDate(!indefiniteEndDate)}
-              />
-            </Form.Group>
-            {!indefiniteEndDate && (
-              <Form.Group
-                controlId="formEndDate"
-                style={modalStyles.formControl}
-              >
-                <Form.Label>End Date and Time</Form.Label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  showTimeSelect
-                  dateFormat="Pp"
-                  className="form-control"
-                  required={!indefiniteEndDate} // Only required if not indefinite
-                />
-              </Form.Group>
-            )}
-            <Button variant="primary" type="submit" style={modalStyles.button}>
-              Schedule Price Update
-            </Button>
-          </Form> */}
         </Modal.Body>
       </Modal>
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>

@@ -176,6 +176,7 @@ const CalendarView = () => {
   };
 
   // console.log("selected date", selectedDate);
+  /*
   const EventWithImage = ({ event }) => {
     console.log("event", event);
     return (
@@ -199,14 +200,42 @@ const CalendarView = () => {
           <p>-</p>
           <p className="capitalize">{event?.eventType}</p>
 
-          {/* <p style={{ margin: "0" }}>
-            {event?.productName?.split(" ").slice(0, 10).join(" ") +
-              (event?.productName?.split(" ").length > 10 ? "..." : "")}
-          </p> */}
+        
         </div>
       </div>
     );
   };
+*/
+  const EventWithImage = ({ event }) => (
+    <div
+      className="event-container"
+      style={{ display: "flex", alignItems: "center" }}
+    >
+      {event.image && (
+        <img
+          src={event.image}
+          alt="Event"
+          style={{ width: "30px", height: "30px", marginRight: "8px" }}
+        />
+      )}
+      <div className="flex justify-center items-center gap-1">
+        <p>${event?.price}</p>
+        <p>-</p>
+        <p className="capitalize">{event?.eventType}</p>
+      </div>
+    </div>
+  );
+
+  const DayWrapper = ({ events }) => (
+    <>
+      {events.slice(0, 1).map((event, index) => (
+        <EventWithImage key={index} event={event} />
+      ))}
+      {events.length > 1 && (
+        <button onClick={() => handleMoreEventsClick(events)}>+ More</button>
+      )}
+    </>
+  );
 
   console.log("selected event: " + JSON.stringify(selectedScheduledEvent));
   const eventsToShow =
@@ -373,9 +402,14 @@ const CalendarView = () => {
                 return { style: { backgroundColor: "#C2D2FB" } };
               }
             }}
+            // components={{
+            //   toolbar: () => null,
+            //   event: EventWithImage,
+            // }}
             components={{
-              toolbar: () => null, // default calender navigation button turns off
+              toolbar: () => null,
               event: EventWithImage,
+              dayWrapper: ({ events }) => <DayWrapper events={events} />,
             }}
             onDrillDown={(date, view) => handleNavigate(date, view)}
             onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click

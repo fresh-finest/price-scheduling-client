@@ -610,8 +610,8 @@ const ProductDetailView = ({
                                           className="flex flex-col mb-1"
                                         >
                                           <div className=" ">
-                                            <div className=" bg-[#707070] border-0 m-0 p-0 rounded-t-sm ">
-                                              <span className="text-white text-start text-sm py-1 px-1 rounded-t-sm mr-2 border-0 m-0 p-0">
+                                            <div className=" bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm ">
+                                              <span className="text-black text-start text-sm py-1 px-2 rounded-t-sm mr-2 border-0 m-0 ">
                                                 {getDayLabelFromNumber(day)}
                                               </span>
                                             </div>
@@ -728,8 +728,8 @@ const ProductDetailView = ({
                                 key={index}
                                 className="flex flex-col mb-1"
                               >
-                                <div className="bg-[#707070] px-2 rounded-t py-1">
-                                  <h5 className="text-white text-start text-sm">
+                                <div className="bg-[#DCDCDC] px-2 rounded-t py-1">
+                                  <h5 className="text-black text-start text-sm">
                                     {getDateLabelFromNumber(date)}
                                   </h5>
                                 </div>

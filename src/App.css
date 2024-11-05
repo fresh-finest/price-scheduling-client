@@ -58,3 +58,16 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* it will remove all modals dark background  */
+.modal-content {
+  /* box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2); */
+  /* box-shadow: 0px 4px 20px 6px rgba(0, 0, 0, 0.15); */
+  /* box-shadow: 0px 4px 24px 8px rgba(0, 0, 0, 0.15); */
+  box-shadow: 0px 4px 28px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* it will remove all modals dark background  */
+.modal-backdrop {
+  --bs-backdrop-bg: none;
+}

@@ -427,7 +427,7 @@ const ScheduleDetailsModal = ({
                                             onClick={() =>
                                               handleEdit(
                                                 scheduleData[0],
-                                                "Weekly"
+                                                "Monthly"
                                               )
                                             }
                                             className="bg-[#0662BB] py-1 px-1 rounded-sm"
