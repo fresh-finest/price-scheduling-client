@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Badge, InputGroup, Form } from "react-bootstrap";
+import { Table, Badge, InputGroup, Form, Pagination } from "react-bootstrap";
 import priceoboIcon from "../../src/assets/images/pricebo-icon.png";
 import "./Job.css";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
 
 const BASE_URL = "http://localhost:3000";
-
+// const BASE_URL = `https://api.priceobo.com`;
 const JobTable = () => {
   const [jobData, setJobData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -30,29 +33,60 @@ const JobTable = () => {
 
     fetchJobs();
   }, []);
-  /*
-  const getStatus = (job) => {
-   if(job.failCount){
-    return <Badge bg="danger">Failed</Badge>;
-   } else{
-    if (job.lastRunAt) {
-      return <Badge bg="success">Success</Badge>;
-    } else {
-      return <Badge bg="info">In progress</Badge>;
-    }
-   }
-  }; */
 
   const filteredProducts = jobData.filter((item) =>
     item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  const renderPaginationButtons = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 3;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i <= maxPagesToShow ||
+        i >= totalPages - maxPagesToShow ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      ) {
+        pageNumbers.push(i);
+      } else if (pageNumbers[pageNumbers.length - 1] !== "...") {
+        pageNumbers.push("...");
+      }
+    }
+
+    return pageNumbers.map((page, index) => (
+      <Pagination.Item
+        key={index}
+        active={page === currentPage}
+        onClick={() => typeof page === "number" && handlePageChange(page)}
+      >
+        {page}
+      </Pagination.Item>
+    ));
+  };
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleClearInput = () => {
     setSearchTerm("");
+    setCurrentPage(1);
   };
 
   const getStatus = (job) => {
@@ -109,11 +143,12 @@ const JobTable = () => {
     const options = {
       timeZone: "America/New_York",
       year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+      month: "long", // Full month name (e.g., November)
+      day: "numeric", // Day of the month without leading zero (e.g., 4)
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
+      hour12: true, // AM/PM format
     };
 
     return date.toLocaleString("en-US", options);
@@ -294,8 +329,8 @@ const JobTable = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((job, index) => (
+              {currentItems.length > 0 ? (
+                currentItems.map((job, index) => (
                   <tr key={index}>
                     <td
                       style={{
@@ -373,6 +408,25 @@ const JobTable = () => {
               )}
             </tbody>
           </table>
+          {filteredProducts.length > 0 && (
+            <Pagination className=" flex mb-3 justify-center">
+              <Pagination.First onClick={() => handlePageChange(1)} />
+              <Pagination.Prev
+                onClick={() =>
+                  handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
+                }
+              />
+              {renderPaginationButtons()}
+              <Pagination.Next
+                onClick={() =>
+                  handlePageChange(
+                    currentPage < totalPages ? currentPage + 1 : totalPages
+                  )
+                }
+              />
+              <Pagination.Last onClick={() => handlePageChange(totalPages)} />
+            </Pagination>
+          )}
         </section>
       )}
     </div>

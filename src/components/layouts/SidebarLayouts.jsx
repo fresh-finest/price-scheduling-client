@@ -18,7 +18,7 @@ const SidebarLayout = () => {
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
     { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "History", icon: <GoHistory />, path: "/history" },
-    { title: "status", icon: <HiOutlineDocumentReport />, path: "/status" },
+    { title: "Status", icon: <HiOutlineDocumentReport />, path: "/status" },
     {
       title: "Manage User",
       icon: <MdOutlineManageAccounts />,
