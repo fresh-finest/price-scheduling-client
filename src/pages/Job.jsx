@@ -350,7 +350,13 @@ const JobTable = () => {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody
+              style={{
+                fontSize: "12px",
+                fontFamily: "Arial, sans-serif",
+                lineHeight: "1.5",
+              }}
+            >
               {currentItems.length > 0 ? (
                 currentItems.map((job, index) => (
                   <tr key={index}>
