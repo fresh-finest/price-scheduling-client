@@ -13,6 +13,7 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 import SidebarLayout from "./components/layouts/SidebarLayouts";
 import { AxiosProvider } from "./contexts/AxiosProdiver";
 import JobTable from "./pages/Job";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             }
           >
             <Route path="/status" element={<JobTable />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/list" element={<List />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/history" element={<History />} />

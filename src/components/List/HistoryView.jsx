@@ -578,7 +578,7 @@ export default function HistoryView() {
             ))}
           </Form.Control>
         </div> */}
-        <div className="absolute top-[11px] right-[12%]">
+        <div className="absolute top-[11px] right-[15.5%]">
           <DatePicker
             className="custom-date-input"
             selected={filterStartDate}
@@ -1813,16 +1813,16 @@ export default function HistoryView() {
                                             }}
                                           >
                                             {nestedItem.action === "deleted" ? (
-                                              <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+                                              <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm capitalize">
                                                 {nestedItem.action}
                                               </span>
                                             ) : nestedItem.action ===
                                               "updated" ? (
-                                              <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
+                                              <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm capitalize">
                                                 {nestedItem.action}
                                               </span>
                                             ) : (
-                                              <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+                                              <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm capitalize">
                                                 {nestedItem.action}
                                               </span>
                                             )}
