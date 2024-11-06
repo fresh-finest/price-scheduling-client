@@ -7,10 +7,9 @@ import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
 
 const BASE_URL = "http://localhost:3000";
-
+// const BASE_URL = `https://api.priceobo.com`;
 const JobTable = () => {
   const [jobData, setJobData] = useState([]);
-  const [listingData, setListingData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,51 +19,28 @@ const JobTable = () => {
   const itemsPerPage = 20;
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchJobs = async () => {
       try {
-        // Fetch jobs
-        const jobResponse = await axios.get(`${BASE_URL}/api/jobs`);
-        const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
-          const dateA = new Date(a.lastRunAt || a.nextRunAt);
-          const dateB = new Date(b.lastRunAt || b.nextRunAt);
-          return dateB - dateA; // Sort in descending order (latest first)
-        });
-
-        // Fetch listings
-        const listingResponse = await axios.get(
-          `https://api.priceobo.com/fetch-all-listings`
-        );
-        const listings = listingResponse.data.listings;
-
-        // Merge job and listing data by SKU
-        const mergedData = sortedJobs.map((job) => {
-          const listing = listings.find(
-            (listing) => listing.sellerSku === job.data.sku
-          );
-          return {
-            ...job,
-            listing, // Attach listing details if found
-          };
-        });
-
-        setJobData(mergedData);
+        const response = await axios.get(`${BASE_URL}/api/jobs`);
+        console.log("responsse", response);
+        setJobData(response.data.jobs);
       } catch (err) {
-        setError("Error fetching job data or listings");
+        setError("Error fetching job data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchJobs();
   }, []);
 
   const filteredProducts = jobData.filter((item) =>
     item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-
   const currentItems = filteredProducts.slice(
     indexOfFirstItem,
     indexOfLastItem
@@ -116,9 +92,12 @@ const JobTable = () => {
   const getStatus = (job) => {
     const now = new Date();
     const nextRunAt = new Date(job.nextRunAt);
+
+    // Determine if the job type is "Single" by checking if it does not include "monthly" or "weekly"
     const isSingle =
       !job.name.includes("monthly") && !job.name.includes("weekly");
 
+    // If it's a single job, avoid the "Not changed Price" status logic
     if (isSingle) {
       if (job.lastRunAt) {
         return (
@@ -126,24 +105,14 @@ const JobTable = () => {
             Success
           </span>
         );
-      } else if (!job.lastRunAt && nextRunAt < now) {
-        return (
-          <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-            Failed
-          </span>
-        );
-      } else if (!job.lastRunAt && nextRunAt > now) {
-        return (
-          <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-            Upcoming
-          </span>
-        );
+      } else {
+        return <Badge bg="info">In Progress</Badge>;
       }
     }
 
     if (job.failCount) {
       return (
-        <span className="bg-red-500 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+        <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
           Failed
         </span>
       );
@@ -167,7 +136,6 @@ const JobTable = () => {
       );
     }
   };
-
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
 
@@ -175,14 +143,32 @@ const JobTable = () => {
     const options = {
       timeZone: "America/New_York",
       year: "numeric",
-      month: "long",
-      day: "2-digit",
+      month: "long", // Full month name (e.g., November)
+      day: "numeric", // Day of the month without leading zero (e.g., 4)
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
+      hour12: true, // AM/PM format
     };
 
     return date.toLocaleString("en-US", options);
   };
+
+  // const formatDate = (dateString) => {
+  //   return dateString ? new Date(dateString).toLocaleString() : "N/A";
+  // };
+
+  // const formatDate = (dateString) => {
+  //   const options = {
+  //     day: "2-digit",
+  //     month: "short",
+  //     year: "numeric",
+  //     hour: "numeric",
+  //     minute: "numeric",
+  //     hour12: true,
+  //   };
+  //   return new Date(dateString).toLocaleString("en-US", options);
+  // };
 
   const getJobType = (jobName) => {
     const isRevert = jobName.includes("revert");
@@ -211,24 +197,26 @@ const JobTable = () => {
 
   return (
     <div>
-      <InputGroup className="max-w-[500px] absolute top-[11px] ">
-        <Form.Control
-          type="text"
-          placeholder="Search by Product SKU..."
-          value={searchTerm}
-          onChange={handleSearch}
-          style={{ borderRadius: "0px" }}
-          className="custom-input"
-        />
-        {searchTerm && (
-          <button
-            onClick={handleClearInput}
-            className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
-          >
-            <MdOutlineClose />
-          </button>
-        )}
-      </InputGroup>
+      <div className="">
+        <InputGroup className="max-w-[500px] absolute top-[11px] ">
+          <Form.Control
+            type="text"
+            placeholder="Search by Product SKU..."
+            value={searchTerm}
+            onChange={handleSearch}
+            style={{ borderRadius: "0px" }}
+            className="custom-input"
+          />
+          {searchTerm && (
+            <button
+              onClick={handleClearInput}
+              className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+            >
+              <MdOutlineClose />
+            </button>
+          )}
+        </InputGroup>
+      </div>
 
       {loading ? (
         <div
@@ -240,12 +228,15 @@ const JobTable = () => {
             height: "60vh",
           }}
         >
+          {/* <Spinner animation="border" /> Loading... */}
           <img
             style={{ width: "40px", marginRight: "6px" }}
             className="animate-pulse"
             src={priceoboIcon}
             alt="Priceobo Icon"
           />
+          <br />
+
           <div className="block">
             <p className="text-xl"> Loading...</p>
           </div>
@@ -279,19 +270,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "100px",
-                    position: "sticky", // Sticky header
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Image
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    width: "160px",
+                    // width: "100px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -303,19 +282,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "655px",
-                    position: "sticky", // Sticky header
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Title
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    // width: "100px",
+                    // width: "60px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -324,10 +291,21 @@ const JobTable = () => {
                 >
                   Schedule Type
                 </th>
+                {/* <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky", 
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Status
+                </th> */}
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
+                    // width: "60px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -339,11 +317,11 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
+                    // width: "60px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
+                    // borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   Status
@@ -354,29 +332,6 @@ const JobTable = () => {
               {currentItems.length > 0 ? (
                 currentItems.map((job, index) => (
                   <tr key={index}>
-                    <td
-                      style={{
-                        // cursor: "pointer",
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {job.listing?.imageUrl ? (
-                        <img
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "contain",
-                            margin: "0 auto",
-                          }}
-                          src={job.listing.imageUrl}
-                          alt="Product"
-                        />
-                      ) : (
-                        "No Image"
-                      )}
-                    </td>
                     <td
                       style={{
                         padding: "15px 0",
@@ -411,19 +366,6 @@ const JobTable = () => {
                     </td>
                     <td
                       style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        // cursor: "pointer",
-                        height: "40px",
-                        textAlign: "start",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {job.listing?.itemName || "No Title"}
-                    </td>
-                    <td
-                      style={{
                         padding: "15px 0",
                         textAlign: "center",
                         verticalAlign: "middle",
@@ -438,7 +380,10 @@ const JobTable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {formatDate(job.lastRunAt || job.nextRunAt)}
+                      <p>
+                        {formatDate(job.lastRunAt || job.nextRunAt)}
+                        {/* <span className="ml-2">{getStatus(job)}</span> */}
+                      </p>
                     </td>
                     <td
                       style={{
@@ -454,7 +399,7 @@ const JobTable = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="4"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No Data Found
@@ -463,23 +408,25 @@ const JobTable = () => {
               )}
             </tbody>
           </table>
-          <Pagination className="flex mb-3 justify-center">
-            <Pagination.First onClick={() => handlePageChange(1)} />
-            <Pagination.Prev
-              onClick={() =>
-                handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
-              }
-            />
-            {renderPaginationButtons()}
-            <Pagination.Next
-              onClick={() =>
-                handlePageChange(
-                  currentPage < totalPages ? currentPage + 1 : totalPages
-                )
-              }
-            />
-            <Pagination.Last onClick={() => handlePageChange(totalPages)} />
-          </Pagination>
+          {filteredProducts.length > 0 && (
+            <Pagination className=" flex mb-3 justify-center">
+              <Pagination.First onClick={() => handlePageChange(1)} />
+              <Pagination.Prev
+                onClick={() =>
+                  handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
+                }
+              />
+              {renderPaginationButtons()}
+              <Pagination.Next
+                onClick={() =>
+                  handlePageChange(
+                    currentPage < totalPages ? currentPage + 1 : totalPages
+                  )
+                }
+              />
+              <Pagination.Last onClick={() => handlePageChange(totalPages)} />
+            </Pagination>
+          )}
         </section>
       )}
     </div>
