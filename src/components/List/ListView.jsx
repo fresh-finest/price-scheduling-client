@@ -295,11 +295,13 @@ const ListView = () => {
   );
   const handleSearch = (e) => {
     const value = e.target.value;
+    setCurrentPage(1);
     setSearchTerm(value); // Update search term immediately in the input
     debouncedFilterProducts(value); // Apply debounced filtering
   };
 
   const handleClearInput = () => {
+    setCurrentPage(1);
     setSearchTerm("");
     debouncedFilterProducts("");
   };

@@ -287,7 +287,7 @@ const CalendarView = () => {
             </h3>
           </div>
 
-          <div className="mr-[13%] flex space-x-2">
+          <div className="mr-[17%] flex space-x-2">
             <Button
               variant="outline"
               className={`w-[80px]  justify-center ${

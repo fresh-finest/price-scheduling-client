@@ -319,9 +319,11 @@ export default function HistoryView() {
     }
   };
   const handleSearch = (e) => {
+    setCurrentPage(1);
     setSearchTerm(e.target.value);
   };
   const handleClearInput = () => {
+    setCurrentPage(1);
     setSearchTerm("");
   };
 

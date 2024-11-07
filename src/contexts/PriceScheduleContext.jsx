@@ -3,10 +3,14 @@ import axios from "axios";
 export const PriceScheduleContext = createContext();
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = "https://api.priceobo.com";
+
+
 export const PriceScheduleProvider = ({ children }) => {
   const [singleDayEvents, setSingleDayEvents] = useState([]);
   const [weeklyEvents, setWeeklyEvents] = useState([]);
   const [monthlyEvents, setMonthlyEvents] = useState([]);
+
+  
   const fetchEvents = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/api/schedule`);

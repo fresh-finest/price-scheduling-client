@@ -1,33 +1,44 @@
 import { useState } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
 import { RiArrowLeftSLine } from "react-icons/ri";
-import { FaListUl, FaRegCalendarAlt } from "react-icons/fa";
+import { FaChartLine, FaListUl, FaRegCalendarAlt } from "react-icons/fa";
 import { GoGear, GoHistory } from "react-icons/go";
 import { MdOutlineManageAccounts } from "react-icons/md";
+import { HiOutlineDocumentReport } from "react-icons/hi";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import AccountDropdown from "../shared/ui/AccountDropdown";
 import UserDropdown from "../shared/ui/UserDropDown";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import priceoboLogo from "../../assets/images/priceobo-logo.png";
+import { PiChartLineUpLight } from "react-icons/pi";
+import { AiOutlineProduct } from "react-icons/ai";
+import { FaListCheck } from "react-icons/fa6";
+import Notifications from "../shared/ui/Notifications";
 
 const SidebarLayout = () => {
   const [open, setOpen] = useState(true);
 
   const Menus = [
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
-    { title: "List", icon: <FaListUl />, path: "/list" },
+    { title: "Products", icon: <AiOutlineProduct />, path: "/list" },
+    // { title: "List", icon: <FaListUl />, path: "/list" },
+    { title: "Status", icon: <FaListCheck />, path: "/status" },
+    // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
+    // {
+    //   title: "Manage User",
+    //   icon: <MdOutlineManageAccounts />,
+    //   path: "/manage",
+    // },
     { title: "History", icon: <GoHistory />, path: "/history" },
-    {
-      title: "Manage User",
-      icon: <MdOutlineManageAccounts />,
-      path: "/manage",
-    },
   ];
 
   return (
     <section className="relative">
       <div className="flex flex-col h-screen ">
-        <div className="absolute right-2 top-2">
+        <div className="absolute right-[13.5rem] top-2 z-20">
+          <Notifications></Notifications>
+        </div>
+        <div className="absolute right-2 top-2 z-20">
           <AccountDropdown />
         </div>
         <div className="flex flex-1 ">
@@ -142,11 +153,15 @@ const SidebarLayout = () => {
 
             {/* Bottom menu for Settings and Logout */}
             <ul className="mt-auto">
-              <li
-                className={`text-sm flex items-center gap-x-4 cursor-pointer px-1 py-2 hover:bg-white rounded-md 
-                       "bg-white  text-gray-500 font-semibold"
-                         "text-gray-500"
-                     mt-2`}
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  `text-sm flex items-center gap-x-4 cursor-pointer px-1 py-2 hover:bg-white rounded-md ${
+                    isActive
+                      ? "bg-white border text-blue-500 font-semibold"
+                      : "text-gray-500"
+                  } mt-2`
+                }
               >
                 <span className="text-2xl block float-left">
                   <GoGear />
@@ -158,7 +173,7 @@ const SidebarLayout = () => {
                 >
                   Settings
                 </span>
-              </li>
+              </NavLink>
 
               {/* Passed open state to UserDropdown */}
               <UserDropdown open={open} />
