@@ -1,9 +1,10 @@
-import React from 'react'
-
-function SecuritySettting() {
+const SecuritySettings = () => {
   return (
-    <div>SecuritySettting</div>
-  )
-}
+    <section className="mt-3 ml-2">
+      <h2 className="text-xl  font-semibold">Security</h2>
+      <hr className="text-gray-400 mt-2" />
+    </section>
+  );
+};
 
-export default SecuritySettting
+export default SecuritySettings;

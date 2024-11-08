@@ -981,6 +981,7 @@ const ListView = () => {
                                   marginLeft: "10px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
@@ -1012,6 +1013,7 @@ const ListView = () => {
                                   marginLeft: "10px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
@@ -1044,6 +1046,7 @@ const ListView = () => {
                                     marginLeft: "10px",
                                     cursor: "pointer",
                                     color: "green",
+                                    fontSize: "16px",
                                   }}
                                 />
                               ) : (

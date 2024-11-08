@@ -1,9 +1,10 @@
-import React from 'react'
-
-function NotificationSetting() {
+const NotificationSettings = () => {
   return (
-    <div>NotificationSetting</div>
-  )
-}
+    <section className="mt-3 ml-2">
+      <h2 className="text-xl  font-semibold">Notifications</h2>
+      <hr className="text-gray-400 mt-2" />
+    </section>
+  );
+};
 
-export default NotificationSetting
+export default NotificationSettings;

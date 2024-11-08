@@ -5,6 +5,9 @@ import priceoboIcon from "../../src/assets/images/pricebo-icon.png";
 import "./Job.css";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
+// import SettingsUserRoleSelect from "@/components/shared/ui/SettingsUserRoleSelect";
+import StatusFilterDropDown from "@/components/shared/ui/StatusFilterDropDown";
+import StatusScheduleTypeDropdown from "@/components/shared/ui/StatusScheduleTypeDropdown";
 
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
@@ -17,40 +20,45 @@ const JobTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filteredStatus, setFilteredStatus] = useState("all");
+  const [filteredScheduleType, setFilteredScheduleType] = useState("all");
 
   const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch jobs
-        const jobResponse = await axios.get(`${BASE_URL}/api/jobs`);
+        // Fetch job, schedule, and listing data
+        const [jobResponse, scheduleResponse, listingResponse] = await Promise.all([
+          axios.get(`${BASE_URL}/api/jobs`),
+          axios.get(`${BASE_URL}/api/schedule`),
+          axios.get(`${BASE_URL}/fetch-all-listings`)
+        ]);
+
         const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
           const dateA = new Date(a.lastRunAt || a.nextRunAt);
           const dateB = new Date(b.lastRunAt || b.nextRunAt);
-          return dateB - dateA; // Sort in descending order (latest first)
+          return dateB - dateA;
         });
 
-        // Fetch listings
-        const listingResponse = await axios.get(
-          `${BASE_URL}/fetch-all-listings`
-        );
+        const schedules = scheduleResponse.data.result;
         const listings = listingResponse.data.listings;
 
-        // Merge job and listing data by SKU
+        // Merge job, schedule, and listing data by SKU
         const mergedData = sortedJobs.map((job) => {
-          const listing = listings.find(
-            (listing) => listing.sellerSku === job.data.sku
-          );
+          const schedule = schedules.find((s) => s._id === job.data.scheduleId);
+          const listing = listings.find((listing) => listing.sellerSku === job.data.sku);
           return {
             ...job,
+            userName: schedule?.userName || "N/A",
+            createdAt: schedule?.createdAt || "N/A",
             listing, // Attach listing details if found
           };
         });
 
         setJobData(mergedData);
       } catch (err) {
-        setError("Error fetching job data or listings");
+        setError("Error fetching job, schedule, or listing data");
       } finally {
         setLoading(false);
       }
@@ -59,9 +67,158 @@ const JobTable = () => {
     fetchData();
   }, []);
 
+ console.log(JSON.stringify(jobData))
+/*
   const filteredProducts = jobData.filter((item) =>
     item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  */
+
+  /* const getStatus = (job) => {
+    const now = new Date();
+    const nextRunAt = new Date(job.nextRunAt);
+    const isSingle =
+      !job.name.includes("monthly") && !job.name.includes("weekly");
+
+      let statusText = "upcoming"; 
+
+    if (isSingle) {
+      if (job.lastRunAt) {
+      
+        return (
+          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+            Success
+          </span>
+        );
+      } else if (!job.lastRunAt && nextRunAt < now) {
+        
+        return (
+          <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+            Failed
+          </span>
+        );
+      } else if (!job.lastRunAt && nextRunAt > now) {
+
+        return (
+          <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
+            Upcoming
+          </span>
+        );
+      }
+    }
+
+    if (job.failCount) {
+      return (
+        <span className="bg-red-500 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+          Failed
+        </span>
+      );
+    } else if (nextRunAt < now) {
+      return (
+        <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+          Failed
+        </span>
+      );
+    } else if (job.lastRunAt) {
+      return (
+        <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+          Success
+        </span>
+      );
+    } else {
+      return (
+        <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
+          Upcoming
+        </span>
+      );
+    }
+  }; */
+
+  const getStatus = (job) => {
+    const now = new Date();
+    const nextRunAt = new Date(job.nextRunAt);
+    const isSingle =
+      !job.name.includes("monthly") && !job.name.includes("weekly");
+
+    let statusText = "upcoming"; // Default status
+    let statusElement = (
+      <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
+        Upcoming
+      </span>
+    );
+
+    if (isSingle) {
+      if (job.lastRunAt) {
+        statusText = "success";
+        statusElement = (
+          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+            Success
+          </span>
+        );
+      } else if (!job.lastRunAt && nextRunAt < now) {
+        statusText = "failed";
+        statusElement = (
+          <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+            Failed
+          </span>
+        );
+      }
+    } else if (job.failCount || nextRunAt < now) {
+      statusText = "failed";
+      statusElement = (
+        <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
+          Failed
+        </span>
+      );
+    } else if (job.lastRunAt) {
+      statusText = "success";
+      statusElement = (
+        <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
+          Success
+        </span>
+      );
+    }
+
+    return { statusText, statusElement };
+  };
+  
+  const getJobType = (jobName) => {
+    const isRevert = jobName.includes("revert");
+    if (jobName.includes("weekly")) {
+      return isRevert ? "Weekly Revert" : "Weekly";
+    } else if (jobName.includes("monthly")) {
+      return isRevert ? "Monthly Revert" : "Monthly";
+    } else {
+      return isRevert ? "Single Revert" : "Single";
+    }
+  };
+
+
+  const filteredProducts = jobData
+  .filter((item) =>
+    item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  .filter(
+    (item) =>
+      filteredStatus === "all" ||
+      getStatus(item).statusText === filteredStatus
+  )
+  .filter((item) => {
+    const jobType = getJobType(item.name);
+
+    // Show all types if 'Show All' is selected
+    if (filteredScheduleType === "all") return true;
+
+    // Filter based on selected type and include revert types
+    return (
+      (filteredScheduleType === "Single" &&
+        (jobType === "Single" || jobType === "Single Revert")) ||
+      (filteredScheduleType === "Weekly" &&
+        (jobType === "Weekly" || jobType === "Weekly Revert")) ||
+      (filteredScheduleType === "Monthly" &&
+        (jobType === "Monthly" || jobType === "Monthly Revert"))
+    );
+  });
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -113,61 +270,18 @@ const JobTable = () => {
     setSearchTerm("");
     setCurrentPage(1);
   };
-
-  const getStatus = (job) => {
-    const now = new Date();
-    const nextRunAt = new Date(job.nextRunAt);
-    const isSingle =
-      !job.name.includes("monthly") && !job.name.includes("weekly");
-
-    if (isSingle) {
-      if (job.lastRunAt) {
-        return (
-          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-            Success
-          </span>
-        );
-      } else if (!job.lastRunAt && nextRunAt < now) {
-        return (
-          <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-            Failed
-          </span>
-        );
-      } else if (!job.lastRunAt && nextRunAt > now) {
-        return (
-          <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-            Upcoming
-          </span>
-        );
-      }
-    }
-
-    if (job.failCount) {
-      return (
-        <span className="bg-red-500 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-          Failed
-        </span>
-      );
-    } else if (nextRunAt < now) {
-      return (
-        <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-          Failed
-        </span>
-      );
-    } else if (job.lastRunAt) {
-      return (
-        <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-          Success
-        </span>
-      );
-    } else {
-      return (
-        <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-          Upcoming
-        </span>
-      );
-    }
+  const handleStatusChange = (status) => {
+    setFilteredStatus(status); 
+    setCurrentPage(1); 
   };
+
+  const handleScheduleTypeChange = (selectedType) => {
+    setFilteredScheduleType(selectedType); 
+    setCurrentPage(1); 
+  };
+
+
+ 
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -185,16 +299,6 @@ const JobTable = () => {
     return date.toLocaleString("en-US", options);
   };
 
-  const getJobType = (jobName) => {
-    const isRevert = jobName.includes("revert");
-    if (jobName.includes("weekly")) {
-      return isRevert ? "Weekly Revert" : "Weekly";
-    } else if (jobName.includes("monthly")) {
-      return isRevert ? "Monthly Revert" : "Monthly";
-    } else {
-      return isRevert ? "Single Revert" : "Single";
-    }
-  };
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
@@ -304,7 +408,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "655px",
+                    width: "455px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -323,7 +427,12 @@ const JobTable = () => {
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
-                  Schedule Type
+                  <p className="flex items-center justify-center gap-1">
+                    Schedule Type
+                    <StatusScheduleTypeDropdown
+                      handleScheduleTypeChange={handleScheduleTypeChange}
+                    ></StatusScheduleTypeDropdown>
+                  </p>
                 </th>
                 <th
                   className="tableHeader"
@@ -347,7 +456,36 @@ const JobTable = () => {
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
-                  Status
+                  User
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    // width: "100px",
+                    position: "sticky", // Sticky header
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Created At
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    // width: "100px",
+                    position: "sticky", // Sticky header
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                <p className="flex  items-center justify-center gap-1">
+                    Status
+                    <StatusFilterDropDown
+                      handleStatusChange={handleStatusChange}
+                    ></StatusFilterDropDown>
+                  </p>
                 </th>
               </tr>
             </thead>
@@ -399,6 +537,7 @@ const JobTable = () => {
                               marginLeft: "10px",
                               cursor: "pointer",
                               color: "green",
+                              fontSize: "16px",
                             }}
                           />
                         ) : (
@@ -455,7 +594,25 @@ const JobTable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {getStatus(job)}
+                    {job.userName}
+                    </td>
+                    <td
+                      style={{
+                        padding: "15px 0",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                     {formatDate(job.createdAt)}
+                    </td>
+                    <td
+                      style={{
+                        padding: "15px 0",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {getStatus(job).statusElement}
                     </td>
                   </tr>
                 ))

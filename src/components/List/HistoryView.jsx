@@ -3,6 +3,7 @@ import { Table, Form, InputGroup, Spinner, Pagination } from "react-bootstrap";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import { MdContentCopy, MdCheck, MdOutlineClose } from "react-icons/md";
+import { BsClipboardCheck } from "react-icons/bs";
 // import { FaArrowRight } from "react-icons/fa"; // Example arrow icon
 import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
@@ -579,7 +580,7 @@ export default function HistoryView() {
             ))}
           </Form.Control>
         </div> */}
-        <div className="absolute top-[11px] right-[12%]">
+        <div className="absolute top-[11px] right-[15.5%]">
           <DatePicker
             className="custom-date-input"
             selected={filterStartDate}
@@ -830,15 +831,16 @@ export default function HistoryView() {
                                   marginLeft: "5px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
-                              <MdContentCopy
+                              <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(displayData.asin, "asin", index);
                                 }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                style={{ marginLeft: "5px", cursor: "pointer", fontSize: "16px", }}
                               />
                             )}
                           </span>{" "}
@@ -857,15 +859,16 @@ export default function HistoryView() {
                                   marginLeft: "5px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
-                              <MdContentCopy
+                              <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(displayData.sku, "sku", index);
                                 }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                style={{ marginLeft: "5px", cursor: "pointer", fontSize: "16px", }}
                               />
                             )}
                           </span>
