@@ -17,6 +17,8 @@ const SettingsView = () => {
 
   const [activeTab, setActiveTab] = useState("general");
 
+  const allowedRoles = ["admin"];
+
   return (
     <section>
       <div className="mt-[-5px]">
@@ -45,12 +47,14 @@ const SettingsView = () => {
         >
           Security
         </Button>
-        <Button
-          variant={activeTab === "manageUser" ? "outline" : "ghost"}
-          onClick={() => setActiveTab("manageUser")}
-        >
-          Users
-        </Button>
+        {allowedRoles && allowedRoles.includes(currentUser.role) && (
+          <Button
+            variant={activeTab === "manageUser" ? "outline" : "ghost"}
+            onClick={() => setActiveTab("manageUser")}
+          >
+            Users
+          </Button>
+        )}
         <Button
           variant={activeTab === "billing" ? "outline" : "ghost"}
           onClick={() => setActiveTab("billing")}

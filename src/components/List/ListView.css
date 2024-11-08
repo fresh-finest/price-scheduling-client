@@ -52,10 +52,7 @@ th .resizer:hover {
 }
 
 .bubble-text {
-  /* background-color: #eef1fb80; The light blue background color */
   color: #44484d;
-  /* padding: 5px 10px;  */
-  /* font-weight: bold; */
   display: inline-block; /* Ensure it doesn't expand to full width */
   font-family: "Arial", sans-serif; /* Ensure the font matches */
   font-size: 12px; /* Adjust font size as needed */
@@ -69,24 +66,14 @@ th .resizer:hover {
 }
 
 .listCustomTable {
-  /* border: 1px solid lightgray; */
-  /* box-shadow: "0px 0px 10px rgba(0, 0, 0, 0.1)"; */
-  /* padding: 10px; */
   border-radius: 20px;
   overflow: auto;
-  /* border-collapse: collapse; */
-  /* width: 100%; */
-
-  /* border: 1px solid red; */
-  /* overflow: auto; */
 }
 .listCustomTable .tableHeader {
-  /* position: sticky; */
   background-color: #f6f6f8;
-  /* top: 0; */
-  /* padding: 13px; */
   font-weight: normal;
   font-size: 12px;
+  z-index: 10;
 }
 .listCustomTable .tableHeader th {
   /* position: sticky; */
@@ -100,9 +87,6 @@ th .resizer:hover {
   transition: all 0.3s ease;
 }
 .table tbody tr {
-  /* background-color: white; Set a background to see the effect */
-  /* box-shadow: 0 4px 2px -2px gray; */
-
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   /* margin-top: 200px; */
   margin-top: 20px;

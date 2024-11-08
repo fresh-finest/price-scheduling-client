@@ -124,7 +124,7 @@ const ListView = () => {
       }
     };
     getScheduledData();
-  }, [productData]);
+  }, [productData, filterScheduled, searchTerm]);
 
   // calculate paginated data
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -981,6 +981,7 @@ const ListView = () => {
                                   marginLeft: "10px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
@@ -1012,6 +1013,7 @@ const ListView = () => {
                                   marginLeft: "10px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
@@ -1044,6 +1046,7 @@ const ListView = () => {
                                     marginLeft: "10px",
                                     cursor: "pointer",
                                     color: "green",
+                                    fontSize: "16px",
                                   }}
                                 />
                               ) : (
@@ -1152,6 +1155,7 @@ const ListView = () => {
                             border: "none",
                             backgroundColor: "#0662BB",
                             borderRadius: "3px",
+                            zIndex: 1,
                           }}
                           onClick={(e) =>
                             handleUpdate(

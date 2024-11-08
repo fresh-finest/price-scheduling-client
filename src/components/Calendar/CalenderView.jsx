@@ -20,26 +20,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Check } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { FaChevronDown } from "react-icons/fa";
-
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import ScheduleDetailsModal from "../Modal/ScheduleDetailsModal";
-import ScheduleDetailsPopover from "../Modal/ScheduleDetailsPopover";
 
 const localizer = momentLocalizer(moment);
 

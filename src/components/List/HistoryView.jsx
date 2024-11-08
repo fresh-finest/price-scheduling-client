@@ -16,6 +16,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
+import { BsClipboardCheck } from "react-icons/bs";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -830,15 +831,20 @@ export default function HistoryView() {
                                   marginLeft: "5px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
-                              <MdContentCopy
+                              <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(displayData.asin, "asin", index);
                                 }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                style={{
+                                  marginLeft: "5px",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                }}
                               />
                             )}
                           </span>{" "}
@@ -857,15 +863,20 @@ export default function HistoryView() {
                                   marginLeft: "5px",
                                   cursor: "pointer",
                                   color: "green",
+                                  fontSize: "16px",
                                 }}
                               />
                             ) : (
-                              <MdContentCopy
+                              <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleCopy(displayData.sku, "sku", index);
                                 }}
-                                style={{ marginLeft: "5px", cursor: "pointer" }}
+                                style={{
+                                  marginLeft: "5px",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                }}
                               />
                             )}
                           </span>

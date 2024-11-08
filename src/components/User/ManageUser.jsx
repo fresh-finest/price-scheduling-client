@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Table, Form, Button, Modal } from "react-bootstrap";
 import axios from "axios";
 import "./ManageUser.css";
-
+import SettingsUserRoleSelect from "../shared/ui/SettingsUserRoleSelect";
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
 // const BASE_URL = 'http://localhost:3000';
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -123,6 +124,32 @@ function ManageUser() {
       console.error("Error saving user:", err);
     }
   };
+
+  if (!users.length)
+    return (
+      <div
+        style={{
+          // marginTop: "50px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
+        {/* <Spinner animation="border" /> Loading... */}
+        <img
+          style={{ width: "40px", marginRight: "6px" }}
+          className="animate-pulse"
+          src={priceoboIcon}
+          alt="Priceobo Icon"
+        />
+        <br />
+
+        <div className="block">
+          <p className="text-xl"> Loading...</p>
+        </div>
+      </div>
+    );
 
   return (
     <>
@@ -253,14 +280,18 @@ function ManageUser() {
                   height: "40px",
                 }}
               >
-                <Form.Control
+                {/* <Form.Control
                   as="select"
                   value={user.role}
                   onChange={(e) => handleRoleChange(e, user)}
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
-                </Form.Control>
+                </Form.Control> */}
+                <SettingsUserRoleSelect
+                  user={user}
+                  onRoleChange={handleRoleChange}
+                ></SettingsUserRoleSelect>
               </td>
               <td
                 style={{
@@ -331,7 +362,7 @@ function ManageUser() {
                 <option value="admin">Admin</option>
               </Form.Control>
             </Form.Group>
-            <Form.Group controlId="permissions">
+            <Form.Group className="bg-red-300" controlId="permissions">
               <Form.Check
                 type="checkbox"
                 label="Write"

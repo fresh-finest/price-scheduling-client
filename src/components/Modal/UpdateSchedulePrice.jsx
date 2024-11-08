@@ -175,8 +175,8 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [price, setPrice] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(selectedDate); // Initialize with selectedDate
+  const [endDate, setEndDate] = useState(selectedDate); // Initialize with selectedDate
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false); // New state for indefinite end date
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -198,8 +198,10 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     {
       price: "",
       currentPrice: "",
-      startDate: new Date(),
-      endDate: new Date(),
+      // startDate: new Date(),
+      startDate: selectedDate,
+      endDate: selectedDate,
+      // endDate: new Date(),
       indefiniteEndDate: false,
     },
   ]);
@@ -260,6 +262,17 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       setWeekly(false);
     }
   }, [activeTab]);
+
+  // Update schedules when selectedDate prop changes
+  useEffect(() => {
+    setSchedules((prevSchedules) =>
+      prevSchedules.map((schedule) => ({
+        ...schedule,
+        startDate: selectedDate,
+        endDate: selectedDate,
+      }))
+    );
+  }, [selectedDate]);
 
   const resetForm = () => {
     setAsin("");
@@ -880,6 +893,8 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     }
   };
 
+  console.log("selectedDate", selectedDate);
+
   return (
     <>
       <Modal
@@ -961,7 +976,7 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="single" className="py-2">
-                    <div className="max-w-[55%] mx-auto mt-2  relative">
+                    <div className="max-w-[58%] mx-auto mt-2  relative">
                       {schedules.map((schedule, index) => (
                         <div
                           key={index}
