@@ -477,7 +477,7 @@ const JobTable = () => {
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
+                 
                   }}
                 >
                 <p className="flex  items-center justify-center gap-1">
