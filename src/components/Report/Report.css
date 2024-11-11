@@ -1,4 +1,4 @@
-.userCustomTable .tableHeader {
+.reportCustomTable .tableHeader {
   position: sticky;
   background-color: #f6f6f8;
   top: 0;
@@ -6,7 +6,7 @@
   font-weight: normal;
   font-size: 12px;
 }
-.userCustomTable .tableHeader th {
+.reportCustomTable .tableHeader th {
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -31,11 +31,4 @@
 
 .table tbody tr:hover {
   background-color: #e0e0e0 !important;
-}
-.form-check-input:hover {
-  cursor: pointer;
-}
-
-.manageUserCheckbox .form-check-input {
-  border: 1px solid #86b6fe;
 }

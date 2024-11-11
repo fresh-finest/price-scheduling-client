@@ -1,17 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  Table,
-  Form,
-  InputGroup,
-  Button,
-  Pagination,
-  Card,
-} from "react-bootstrap";
+import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-import { IoFunnelOutline } from "react-icons/io5";
-import { FaCheck } from "react-icons/fa"; // Using Font Awesome check icon for better visuals
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -30,16 +21,9 @@ const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import {
-  BsClipboardCheck,
-  BsFillInfoSquareFill,
-  BsSortNumericDownAlt,
-} from "react-icons/bs";
-import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
-import CalendarView from "../Calendar/DetailedCalendarView";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
 import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
-import { ListStatusDropdown } from "../shared/ui/ListStatusDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
 
 const fetchProducts = async () => {
@@ -54,7 +38,6 @@ const fetchScheduledData = async () => {
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [highQuatilyImage, setHighQuanlityImage] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
@@ -108,6 +91,9 @@ const ListView = () => {
         setFilteredProducts(data.listings);
       }
     },
+    staleTime: Infinity, // data is fresh for 5 minutes
+    // staleTime: 1000 * 60 * 5, // data is fresh for 5 minutes
+    cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
 
   useEffect(() => {

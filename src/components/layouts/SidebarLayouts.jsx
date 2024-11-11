@@ -23,6 +23,7 @@ const SidebarLayout = () => {
     { title: "Products", icon: <AiOutlineProduct />, path: "/list" },
     // { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
+    { title: "Report", icon: <PiChartLineUpLight />, path: "/report" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
     // {
     //   title: "Manage User",

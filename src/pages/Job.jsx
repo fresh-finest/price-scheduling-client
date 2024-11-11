@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Badge, InputGroup, Form, Pagination } from "react-bootstrap";
+import { InputGroup, Form, Pagination } from "react-bootstrap";
 import priceoboIcon from "../../src/assets/images/pricebo-icon.png";
 import "./Job.css";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
-import SettingsUserRoleSelect from "@/components/shared/ui/SettingsUserRoleSelect";
-import StatusFilterDropdown from "@/components/shared/ui/StatusFilterDropdown";
-import StatusScheduleTypeDropdown from "@/components/shared/ui/StatusScheduleTypeDropdown";
 
-const BASE_URL = "http://localhost:3000";
+import StatusScheduleTypeDropdown from "@/components/shared/ui/StatusScheduleTypeDropdown";
+import StatusFilterDropdown from "@/components/shared/ui/StatusFilterDropdown";
+
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 const JobTable = () => {
   const [jobData, setJobData] = useState([]);
@@ -27,34 +28,40 @@ const JobTable = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch jobs
-        const jobResponse = await axios.get(`${BASE_URL}/api/jobs`);
+        // Fetch job, schedule, and listing data
+        const [jobResponse, scheduleResponse, listingResponse] =
+          await Promise.all([
+            axios.get(`${BASE_URL}/api/jobs`),
+            axios.get(`${BASE_URL}/api/schedule`),
+            axios.get(`${BASE_URL}/fetch-all-listings`),
+          ]);
+
         const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
           const dateA = new Date(a.lastRunAt || a.nextRunAt);
           const dateB = new Date(b.lastRunAt || b.nextRunAt);
-          return dateB - dateA; // Sort in descending order (latest first)
+          return dateB - dateA;
         });
 
-        // Fetch listings
-        const listingResponse = await axios.get(
-          `https://api.priceobo.com/fetch-all-listings`
-        );
+        const schedules = scheduleResponse.data.result;
         const listings = listingResponse.data.listings;
 
-        // Merge job and listing data by SKU
+        // Merge job, schedule, and listing data by SKU
         const mergedData = sortedJobs.map((job) => {
+          const schedule = schedules.find((s) => s._id === job.data.scheduleId);
           const listing = listings.find(
             (listing) => listing.sellerSku === job.data.sku
           );
           return {
             ...job,
+            userName: schedule?.userName || "N/A",
+            createdAt: schedule?.createdAt || "N/A",
             listing, // Attach listing details if found
           };
         });
 
         setJobData(mergedData);
       } catch (err) {
-        setError("Error fetching job data or listings");
+        setError("Error fetching job, schedule, or listing data");
       } finally {
         setLoading(false);
       }
@@ -147,9 +154,6 @@ const JobTable = () => {
           (jobType === "Monthly" || jobType === "Monthly Revert"))
       );
     });
-  // const filteredProducts = jobData.filter((item) =>
-  //   item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -201,70 +205,15 @@ const JobTable = () => {
     setSearchTerm("");
     setCurrentPage(1);
   };
-
   const handleStatusChange = (status) => {
-    setFilteredStatus(status); // Update the filtered status
-    setCurrentPage(1); // Reset to the first page on filter change
+    setFilteredStatus(status);
+    setCurrentPage(1);
   };
+
   const handleScheduleTypeChange = (selectedType) => {
-    setFilteredScheduleType(selectedType); // Update selected type
-    setCurrentPage(1); // Reset to first page on filter change
+    setFilteredScheduleType(selectedType);
+    setCurrentPage(1);
   };
-
-  // const getStatus = (job) => {
-  //   const now = new Date();
-  //   const nextRunAt = new Date(job.nextRunAt);
-  //   const isSingle =
-  //     !job.name.includes("monthly") && !job.name.includes("weekly");
-
-  //   if (isSingle) {
-  //     if (job.lastRunAt) {
-  //       return (
-  //         <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-  //           Success
-  //         </span>
-  //       );
-  //     } else if (!job.lastRunAt && nextRunAt < now) {
-  //       return (
-  //         <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-  //           Failed
-  //         </span>
-  //       );
-  //     } else if (!job.lastRunAt && nextRunAt > now) {
-  //       return (
-  //         <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-  //           Upcoming
-  //         </span>
-  //       );
-  //     }
-  //   }
-
-  //   if (job.failCount) {
-  //     return (
-  //       <span className="bg-red-500 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-  //         Failed
-  //       </span>
-  //     );
-  //   } else if (nextRunAt < now) {
-  //     return (
-  //       <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-  //         Failed
-  //       </span>
-  //     );
-  //   } else if (job.lastRunAt) {
-  //     return (
-  //       <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-  //         Success
-  //       </span>
-  //     );
-  //   } else {
-  //     return (
-  //       <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-  //         Upcoming
-  //       </span>
-  //     );
-  //   }
-  // };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -352,7 +301,7 @@ const JobTable = () => {
             style={{
               tableLayout: "fixed",
             }}
-            className="reportCustomTable table"
+            className="statusCustomTable table"
           >
             <thead
               style={{
@@ -378,7 +327,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "160px",
+                    width: "180px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -390,7 +339,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "655px",
+                    width: "455px",
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -426,7 +375,31 @@ const JobTable = () => {
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
-                  Last Price Changed
+                  Schedule
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    // width: "100px",
+                    position: "sticky", // Sticky header
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  User
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    // width: "100px",
+                    position: "sticky", // Sticky header
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Created At
                 </th>
                 <th
                   className="tableHeader"
@@ -551,7 +524,24 @@ const JobTable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {/* {getStatus(job)} */}
+                      {job.userName}
+                    </td>
+                    <td
+                      style={{
+                        padding: "15px 0",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {formatDate(job.createdAt)}
+                    </td>
+                    <td
+                      style={{
+                        padding: "15px 0",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
                       {getStatus(job).statusElement}
                     </td>
                   </tr>

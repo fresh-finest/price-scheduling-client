@@ -563,22 +563,7 @@ export default function HistoryView() {
             </button>
           )}
         </InputGroup>
-        {/* <div className="absolute top-[7px] right-[25%]">
-          <Form.Control
-            as="select"
-            value={selectedUser}
-            onChange={handleUserChange}
-            style={{ borderRadius: "4px" }}
-            className="custom-input"
-          >
-            <option value="">All Users</option>
-            {users.map((user) => (
-              <option key={user._id} value={user.userName}>
-                Price Updated By {user.userName}
-              </option>
-            ))}
-          </Form.Control>
-        </div> */}
+
         <div className="absolute top-[11px] right-[15.5%]">
           <DatePicker
             className="custom-date-input"

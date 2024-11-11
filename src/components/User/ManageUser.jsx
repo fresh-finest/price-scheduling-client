@@ -4,6 +4,8 @@ import axios from "axios";
 import "./ManageUser.css";
 import SettingsUserRoleSelect from "../shared/ui/SettingsUserRoleSelect";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
+import { FiTrash } from "react-icons/fi";
+import { FaUserPlus } from "react-icons/fa";
 // const BASE_URL = 'http://localhost:3000';
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -156,15 +158,16 @@ function ManageUser() {
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           onClick={() => handleShowModal()}
-          style={{ width: "25%", backgroundColor: "black" }}
+          // style={{ width: "8%", backgroundColor: "black" }}
+          className="px-3 py-2  bg-[#0662BB] text-white"
         >
-          Add New User
+          <FaUserPlus />
         </Button>
       </div>
       <table
         style={{
           tableLayout: "fixed",
-          marginTop: "10px",
+          marginTop: "6px",
         }}
         className=" userCustomTable table"
       >
@@ -227,7 +230,6 @@ function ManageUser() {
                 position: "sticky", // Sticky header
                 textAlign: "center",
                 verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
               }}
             >
               Actions
@@ -305,6 +307,7 @@ function ManageUser() {
                   type="checkbox"
                   label="Write"
                   name="write"
+                  className="manageUserCheckbox inline-block py-1 px-1"
                   checked={user.permissions.write}
                   onChange={(e) => handlePermissionChange(e, user)}
                   disabled={user.role === "admin"}
@@ -323,16 +326,27 @@ function ManageUser() {
               >
                 <Button
                   variant="danger"
+                  size="md "
                   onClick={() => handleDeleteUser(user._id)}
                   disabled={user.role === "admin"}
                 >
-                  Delete
+                  <FiTrash />
                 </Button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button
+          onClick={() => handleShowModal()}
+          // style={{ width: "8%", backgroundColor: "black" }}
+          className="px-3 py-2  bg-[#0662BB] text-white"
+        >
+          <FaUserPlus />
+        </Button>
+      </div> */}
 
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
@@ -362,7 +376,7 @@ function ManageUser() {
                 <option value="admin">Admin</option>
               </Form.Control>
             </Form.Group>
-            <Form.Group className="bg-red-300" controlId="permissions">
+            <Form.Group controlId="permissions">
               <Form.Check
                 type="checkbox"
                 label="Write"

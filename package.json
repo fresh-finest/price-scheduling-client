@@ -48,7 +48,10 @@
     "react-router-dom": "^6.25.1",
     "react-select": "^5.8.2",
     "react-timezone-select": "^3.2.8",
+    "react-toastify": "^10.0.6",
     "redux-persist": "^6.0.0",
+    "sweetalert2": "^11.14.5",
+    "sweetalert2-react-content": "^5.0.7",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

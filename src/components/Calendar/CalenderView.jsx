@@ -2,9 +2,8 @@ import { useContext, useState } from "react";
 import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Modal, DropdownButton, Dropdown, ButtonGroup } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import { Button } from "@/components/ui/button";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
@@ -12,7 +11,6 @@ import "./CalendarView.css";
 import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
 import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
 import { MdOutlineAdd } from "react-icons/md";
-import ContainerWidth from "../shared/ui/ContainerWidth";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import {
   Tooltip,

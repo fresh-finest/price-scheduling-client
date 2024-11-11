@@ -14,7 +14,7 @@ import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 import "./EditScheduleFromList.css";
 import { BsClipboardCheck } from "react-icons/bs";
-import { MdCheck } from "react-icons/md";
+import Swal from "sweetalert2";
 
 const BASE_URL = "http://localhost:3000";
 // const BASE_URL = `https://api.priceobo.com`;
@@ -169,10 +169,7 @@ const EditScheduleFromList = ({
   sku1,
   editScheduleModalTitle,
 }) => {
-  console.log(
-    "existing schedule from edit schedule from list",
-    existingSchedule
-  );
+  console.log("existing schedule", existingSchedule);
 
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
@@ -404,12 +401,12 @@ const EditScheduleFromList = ({
   console.log("weekly slots: " + JSON.stringify(weeklyTimeSlots));
 
   useEffect(() => {
-    if (show && asin && existingSchedule) {
+    if (show && asin) {
       fetchProductDetailsByAsin(asin);
       setPrice(existingSchedule.price);
       setCurrentPrice(existingSchedule.currentPrice);
     }
-  }, [show, asin, existingSchedule]);
+  }, [show, asin]);
 
   const fetchProductDetailsByAsin = async (asin) => {
     try {
@@ -739,32 +736,87 @@ const EditScheduleFromList = ({
         updateData
       );
 
-      setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-      setShowSuccessModal(true);
+      // setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+      Swal.fire({
+        title: `Successfully updated schedule!`,
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      // setShowSuccessModal(true);
       onClose();
     } catch (error) {
-      setErrorMessage(
-        "Error scheduling price update: " +
-          (error.response ? error.response.data.error : error.message)
-      );
+      Swal.fire({
+        title: "Error!",
+        text: `Failed to update schedule`,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+
+      // setErrorMessage(
+      //   "Error scheduling price update: " +
+      //     (error.response ? error.response.data.error : error.message)
+      // );
       console.error("Error scheduling price update:", error);
     }
   };
 
+  // const handleDelete = async () => {
+  //   try {
+  //     await deleteSchedule(existingSchedule._id);
+  //     // removeEvent(existingSchedule._id);
+  //     setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
+  //     setShowSuccessModal(true);
+  //     onClose();
+  //   } catch (error) {
+  //     setErrorMessage(
+  //       "Error deleting schedule: " +
+  //         (error.response ? error.response.data.error : error.message)
+  //     );
+  //     console.error("Error deleting schedule:", error);
+  //   }
+  // };
   const handleDelete = async () => {
-    try {
-      await deleteSchedule(existingSchedule._id);
-      // removeEvent(existingSchedule._id);
-      setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
-      setShowSuccessModal(true);
-      onClose();
-    } catch (error) {
-      setErrorMessage(
-        "Error deleting schedule: " +
-          (error.response ? error.response.data.error : error.message)
-      );
-      console.error("Error deleting schedule:", error);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteSchedule(existingSchedule._id);
+          // removeEvent(existingSchedule._id);
+          setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
+          setShowSuccessModal(true);
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your Schedule has been deleted.",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+          onClose();
+        } catch (error) {
+          const errorMessage = error.response
+            ? error.response.data.error
+            : error.message;
+          setErrorMessage("Error deleting schedule: " + errorMessage);
+          console.error("Error deleting schedule:", error);
+          Swal.fire({
+            title: "Error!",
+            text: `Failed to delete schedule: ${errorMessage}`,
+            icon: "error",
+            showConfirmButton: false,
+            timer: 2000,
+          });
+        }
+      }
+    });
   };
 
   const handleShowConfirmation = () => {
@@ -820,10 +872,7 @@ const EditScheduleFromList = ({
     return `${hours}:${minutes}`;
   };
 
-  console.log("price state", price);
-  console.log("existing schedule price", existingSchedule.price);
-  console.log("currentPrice state", currentPrice);
-  console.log("existing schedule current price", existingSchedule.currentPrice);
+  console.log(existingSchedule);
 
   return (
     <>
@@ -1024,7 +1073,7 @@ const EditScheduleFromList = ({
                           className="p-2 border-0 bg-[#F1F1F2] shadow-md rounded-sm relative"
                         >
                           {/* Start Time and Price */}
-                          <div className="flex justify-between items-center gap-2 my-1 mt-3">
+                          <div className="flex justify-between items-center gap-2 my-1 mt-4">
                             <h3 className=" text-center w-[35px]">Start</h3>
                             <DatePicker
                               selected={
@@ -1064,10 +1113,6 @@ const EditScheduleFromList = ({
                               }
                               className="form-control edit-modal-custom-input"
                             />
-
-                            {/* <span className=" text-transparent px-2 py-1 rounded ">
-                              <IoMdClose />
-                            </span> */}
                           </div>
 
                           {/* End Time and Revert Price */}
@@ -1158,7 +1203,7 @@ const EditScheduleFromList = ({
                             key={index}
                             className="my-2 px-1 py-1 border-0 bg-[#F1F1F2] rounded-sm relative"
                           >
-                            <div className="flex justify-center items-center gap-1 my-1  mt-4">
+                            <div className="flex justify-center items-center gap-1 my-1 mt-4">
                               <h3 className="w-[40px] flex justify-center items-center text-[13px]">
                                 Start
                               </h3>
@@ -1272,7 +1317,8 @@ const EditScheduleFromList = ({
                 variant="danger"
                 // style={{ width: "40%" }}
                 className="px-5"
-                onClick={handleShowConfirmation}
+                onClick={handleDelete}
+                // onClick={handleShowConfirmation}
               >
                 Delete Schedule
               </Button>
