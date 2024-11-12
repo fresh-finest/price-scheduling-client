@@ -4,8 +4,9 @@ import { Table, Spinner, Button, ButtonGroup, Form } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import moment from "moment";
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL ="http://192.168.0.167:3000"
+// const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetails = () => {
   const { sku } = useParams();

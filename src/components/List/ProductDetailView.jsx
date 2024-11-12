@@ -210,6 +210,8 @@ const ProductDetailView = ({
   fnSku,
   channelStockValue,
   fulfillmentChannel,
+  productDetailLoading,
+  setProductDetailLoading,
 }) => {
   
   if (!product.AttributeSets) {
@@ -351,6 +353,7 @@ const formatDateTime = (dateString) => {
         }
       } finally {
         setLoading(false);
+        setProductDetailLoading(false);
       }
     };
 
@@ -361,7 +364,7 @@ const formatDateTime = (dateString) => {
     return () => {
       controller.abort();
     };
-  }, [sku1]);
+  }, [sku1, productDetailLoading]);
 
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
@@ -570,7 +573,7 @@ const formatDateTime = (dateString) => {
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
-        {loading ? (
+        {loading || productDetailLoading? (
           <div
             style={{
               // marginTop: "100px",
@@ -995,6 +998,8 @@ const formatDateTime = (dateString) => {
           asin={asin}
           sku1={sku1}
           existingSchedule={editSchedule}
+          productDetailLoading={productDetailLoading}
+          setProductDetailLoading={setProductDetailLoading}
         />
       )}
 

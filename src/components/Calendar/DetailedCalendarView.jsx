@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Calendar } from "../ui/calendar";
 import axios from "axios";
+// import moment from "moment-timezone";
 
-// const BASE_URL = 'http://localhost:3000';
 const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000"; 
+
 
 const CalendarView = ({ sku1 }) => {
   const [events, setEvents] = useState([]);
@@ -11,7 +13,41 @@ const CalendarView = ({ sku1 }) => {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const now = new Date();
   const endPeriod = new Date(now);
-  endPeriod.setMonth(now.getMonth() + 5); // Extend to 5 months ahead
+  endPeriod.setMonth(now.getMonth() + 6); 
+
+  const convertToNewYorkTime = (dateString) => {
+    if (!dateString) return "N/A";
+  
+    const date = new Date(dateString);
+    const options = {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      fractionalSecondDigits: 3,
+      hourCycle: "h23", // To use 24-hour format
+    };
+    const [
+      { value: month },
+      ,
+      { value: day },
+      ,
+      { value: year },
+      ,
+      { value: hour },
+      ,
+      { value: minute },
+      ,
+      { value: second },
+      ,
+      { value: millisecond }
+    ] = new Intl.DateTimeFormat("en-US", options).formatToParts(date);
+  
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}.${millisecond}Z`;
+  };
 
   const fetchSchedules = async () => {
     if (!sku1) {
@@ -34,18 +70,19 @@ const CalendarView = ({ sku1 }) => {
 
       filteredSchedules.forEach((schedule) => {
         const { startDate, endDate, price, currentPrice, sku, weekly, weeklyTimeSlots, monthly, monthlyTimeSlots } = schedule;
-        const start = new Date(startDate);
+        const start = convertToNewYorkTime(startDate);
+        // start= formatDate(start);
+        console.log("start :"+start+"startDate"+startDate)
         const end = endDate ? new Date(endDate) : endPeriod;
 
         if (!weekly && !monthly) {
-          const dateRange = generateDateRange(start, end);
+          // start= formatDate(start)
           events.push({
             title: `SKU: ${sku} - $${price || currentPrice}`,
             start,
             end,
-            allDay: false,
+            allDay: true,
             price: price || currentPrice,
-            dateRange,
           });
         } else if (weekly) {
           // Repeat weekly schedules within the next 5 months
@@ -116,33 +153,10 @@ const CalendarView = ({ sku1 }) => {
     }
   }, [sku1]);
 
-
- 
   useEffect(() => {
     const scheduleStartDates = events.map((event) => new Date(event.start));
-  
-    setSelectedDays(scheduleStartDates); 
-   
+    setSelectedDays(scheduleStartDates);
   }, [events]);
- 
-
-// useEffect(() => {
-//   const scheduleDates = events.map((event) => ({
-//     start: new Date(event.start),
-//     end: new Date(event.end),
-//   }));
-
-//   const scheduleStartDates = scheduleDates.map((date) => date.start);
-//   const scheduleEndDates = scheduleDates.map((date) => date.end);
-
-//   setSelectedDays(scheduleStartDates);
-//   setSelectedEndDays(scheduleEndDates);
-// }, [events]);
-
-
-  
-
-  
 
   // Handle date selection in the calendar
   const handleDateSelect = (selected) => {
@@ -156,29 +170,11 @@ const CalendarView = ({ sku1 }) => {
 
   return (
     <div className="m-3">
-      {/* Pass selectedDays and onDateSelect to the Calendar component */}
       <Calendar
         selectedDays={selectedDays} 
         onDateSelect={handleDateSelect} // Handle the date selection
         className="rounded-md border w-full"
       />
-
-      {/* Show selected schedule details */}
-      {/* {selectedSchedule && (
-        <div className="mt-4 p-4 bg-white shadow-md rounded-md">
-          <h3>Schedule Details for {selectedSchedule.title}</h3>
-          <p><strong>Start:</strong> {selectedSchedule.start.toLocaleString()}</p>
-          {selectedSchedule.end ? (
-            <p><strong>End:</strong> {selectedSchedule.end.toLocaleString()}</p>
-          ) : (
-            <p><strong>End:</strong> Same as start date</p>
-          )}
-          <p><strong>Price:</strong> ${selectedSchedule.title.split('$')[1]}</p>
-          {selectedSchedule.description && (
-            <p><strong>Description:</strong> {selectedSchedule.description}</p>
-          )}
-        </div>
-      )} */}
     </div>
   );
 };

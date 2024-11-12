@@ -83,6 +83,8 @@ const ListView = () => {
   const [statusSortOrder, setStatusSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [productDetailLoading,setProductDetailLoading] = useState(false);
+
 
   const itemsPerPage = 20;
 
@@ -108,6 +110,8 @@ const ListView = () => {
         setFilteredProducts(data.listings);
       }
     },
+    staleTime:Infinity,
+    cacheTime:1000*60*30,
   });
 
   useEffect(() => {
@@ -565,6 +569,8 @@ const ListView = () => {
         fnSku={selectedFnSku}
         channelStockValue={channelStockValue}
         fulfillmentChannel={fulfillmentChannel}
+        productDetailLoading ={productDetailLoading}
+        setProductDetailLoading={setProductDetailLoading}
       />
 
       <div>
@@ -1244,6 +1250,8 @@ const ListView = () => {
                 price={selectedPrice}
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
+                productDetailLoading={productDetailLoading}
+                setProductDetailLoading={setProductDetailLoading}
               />
               {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>

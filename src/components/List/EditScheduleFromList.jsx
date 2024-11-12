@@ -15,7 +15,7 @@ import { IoMdClose } from "react-icons/io";
 import "./EditScheduleFromList.css";
 import { BsClipboardCheck } from "react-icons/bs";
 import { MdCheck } from "react-icons/md";
-
+import Swal from "sweetalert2";
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -168,6 +168,8 @@ const EditScheduleFromList = ({
   existingSchedule,
   sku1,
   editScheduleModalTitle,
+  productDetailLoading,
+  setProductDetailLoading,
 }) => {
   console.log("existing schedule", existingSchedule);
   
@@ -742,22 +744,37 @@ const formatTimeToHHMM = (date) => {
       );
 
  
-      setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-      setShowSuccessModal(true);
+      //setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+      //setShowSuccessModal(true);
+
+      Swal.fire({
+        title: `Successfully updated schedule!`,
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      setProductDetailLoading(true);
       onClose();
     } catch (error) {
-      setErrorMessage(
-        "Error scheduling price update: " +
-          (error.response ? error.response.data.error : error.message)
-      );
+      Swal.fire({
+        title: "Error!",
+        text: `Failed to update schedule`,
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      // setErrorMessage(
+      //   "Error scheduling price update: " +
+      //     (error.response ? error.response.data.error : error.message)
+      // );
       console.error("Error scheduling price update:", error);
     }
   };
-
+/*
   const handleDelete = async () => {
     try {
       await deleteSchedule(existingSchedule._id);
-      // removeEvent(existingSchedule._id);
+     
       setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
       setShowSuccessModal(true);
       onClose();
@@ -769,6 +786,49 @@ const formatTimeToHHMM = (date) => {
       console.error("Error deleting schedule:", error);
     }
   };
+*/
+const handleDelete = async () => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await deleteSchedule(existingSchedule._id);
+        // removeEvent(existingSchedule._id);
+        setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
+        setShowSuccessModal(true);
+        Swal.fire({
+          title: "Deleted!",
+          text: "Your Schedule has been deleted.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        setProductDetailLoading(true);
+        onClose();
+      } catch (error) {
+        const errorMessage = error.response
+          ? error.response.data.error
+          : error.message;
+        setErrorMessage("Error deleting schedule: " + errorMessage);
+        console.error("Error deleting schedule:", error);
+        Swal.fire({
+          title: "Error!",
+          text: `Failed to delete schedule: ${errorMessage}`,
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+    }
+  });
+};
 
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);
@@ -1273,7 +1333,7 @@ const formatTimeToHHMM = (date) => {
                 variant="danger"
                 // style={{ width: "40%" }}
                 className="px-5"
-                onClick={handleShowConfirmation}
+                onClick={handleDelete}
               >
                 Delete Schedule
               </Button>

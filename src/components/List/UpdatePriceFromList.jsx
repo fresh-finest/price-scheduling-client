@@ -19,6 +19,7 @@ import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 
+import Swal from "sweetalert2";
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const BASE_URL = "https://api.priceobo.com";
@@ -131,6 +132,8 @@ const UpdatePriceFromList = ({
   fnSku,
   channelStockValue,
   fulfillmentChannel,
+  productDetailLoading,
+  setProductDetailLoading,
 }) => {
 
   const [sku, setSku] = useState("");
@@ -1016,8 +1019,15 @@ const validateTimeSlots = () => {
           // Log event or update UI after successful submission
         }
    
-      setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-      setShowSuccessModal(true);
+     // setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+      //setShowSuccessModal(true);
+      Swal.fire({
+        title: "Successfully Created Schedule!",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      setProductDetailLoading(true);
       onClose();
     } catch (error) {
       setErrorMessage(

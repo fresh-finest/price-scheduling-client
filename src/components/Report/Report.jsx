@@ -2,10 +2,15 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Table, Image } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+// const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
+
+
 
 // const BASE_URL = "http://localhost:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+const baseUrl = `https://api.priceobo.com`;
 
 const Report = () => {
   const [listings, setListings] = useState([]);
@@ -16,7 +21,7 @@ const Report = () => {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/fetch-all-listings`);
+        const response = await axios.get(`${baseUrl}/fetch-all-listings`);
         setListings(response.data.listings);
       } catch (err) {
         setError("Error fetching listings data");

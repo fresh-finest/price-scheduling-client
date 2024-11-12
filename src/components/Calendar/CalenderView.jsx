@@ -347,7 +347,7 @@ const CalendarView = () => {
           <Calendar
             localizer={localizer}
             events={allEvents}
-            // events={allEvents}
+            // events={eventsToShow}
             startAccessor="start"
             endAccessor="end"
             views={["month", "week", "day"]}
