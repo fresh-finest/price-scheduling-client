@@ -7,6 +7,7 @@ import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
+import { FixedSizeList as List } from "react-window";
 
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
@@ -65,6 +66,8 @@ const ListView = () => {
   const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null); // State for FBA/FBM sorting order
   const [statusSortOrder, setStatusSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [productDetailLoading, setProductDetailLoading] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 20;
@@ -91,7 +94,7 @@ const ListView = () => {
         setFilteredProducts(data.listings);
       }
     },
-    staleTime: Infinity, // data is fresh for 5 minutes
+    staleTime: Infinity,
     // staleTime: 1000 * 60 * 5, // data is fresh for 5 minutes
     cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
@@ -551,6 +554,8 @@ const ListView = () => {
         fnSku={selectedFnSku}
         channelStockValue={channelStockValue}
         fulfillmentChannel={fulfillmentChannel}
+        productDetailLoading={productDetailLoading}
+        setProductDetailLoading={setProductDetailLoading}
       />
 
       <div>
@@ -1231,6 +1236,8 @@ const ListView = () => {
                 price={selectedPrice}
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
+                productDetailLoading={productDetailLoading}
+                setProductDetailLoading={setProductDetailLoading}
               />
               {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>

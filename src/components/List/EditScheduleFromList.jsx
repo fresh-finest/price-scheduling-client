@@ -168,6 +168,8 @@ const EditScheduleFromList = ({
   existingSchedule,
   sku1,
   editScheduleModalTitle,
+  productDetailLoading,
+  setProductDetailLoading,
 }) => {
   console.log("existing schedule", existingSchedule);
 
@@ -213,27 +215,6 @@ const EditScheduleFromList = ({
 
   console.log("data:" + existingSchedule.endDate);
 
-  // const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
-  //   if (newTime instanceof Date && !isNaN(newTime)) {
-  //     const formattedTime = formatDateToTimeString(newTime); // Format to 'HH:mm'
-  //     if (scheduleType === "weekly") {
-  //       setWeeklyTimeSlots((prevSlots) => {
-  //         const updatedSlots = { ...prevSlots };
-  //         updatedSlots[day][index][key] = formattedTime;
-  //         return updatedSlots;
-  //       });
-  //     } else if (scheduleType === "monthly") {
-  //       setMonthlyTimeSlots((prevSlots) => {
-  //         const updatedSlots = { ...prevSlots };
-  //         updatedSlots[day][index][key] = formattedTime;
-  //         return updatedSlots;
-  //       });
-  //     }
-  //   } else {
-  //     console.error("Invalid date object for time:", newTime);
-  //   }
-  // };
-
   const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
     if (newTime instanceof Date && !isNaN(newTime)) {
       const formattedTime = formatTimeToHHMM(newTime);
@@ -254,35 +235,7 @@ const EditScheduleFromList = ({
       console.error("Invalid date object for time:", newTime);
     }
   };
-  // Format 'Date' object to 'HH:mm' without converting to UTC
-  /*
-  const formatTimeToHHMM = (date) => {
-    const adjustedDate = new Date(date.getTime() + 4 * 60 * 60 * 1000);
-    const hours = adjustedDate.getHours().toString().padStart(2, "0");
-    const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
-*/
 
-  // const formatTimeToHHMM = (date) => {
-  //   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  //   let offsetHours = 0; // Default to no adjustment
-  //   let adjustedDate = new Date(date.getTime());
-
-  //   // Set offset hours and adjust the date based on the detected time zone
-  //   if (timeZone.includes("America")) {
-  //     offsetHours = 4; // Add 4 hours for EDT
-  //     adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
-  //   } else if (timeZone === "Asia/Dhaka") {
-  //     offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
-  //     adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
-  //   }
-
-  //   // Format the adjusted date to HH:mm format
-  //   const hours = adjustedDate.getHours().toString().padStart(2, "0");
-  //   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
-  //   return `${hours}:${minutes}`;
-  // };
   const formatTimeToHHMM = (date) => {
     // Format the date object directly to HH:mm without time zone adjustments
     const hours = date.getHours().toString().padStart(2, "0");
@@ -313,31 +266,6 @@ const EditScheduleFromList = ({
       });
   }, []);
 
-  // const fetchPriceBySku = async (sku) => {
-  //   try {
-  //     const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
-  //     const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(
-  //       "Error fetching:",
-  //       error.response ? error.response.data : error.message
-  //     );
-  //     throw error;
-  //   }
-  // };
-
-  // const convertTimeStringToDate = (timeString) => {
-  //   if (typeof timeString === "string" && timeString.includes(":")) {
-  //     const [hours, minutes] = timeString.split(":").map(Number);
-  //     if (!isNaN(hours) && !isNaN(minutes)) {
-  //       const now = new Date();
-  //       now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
-  //       return now; // Local time will be automatically adjusted
-  //     }
-  //   }
-  //   return new Date();
-  // };
   const convertTimeToLocalFormat = (timeString) => {
     console.log("convert ");
     const date = convertTimeStringToDate(timeString);
@@ -448,45 +376,6 @@ const EditScheduleFromList = ({
       });
     }
   };
-
-  // const handleTimeSlotChange = (scheduleType, identifier, index, key, value) => {
-  //   console.log("Handle change:"+scheduleType+value)
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   }
-  // };
-
-  // const handleAddTimeSlot = (scheduleType, identifier) => {
-  //    const currentDate = new Date();
-  //    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // 1 hour after the current time
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   }
-  // };
 
   const handleAddTimeSlot = (scheduleType, identifier) => {
     const currentDate = new Date();
@@ -744,6 +633,7 @@ const EditScheduleFromList = ({
         timer: 2000,
       });
       // setShowSuccessModal(true);
+      setProductDetailLoading(true);
       onClose();
     } catch (error) {
       Swal.fire({
@@ -800,6 +690,7 @@ const EditScheduleFromList = ({
             showConfirmButton: false,
             timer: 2000,
           });
+          setProductDetailLoading(true);
           onClose();
         } catch (error) {
           const errorMessage = error.response

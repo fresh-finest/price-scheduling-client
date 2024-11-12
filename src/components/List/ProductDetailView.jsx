@@ -151,6 +151,8 @@ const ProductDetailView = ({
   fnSku,
   channelStockValue,
   fulfillmentChannel,
+  productDetailLoading,
+  setProductDetailLoading,
 }) => {
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
@@ -254,6 +256,7 @@ const ProductDetailView = ({
         }
       } finally {
         setLoading(false);
+        setProductDetailLoading(false);
       }
     };
 
@@ -264,7 +267,7 @@ const ProductDetailView = ({
     return () => {
       controller.abort();
     };
-  }, [sku1]);
+  }, [sku1, productDetailLoading]);
 
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
@@ -422,7 +425,7 @@ const ProductDetailView = ({
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
-        {loading ? (
+        {loading || productDetailLoading ? (
           <div
             style={{
               // marginTop: "100px",
@@ -823,6 +826,8 @@ const ProductDetailView = ({
           asin={asin}
           sku1={sku1}
           existingSchedule={editSchedule}
+          productDetailLoading={productDetailLoading}
+          setProductDetailLoading={setProductDetailLoading}
         />
       )}
 

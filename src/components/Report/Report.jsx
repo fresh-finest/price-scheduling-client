@@ -188,15 +188,15 @@ const Report = () => {
               <td
                 style={{
                   // cursor: "pointer",
-                  height: "40px",
+                  //   height: "40px",
                   textAlign: "center",
                   verticalAlign: "middle",
                 }}
               >
                 <img
                   style={{
-                    width: "50px",
-                    height: "50px",
+                    width: "40px",
+                    height: "40px",
                     objectFit: "contain",
                     margin: "0 auto",
                   }}
