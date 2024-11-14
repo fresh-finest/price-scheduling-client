@@ -9,8 +9,8 @@ import { PenLine } from "lucide-react";
 import EditScheduleFromList from "../List/EditScheduleFromList";
 import Loading from "../shared/ui/Loading";
 
-const BASE_URL = "http://localhost:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 const dayNames = [
   "Sunday",
@@ -427,7 +427,7 @@ const ScheduleDetailsModal = ({
                                             onClick={() =>
                                               handleEdit(
                                                 scheduleData[0],
-                                                "Monthly"
+                                                "Weekly"
                                               )
                                             }
                                             className="bg-[#0662BB] py-1 px-1 rounded-sm"

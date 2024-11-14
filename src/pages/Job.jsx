@@ -8,6 +8,7 @@ import { BsClipboardCheck } from "react-icons/bs";
 
 import StatusScheduleTypeDropdown from "@/components/shared/ui/StatusScheduleTypeDropdown";
 import StatusFilterDropdown from "@/components/shared/ui/StatusFilterDropdown";
+import StatusLoadingSkeleton from "@/components/LoadingSkeleton/StatusLoadingSkeleton";
 
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
@@ -245,6 +246,14 @@ const JobTable = () => {
       });
   };
 
+  if (loading) {
+    return <StatusLoadingSkeleton></StatusLoadingSkeleton>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
   return (
     <div>
       <InputGroup className="max-w-[500px] absolute top-[11px] ">
@@ -266,29 +275,7 @@ const JobTable = () => {
         )}
       </InputGroup>
 
-      {loading ? (
-        <div
-          style={{
-            marginTop: "100px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "60vh",
-          }}
-        >
-          <img
-            style={{ width: "40px", marginRight: "6px" }}
-            className="animate-pulse"
-            src={priceoboIcon}
-            alt="Priceobo Icon"
-          />
-          <div className="block">
-            <p className="text-xl"> Loading...</p>
-          </div>
-        </div>
-      ) : error ? (
-        <p>{error}</p>
-      ) : (
+      {
         <section
           style={{
             maxHeight: "91vh",
@@ -576,7 +563,7 @@ const JobTable = () => {
             <Pagination.Last onClick={() => handlePageChange(totalPages)} />
           </Pagination>
         </section>
-      )}
+      }
     </div>
   );
 };

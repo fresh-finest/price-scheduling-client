@@ -3,7 +3,6 @@ import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import { MultiSelect } from "react-multi-select-component";
 import "react-datepicker/dist/react-datepicker.css";
-import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import moment from "moment-timezone";
@@ -20,10 +19,11 @@ import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 
 import Swal from "sweetalert2";
+import UpdatePriceFromListSkeleton from "../LoadingSkeleton/UpdatePriceFromListSkeleton";
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-// const BASE_URL = "https://api.priceobo.com";
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://api.priceobo.com";
+// const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (asin) => {
   try {
     const response = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -413,18 +413,6 @@ const UpdatePriceFromList = ({
         }
       }
 
-      /*
-      if (parseInt(day) === today) {
-        // If the selected day is today, check the time
-        for (let slot of slots) {
-          if (slot.startTime < now) {
-            setErrorMessage(
-              "The selected start time is in the past for today's time slot. Please select a future time."
-            );
-            return false;
-          }
-        }
-      } */
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -460,18 +448,6 @@ const UpdatePriceFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
-      /*
-      if (parseInt(date) === currentDayOfMonth) {
-        // If the selected date is today, check the time
-        for (let slot of slots) {
-          if (slot.startTime < now) {
-            setErrorMessage(
-              "The selected start time is in the past for today's time slot. Please select a future time."
-            );
-            return false;
-          }
-        }
-      } */
 
       if (timeZone === "America/New_York") {
         console.log("timeZone " + timeZone);
@@ -704,16 +680,6 @@ const UpdatePriceFromList = ({
           return;
         }
 
-        // for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
-        //   weeklySlotsInUtc[day] = timeSlots.map(
-        //     ({ startTime, endTime, newPrice, revertPrice }) => ({
-        //       startTime: convertTimeToUtc(startTime),
-        //       endTime: convertTimeToUtc(endTime),
-        //       newPrice: parseFloat(newPrice),
-        //       revertPrice: parseFloat(revertPrice),
-        //     })
-        //   );
-        // }
         for (const [day, timeSlots] of Object.entries(weeklyTimeSlots)) {
           weeklySlotsInUtc[day] = timeSlots.map(
             ({ startTime, endTime, newPrice, revertPrice }) => ({
@@ -750,17 +716,6 @@ const UpdatePriceFromList = ({
           setLoading(false);
           return;
         }
-
-        // for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
-        //   monthlySlotsInUtc[date] = timeSlots.map(
-        //     ({ startTime, endTime, newPrice, revertPrice }) => ({
-        //       startTime: convertTimeToUtc(startTime),
-        //       endTime: convertTimeToUtc(endTime),
-        //       newPrice: parseFloat(newPrice),
-        //       revertPrice: parseFloat(revertPrice),
-        //     })
-        //   );
-        // }
 
         for (const [date, timeSlots] of Object.entries(monthlyTimeSlots)) {
           monthlySlotsInUtc[date] = timeSlots.map(
@@ -822,8 +777,8 @@ const UpdatePriceFromList = ({
           // Log event or update UI after successful submission
         }
 
-      setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-      // setShowSuccessModal(true);
+      // setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
+      //setShowSuccessModal(true);
       Swal.fire({
         title: "Successfully Created Schedule!",
         icon: "success",
@@ -839,7 +794,6 @@ const UpdatePriceFromList = ({
       );
     } finally {
       setLoading(false);
-      // setProductDetailLoading(false);
     }
   };
 
@@ -867,42 +821,40 @@ const UpdatePriceFromList = ({
       >
         {loading ? (
           // Display only the spinner when loading
-          <div
-            className="flex items-center justify-center"
-            style={{ height: "75vh" }}
-          >
-            {/* <Spinner animation="border" role="status" /> */}
-            <div
-              className=""
-              style={{
-                // marginTop: "100px",
-                paddingTop: "30px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                padding: "20px",
-                width: "100%",
-                textAlign: "center",
-              }}
-            >
-              {/* <Spinner animation="border" /> Loading... */}
-              <img
-                style={{
-                  width: "30px",
-                  marginRight: "6px",
-                }}
-                className="animate-pulse flex justify-center items-center"
-                src={priceoboIcon}
-                alt="Priceobo Icon"
-              />
-              <br />
+          // <div
+          //   className="flex items-center justify-center"
+          //   style={{ height: "75vh" }}
+          // >
+          //   <div
+          //     className=""
+          //     style={{
+          //       paddingTop: "30px",
+          //       display: "flex",
+          //       justifyContent: "center",
+          //       alignItems: "center",
+          //       height: "100%",
+          //       padding: "20px",
+          //       width: "100%",
+          //       textAlign: "center",
+          //     }}
+          //   >
+          //     <img
+          //       style={{
+          //         width: "30px",
+          //         marginRight: "6px",
+          //       }}
+          //       className="animate-pulse flex justify-center items-center"
+          //       src={priceoboIcon}
+          //       alt="Priceobo Icon"
+          //     />
+          //     <br />
 
-              <div className="block">
-                <p className="text-base"> Loading...</p>
-              </div>
-            </div>
-          </div>
+          //     <div className="block">
+          //       <p className="text-base"> Loading...</p>
+          //     </div>
+          //   </div>
+          // </div>
+          <UpdatePriceFromListSkeleton></UpdatePriceFromListSkeleton>
         ) : (
           <>
             <Modal.Header closeButton>
@@ -1413,11 +1365,11 @@ const UpdatePriceFromList = ({
         )}
       </Modal>
 
-      {/* <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Successfully updated price!</Modal.Title>
         </Modal.Header>
-      </Modal> */}
+      </Modal>
     </>
   );
 };

@@ -6,6 +6,7 @@ import SettingsUserRoleSelect from "../shared/ui/SettingsUserRoleSelect";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { FiTrash } from "react-icons/fi";
 import { FaUserPlus } from "react-icons/fa";
+import ManageUsersLoadingSkeleton from "../LoadingSkeleton/ManageUsersLoadingSkeleton";
 // const BASE_URL = 'http://localhost:3000';
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -128,30 +129,32 @@ function ManageUser() {
   };
 
   if (!users.length)
-    return (
-      <div
-        style={{
-          // marginTop: "50px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "50vh",
-        }}
-      >
-        {/* <Spinner animation="border" /> Loading... */}
-        <img
-          style={{ width: "40px", marginRight: "6px" }}
-          className="animate-pulse"
-          src={priceoboIcon}
-          alt="Priceobo Icon"
-        />
-        <br />
+    return <ManageUsersLoadingSkeleton></ManageUsersLoadingSkeleton>;
+  // if (!users.length)
+  //   return (
+  //     <div
+  //       style={{
+  //         // marginTop: "50px",
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         height: "50vh",
+  //       }}
+  //     >
+  //       {/* <Spinner animation="border" /> Loading... */}
+  //       <img
+  //         style={{ width: "40px", marginRight: "6px" }}
+  //         className="animate-pulse"
+  //         src={priceoboIcon}
+  //         alt="Priceobo Icon"
+  //       />
+  //       <br />
 
-        <div className="block">
-          <p className="text-xl"> Loading...</p>
-        </div>
-      </div>
-    );
+  //       <div className="block">
+  //         <p className="text-xl"> Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
 
   return (
     <>
@@ -168,6 +171,7 @@ function ManageUser() {
         style={{
           tableLayout: "fixed",
           marginTop: "6px",
+          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
         }}
         className=" userCustomTable table"
       >

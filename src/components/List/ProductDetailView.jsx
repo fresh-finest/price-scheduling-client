@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
+import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeleton";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
 // const BASE_URL = `https://api.priceobo.com`;
@@ -426,32 +427,33 @@ const ProductDetailView = ({
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
         {loading || productDetailLoading ? (
-          <div
-            style={{
-              // marginTop: "100px",
-              paddingTop: "30px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "90vh",
-              padding: "20px",
-              width: "100%",
-              textAlign: "center",
-            }}
-          >
-            {/* <Spinner animation="border" /> Loading... */}
-            <img
-              style={{ width: "30px", marginRight: "6px" }}
-              className="animate-pulse"
-              src={priceoboIcon}
-              alt="Priceobo Icon"
-            />
-            <br />
+          // <div
+          //   style={{
+          //     // marginTop: "100px",
+          //     paddingTop: "30px",
+          //     display: "flex",
+          //     justifyContent: "center",
+          //     alignItems: "center",
+          //     height: "90vh",
+          //     padding: "20px",
+          //     width: "100%",
+          //     textAlign: "center",
+          //   }}
+          // >
+          //   {/* <Spinner animation="border" /> Loading... */}
+          //   <img
+          //     style={{ width: "30px", marginRight: "6px" }}
+          //     className="animate-pulse"
+          //     src={priceoboIcon}
+          //     alt="Priceobo Icon"
+          //   />
+          //   <br />
 
-            <div className="block">
-              <p className="text-base"> Loading...</p>
-            </div>
-          </div>
+          //   <div className="block">
+          //     <p className="text-base"> Loading...</p>
+          //   </div>
+          // </div>
+          <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
         ) : (
           <Card.Body className="p-0">
             <div>
@@ -520,7 +522,7 @@ const ProductDetailView = ({
                           .map((sc, index) => (
                             <ShadCdnCard
                               className="flex justify-center w-full gap-2 mb-2 px-2 py-2"
-                              key={sc.id}
+                              key={index}
                             >
                               <div key={index} className="w-full">
                                 <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">

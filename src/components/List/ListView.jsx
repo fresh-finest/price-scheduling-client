@@ -26,6 +26,7 @@ import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
 import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
+import ListLoadingSkeleton from "../LoadingSkeleton/ListLoadingSkeleton";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -516,31 +517,35 @@ const ListView = () => {
       });
   };
 
-  if (isLoading)
-    return (
-      <div
-        style={{
-          marginTop: "100px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh",
-        }}
-      >
-        {/* <Spinner animation="border" /> Loading... */}
-        <img
-          style={{ width: "40px", marginRight: "6px" }}
-          className="animate-pulse"
-          src={priceoboIcon}
-          alt="Priceobo Icon"
-        />
-        <br />
+  // if (isLoading)
+  //   return (
+  //     <div
+  //       style={{
+  //         marginTop: "100px",
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         height: "60vh",
+  //       }}
+  //     >
+  //       {/* <Spinner animation="border" /> Loading... */}
+  //       <img
+  //         style={{ width: "40px", marginRight: "6px" }}
+  //         className="animate-pulse"
+  //         src={priceoboIcon}
+  //         alt="Priceobo Icon"
+  //       />
+  //       <br />
 
-        <div className="block">
-          <p className="text-xl"> Loading...</p>
-        </div>
-      </div>
-    );
+  //       <div className="block">
+  //         <p className="text-xl"> Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
+
+  if (isLoading) {
+    return <ListLoadingSkeleton></ListLoadingSkeleton>;
+  }
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
   return (

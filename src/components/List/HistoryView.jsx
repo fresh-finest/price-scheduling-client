@@ -17,6 +17,7 @@ import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
 import { BsClipboardCheck } from "react-icons/bs";
+import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -515,31 +516,32 @@ export default function HistoryView() {
     ));
   };
 
-  if (loading)
-    return (
-      <div
-        style={{
-          marginTop: "100px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh",
-        }}
-      >
-        {/* <Spinner animation="border" /> Loading... */}
-        <img
-          style={{ width: "40px", marginRight: "6px" }}
-          className="animate-pulse"
-          src={priceoboIcon}
-          alt="Priceobo Icon"
-        />
-        <br />
+  if (loading) return <HistoryLoadingSkeleton></HistoryLoadingSkeleton>;
+  // if (loading)
+  //   return (
+  //     <div
+  //       style={{
+  //         marginTop: "100px",
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         height: "60vh",
+  //       }}
+  //     >
+  //       {/* <Spinner animation="border" /> Loading... */}
+  //       <img
+  //         style={{ width: "40px", marginRight: "6px" }}
+  //         className="animate-pulse"
+  //         src={priceoboIcon}
+  //         alt="Priceobo Icon"
+  //       />
+  //       <br />
 
-        <div className="block">
-          <p className="text-xl"> Loading...</p>
-        </div>
-      </div>
-    );
+  //       <div className="block">
+  //         <p className="text-xl"> Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
   return (
@@ -731,8 +733,8 @@ export default function HistoryView() {
                     <tr
                       key={index}
                       className={`${
-                        lengthNested[item.scheduleId] >
-                        (item.weekly || item.monthly ? 0 : 1)
+                        lengthNested[item?.scheduleId] >
+                        (item?.weekly || item?.monthly ? 0 : 1)
                           ? "cursor-pointer"
                           : ""
                       }`}
@@ -741,7 +743,7 @@ export default function HistoryView() {
                         // cursor: "pointer",
                         margin: "20px 0",
                       }}
-                      onClick={() => handleRowClick(item.scheduleId)}
+                      onClick={() => handleRowClick(item?.scheduleId)}
                       // className="borderless spacer-row"
                     >
                       {/* arrow sign */}
@@ -753,11 +755,13 @@ export default function HistoryView() {
                           verticalAlign: "middle",
                         }}
                       >
-                        {lengthNested[item.scheduleId] >
-                        (item.weekly || item.monthly ? 0 : 1) ? (
+                        {lengthNested[item?.scheduleId] >
+                        (item?.weekly || item?.monthly ? 0 : 1) ? (
                           <IoIosArrowForward
                             className={`text-base transition-all cursor-pointer duration-300 ${
-                              expandedRow === item.scheduleId ? "rotate-90" : ""
+                              expandedRow === item?.scheduleId
+                                ? "rotate-90"
+                                : ""
                             }`}
                           />
                         ) : null}
@@ -823,7 +827,7 @@ export default function HistoryView() {
                               <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCopy(displayData.asin, "asin", index);
+                                  handleCopy(displayData?.asin, "asin", index);
                                 }}
                                 style={{
                                   marginLeft: "5px",
@@ -855,7 +859,7 @@ export default function HistoryView() {
                               <BsClipboardCheck
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCopy(displayData.sku, "sku", index);
+                                  handleCopy(displayData?.sku, "sku", index);
                                 }}
                                 style={{
                                   marginLeft: "5px",
@@ -878,9 +882,9 @@ export default function HistoryView() {
                           height: "40px",
                         }}
                       >
-                        {displayData.weekly ? (
+                        {displayData?.weekly ? (
                           <h2>Weekly</h2>
-                        ) : displayData.monthly ? (
+                        ) : displayData?.monthly ? (
                           <h2>Monthly</h2>
                         ) : (
                           <h2>Single</h2>
@@ -915,7 +919,7 @@ export default function HistoryView() {
                                 <div className="w-full flex gap-2">
                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                     {displayData?.startDate
-                                      ? formatDateTime(displayData.startDate)
+                                      ? formatDateTime(displayData?.startDate)
                                       : "N/A"}
                                     {displayData.price && (
                                       <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
@@ -927,10 +931,10 @@ export default function HistoryView() {
                                     <FaArrowRightLong />
                                   </span>
 
-                                  {displayData.endDate ? (
+                                  {displayData?.endDate ? (
                                     <div className="w-full">
                                       <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                        {formatDateTime(displayData.endDate)}
+                                        {formatDateTime(displayData?.endDate)}
                                         {displayData.currentPrice && (
                                           <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
                                             $

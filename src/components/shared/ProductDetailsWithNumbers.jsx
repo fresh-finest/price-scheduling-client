@@ -61,7 +61,7 @@ const ProductDetailsWithNumbers = ({
           }  mr-[20px]`}
           // style={detailStyles.image}
         />
-        <div>
+        <div className={`${updatePriceModal ? "min-w-[90%]" : "min-w-[85%]"}`}>
           <Card.Title
             className={`${
               updatePriceModal ? "text-[16px]" : "text-[14px]"
@@ -70,8 +70,8 @@ const ProductDetailsWithNumbers = ({
             {product?.AttributeSets[0]?.Title}
           </Card.Title>
           {updatePriceModal && (
-            <div className="flex flex-col  gap-2 mt-2">
-              <div className="flex  gap-2">
+            <div className="flex   gap-2 mt-2 ">
+              <div className="flex   gap-2">
                 <div
                   style={{
                     borderRadius: "3px",

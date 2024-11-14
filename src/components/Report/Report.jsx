@@ -7,8 +7,8 @@ import "./Report.css";
 
 // const BASE_URL = "http://localhost:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
-const BASE_URL = "http://192.168.0.167:3000";
+const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://192.168.0.167:3000";
 
 const Report = () => {
   const [listings, setListings] = useState([]);

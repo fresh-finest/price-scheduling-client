@@ -2,8 +2,9 @@ import { useContext, useState } from "react";
 import { Calendar, momentLocalizer, Views } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Modal } from "react-bootstrap";
+import { Modal, DropdownButton, Dropdown, ButtonGroup } from "react-bootstrap";
 import { Button } from "@/components/ui/button";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import "./CalendarView.css";
@@ -11,6 +12,7 @@ import "./CalendarView.css";
 import UpdateSchedulePrice from "../Modal/UpdateSchedulePrice";
 import ViewUpdatedListModal from "../Modal/ViewUpdatedListModal";
 import { MdOutlineAdd } from "react-icons/md";
+import ContainerWidth from "../shared/ui/ContainerWidth";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import {
   Tooltip,
@@ -18,8 +20,26 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Check } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { FaChevronDown } from "react-icons/fa";
+
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import ScheduleDetailsModal from "../Modal/ScheduleDetailsModal";
+import ScheduleDetailsPopover from "../Modal/ScheduleDetailsPopover";
 
 const localizer = momentLocalizer(moment);
 
@@ -156,7 +176,6 @@ const CalendarView = () => {
   };
 
   // console.log("selected date", selectedDate);
-  /*
   const EventWithImage = ({ event }) => {
     console.log("event", event);
     return (
@@ -176,46 +195,19 @@ const CalendarView = () => {
           />
         )}
         <div className="flex justify-center items-center gap-1">
-          <p>${event?.price}</p>
+          <p>${parseFloat(event?.price).toFixed(2)}</p>
+
           <p>-</p>
           <p className="capitalize">{event?.eventType}</p>
 
-        
+          {/* <p style={{ margin: "0" }}>
+            {event?.productName?.split(" ").slice(0, 10).join(" ") +
+              (event?.productName?.split(" ").length > 10 ? "..." : "")}
+          </p> */}
         </div>
       </div>
     );
   };
-*/
-  const EventWithImage = ({ event }) => (
-    <div
-      className="event-container"
-      style={{ display: "flex", alignItems: "center" }}
-    >
-      {event.image && (
-        <img
-          src={event.image}
-          alt="Event"
-          style={{ width: "30px", height: "30px", marginRight: "8px" }}
-        />
-      )}
-      <div className="flex justify-center items-center gap-1">
-        <p>${event?.price}</p>
-        <p>-</p>
-        <p className="capitalize">{event?.eventType}</p>
-      </div>
-    </div>
-  );
-
-  const DayWrapper = ({ events }) => (
-    <>
-      {events.slice(0, 1).map((event, index) => (
-        <EventWithImage key={index} event={event} />
-      ))}
-      {events.length > 1 && (
-        <button onClick={() => handleMoreEventsClick(events)}>+ More</button>
-      )}
-    </>
-  );
 
   console.log("selected event: " + JSON.stringify(selectedScheduledEvent));
   const eventsToShow =
@@ -355,7 +347,7 @@ const CalendarView = () => {
           <Calendar
             localizer={localizer}
             events={allEvents}
-            // events={allEvents}
+            // events={eventsToShow}
             startAccessor="start"
             endAccessor="end"
             views={["month", "week", "day"]}
@@ -382,14 +374,9 @@ const CalendarView = () => {
                 return { style: { backgroundColor: "#C2D2FB" } };
               }
             }}
-            // components={{
-            //   toolbar: () => null,
-            //   event: EventWithImage,
-            // }}
             components={{
-              toolbar: () => null,
+              toolbar: () => null, // default calender navigation button turns off
               event: EventWithImage,
-              dayWrapper: ({ events }) => <DayWrapper events={events} />,
             }}
             onDrillDown={(date, view) => handleNavigate(date, view)}
             onShowMore={(events, date) => handleMoreEventsClick(events)} // Handle "+X more" click
