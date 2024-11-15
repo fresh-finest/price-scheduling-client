@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Spinner, Button, ButtonGroup, Form } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { Table, Spinner, Button, ButtonGroup, Form, Alert } from "react-bootstrap";
+import { useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
 
+
 const BASE_URL = "http://localhost:3000";
-// const BASE_URL ="http://192.168.0.167:3000"
-// const BASE_URL = `https://api.priceobo.com`;
+
 
 const SaleDetails = () => {
   const { sku } = useParams();
+  const navigate = useNavigate();
   const [salesData, setSalesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [view, setView] = useState("day"); // Default view is "By Day"
+  const [view, setView] = useState("day");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [reportAvailable, setReportAvailable] = useState(false);
+
 
   const fetchSalesMetrics = async () => {
     setLoading(true);
@@ -24,43 +27,65 @@ const SaleDetails = () => {
       let url = `${BASE_URL}/sales-metrics/${view}/${sku}`;
       const params = {};
 
-      // Use date range API if both startDate and endDate are set
+
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${sku}`;
         params.startDate = startDate;
         params.endDate = endDate;
       }
+ 
 
       const response = await axios.get(url, { params });
       setSalesData(response.data);
     } catch (err) {
-      setLoading(false);
+      setError("Error fetching sales metrics.");
     } finally {
       setLoading(false);
     }
   };
 
+
+  const checkReportAvailability = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/report`);
+      const skuExists = response.data.some((item) => item.sku === sku);
+      setReportAvailable(skuExists);
+    } catch (err) {
+      console.error("Error checking report availability:", err);
+      setReportAvailable(false);
+    }
+  };
+
+
   useEffect(() => {
     fetchSalesMetrics();
+    checkReportAvailability();
   }, [sku, view, startDate, endDate]);
 
-  // Handle view change and reset date range if switching views
+
   const handleViewChange = (newView) => {
     setView(newView);
     setStartDate("");
     setEndDate("");
   };
 
-  // Handle date range change and reset view selection
+
   const handleDateChange = (type, date) => {
     if (type === "start") setStartDate(date);
     if (type === "end") setEndDate(date);
-    setView(""); // Unselect the view when a date range is used
+    setView("");
   };
 
-  const formatDate = (date) => {
-    return moment(date, "DD/MM/YYYY").format("MM/DD/YYYY, dddd");
+
+  const formatDate = (date) => moment(date, "DD/MM/YYYY").format("MM/DD/YYYY, dddd");
+
+
+  const navigateToReport = () => {
+    if (reportAvailable) {
+      navigate(`/report/${sku}`);
+    }
   };
+
 
   return (
     <div className="container mt-4">
@@ -88,6 +113,17 @@ const SaleDetails = () => {
         </ButtonGroup>
       </div>
 
+
+      <Button
+        onClick={navigateToReport}
+        variant={reportAvailable ? "success" : "secondary"}
+        disabled={!reportAvailable}
+        className="mb-3"
+      >
+        {reportAvailable ? "Schedule Report Available" : "Schedule Report Not Available"}
+      </Button>
+
+
       <div className="d-flex mb-3">
         <Form.Group className="mr-2">
           <Form.Label>Start Date</Form.Label>
@@ -107,6 +143,7 @@ const SaleDetails = () => {
         </Form.Group>
       </div>
 
+
       {loading ? (
         <div
           className="d-flex justify-content-center align-items-center"
@@ -116,7 +153,7 @@ const SaleDetails = () => {
           <span className="ml-3">Loading...</span>
         </div>
       ) : error ? (
-        <p>{error}</p>
+        <Alert variant="danger">{error}</Alert>
       ) : (
         <Table striped bordered hover responsive className="mt-3">
           <thead>
@@ -128,10 +165,8 @@ const SaleDetails = () => {
                   ? "Week"
                   : "Month"}
               </th>
-              <th>
-               Price
-              </th>
-              <th>Unit </th>
+              <th>Price</th>
+              <th>Unit</th>
             </tr>
           </thead>
           <tbody>
@@ -145,13 +180,7 @@ const SaleDetails = () => {
                       ? item.week
                       : item.month}
                   </td>
-                  <td>
-                    {parseFloat(
-                      view === "day" || (startDate && endDate)
-                        ? item.amount
-                        : item.averageAmount
-                    ).toFixed(2)}
-                  </td>
+                  <td>{parseFloat(item.amount || item.averageAmount).toFixed(2)}</td>
                   <td>{item.unitCount}</td>
                 </tr>
               ))
@@ -169,4 +198,10 @@ const SaleDetails = () => {
   );
 };
 
+
 export default SaleDetails;
+
+
+
+
+

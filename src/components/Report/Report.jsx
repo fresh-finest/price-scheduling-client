@@ -8,9 +8,9 @@ import { useSelector } from "react-redux";
 
 
 
-// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000";
 
-const baseUrl = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 const Report = () => {
   const [listings, setListings] = useState([]);
@@ -21,10 +21,10 @@ const Report = () => {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/fetch-all-listings`);
-        setListings(response.data.listings);
+        const response = await axios.get(`${BASE_URL}/api/schedule`);
+        setListings(response.data.result);
       } catch (err) {
-        setError("Error fetching listings data");
+        setError("Error fetching schedule data");
       } finally {
         setLoading(false);
       }
@@ -34,7 +34,7 @@ const Report = () => {
   }, []);
 
   const handleSkuClick = (sku) => {
-    navigate(`/details/${sku}`);
+    navigate(`/report/${sku}`);
   };
 
   if (loading) {
@@ -59,10 +59,10 @@ const Report = () => {
         {listings.map((listing) => (
           <tr key={listing._id}>
             <td>
-              <Image src={listing.imageUrl} alt={listing.itemName} width={30} height={30} />
+              <Image src={listing.imageURL} alt={listing.itemName} width={30} height={30} />
             </td>
             <td  style={{ color: "blue", cursor: "pointer" }}
-              onClick={() => handleSkuClick(listing.sellerSku)} >{listing.sellerSku}</td>
+              onClick={() => handleSkuClick(listing.sku)} >{listing.sku}</td>
             <td>${listing.price ? listing.price.toFixed(2) : "N/A"}</td>
             <td>
               {listing.salesMetrics && listing.salesMetrics.length > 0 ? (

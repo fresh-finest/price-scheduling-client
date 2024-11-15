@@ -15,6 +15,7 @@ import { AxiosProvider } from "./contexts/AxiosProdiver";
 import Job from "./pages/Job";
 import Report from "./components/Report/Report";
 import SaleDetails from "./components/Report/SaleDetails";
+import ReportDetails from "./components/Report/ReportDetails";
 import Settings from "./pages/Settings";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
             }
           >
           <Route path="details/:sku" element={<SaleDetails/>}/>
+          <Route path="report/:sku" element={<ReportDetails/>}/>
           <Route path="/settings" element={<Settings/>}/>
           <Route path="/report" element={<Report/>}/>
             <Route path="/status" element={<Job/>}/>

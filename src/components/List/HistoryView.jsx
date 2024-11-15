@@ -17,6 +17,7 @@ import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
+import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -516,31 +517,7 @@ export default function HistoryView() {
     ));
   };
 
-  if (loading)
-    return (
-      <div
-        style={{
-          marginTop: "100px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh",
-        }}
-      >
-        {/* <Spinner animation="border" /> Loading... */}
-        <img
-          style={{ width: "40px", marginRight: "6px" }}
-          className="animate-pulse"
-          src={priceoboIcon}
-          alt="Priceobo Icon"
-        />
-        <br />
-
-        <div className="block">
-          <p className="text-xl"> Loading...</p>
-        </div>
-      </div>
-    );
+  if (loading) return <HistoryLoadingSkeleton></HistoryLoadingSkeleton>;
   if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
   return (

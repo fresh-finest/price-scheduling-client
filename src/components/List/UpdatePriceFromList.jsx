@@ -20,6 +20,7 @@ import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 
 import Swal from "sweetalert2";
+import UpdatePriceFromListSkeleton from "../LoadingSkeleton/UpdatePriceFromListSkeleton";
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const BASE_URL = "https://api.priceobo.com";
@@ -369,7 +370,7 @@ const UpdatePriceFromList = ({
     const now = new Date();
     const today = now.getDay(); // Get today's day index
     const currentDayOfMonth = now.getDate(); // Get today's date in the month
-    const tenHoursAgo = new Date(now.getTime() - 10 * 60 * 60 * 1000); // Calculate the time 10 hours ago from now
+    const tenHoursAgo = new Date(now.getTime() - 11 * 60 * 60 * 1000); // Calculate the time 10 hours ago from now
     for (const day in weeklyTimeSlots) {
      
       const slots = weeklyTimeSlots[day];
@@ -1064,42 +1065,7 @@ const validateTimeSlots = () => {
       >
         {loading ? (
           // Display only the spinner when loading
-          <div
-            className="flex items-center justify-center"
-            style={{ height: "75vh" }}
-          >
-            {/* <Spinner animation="border" role="status" /> */}
-            <div
-              className=""
-              style={{
-                // marginTop: "100px",
-                paddingTop: "30px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-                padding: "20px",
-                width: "100%",
-                textAlign: "center",
-              }}
-            >
-              {/* <Spinner animation="border" /> Loading... */}
-              <img
-                style={{
-                  width: "30px",
-                  marginRight: "6px",
-                }}
-                className="animate-pulse flex justify-center items-center"
-                src={priceoboIcon}
-                alt="Priceobo Icon"
-              />
-              <br />
-
-              <div className="block">
-                <p className="text-base"> Loading...</p>
-              </div>
-            </div>
-          </div>
+          <UpdatePriceFromListSkeleton></UpdatePriceFromListSkeleton>
         ) : (
           <>
             <Modal.Header closeButton>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Table, Form, Button, Modal } from "react-bootstrap";
 import axios from "axios";
 import "./ManageUser.css";
+import ManageUsersLoadingSkeleton from "../LoadingSkeleton/ManageUsersLoadingSkeleton";
 
 // const BASE_URL = 'http://localhost:3000';
 const BASE_URL = `https://api.priceobo.com`;
@@ -123,6 +124,8 @@ function ManageUser() {
       console.error("Error saving user:", err);
     }
   };
+  if (!users.length)
+    return <ManageUsersLoadingSkeleton></ManageUsersLoadingSkeleton>;
 
   return (
     <>

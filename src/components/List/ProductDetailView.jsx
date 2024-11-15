@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
+import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeletong";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -510,6 +511,21 @@ const formatDateTime = (dateString) => {
   };
 
   const now = new Date();
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+
+    const date = new Date(dateString);
+    const options = {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
 
   const getDayName = (dateString) => {
     const date = new Date(dateString);
@@ -574,32 +590,7 @@ const formatDateTime = (dateString) => {
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
         {loading || productDetailLoading? (
-          <div
-            style={{
-              // marginTop: "100px",
-              paddingTop: "30px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "90vh",
-              padding: "20px",
-              width: "100%",
-              textAlign: "center",
-            }}
-          >
-            {/* <Spinner animation="border" /> Loading... */}
-            <img
-              style={{ width: "30px", marginRight: "6px" }}
-              className="animate-pulse"
-              src={priceoboIcon}
-              alt="Priceobo Icon"
-            />
-            <br />
-
-            <div className="block">
-              <p className="text-base"> Loading...</p>
-            </div>
-          </div>
+          <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
         ) : (
           <Card.Body className="p-0">
             <div>
