@@ -37,8 +37,8 @@ const JobTable = () => {
         ]);
 
         const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
-          const dateA = new Date(a.nextRunAt);
-          const dateB = new Date(b.nextRunAt);
+          const dateA = new Date(a.lastRunAt || a.nextRunAt);
+          const dateB = new Date(b.lastRunAt || b.nextRunAt);
           return dateB - dateA;
         });
 
