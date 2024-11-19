@@ -241,18 +241,19 @@ export default function ScheduleSalesDetailsBarChart({
                 <ChartTooltipContent
                   className="w-[150px]"
                   nameKey="views"
-                  labelFormatter={(value) => {
-                    if (view === "day" && typeof value === "string") {
-                      const [day, month, year] = value.split("/");
-                      const formattedDate = new Date(`${year}-${month}-${day}`);
-                      return formattedDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      });
-                    }
-                    return value; // For week and month
-                  }}
+                  // labelFormatter={(value) => {
+                  //   if (view === "day" && typeof value === "string") {
+                  //     const [day, month, year] = value.split("/");
+                  //     const formattedDate = new Date(`${year}-${month}-${day}`);
+                  //     return formattedDate.toLocaleDateString("en-US", {
+                  //       month: "short",
+                  //       day: "numeric",
+                  //       year: "numeric",
+                  //     });
+                  //   }
+                  //   return value; // For week and month
+                  // }}
+                  labelFormatter={(value) => formatXAxisLabel(value)}
                 />
               }
             />

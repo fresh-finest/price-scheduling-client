@@ -12,6 +12,7 @@ import { BsClipboardCheck } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
 import ScheduleVsCount from "./ScheduleVsCount";
+import ChartsLoadingSkeleton from "../LoadingSkeleton/ChartsLoadingSkeleton";
 
 // const BASE_URL = "http://localhost:3000";
 // const BASE_URL = "http://192.168.0.167:3000";
@@ -23,7 +24,7 @@ const SaleDetails = () => {
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
   const [productData, setProductData] = useState("");
-  const [salesChartloading, setSalesChartLoading] = useState(true);
+  const [salesChartloading, setSalesChartLoading] = useState(false);
   const [schduleChartLoading, setScheduleChartLoading] = useState(false);
   const [error, setError] = useState(null);
   const [view, setView] = useState("day"); // Default view is "By Day"
@@ -89,6 +90,8 @@ const SaleDetails = () => {
       const response = await axios.get(`https://api.priceobo.com/list/${sku1}`);
       const price = response?.data?.offerAmount;
 
+      console.log("price", price);
+
       setProductPrice(price);
     } catch (err) {
       setError("An Error occurred while fetching product price.");
@@ -137,7 +140,7 @@ const SaleDetails = () => {
   return (
     <div className="">
       {productInfo && (
-        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px]">
+        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px] gap-1">
           <img
             src={productInfo?.AttributeSets[0]?.SmallImage?.URL}
             width="70px"
@@ -147,7 +150,7 @@ const SaleDetails = () => {
           <div>
             <h3 className="text-md">{productInfo?.AttributeSets[0]?.Title}</h3>
             <div className="flex items-center justify-start  gap-1 mt-1">
-              <p className="px-2 py-1 bg-[#007BFF] text-white rounded-sm">
+              <p className="px-2 py-1 bg-[#3B82F6] text-white rounded-sm">
                 ${productPrice}
               </p>
               <p className="flex items-center justify-center gap-1  text-sm border max-w-[18%] px-2 py-1">
@@ -234,7 +237,7 @@ const SaleDetails = () => {
 
       <div className="mt-5">
         {salesChartloading ? (
-          "Loading.."
+          <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
         ) : (
           <PriceVsCount
             view={view}
@@ -249,7 +252,7 @@ const SaleDetails = () => {
       </div>
       <div>
         {schduleChartLoading ? (
-          "Loading.."
+          <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
         ) : (
           <ScheduleVsCount
             view={view}
