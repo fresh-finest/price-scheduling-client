@@ -1,207 +1,272 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Table, Spinner, Button, ButtonGroup, Form, Alert } from "react-bootstrap";
-import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
+import { useLocation, useParams } from "react-router-dom";
 import moment from "moment";
+import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
+import { MdCheck } from "react-icons/md";
+import { BsClipboardCheck } from "react-icons/bs";
+import { Card } from "../ui/card";
+import PriceVsCount from "./PriceVsCount";
+import ScheduleVsCount from "./ScheduleVsCount";
+import ChartsLoadingSkeleton from "../LoadingSkeleton/ChartsLoadingSkeleton";
 
+// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://192.168.0.167:3000";
 
-const BASE_URL = "http://localhost:3000";
-
+const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetails = () => {
   const { sku } = useParams();
-  const navigate = useNavigate();
   const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [scheduleSalesData, setScheduleSalesData] = useState([]);
+  const [productData, setProductData] = useState("");
+  const [salesChartloading, setSalesChartLoading] = useState(false);
+  const [schduleChartLoading, setScheduleChartLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [view, setView] = useState("day");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [reportAvailable, setReportAvailable] = useState(false);
+  const [view, setView] = useState("day"); // Default view is "By Day"
+  const [dateRange, setDateRange] = useState([null, null]); // Store start and end date as a range
+  const [startDate, endDate] = dateRange; // Destructure for easy access
+  const [copiedSku, setCopiedSku] = useState(null);
+  const [showTable, setShowTable] = useState(false);
+  const [showScheduleSalesTable, setShowScheduleSalesTable] = useState(false);
+  const [productPrice, setProductPrice] = useState("");
 
+  const location = useLocation();
+  const { productInfo, sku1 } = location.state || {};
+
+  console.log("product info", productInfo?.AttributeSets[0]);
 
   const fetchSalesMetrics = async () => {
-    setLoading(true);
+    setSalesChartLoading(true);
     setError(null);
     try {
       let url = `${BASE_URL}/sales-metrics/${view}/${sku}`;
       const params = {};
 
-
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${sku}`;
-        params.startDate = startDate;
-        params.endDate = endDate;
+        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.endDate = moment(endDate).format("YYYY-MM-DD");
       }
- 
 
       const response = await axios.get(url, { params });
       setSalesData(response.data);
     } catch (err) {
-      setError("Error fetching sales metrics.");
+      setError("An error occurred while fetching sales data.");
     } finally {
-      setLoading(false);
+      setSalesChartLoading(false);
     }
   };
-
-
-  const checkReportAvailability = async () => {
+  const fetchScheduleSalesMetrics = async () => {
+    setScheduleChartLoading(true);
+    setError(null);
     try {
-      const response = await axios.get(`${BASE_URL}/api/report`);
-      const skuExists = response.data.some((item) => item.sku === sku);
-      setReportAvailable(skuExists);
+      let url = `${BASE_URL}/api/report/${sku}`;
+      const params = {};
+
+      // if (startDate && endDate) {
+      //   url = `${BASE_URL}/sales-metrics/range/${sku}`;
+      //   params.startDate = moment(startDate).format("YYYY-MM-DD");
+      //   params.endDate = moment(endDate).format("YYYY-MM-DD");
+      // }
+
+      const response = await axios.get(url);
+      console.log("response", response);
+      setScheduleSalesData(response.data);
     } catch (err) {
-      console.error("Error checking report availability:", err);
-      setReportAvailable(false);
+      setError("An error occurred while fetching schedule sales data.");
+    } finally {
+      setScheduleChartLoading(false);
     }
   };
 
+  const fetchProductPrice = async () => {
+    setError(null);
+    try {
+      const response = await axios.get(`https://api.priceobo.com/list/${sku1}`);
+      const price = response?.data?.offerAmount;
+
+      console.log("price", price);
+
+      setProductPrice(price);
+    } catch (err) {
+      setError("An Error occurred while fetching product price.");
+    } finally {
+      // setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchSalesMetrics();
-    checkReportAvailability();
+    // fetchSalesProductData();
+    fetchScheduleSalesMetrics();
   }, [sku, view, startDate, endDate]);
 
+  useEffect(() => {
+    fetchProductPrice();
+  }, []);
 
   const handleViewChange = (newView) => {
     setView(newView);
-    setStartDate("");
-    setEndDate("");
+    setDateRange([null, null]); // Reset date range
   };
 
-
-  const handleDateChange = (type, date) => {
-    if (type === "start") setStartDate(date);
-    if (type === "end") setEndDate(date);
-    setView("");
+  const formatDate = (date) => {
+    return moment(date, "DD/MM/YYYY").format("MM/DD/YYYY, dddd");
   };
 
-
-  const formatDate = (date) => moment(date, "DD/MM/YYYY").format("MM/DD/YYYY, dddd");
-
-
-  const navigateToReport = () => {
-    if (reportAvailable) {
-      navigate(`/report/${sku}`);
-    }
+  const handleCopy = (text, type) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        if (type === "sku") {
+          setCopiedSku(text); // Set the copied SKU
+          setTimeout(() => setCopiedSku(null), 2000); // Reset after 2 seconds
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
   };
 
+  // if (error) {
+  //   return <p>{error}</p>;
+  // }
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Sales Details for SKU: {sku}</h3>
-        <ButtonGroup>
+    <div className="">
+      {productInfo && (
+        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px] gap-1">
+          <img
+            src={productInfo?.AttributeSets[0]?.SmallImage?.URL}
+            width="70px"
+            height="50px"
+            alt="product image"
+          />
+          <div>
+            <h3 className="text-md">{productInfo?.AttributeSets[0]?.Title}</h3>
+            <div className="flex items-center justify-start  gap-1 mt-1">
+              <p className="px-2 py-1 bg-[#3B82F6] text-white rounded-sm">
+                ${productPrice}
+              </p>
+              <p className="flex items-center justify-center gap-1  text-sm border max-w-[18%] px-2 py-1">
+                {sku1}{" "}
+                {copiedSku === sku1 ? (
+                  <MdCheck
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      color: "green",
+                      fontSize: "16px",
+                    }}
+                  />
+                ) : (
+                  <BsClipboardCheck
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(sku1, "sku");
+                    }}
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                  />
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className=" flex space-x-2  absolute top-[5px] right-[30%] ">
+          {/* <div className=" flex space-x-2  absolute top-[0px] right-[30%] "> */}
           <Button
             onClick={() => handleViewChange("day")}
-            variant={view === "day" ? "primary" : "outline-primary"}
+            variant="outline"
+            className={`w-[80px] justify-center ${
+              view === "day"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
           >
             By Day
           </Button>
           <Button
             onClick={() => handleViewChange("week")}
-            variant={view === "week" ? "primary" : "outline-primary"}
+            variant="outline"
+            className={`w-[80px] justify-center ${
+              view === "week"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
           >
             By Week
           </Button>
           <Button
             onClick={() => handleViewChange("month")}
-            variant={view === "month" ? "primary" : "outline-primary"}
+            variant="outline"
+            className={`w-[80px] justify-center ${
+              view === "month"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
           >
             By Month
           </Button>
-        </ButtonGroup>
-      </div>
-
-
-      <Button
-        onClick={navigateToReport}
-        variant={reportAvailable ? "success" : "secondary"}
-        disabled={!reportAvailable}
-        className="mb-3"
-      >
-        {reportAvailable ? "Schedule Report Available" : "Schedule Report Not Available"}
-      </Button>
-
-
-      <div className="d-flex mb-3">
-        <Form.Group className="mr-2">
-          <Form.Label>Start Date</Form.Label>
-          <Form.Control
-            type="date"
-            value={startDate}
-            onChange={(e) => handleDateChange("start", e.target.value)}
-          />
-        </Form.Group>
-        <Form.Group className="mr-2">
-          <Form.Label>End Date</Form.Label>
-          <Form.Control
-            type="date"
-            value={endDate}
-            onChange={(e) => handleDateChange("end", e.target.value)}
-          />
-        </Form.Group>
-      </div>
-
-
-      {loading ? (
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ height: "60vh" }}
-        >
-          <Spinner animation="border" />
-          <span className="ml-3">Loading...</span>
         </div>
-      ) : error ? (
-        <Alert variant="danger">{error}</Alert>
-      ) : (
-        <Table striped bordered hover responsive className="mt-3">
-          <thead>
-            <tr>
-              <th>
-                {view === "day" || (startDate && endDate)
-                  ? "Date"
-                  : view === "week"
-                  ? "Week"
-                  : "Month"}
-              </th>
-              <th>Price</th>
-              <th>Unit</th>
-            </tr>
-          </thead>
-          <tbody>
-            {salesData.length > 0 ? (
-              salesData.map((item, index) => (
-                <tr key={index}>
-                  <td>
-                    {view === "day" || (startDate && endDate)
-                      ? formatDate(item.date)
-                      : view === "week"
-                      ? item.week
-                      : item.month}
-                  </td>
-                  <td>{parseFloat(item.amount || item.averageAmount).toFixed(2)}</td>
-                  <td>{item.unitCount}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="3" className="text-center">
-                  No Sales Data Available
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      )}
+        <div className="absolute top-[5px]  right-[17%]">
+          {/* <div className="absolute top-[0px]  right-[17%]"> */}
+          <DatePicker
+            selected={startDate}
+            onChange={(update) => setDateRange(update)}
+            startDate={startDate}
+            endDate={endDate}
+            selectsRange
+            isClearable
+            placeholderText="Select a date range"
+            className="custom-date-input form-control py-[7px]"
+          />
+        </div>
+      </div>
+
+      <div className="mt-5">
+        {salesChartloading ? (
+          <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
+        ) : (
+          <PriceVsCount
+            view={view}
+            salesData={salesData}
+            showTable={showTable}
+            setShowTable={setShowTable}
+            startDate={startDate}
+            endDate={endDate}
+            formatDate={formatDate}
+          ></PriceVsCount>
+        )}
+      </div>
+      <div>
+        {schduleChartLoading ? (
+          <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
+        ) : (
+          <ScheduleVsCount
+            view={view}
+            scheduleSalesData={scheduleSalesData}
+            showScheduleSalesTable={showScheduleSalesTable}
+            setShowScheduleSalesTable={setShowScheduleSalesTable}
+            startDate={startDate}
+            endDate={endDate}
+            formatDate={formatDate}
+          ></ScheduleVsCount>
+        )}
+      </div>
     </div>
   );
 };
 
-
 export default SaleDetails;
-
-
-
-
-

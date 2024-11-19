@@ -4,11 +4,12 @@ import { LuPencilLine } from "react-icons/lu";
 import { PiWarehouse } from "react-icons/pi";
 import { CiEdit } from "react-icons/ci";
 import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
+import { HiOutlineArrowNarrowRight } from "react-icons/hi";
 import axios from "axios";
 import { useSelector } from "react-redux";
 // import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
-import DetailedCalendarView from "../Calendar/DetailedCalendarView"
+import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { MdCheck } from "react-icons/md";
@@ -16,6 +17,7 @@ import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { FaArrowRightLong, FaRankingStar } from "react-icons/fa6";
 import { Calendar } from "../ui/calendar";
 import { DateTime } from "luxon";
+import { useNavigate } from "react-router-dom";
 import {
   Card as ShadCdnCard,
   CardContent,
@@ -143,17 +145,18 @@ function convertToUserLocalTime(utcTimeString) {
 
   // Parse the time string assuming it's in UTC
   const [hours, minutes] = utcTimeString.split(":").map(Number);
-  
+
   // Create a Date object using the current date and UTC time
   const now = new Date();
-  const utcDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes));
-// Convert to the user's local time zone with AM/PM format
-const options = { hour: '2-digit', minute: '2-digit', hour12: true };
-const localTime = utcDate.toLocaleTimeString([], options);  // This will format with AM/PM
-  
+  const utcDate = new Date(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes)
+  );
+  // Convert to the user's local time zone with AM/PM format
+  const options = { hour: "2-digit", minute: "2-digit", hour12: true };
+  const localTime = utcDate.toLocaleTimeString([], options); // This will format with AM/PM
+
   return localTime;
 }
-
 
 const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
@@ -201,7 +204,6 @@ const displayTimeSlotsWithDayLabels = (timeSlots, isWeekly = false) => {
   ));
 };
 
-
 const ProductDetailView = ({
   product,
   listing,
@@ -214,7 +216,6 @@ const ProductDetailView = ({
   productDetailLoading,
   setProductDetailLoading,
 }) => {
-  
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -252,7 +253,7 @@ const ProductDetailView = ({
 
   const { currentUser } = useSelector((state) => state.user);
 
-  // const { events } = useContext(PriceScheduleContext); 
+  // const { events } = useContext(PriceScheduleContext);
   const [selectedDays, setSelectedDays] = useState([]);
 
   // useEffect(() => {
@@ -260,13 +261,13 @@ const ProductDetailView = ({
   //   const scheduleDates = events.map((event) => new Date(event.start));
   //   setSelectedDays(scheduleDates); // Set the selected dates
   // }, [events]);
-
+  const navigate = useNavigate();
   const handleDateSelect = (dates) => {
     setSelectedDays(dates); // Update the selected days on user interaction
   };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
-/*
+  /*
   const formatDateTime = (dateString) => {
     const options = {
       day: "2-digit",
@@ -279,18 +280,18 @@ const ProductDetailView = ({
     return new Date(dateString).toLocaleString("en-US", options);
   };
 */
-const formatDateTime = (dateString) => {
-  const options = {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-    timeZone: "America/New_York" // Ensures display in New York time zone
+  const formatDateTime = (dateString) => {
+    const options = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+      timeZone: "America/New_York", // Ensures display in New York time zone
+    };
+    return new Date(dateString).toLocaleString("en-US", options);
   };
-  return new Date(dateString).toLocaleString("en-US", options);
-};
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
       .map((day) => daysOptions.find((option) => option.value === day)?.label)
@@ -311,7 +312,6 @@ const formatDateTime = (dateString) => {
         sc.weekly &&
         (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
     );
-  
 
     if (validSchedule) {
       setCurrentPrice(validSchedule.currentPrice);
@@ -335,7 +335,9 @@ const formatDateTime = (dateString) => {
       try {
         setLoading(true);
         const encodedSku = encodeURIComponent(sku1);
-        const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
+        const response = await axios.get(
+          `${BASE_URL}/api/schedule/${encodedSku}`
+        );
         const sortedData = response.data.result.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -349,7 +351,6 @@ const formatDateTime = (dateString) => {
         setPriceSchedule(data.result || []);
       } catch (err) {
         if (err.name !== "AbortError") {
-          
           setError("Error fetching schedule data.");
         }
       } finally {
@@ -589,7 +590,7 @@ const formatDateTime = (dateString) => {
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
-        {loading || productDetailLoading? (
+        {loading || productDetailLoading ? (
           <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
         ) : (
           <Card.Body className="p-0">
@@ -616,11 +617,26 @@ const formatDateTime = (dateString) => {
               <hr
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
+              <div className=" flex justify-center items-center mt-2">
+                <button
+                  onClick={() =>
+                    navigate(`/details/${sku1}`, {
+                      state: { productInfo: product, price, asin, sku1 },
+                    })
+                  }
+                  className="bg-[#0662BB] text-white rounded drop-shadow-md flex justify-center items-center gap-1 relative pl-4 pr-6 py-1"
+                >
+                  <span className="inline-block mb-1">
+                    See Pricing and Sales Report
+                  </span>
+                  <span className="absolute top-[8.5px] right-1">
+                    <HiOutlineArrowNarrowRight />
+                  </span>
+                </button>
+              </div>
 
-        
               <div className="m-3 ">
-              
-               <DetailedCalendarView sku1={sku1}/>
+                <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}
 
@@ -781,7 +797,7 @@ const formatDateTime = (dateString) => {
                                                   <div className="flex justify-center w-full gap-2 my-2 px-2 ">
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                      {/* {timeSlot.startTime} */}
+                                                        {/* {timeSlot.startTime} */}
                                                         {addHoursToTime(
                                                           timeSlot?.startTime,
                                                           0
@@ -800,7 +816,7 @@ const formatDateTime = (dateString) => {
                                                     </span>
                                                     <div className="w-full">
                                                       <h3 className="flex text-sm justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                                      {/* {timeSlot.endTime} */}
+                                                        {/* {timeSlot.endTime} */}
                                                         {addHoursToTime(
                                                           timeSlot.endTime,
                                                           0
