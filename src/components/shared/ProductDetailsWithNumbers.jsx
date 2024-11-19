@@ -53,7 +53,11 @@ const ProductDetailsWithNumbers = ({
       >
         <Card.Img
           variant="top"
-          src={product?.AttributeSets[0]?.SmallImage?.URL}
+          // src={product?.AttributeSets[0]?.SmallImage?.URL}
+          src={
+            product?.AttributeSets?.[0]?.SmallImage?.URL ||
+            "https://beautyrepublicfdl.com/wp-content/uploads/2020/06/placeholder-image-600x450.jpg" // Provide a fallback if the URL is not available
+          }
           className={`${
             updatePriceModal
               ? "max-w-[120px] max-h-[120px] object-fill"
@@ -67,7 +71,7 @@ const ProductDetailsWithNumbers = ({
               updatePriceModal ? "text-[16px]" : "text-[14px]"
             }  text-left font-normal`}
           >
-            {product?.AttributeSets[0]?.Title}
+            {product?.AttributeSets?.[0]?.Title}
           </Card.Title>
           {updatePriceModal && (
             <div className="flex   gap-2 mt-2 ">

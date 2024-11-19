@@ -16,6 +16,7 @@ import JobTable from "./pages/Job";
 import Settings from "./pages/Settings";
 import Report from "./components/Report/Report";
 import SaleDetails from "./components/Report/SaleDetails";
+import ReportDetails from "./components/Report/ReportDetails";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             }
           >
             <Route path="details/:sku" element={<SaleDetails />} />
+            <Route path="report/:sku" element={<ReportDetails />} />
             <Route path="/status" element={<JobTable />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/report" element={<Report />} />

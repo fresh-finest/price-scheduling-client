@@ -30,6 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeleton";
+import { useNavigate } from "react-router-dom";
+import { HiOutlineArrowNarrowRight } from "react-icons/hi";
+import SaleDetails from "../Report/SaleDetails";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
 // const BASE_URL = `https://api.priceobo.com`;
@@ -155,6 +158,7 @@ const ProductDetailView = ({
   productDetailLoading,
   setProductDetailLoading,
 }) => {
+  console.log("product", product);
   if (!product.AttributeSets) {
     return <p>Product data is not available for this ASIN.</p>;
   }
@@ -178,6 +182,7 @@ const ProductDetailView = ({
   const [monthlyLength, setMonthlyLength] = useState("");
 
   const { currentUser } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
@@ -423,64 +428,85 @@ const ProductDetailView = ({
 
   const monthlySlotLength = getFilteredMonthlySlotLength(priceSchedule);
 
+  console.log("product", product);
+
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
         {loading || productDetailLoading ? (
-          // <div
-          //   style={{
-          //     // marginTop: "100px",
-          //     paddingTop: "30px",
-          //     display: "flex",
-          //     justifyContent: "center",
-          //     alignItems: "center",
-          //     height: "90vh",
-          //     padding: "20px",
-          //     width: "100%",
-          //     textAlign: "center",
-          //   }}
-          // >
-          //   {/* <Spinner animation="border" /> Loading... */}
-          //   <img
-          //     style={{ width: "30px", marginRight: "6px" }}
-          //     className="animate-pulse"
-          //     src={priceoboIcon}
-          //     alt="Priceobo Icon"
-          //   />
-          //   <br />
+          <div
+            style={{
+              // marginTop: "100px",
+              paddingTop: "30px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "90vh",
+              padding: "20px",
+              width: "100%",
+              textAlign: "center",
+            }}
+          >
+            {/* <Spinner animation="border" /> Loading... */}
+            <img
+              style={{ width: "30px", marginRight: "6px" }}
+              className="animate-pulse"
+              src={priceoboIcon}
+              alt="Priceobo Icon"
+            />
+            <br />
 
-          //   <div className="block">
-          //     <p className="text-base"> Loading...</p>
-          //   </div>
-          // </div>
-          <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
+            <div className="block">
+              <p className="text-base"> Loading...</p>
+            </div>
+          </div>
         ) : (
+          // <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
           <Card.Body className="p-0">
             <div>
-              <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
+              {/* <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
                 <h2 className="py-[6px] text-center text-sm">
                   Schedule Details
                 </h2>
-              </div>
+              </div> */}
 
               {/* product image and details with asin numbers */}
-
-              <ProductDetailsWithNumbers
-                product={product}
-                channelStockValue={channelStockValue}
-                fulfillmentChannel={fulfillmentChannel}
-                price={price}
-                asin={asin}
-                sku1={sku1}
-                fnSku={fnSku}
-                updatePriceModal={false}
-              ></ProductDetailsWithNumbers>
+              <div className="pt-2">
+                <ProductDetailsWithNumbers
+                  product={product}
+                  channelStockValue={channelStockValue}
+                  fulfillmentChannel={fulfillmentChannel}
+                  price={price}
+                  asin={asin}
+                  sku1={sku1}
+                  fnSku={fnSku}
+                  updatePriceModal={false}
+                ></ProductDetailsWithNumbers>
+              </div>
 
               <hr
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
 
-              <div className="m-3 ">
+              <div className=" flex justify-center items-center mt-2">
+                <button
+                  onClick={() =>
+                    navigate(`/details/${sku1}`, {
+                      state: { productInfo: product, price, asin, sku1 },
+                    })
+                  }
+                  className="bg-[#0662BB] text-white rounded drop-shadow-md flex justify-center items-center gap-1 relative pl-4 pr-6 py-1"
+                >
+                  <span className="inline-block mb-1">
+                    See Pricing and Sales Report
+                  </span>
+                  <span className="absolute top-[8.5px] right-1">
+                    <HiOutlineArrowNarrowRight />
+                  </span>
+                </button>
+              </div>
+
+              <div className="mx-3  mb-3 ">
                 <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}

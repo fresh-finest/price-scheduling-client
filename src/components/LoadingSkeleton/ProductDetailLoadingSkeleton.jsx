@@ -49,9 +49,9 @@ const ProductDetailLoadingSkeleton = () => {
       {
         <Card.Body className="p-0">
           <div>
-            <div className="border-b-2 mb-2 py-[8px] ">
+            {/* <div className="border-b-2 mb-2 py-[8px] ">
               <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-20 h-4 mx-auto"></p>
-            </div>
+            </div> */}
 
             {/* product image and details with asin numbers */}
 

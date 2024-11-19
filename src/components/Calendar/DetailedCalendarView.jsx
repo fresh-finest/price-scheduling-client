@@ -92,14 +92,16 @@ const CalendarView = ({ sku1 }) => {
                 // startDateObj.setDate(startDateObj.getDate() + (parseInt(day, 10) - startDateObj.getDay()));
                 // endDateObj.setDate(endDateObj.getDate() + (parseInt(day, 10) - endDateObj.getDay()));
 
-              startDateObj.setDate(startDateObj.getDate()+dayDifference);
-              endDateObj.setDate(endDateObj.getDate()+dayDifference);
-              // dayDifference=dayDifference+7
-              // Set the time for the time slot
-              const [startHour, startMinute] = startTime.split(":").map(Number);
-              const [endHour, endMinute] = endTime.split(":").map(Number);
-              startDateObj.setHours(startHour, startMinute, 0);
-              endDateObj.setHours(endHour, endMinute, 0);
+                startDateObj.setDate(startDateObj.getDate() + dayDifference);
+                endDateObj.setDate(endDateObj.getDate() + dayDifference);
+                // dayDifference=dayDifference+7
+                // Set the time for the time slot
+                const [startHour, startMinute] = startTime
+                  .split(":")
+                  .map(Number);
+                const [endHour, endMinute] = endTime.split(":").map(Number);
+                startDateObj.setHours(startHour, startMinute, 0);
+                endDateObj.setHours(endHour, endMinute, 0);
 
                 events.push({
                   title: `SKU: ${sku} - $${newPrice}`,
@@ -199,7 +201,7 @@ const CalendarView = ({ sku1 }) => {
   };
 
   return (
-    <div className="m-3">
+    <div className="mx-3 mt-2 mb-3">
       {/* Pass selectedDays and onDateSelect to the Calendar component */}
       <Calendar
         selectedDays={selectedDays}

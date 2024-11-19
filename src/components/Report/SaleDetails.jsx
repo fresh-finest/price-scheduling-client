@@ -4,25 +4,43 @@ import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import moment from "moment";
+import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
+import { MdCheck } from "react-icons/md";
+import { BsClipboardCheck } from "react-icons/bs";
+import { Card } from "../ui/card";
+import PriceVsCount from "./PriceVsCount";
+import ScheduleVsCount from "./ScheduleVsCount";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.167:3000";
+// const BASE_URL = "http://192.168.0.167:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetails = () => {
   const { sku } = useParams();
   const [salesData, setSalesData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [scheduleSalesData, setScheduleSalesData] = useState([]);
+  const [productData, setProductData] = useState("");
+  const [salesChartloading, setSalesChartLoading] = useState(true);
+  const [schduleChartLoading, setScheduleChartLoading] = useState(false);
   const [error, setError] = useState(null);
   const [view, setView] = useState("day"); // Default view is "By Day"
   const [dateRange, setDateRange] = useState([null, null]); // Store start and end date as a range
   const [startDate, endDate] = dateRange; // Destructure for easy access
+  const [copiedSku, setCopiedSku] = useState(null);
+  const [showTable, setShowTable] = useState(false);
+  const [showScheduleSalesTable, setShowScheduleSalesTable] = useState(false);
+  const [productPrice, setProductPrice] = useState("");
+
+  const location = useLocation();
+  const { productInfo, sku1 } = location.state || {};
+
+  console.log("product info", productInfo?.AttributeSets[0]);
 
   const fetchSalesMetrics = async () => {
-    setLoading(true);
+    setSalesChartLoading(true);
     setError(null);
     try {
       let url = `${BASE_URL}/sales-metrics/${view}/${sku}`;
@@ -39,13 +57,55 @@ const SaleDetails = () => {
     } catch (err) {
       setError("An error occurred while fetching sales data.");
     } finally {
-      setLoading(false);
+      setSalesChartLoading(false);
+    }
+  };
+  const fetchScheduleSalesMetrics = async () => {
+    setScheduleChartLoading(true);
+    setError(null);
+    try {
+      let url = `${BASE_URL}/api/report/${sku}`;
+      const params = {};
+
+      // if (startDate && endDate) {
+      //   url = `${BASE_URL}/sales-metrics/range/${sku}`;
+      //   params.startDate = moment(startDate).format("YYYY-MM-DD");
+      //   params.endDate = moment(endDate).format("YYYY-MM-DD");
+      // }
+
+      const response = await axios.get(url);
+      console.log("response", response);
+      setScheduleSalesData(response.data);
+    } catch (err) {
+      setError("An error occurred while fetching schedule sales data.");
+    } finally {
+      setScheduleChartLoading(false);
+    }
+  };
+
+  const fetchProductPrice = async () => {
+    setError(null);
+    try {
+      const response = await axios.get(`https://api.priceobo.com/list/${sku1}`);
+      const price = response?.data?.offerAmount;
+
+      setProductPrice(price);
+    } catch (err) {
+      setError("An Error occurred while fetching product price.");
+    } finally {
+      // setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchSalesMetrics();
+    // fetchSalesProductData();
+    fetchScheduleSalesMetrics();
   }, [sku, view, startDate, endDate]);
+
+  useEffect(() => {
+    fetchProductPrice();
+  }, []);
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -56,11 +116,73 @@ const SaleDetails = () => {
     return moment(date, "DD/MM/YYYY").format("MM/DD/YYYY, dddd");
   };
 
+  const handleCopy = (text, type) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        if (type === "sku") {
+          setCopiedSku(text); // Set the copied SKU
+          setTimeout(() => setCopiedSku(null), 2000); // Reset after 2 seconds
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
+
+  // if (error) {
+  //   return <p>{error}</p>;
+  // }
+
   return (
     <div className="">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Sales Details for SKU: {sku}</h3>
-        <div className="mr-[17%] flex space-x-2 mt-[-0.5%] mb-[10px">
+      {productInfo && (
+        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px]">
+          <img
+            src={productInfo?.AttributeSets[0]?.SmallImage?.URL}
+            width="70px"
+            height="50px"
+            alt="product image"
+          />
+          <div>
+            <h3 className="text-md">{productInfo?.AttributeSets[0]?.Title}</h3>
+            <div className="flex items-center justify-start  gap-1 mt-1">
+              <p className="px-2 py-1 bg-[#007BFF] text-white rounded-sm">
+                ${productPrice}
+              </p>
+              <p className="flex items-center justify-center gap-1  text-sm border max-w-[18%] px-2 py-1">
+                {sku1}{" "}
+                {copiedSku === sku1 ? (
+                  <MdCheck
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      color: "green",
+                      fontSize: "16px",
+                    }}
+                  />
+                ) : (
+                  <BsClipboardCheck
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(sku1, "sku");
+                    }}
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                  />
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div className=" flex space-x-2  absolute top-[5px] right-[30%] ">
+          {/* <div className=" flex space-x-2  absolute top-[0px] right-[30%] "> */}
           <Button
             onClick={() => handleViewChange("day")}
             variant="outline"
@@ -95,156 +217,51 @@ const SaleDetails = () => {
             By Month
           </Button>
         </div>
-      </div>
-
-      <div className="d-flex justify-end mb-2">
-        <DatePicker
-          selected={startDate}
-          onChange={(update) => setDateRange(update)}
-          startDate={startDate}
-          endDate={endDate}
-          selectsRange
-          isClearable
-          placeholderText="Select a date range"
-          className="custom-date-input form-control"
-        />
-      </div>
-
-      {loading ? (
-        <div
-          style={{
-            marginTop: "100px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "60vh",
-          }}
-        >
-          <img
-            style={{ width: "40px", marginRight: "6px" }}
-            className="animate-pulse"
-            src={priceoboIcon}
-            alt="Priceobo Icon"
+        <div className="absolute top-[5px]  right-[17%]">
+          {/* <div className="absolute top-[0px]  right-[17%]"> */}
+          <DatePicker
+            selected={startDate}
+            onChange={(update) => setDateRange(update)}
+            startDate={startDate}
+            endDate={endDate}
+            selectsRange
+            isClearable
+            placeholderText="Select a date range"
+            className="custom-date-input form-control py-[7px]"
           />
-          <div className="block">
-            <p className="text-xl"> Loading...</p>
-          </div>
         </div>
-      ) : error ? (
-        <p>{error}</p>
-      ) : (
-        <section
-          style={{
-            maxHeight: "91vh",
-            overflowY: "auto",
-            marginTop: "20px",
-            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <table
-            style={{
-              tableLayout: "fixed",
-            }}
-            className="reportCustomTable table"
-          >
-            <thead>
-              <tr>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  {view === "day" || (startDate && endDate)
-                    ? "Date"
-                    : view === "week"
-                    ? "Week"
-                    : "Month"}
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Price
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  Unit
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              style={{
-                fontSize: "13px",
-                fontFamily: "Arial, sans-serif",
-                lineHeight: "1.5",
-              }}
-            >
-              {salesData.length > 0 ? (
-                salesData.map((item, index) => (
-                  <tr key={index}>
-                    <td
-                      style={{
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {view === "day" || (startDate && endDate)
-                        ? formatDate(item.date)
-                        : view === "week"
-                        ? item.week
-                        : item.month}
-                    </td>
-                    <td
-                      style={{
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {parseFloat(
-                        view === "day" || (startDate && endDate)
-                          ? item.amount
-                          : item.averageAmount
-                      ).toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {item.unitCount}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="3" className="text-center">
-                    No Sales Data Available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </section>
-      )}
+      </div>
+
+      <div className="mt-5">
+        {salesChartloading ? (
+          "Loading.."
+        ) : (
+          <PriceVsCount
+            view={view}
+            salesData={salesData}
+            showTable={showTable}
+            setShowTable={setShowTable}
+            startDate={startDate}
+            endDate={endDate}
+            formatDate={formatDate}
+          ></PriceVsCount>
+        )}
+      </div>
+      <div>
+        {schduleChartLoading ? (
+          "Loading.."
+        ) : (
+          <ScheduleVsCount
+            view={view}
+            scheduleSalesData={scheduleSalesData}
+            showScheduleSalesTable={showScheduleSalesTable}
+            setShowScheduleSalesTable={setShowScheduleSalesTable}
+            startDate={startDate}
+            endDate={endDate}
+            formatDate={formatDate}
+          ></ScheduleVsCount>
+        )}
+      </div>
     </div>
   );
 };
