@@ -127,34 +127,10 @@ export default function ScheduleSalesDetailsBarChart({
   return (
     <>
       {/* <Card className="h-[50vh]"> */}
-      {/* <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Bar Chart - Interactive</CardTitle>
-          <CardDescription>
-            Showing unit counts and price details.
-          </CardDescription>
-        </div>
-        <div className="flex">
-          {["desktop", "mobile"].map((key) => {
-            const chart = key;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className="text-xs text-muted-foreground">
-                  {chartConfig[chart].label}
-                </span>
-                <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {total[chart].toLocaleString()}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </CardHeader> */}
+      <CardHeader className="items-center pb-0">
+        <CardTitle>On Schedule Sale Report</CardTitle>
+        {/* <CardDescription>January - June 2024</CardDescription> */}
+      </CardHeader>
       <CardContent className="px-2  sm:p-6">
         <ChartContainer
           config={chartConfig}
@@ -170,7 +146,7 @@ export default function ScheduleSalesDetailsBarChart({
             // height={500}
             // margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
             margin={{
-              top: 20,
+              top: 40,
               right: 30,
               left: 80,
               bottom: 120,
@@ -270,10 +246,12 @@ export default function ScheduleSalesDetailsBarChart({
               {/* Display unitCount inside the bar */}
               <LabelList
                 dataKey="unitCount"
-                position="inside"
+                position="top"
+                offset={19}
                 formatter={(value) => `${value}`} // Show raw unitCount
                 fontSize={12}
-                fill="#fff" // White text for inside bar
+                fill="#555"
+                fontWeight="bold"
               />
             </Bar>
           </BarChart>

@@ -88,6 +88,11 @@ export default function SalesDetailsBarChart({ view, salesData }) {
     <>
       {/* <Card className="h-[50vh]"> */}
 
+      <CardHeader className="items-center pb-0">
+        <CardTitle>Amazon Sale Report</CardTitle>
+        {/* <CardDescription>January - June 2024</CardDescription> */}
+      </CardHeader>
+
       <CardContent className="px-2  sm:p-6">
         <ChartContainer
           config={chartConfig}
@@ -103,7 +108,7 @@ export default function SalesDetailsBarChart({ view, salesData }) {
             // height={500}
             // margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
             margin={{
-              top: 20,
+              top: 40,
               right: 30,
               left: 20,
               bottom: view === "week" ? 120 : 20,
@@ -172,7 +177,7 @@ export default function SalesDetailsBarChart({ view, salesData }) {
               content={
                 <ChartTooltipContent
                   className="w-[150px]"
-                  nameKey="views"
+                  // nameKey="views"
                   labelFormatter={(value) => {
                     if (view === "day" && typeof value === "string") {
                       const [day, month, year] = value.split("/");
@@ -188,6 +193,38 @@ export default function SalesDetailsBarChart({ view, salesData }) {
                 />
               }
             />
+            {/* <ChartTooltip
+              className="w-[150px]"
+              content={
+              <ChartTooltipContent 
+              ({ payload, label }) => {
+                if (!payload || !payload.length) return null; // Return nothing if no data is hovered
+
+                const dataPoint = payload[0].payload; // Access the hovered data point
+                return (
+                  <div
+                    style={{
+                      backgroundColor: "#fff",
+                      padding: "10px",
+                      borderRadius: "5px",
+                      boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    <p>
+                      <strong>Date:</strong> {label}
+                    </p>
+                    <p>
+                      <strong>Units Sold:</strong> {dataPoint.unitCount}
+                    </p>
+                    <p>
+                      <strong>Price:</strong> ${dataPoint.price || "N/A"}
+                    </p>
+                  </div>
+                );
+              }
+              /> 
+              }
+            /> */}
 
             <Bar dataKey="unitCount" fill="#2A9D90">
               {/* Label for price */}
@@ -198,21 +235,32 @@ export default function SalesDetailsBarChart({ view, salesData }) {
                 // formatter={(value) => `$${value.toFixed(2)}`}
               />
 
-              {/* Display unitCount inside the bar */}
+              {/* display unitCount above the bar */}
               <LabelList
+                dataKey="unitCount"
+                position="top"
+                formatter={(value) => `${value}`}
+                offset={19}
+                fontSize={12}
+                fill="#555"
+                fontWeight="bold"
+              ></LabelList>
+
+              {/* Display unitCount inside the bar */}
+              {/* <LabelList
                 dataKey="unitCount"
                 position="inside"
                 formatter={(value) => `${value}`} // Show raw unitCount
                 fontSize={12}
                 fill="#fff" // White text for inside bar
-              />
+              /> */}
             </Bar>
           </BarChart>
         </ChartContainer>
 
         {/* <CardFooter className="flex-col gap-2 text-sm">
           <div className="flex items-center gap-2 font-medium leading-none">
-            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+            Amazon Report <TrendingUp className="h-4 w-4" />
           </div>
           <div className="leading-none text-muted-foreground">
             Showing total visitors for the last 6 months

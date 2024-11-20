@@ -80,11 +80,11 @@ const ScheduleVsCount = ({
 
   return (
     <Card className="mt-[1.5rem]  ">
-      {scheduleSalesData ? (
+      {scheduleSalesData.length ? (
         <div>
           <ScheduleSalesDetailsBarChart
             view={view}
-            scheduleSalesData={filterScheduleSalesData}
+            scheduleSalesData={scheduleSalesData}
           ></ScheduleSalesDetailsBarChart>
           <div className="flex justify-end mx-2 mb-1">
             <Button
@@ -155,7 +155,7 @@ const ScheduleVsCount = ({
                 }}
               >
                 {scheduleSalesData.length > 0 ? (
-                  filterScheduleSalesData.map((item, index) => (
+                  scheduleSalesData.map((item, index) => (
                     <tr key={index}>
                       <td
                         style={{
