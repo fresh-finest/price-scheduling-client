@@ -107,25 +107,75 @@ const SaleDetails = () => {
   //   }
   // };
 
+  // const fetchScheduleSalesMetrics = async () => {
+  //   setScheduleChartLoading(true);
+  //   setError(null);
+  //   try {
+  //     let url = `${BASE_URL}/api/report/${sku}`;
+  //     const params = {};
+
+  //     const response = await axios.get(url, { params });
+
+  //     // Sort the data by the start date of the interval
+  //     const sortedData = response.data.sort((a, b) => {
+  //       // Extract the start date of the interval
+  //       const startDateA = new Date(a.interval.split(" - ")[0]); // Extracts the start date
+  //       const startDateB = new Date(b.interval.split(" - ")[0]);
+
+  //       // Sort in ascending order (smallest to largest date)
+  //       return startDateA - startDateB;
+  //     });
+
+  //     setScheduleSalesData(sortedData);
+  //   } catch (err) {
+  //     setError("An error occurred while fetching schedule sales data.");
+  //   } finally {
+  //     setScheduleChartLoading(false);
+  //   }
+  // };
+
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
     setError(null);
+
     try {
       let url = `${BASE_URL}/api/report/${sku}`;
       const params = {};
 
+      // Fetch data from the API
       const response = await axios.get(url, { params });
 
-      // Sort the data by the start date of the interval
-      const sortedData = response.data.sort((a, b) => {
-        // Extract the start date of the interval
-        const startDateA = new Date(a.interval.split(" - ")[0]); // Extracts the start date
-        const startDateB = new Date(b.interval.split(" - ")[0]);
+      // Parse startDate and endDate for filtering
+      const filterStartDate = startDate
+        ? new Date(moment(startDate).startOf("day"))
+        : null;
+      const filterEndDate = endDate
+        ? new Date(moment(endDate).endOf("day"))
+        : null;
 
-        // Sort in ascending order (smallest to largest date)
-        return startDateA - startDateB;
+      // Filter the data if date range is provided
+      const filteredData = response.data.filter((item) => {
+        const itemStartDate = new Date(item.interval.split(" - ")[0]); // Extract start date from interval
+
+        if (filterStartDate && filterEndDate) {
+          // Return true if the item's start date is within the range
+          return (
+            itemStartDate >= filterStartDate && itemStartDate <= filterEndDate
+          );
+        }
+        // If no filtering is needed, include all items
+        return true;
       });
 
+      // Sort the data by the start date of the interval
+      const sortedData = filteredData.sort((a, b) => {
+        const startDateA = new Date(a.interval.split(" - ")[0]); // Extract start date
+        const startDateB = new Date(b.interval.split(" - ")[0]);
+
+        return startDateA - startDateB; // Sort in ascending order
+      });
+
+      // Update state with the sorted and filtered data
       setScheduleSalesData(sortedData);
     } catch (err) {
       setError("An error occurred while fetching schedule sales data.");
@@ -133,8 +183,6 @@ const SaleDetails = () => {
       setScheduleChartLoading(false);
     }
   };
-
-  console.log("Filtered schedule sales Data", scheduleSalesData);
 
   console.log("schedule sales Data", scheduleSalesData);
 
