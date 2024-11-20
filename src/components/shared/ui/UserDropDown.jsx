@@ -94,9 +94,7 @@ const UserDropdown = ({ open }) => {
                 </span>
               </CommandItem>
 
-              <CommandItem value="Profile" onSelect={handleSelect}>
-                <FaRegCircleUser className="mr-1" /> Profile
-              </CommandItem>
+             
               <CommandItem value="Logout" onSelect={handleSelect}>
                 <FiLogOut className="mr-1" /> Logout
               </CommandItem>

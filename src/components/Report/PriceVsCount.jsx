@@ -10,6 +10,7 @@ const PriceVsCount = ({
   startDate,
   endDate,
   formatDate,
+  handleViewChange,
 }) => {
   return (
     <Card className="mt-[1.5rem]  ">
@@ -17,7 +18,40 @@ const PriceVsCount = ({
         view={view}
         salesData={salesData}
       ></SalesDetailsBarChart>
-      <div className="flex justify-end mx-2 mb-1">
+      <div className="flex justify-end mx-2 mb-1 gap-2">
+        <Button
+          onClick={() => handleViewChange("day")}
+          variant="outline"
+          className={`w-[80px] justify-center ${
+            view === "day"
+              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+              : ""
+          }`}
+        >
+          By Day
+        </Button>
+       {/*  <Button
+          onClick={() => handleViewChange("week")}
+          variant="outline"
+          className={`w-[80px] justify-center ${
+            view === "week"
+              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+              : ""
+          }`}
+        >
+          By Week
+        </Button> */}
+        <Button
+          onClick={() => handleViewChange("month")}
+          variant="outline"
+          className={`w-[80px] justify-center ${
+            view === "month"
+              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+              : ""
+          }`}
+        >
+          By Month
+        </Button>
         <Button variant="outline" onClick={() => setShowTable(!showTable)}>
           {showTable ? "Hide Table" : "View Data in Table"}
         </Button>

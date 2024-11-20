@@ -20,6 +20,7 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { TrendingUp } from "lucide-react";
 
+
 const chartConfig = {
   desktop: {
     label: "Desktop",
@@ -58,6 +59,7 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
+
 const  SalesDetailsBarChart=({ view, salesData }) =>{
   const [activeChart, setActiveChart] = useState("desktop");
 
@@ -86,7 +88,12 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
 
   return (
     <>
-      {/* <Card className="h-[50vh]"> */}
+
+
+      <CardHeader className="items-center pb-0">
+        <CardTitle>Amazon Sale Report</CardTitle>
+       
+      </CardHeader>
 
       <CardContent className="px-2  sm:p-6">
         <ChartContainer
@@ -98,48 +105,19 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
           <BarChart
             // data={chartData}
             data={salesData}
-            // width={600}
-            // width={900} // Increase the width
-            // height={500}
-            // margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            
             margin={{
-              top: 20,
+              top: 40,
               right: 30,
               left: 20,
               bottom: view === "week" ? 120 : 20,
             }} // Add more bottom margin for label rotation
           >
             <CartesianGrid vertical={false} />
-            {/* <CartesianGrid strokeDasharray="3 3" /> */}
-            {/* <XAxis
-              dataKey="date"
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                });
-              }}
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            /> */}
+        
             <XAxis
               dataKey={xAxisKey}
-              // tickFormatter={(value) => {
-              //   const dateParts = value.split("/");
-              //   const formattedDate = new Date(
-              //     dateParts[2],
-              //     dateParts[1] - 1,
-              //     dateParts[0]
-              //   );
-              //   return formattedDate.toLocaleDateString("en-US", {
-              //     month: "short",
-              //     day: "numeric",
-              //   });
-              // }}
+              
               tickFormatter={(value) => formatXAxisLabel(value)} // Format based on view
               tickLine={false}
               axisLine={false}
@@ -172,7 +150,7 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
               content={
                 <ChartTooltipContent
                   className="w-[150px]"
-                  nameKey="views"
+                  // nameKey="views"
                   labelFormatter={(value) => {
                     if (view === "day" && typeof value === "string") {
                       const [day, month, year] = value.split("/");
@@ -188,6 +166,7 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
                 />
               }
             />
+          
 
             <Bar dataKey="unitCount" fill="#2A9D90">
               {/* Label for price */}
@@ -198,26 +177,23 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
                 // formatter={(value) => `$${value.toFixed(2)}`}
               />
 
-              {/* Display unitCount inside the bar */}
+              {/* display unitCount above the bar */}
               <LabelList
                 dataKey="unitCount"
-                position="inside"
-                formatter={(value) => `${value}`} // Show raw unitCount
+                position="top"
+                formatter={(value) => `${value}`}
+                offset={19}
                 fontSize={12}
-                fill="#fff" // White text for inside bar
-              />
+                fill="#555"
+                fontWeight="bold"
+              ></LabelList>
+
+              
             </Bar>
           </BarChart>
         </ChartContainer>
 
-        {/* <CardFooter className="flex-col gap-2 text-sm">
-          <div className="flex items-center gap-2 font-medium leading-none">
-            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing total visitors for the last 6 months
-          </div>
-        </CardFooter> */}
+        
       </CardContent>
     </>
   );

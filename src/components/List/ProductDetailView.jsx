@@ -620,7 +620,7 @@ const ProductDetailView = ({
               <div className=" flex justify-center items-center mt-2">
                 <button
                   onClick={() =>
-                    navigate(`/details/${sku1}`, {
+                    navigate(`/details/${encodeURIComponent(sku1)}`, {
                       state: { productInfo: product, price, asin, sku1 },
                     })
                   }

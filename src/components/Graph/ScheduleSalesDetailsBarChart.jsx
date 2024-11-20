@@ -72,25 +72,7 @@ const  ScheduleSalesDetailsBarChart=({
     return "interval"; // Default to "date"
   }, [view]);
 
-  // function formatXAxisLabel(value) {
-  //   const [start, end] = value.split(" - ");
-  //   const formatOptions = {
-  //     month: "short",
-  //     day: "numeric",
-  //     hour: "numeric",
-  //     minute: "numeric",
-  //   };
-
-  //   const startDate = new Date(start)
-  //     .toLocaleDateString("en-US", formatOptions)
-  //     .replace(", ", " at ");
-  //   const endDate = new Date(end)
-  //     .toLocaleDateString("en-US", formatOptions)
-  //     .replace(", ", " at ");
-
-  //   return `${startDate} - ${endDate}`;
-  // }
-
+  
   function formatXAxisLabel(value) {
     const [start, end] = value.split(" - ");
     const startDate = new Date(start);
@@ -127,34 +109,10 @@ const  ScheduleSalesDetailsBarChart=({
   return (
     <>
       {/* <Card className="h-[50vh]"> */}
-      {/* <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle>Bar Chart - Interactive</CardTitle>
-          <CardDescription>
-            Showing unit counts and price details.
-          </CardDescription>
-        </div>
-        <div className="flex">
-          {["desktop", "mobile"].map((key) => {
-            const chart = key;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l data-[active=true]:bg-muted/50 sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className="text-xs text-muted-foreground">
-                  {chartConfig[chart].label}
-                </span>
-                <span className="text-lg font-bold leading-none sm:text-3xl">
-                  {total[chart].toLocaleString()}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </CardHeader> */}
+      <CardHeader className="items-center pb-0">
+        <CardTitle>On Schedule Sale Report</CardTitle>
+        {/* <CardDescription>January - June 2024</CardDescription> */}
+      </CardHeader>
       <CardContent className="px-2  sm:p-6">
         <ChartContainer
           config={chartConfig}
@@ -170,44 +128,17 @@ const  ScheduleSalesDetailsBarChart=({
             // height={500}
             // margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
             margin={{
-              top: 20,
+              top: 40,
               right: 30,
               left: 80,
               bottom: 120,
             }} // Add more bottom margin for label rotation
           >
             <CartesianGrid vertical={false} />
-            {/* <CartesianGrid strokeDasharray="3 3" /> */}
-            {/* <XAxis
-              dataKey="date"
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                });
-              }}
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            /> */}
+           
             <XAxis
               dataKey={xAxisKey}
-              // tickFormatter={(value) => {
-              //   const dateParts = value.split("/");
-              //   const formattedDate = new Date(
-              //     dateParts[2],
-              //     dateParts[1] - 1,
-              //     dateParts[0]
-              //   );
-              //   return formattedDate.toLocaleDateString("en-US", {
-              //     month: "short",
-              //     day: "numeric",
-              //   });
-              // }}
-              // tickFormatter={(value)} // Format based on view
+             
               tickFormatter={(value) => formatXAxisLabel(value)} // Format based on view
               tickLine={false}
               axisLine={false}
@@ -241,18 +172,7 @@ const  ScheduleSalesDetailsBarChart=({
                 <ChartTooltipContent
                   className="w-[150px]"
                   nameKey="views"
-                  // labelFormatter={(value) => {
-                  //   if (view === "day" && typeof value === "string") {
-                  //     const [day, month, year] = value.split("/");
-                  //     const formattedDate = new Date(`${year}-${month}-${day}`);
-                  //     return formattedDate.toLocaleDateString("en-US", {
-                  //       month: "short",
-                  //       day: "numeric",
-                  //       year: "numeric",
-                  //     });
-                  //   }
-                  //   return value; // For week and month
-                  // }}
+                 
                   labelFormatter={(value) => formatXAxisLabel(value)}
                 />
               }
@@ -270,26 +190,18 @@ const  ScheduleSalesDetailsBarChart=({
               {/* Display unitCount inside the bar */}
               <LabelList
                 dataKey="unitCount"
-                position="inside"
+                position="top"
+                offset={19}
                 formatter={(value) => `${value}`} // Show raw unitCount
                 fontSize={12}
-                fill="#fff" // White text for inside bar
+                fill="#555"
+                fontWeight="bold"
               />
             </Bar>
           </BarChart>
-        </ChartContainer>
-
-        {/* <CardFooter className="flex-col gap-2 text-sm">
-          <div className="flex items-center gap-2 font-medium leading-none">
-            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing total visitors for the last 6 months
-          </div>
-        </CardFooter> */}
+        </ChartContainer>       
       </CardContent>
     </>
   );
 }
-
 export default ScheduleSalesDetailsBarChart;

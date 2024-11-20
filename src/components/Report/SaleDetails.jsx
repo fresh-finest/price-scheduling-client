@@ -20,6 +20,7 @@ import ChartsLoadingSkeleton from "../LoadingSkeleton/ChartsLoadingSkeleton";
 const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetails = () => {
+  //decodeURIComponent
   const { sku } = useParams();
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
@@ -37,46 +38,89 @@ const SaleDetails = () => {
 
   const location = useLocation();
   const { productInfo, sku1 } = location.state || {};
-
-  console.log("product info", productInfo?.AttributeSets[0]);
-
   const fetchSalesMetrics = async () => {
     setSalesChartLoading(true);
     setError(null);
+     const decodedSku = encodeURIComponent(sku1);
+    
     try {
-      let url = `${BASE_URL}/sales-metrics/${view}/${sku}`;
+      let url = `${BASE_URL}/sales-metrics/${view}/${decodedSku}`;
       const params = {};
 
       if (startDate && endDate) {
-        url = `${BASE_URL}/sales-metrics/range/${sku}`;
+        url = `${BASE_URL}/sales-metrics/range/${decodedSku}`;
         params.startDate = moment(startDate).format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
+        setView("day");
       }
 
       const response = await axios.get(url, { params });
-      setSalesData(response.data);
+
+      // If a date range is selected, sort the data by date in ascending order
+      if (startDate && endDate) {
+        const sortedData = response.data.sort((a, b) => {
+          const dateA = new Date(a.date.split("/").reverse().join("-")); // Convert DD/MM/YYYY to YYYY-MM-DD
+          const dateB = new Date(b.date.split("/").reverse().join("-"));
+          return dateA - dateB; // Ascending order
+        });
+        setSalesData(sortedData);
+      } else {
+        setSalesData(response.data); // Default unsorted if no range is selected
+      }
     } catch (err) {
       setError("An error occurred while fetching sales data.");
     } finally {
       setSalesChartLoading(false);
     }
   };
+
+
+
+  
+
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
     setError(null);
+    const decodedSku = encodeURIComponent(sku1);
     try {
-      let url = `${BASE_URL}/api/report/${sku}`;
+      let url = `${BASE_URL}/api/report/${decodedSku}`;
       const params = {};
 
-      // if (startDate && endDate) {
-      //   url = `${BASE_URL}/sales-metrics/range/${sku}`;
-      //   params.startDate = moment(startDate).format("YYYY-MM-DD");
-      //   params.endDate = moment(endDate).format("YYYY-MM-DD");
-      // }
+      // Fetch data from the API
+      const response = await axios.get(url, { params });
 
-      const response = await axios.get(url);
-      console.log("response", response);
-      setScheduleSalesData(response.data);
+      // Parse startDate and endDate for filtering
+      const filterStartDate = startDate
+        ? new Date(moment(startDate).startOf("day"))
+        : null;
+      const filterEndDate = endDate
+        ? new Date(moment(endDate).endOf("day"))
+        : null;
+
+      // Filter the data if date range is provided
+      const filteredData = response.data.filter((item) => {
+        const itemStartDate = new Date(item.interval.split(" - ")[0]); // Extract start date from interval
+
+        if (filterStartDate && filterEndDate) {
+          // Return true if the item's start date is within the range
+          return (
+            itemStartDate >= filterStartDate && itemStartDate <= filterEndDate
+          );
+        }
+        // If no filtering is needed, include all items
+        return true;
+      });
+
+      // Sort the data by the start date of the interval
+      const sortedData = filteredData.sort((a, b) => {
+        const startDateA = new Date(a.interval.split(" - ")[0]); // Extract start date
+        const startDateB = new Date(b.interval.split(" - ")[0]);
+
+        return startDateA - startDateB; // Sort in ascending order
+      });
+
+      // Update state with the sorted and filtered data
+      setScheduleSalesData(sortedData);
     } catch (err) {
       setError("An error occurred while fetching schedule sales data.");
     } finally {
@@ -84,13 +128,18 @@ const SaleDetails = () => {
     }
   };
 
+  
+
+ 
+
   const fetchProductPrice = async () => {
     setError(null);
+    const encodedSku = encodeURIComponent(sku1);
     try {
-      const response = await axios.get(`https://api.priceobo.com/list/${sku1}`);
+      const response = await axios.get(`https://api.priceobo.com/list/${encodedSku}`);
       const price = response?.data?.offerAmount;
 
-      console.log("price", price);
+     
 
       setProductPrice(price);
     } catch (err) {
@@ -103,8 +152,12 @@ const SaleDetails = () => {
   useEffect(() => {
     fetchSalesMetrics();
     // fetchSalesProductData();
-    fetchScheduleSalesMetrics();
+    // fetchScheduleSalesMetrics();
   }, [sku, view, startDate, endDate]);
+
+  useEffect(() => {
+    fetchScheduleSalesMetrics();
+  }, [sku, startDate, endDate]);
 
   useEffect(() => {
     fetchProductPrice();
@@ -133,18 +186,16 @@ const SaleDetails = () => {
       });
   };
 
-  // if (error) {
-  //   return <p>{error}</p>;
-  // }
-
+ 
   return (
     <div className="">
       {productInfo && (
-        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px] gap-1">
+        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px] gap-2">
           <img
+            className="object-cover"
             src={productInfo?.AttributeSets[0]?.SmallImage?.URL}
-            width="70px"
-            height="50px"
+            // width="70px"
+            // height="40px"
             alt="product image"
           />
           <div>
@@ -153,7 +204,7 @@ const SaleDetails = () => {
               <p className="px-2 py-1 bg-[#3B82F6] text-white rounded-sm">
                 ${productPrice}
               </p>
-              <p className="flex items-center justify-center gap-1  text-sm border max-w-[18%] px-2 py-1">
+              <p className="flex items-center justify-center gap-1  text-sm border  px-2 py-1.5">
                 {sku1}{" "}
                 {copiedSku === sku1 ? (
                   <MdCheck
@@ -184,42 +235,8 @@ const SaleDetails = () => {
       )}
 
       <div>
-        <div className=" flex space-x-2  absolute top-[5px] right-[30%] ">
-          {/* <div className=" flex space-x-2  absolute top-[0px] right-[30%] "> */}
-          <Button
-            onClick={() => handleViewChange("day")}
-            variant="outline"
-            className={`w-[80px] justify-center ${
-              view === "day"
-                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-                : ""
-            }`}
-          >
-            By Day
-          </Button>
-          <Button
-            onClick={() => handleViewChange("week")}
-            variant="outline"
-            className={`w-[80px] justify-center ${
-              view === "week"
-                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-                : ""
-            }`}
-          >
-            By Week
-          </Button>
-          <Button
-            onClick={() => handleViewChange("month")}
-            variant="outline"
-            className={`w-[80px] justify-center ${
-              view === "month"
-                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-                : ""
-            }`}
-          >
-            By Month
-          </Button>
-        </div>
+    
+       
         <div className="absolute top-[5px]  right-[17%]">
           {/* <div className="absolute top-[0px]  right-[17%]"> */}
           <DatePicker
@@ -240,6 +257,7 @@ const SaleDetails = () => {
           <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
         ) : (
           <PriceVsCount
+            handleViewChange={handleViewChange}
             view={view}
             salesData={salesData}
             showTable={showTable}
@@ -255,7 +273,7 @@ const SaleDetails = () => {
           <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
         ) : (
           <ScheduleVsCount
-            view={view}
+            // view={view}
             scheduleSalesData={scheduleSalesData}
             showScheduleSalesTable={showScheduleSalesTable}
             setShowScheduleSalesTable={setShowScheduleSalesTable}

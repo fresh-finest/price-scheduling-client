@@ -1,4 +1,5 @@
 import { BsFillInfoSquareFill } from "react-icons/bs";
+import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
 import ScheduleSalesDetailsBarChart from "../Graph/ScheduleSalesDetailsBarChart";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -19,31 +20,7 @@ const ScheduleVsCount = ({
     }
   });
 
-  // const formatDateTime = (dateString) => {
-  //   // Attempt to normalize the date string
-  //   const normalizedDateString = dateString.includes("T")
-  //     ? dateString // Already in ISO format
-  //     : dateString.replace(" ", "T"); // Replace space with 'T' for ISO compliance
-
-  //   const date = new Date(normalizedDateString);
-
-  //   if (isNaN(date.getTime())) {
-  //     console.error(`Invalid date string: ${dateString}`);
-  //     return "Invalid date";
-  //   }
-
-  //   const options = {
-  //     year: "numeric",
-  //     month: "long",
-  //     day: "numeric",
-  //     hour: "numeric",
-  //     minute: "2-digit",
-  //     hour12: true,
-  //   };
-
-  //   return new Intl.DateTimeFormat("en-US", options).format(date);
-  // };
-
+ 
   const formatDate = (interval) => {
     // Split the interval into start and end times
     const [start, end] = interval.split(" - ");
@@ -79,11 +56,11 @@ const ScheduleVsCount = ({
 
   return (
     <Card className="mt-[1.5rem]  ">
-      {scheduleSalesData ? (
+      {scheduleSalesData.length ? (
         <div>
           <ScheduleSalesDetailsBarChart
             view={view}
-            scheduleSalesData={filterScheduleSalesData}
+            scheduleSalesData={scheduleSalesData}
           ></ScheduleSalesDetailsBarChart>
           <div className="flex justify-end mx-2 mb-1">
             <Button
@@ -154,7 +131,7 @@ const ScheduleVsCount = ({
                 }}
               >
                 {scheduleSalesData.length > 0 ? (
-                  filterScheduleSalesData.map((item, index) => (
+                  scheduleSalesData.map((item, index) => (
                     <tr key={index}>
                       <td
                         style={{
@@ -163,11 +140,7 @@ const ScheduleVsCount = ({
                           verticalAlign: "middle",
                         }}
                       >
-                        {/* {view === "day"
-                      ? item.interval
-                      : view === "week" && item.weekly
-                      ? item.interval
-                      : item.monthly} */}
+                
 
                         {formatDate(item?.interval)}
                       </td>
@@ -190,15 +163,7 @@ const ScheduleVsCount = ({
                           verticalAlign: "middle",
                         }}
                       >
-                        {/* {item.unitCount} */}
-
-                        {/* {view === "day" && item.scheduleType === "single"
-                      ? item.price
-                      : view === "week" && item.weekly
-                      ? item.price
-                      : view === "month" && item.monthly
-                      ? item.price
-                      : null} */}
+                        
 
                         {item.unitCount}
                       </td>
