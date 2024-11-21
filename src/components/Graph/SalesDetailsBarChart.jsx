@@ -72,14 +72,27 @@ export default function SalesDetailsBarChart({ view, salesData }) {
     return "date"; // Default to "date"
   }, [view]);
 
+  // const formatXAxisLabel = (value) => {
+  //   if (view === "day") {
+  //     const [day, month, year] = value.split("/"); // Parse DD/MM/YYYY format
+  //     const formattedDate = new Date(`${year}-${month}-${day}`);
+  //     return formattedDate.toLocaleDateString("en-US", {
+  //       month: "short",
+  //       day: "numeric",
+  //     });
+  //   }
+  //   return value; // For week and month, assume they're already formatted properly
+  // };
+
   const formatXAxisLabel = (value) => {
     if (view === "day") {
       const [day, month, year] = value.split("/"); // Parse DD/MM/YYYY format
       const formattedDate = new Date(`${year}-${month}-${day}`);
-      return formattedDate.toLocaleDateString("en-US", {
+      return new Intl.DateTimeFormat("en-US", {
         month: "short",
         day: "numeric",
-      });
+        timeZone: "Asia/Dhaka",
+      }).format(formattedDate);
     }
     return value; // For week and month, assume they're already formatted properly
   };

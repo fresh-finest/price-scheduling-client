@@ -549,16 +549,30 @@ const ProductDetailView = ({
                 </button>
               </div>
 
-              {/* <div className="m-3 w-[30%] mx-auto">
-                <p>hello</p>
-              </div> */}
-
-              <div className="m-3 ">
+              <div className=" m-3">
                 <DetailedCalendarView sku1={sku1} />
               </div>
+
               {/* tabs  */}
 
               <div className="px-2 py-1 m-2 h-[45vh] overflow-y-auto">
+                {/* <div className=" flex justify-center items-center mt-2 absolute top-[20%] left-[25%]">
+                  <button
+                    onClick={() =>
+                      navigate(`/details/${encodeURIComponent(sku1)}`, {
+                        state: { productInfo: product, price, asin, sku1 },
+                      })
+                    }
+                    className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
+                  >
+                    <span className="inline-block mb-1">
+                      See Pricing and Sales Report
+                    </span>
+                    <span className="absolute top-[8.5px] right-1">
+                      <HiOutlineArrowNarrowRight />
+                    </span>
+                  </button>
+                </div> */}
                 <Tabs defaultValue="single" className="">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="single">
