@@ -71,7 +71,7 @@ const ProductDetailsWithNumbers = ({
               updatePriceModal ? "text-[16px]" : "text-[14px]"
             }  text-left font-normal`}
           >
-            {product?.AttributeSets?.[0]?.Title}
+            {product?.AttributeSets?.[0]?.Title || product?.itemName}
           </Card.Title>
           {updatePriceModal && (
             <div className="flex   gap-2 mt-2 ">
@@ -85,7 +85,9 @@ const ProductDetailsWithNumbers = ({
                   }}
                   className=" bg-blue-500 text-white flex justify-center items-center "
                 >
-                  <h2 style={{ fontSize: "13px" }}>${price}</h2>
+                  <h2 style={{ fontSize: "13px" }}>
+                    ${parseFloat(price).toFixed(2)}
+                  </h2>
                 </div>
 
                 <div className="flex flex-col  items-start gap-2">
@@ -229,7 +231,9 @@ const ProductDetailsWithNumbers = ({
             style={{ borderRadius: "3px", height: "30px" }}
             className="row-span-2 bg-blue-500 text-white flex justify-center items-center  "
           >
-            <h2 style={{ fontSize: "13px" }}>${price}</h2>
+            <h2 style={{ fontSize: "13px" }}>
+              ${parseFloat(price).toFixed(2)}
+            </h2>
           </div>
 
           <div>

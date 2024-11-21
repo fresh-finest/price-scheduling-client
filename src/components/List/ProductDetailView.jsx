@@ -4,9 +4,10 @@ import { LuPencilLine } from "react-icons/lu";
 import { PiWarehouse } from "react-icons/pi";
 import { CiEdit } from "react-icons/ci";
 import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
+import { HiOutlineArrowNarrowRight } from "react-icons/hi";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+// import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import EditScheduleFromList from "./EditScheduleFromList";
 import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
@@ -16,6 +17,7 @@ import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { FaArrowRightLong, FaRankingStar } from "react-icons/fa6";
 import { Calendar } from "../ui/calendar";
 import { DateTime } from "luxon";
+import { useNavigate } from "react-router-dom";
 import {
   Card as ShadCdnCard,
   CardContent,
@@ -30,14 +32,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FaTrash } from "react-icons/fa";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeleton";
-import { useNavigate } from "react-router-dom";
-import { HiOutlineArrowNarrowRight } from "react-icons/hi";
-import SaleDetails from "../Report/SaleDetails";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL ='http://localhost:3000'
 const dayNames = [
   "Sunday",
   "Monday",
@@ -81,7 +80,6 @@ const dateNames = [
   "31st",
 ];
 
-// }
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
@@ -158,17 +156,49 @@ const ProductDetailView = ({
   productDetailLoading,
   setProductDetailLoading,
 }) => {
-  console.log("product", product);
   if (!product.AttributeSets) {
-    return <p>Product data is not available for this ASIN.</p>;
+    return (
+      <div
+        style={{
+          // marginTop: "20px",
+          paddingTop: "11px",
+          height: "93vh",
+          display: "flex",
+
+          // justifyContent: "center",
+          // alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            // padding: "20px",
+            width: "100%",
+            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <p className="text-2xl flex  justify-center">
+            <BsFillInfoSquareFill className="text-[#0D6EFD]" />
+          </p>
+          <h5 className="text-base">
+            Product data is not available for this ASIN.
+          </h5>
+        </div>
+      </div>
+    );
   }
+
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null);
   const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
   const [currentPrice, setCurrentPrice] = useState("");
-  const { addEvent, removeEvent } = useContext(PriceScheduleContext);
+  // const { addEvent, removeEvent } = useContext(PriceScheduleContext);
 
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
@@ -182,8 +212,14 @@ const ProductDetailView = ({
   const [monthlyLength, setMonthlyLength] = useState("");
 
   const { currentUser } = useSelector((state) => state.user);
-  const navigate = useNavigate();
 
+  // const { events } = useContext(PriceScheduleContext);
+  const [selectedDays, setSelectedDays] = useState([]);
+
+  const navigate = useNavigate();
+  const handleDateSelect = (dates) => {
+    setSelectedDays(dates); // Update the selected days on user interaction
+  };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
@@ -195,10 +231,10 @@ const ProductDetailView = ({
       hour: "numeric",
       minute: "numeric",
       hour12: true,
+      timeZone: "America/New_York", // Ensures display in New York time zone
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-
   const getDayLabels = (daysOfWeek) => {
     return daysOfWeek
       .map((day) => daysOptions.find((option) => option.value === day)?.label)
@@ -368,6 +404,21 @@ const ProductDetailView = ({
   };
 
   const now = new Date();
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+
+    const date = new Date(dateString);
+    const options = {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
 
   const getDayName = (dateString) => {
     const date = new Date(dateString);
@@ -428,74 +479,66 @@ const ProductDetailView = ({
 
   const monthlySlotLength = getFilteredMonthlySlotLength(priceSchedule);
 
-  console.log("product", product);
-
   return (
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
         {loading || productDetailLoading ? (
-          <div
-            style={{
-              // marginTop: "100px",
-              paddingTop: "30px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "90vh",
-              padding: "20px",
-              width: "100%",
-              textAlign: "center",
-            }}
-          >
-            {/* <Spinner animation="border" /> Loading... */}
-            <img
-              style={{ width: "30px", marginRight: "6px" }}
-              className="animate-pulse"
-              src={priceoboIcon}
-              alt="Priceobo Icon"
-            />
-            <br />
+          // <div
+          //   style={{
+          //     marginTop: "100px",
+          //     display: "flex",
+          //     justifyContent: "center",
+          //     alignItems: "center",
+          //     height: "60vh",
+          //   }}
+          // >
+          //   {/* <Spinner animation="border" /> Loading... */}
+          //   <img
+          //     style={{ width: "40px", marginRight: "6px" }}
+          //     className="animate-pulse"
+          //     src={priceoboIcon}
+          //     alt="Priceobo Icon"
+          //   />
+          //   <br />
 
-            <div className="block">
-              <p className="text-base"> Loading...</p>
-            </div>
-          </div>
+          //   <div className="block">
+          //     <p className="text-xl"> Loading...</p>
+          //   </div>
+          // </div>
+          <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
         ) : (
-          // <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
           <Card.Body className="p-0">
             <div>
-              {/* <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
+              <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
                 <h2 className="py-[6px] text-center text-sm">
                   Schedule Details
                 </h2>
-              </div> */}
+              </div>
 
               {/* product image and details with asin numbers */}
-              <div className="pt-2">
-                <ProductDetailsWithNumbers
-                  product={product}
-                  channelStockValue={channelStockValue}
-                  fulfillmentChannel={fulfillmentChannel}
-                  price={price}
-                  asin={asin}
-                  sku1={sku1}
-                  fnSku={fnSku}
-                  updatePriceModal={false}
-                ></ProductDetailsWithNumbers>
-              </div>
+
+              <ProductDetailsWithNumbers
+                product={product}
+                channelStockValue={channelStockValue}
+                fulfillmentChannel={fulfillmentChannel}
+                price={price}
+                asin={asin}
+                sku1={sku1}
+                fnSku={fnSku}
+                updatePriceModal={false}
+              ></ProductDetailsWithNumbers>
 
               <hr
                 style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
               />
-
               <div className=" flex justify-center items-center mt-2">
                 <button
                   onClick={() =>
-                    navigate(`/details/${sku1}`, {
+                    navigate(`/details/${encodeURIComponent(sku1)}`, {
                       state: { productInfo: product, price, asin, sku1 },
                     })
                   }
-                  className="bg-[#0662BB] text-white rounded drop-shadow-md flex justify-center items-center gap-1 relative pl-4 pr-6 py-1"
+                  className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
                 >
                   <span className="inline-block mb-1">
                     See Pricing and Sales Report
@@ -506,7 +549,11 @@ const ProductDetailView = ({
                 </button>
               </div>
 
-              <div className="mx-3  mb-3 ">
+              {/* <div className="m-3 w-[30%] mx-auto">
+                <p>hello</p>
+              </div> */}
+
+              <div className="m-3 ">
                 <DetailedCalendarView sku1={sku1} />
               </div>
               {/* tabs  */}
@@ -548,7 +595,7 @@ const ProductDetailView = ({
                           .map((sc, index) => (
                             <ShadCdnCard
                               className="flex justify-center w-full gap-2 mb-2 px-2 py-2"
-                              key={index}
+                              key={sc.id}
                             >
                               <div key={index} className="w-full">
                                 <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
@@ -641,11 +688,22 @@ const ProductDetailView = ({
                                           className="flex flex-col mb-1"
                                         >
                                           <div className=" ">
+                                            {/* <div className="grid grid-cols-[93%_7%] "> */}
                                             <div className=" bg-[#DCDCDC] border-0 m-0 p-0 rounded-t-sm ">
-                                              <span className="text-black text-start text-sm py-1 px-2 rounded-t-sm mr-2 border-0 m-0 ">
+                                              <span className="text-black text-start text-sm py-1 px-2 rounded-t-sm mr-2 border-0 m-0 p-0">
                                                 {getDayLabelFromNumber(day)}
                                               </span>
                                             </div>
+
+                                            {/* <button
+                                              onClick={() => handleEdit(sc)}
+                                              className="bg-[#0662BB] py-1 px-1 rounded-sm ml-2"
+                                            >
+                                              <PenLine
+                                                size={20}
+                                                className="text-white"
+                                              />
+                                            </button> */}
                                           </div>
                                           <div>
                                             {sc.weeklyTimeSlots[day].map(
@@ -759,7 +817,7 @@ const ProductDetailView = ({
                                 key={index}
                                 className="flex flex-col mb-1"
                               >
-                                <div className="bg-[#DCDCDC] px-2 rounded-t py-1">
+                                <div className="bg-[#DCDCDC] px-1 rounded-t py-1">
                                   <h5 className="text-black text-start text-sm">
                                     {getDateLabelFromNumber(date)}
                                   </h5>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Card } from "react-bootstrap";
+import { Button } from "../ui/button";
 const ProductDetailLoadingSkeleton = () => {
   const detailStyles = {
     container: {
@@ -49,9 +50,9 @@ const ProductDetailLoadingSkeleton = () => {
       {
         <Card.Body className="p-0">
           <div>
-            {/* <div className="border-b-2 mb-2 py-[8px] ">
+            <div className="border-b-2 mb-2 py-[8px] ">
               <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-20 h-4 mx-auto"></p>
-            </div> */}
+            </div>
 
             {/* product image and details with asin numbers */}
 
@@ -121,6 +122,15 @@ const ProductDetailLoadingSkeleton = () => {
             </section>
 
             <hr style={{ width: "90%", margin: "0 auto", marginTop: "10px" }} />
+
+            {/* <div className=" flex justify-center items-center mt-2">
+              <button className="bg-[#0662BB] text-white rounded drop-shadow-md flex justify-center items-center gap-1 relative pl-4 pr-6 py-1">
+                <span className="inline-block mb-1">
+                  See Pricing and Sales Report
+                </span>
+                <span className="absolute top-[8.5px] right-1">d</span>
+              </button>
+            </div> */}
 
             <div className="my-3 mx-[35px]  ">
               {/* <DetailedCalendarView sku1={sku1} /> */}

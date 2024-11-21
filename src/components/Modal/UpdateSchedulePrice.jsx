@@ -64,13 +64,9 @@ const fetchExistingSchedules = async (sku) => {
 
 const updateProductPrice = async (sku, value) => {
   try {
-    console.log(
-      `Attempting to update price for SKU: ${sku} to value: ${value}`
-    );
     const response = await axios.patch(`${BASE_URL}/product/${sku}/price`, {
       value: parseFloat(value),
     });
-    console.log("Update response:", response.data);
 
     if (response.data.issues && response.data.issues.length > 0) {
       console.warn("Price update issues:", response.data.issues);
@@ -233,8 +229,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     }
   };
 
-  console.log("image", imageURL);
-
   useEffect(() => {
     if (show) {
       resetForm();
@@ -371,7 +365,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       const slots = weeklyTimeSlots[day];
 
       if (timeZone === "America/New_York") {
-        console.log("timeZone " + timeZone);
         if (parseInt(day) === today) {
           // If the selected day is today, check the time
           for (let slot of slots) {
@@ -384,7 +377,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
           }
         }
       } else if (timeZone === "Asia/Dhaka") {
-        console.log("timeZone from asia " + timeZone);
         if (parseInt(day) === today) {
           // If the selected day is today, check the time
           for (let slot of slots) {
@@ -449,7 +441,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       const slots = monthlyTimeSlots[date];
 
       if (timeZone === "America/New_York") {
-        console.log("timeZone " + timeZone);
         if (parseInt(date) === currentDayOfMonth) {
           // If the selected day is today, check the time
           for (let slot of slots) {
@@ -462,7 +453,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
           }
         }
       } else if (timeZone === "Asia/Dhaka") {
-        console.log("timeZone from asia " + timeZone);
         if (parseInt(date) === currentDayOfMonth) {
           // If the selected day is today, check the time
           for (let slot of slots) {
@@ -726,11 +716,7 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     if (delayStart > 0) {
       setTimeout(async () => {
         try {
-          console.log("Price is getting updated.");
           await updateProductPrice(sku, newPrice);
-          console.log(
-            `Price updated to ${newPrice} for SKU ${sku} at ${new Date().toLocaleString()}`
-          );
         } catch (error) {
           console.error("Error updating to new price:", error);
         }
@@ -738,7 +724,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
     } else {
       try {
         await updateProductPrice(sku, newPrice);
-        console.log(`Price updated to ${newPrice} immediately for SKU ${sku}`);
       } catch (error) {
         console.error("Error updating to new price:", error);
       }
@@ -750,11 +735,7 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       if (delayEnd > 0) {
         setTimeout(async () => {
           try {
-            console.log("Price is getting reverted...");
             await updateProductPrice(sku, originalPrice);
-            console.log(
-              `Price reverted to ${originalPrice} for SKU ${sku} at ${new Date().toLocaleString()}`
-            );
           } catch (error) {
             console.error("Error reverting to original price:", error);
           }
@@ -892,8 +873,6 @@ const UpdatePrice = ({ show, onClose, selectedDate }) => {
       setLoading(false);
     }
   };
-
-  console.log("selectedDate", selectedDate);
 
   return (
     <>

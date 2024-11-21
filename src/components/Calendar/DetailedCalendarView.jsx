@@ -26,8 +26,6 @@ const CalendarView = ({ sku1 }) => {
       );
       const schedules = response.data.result;
 
-      console.log("Fetched schedules:", schedules);
-
       const events = [];
 
       const filteredSchedules = schedules.filter(

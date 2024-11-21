@@ -62,8 +62,6 @@ const CalendarView = () => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("Month");
 
-  console.log(showDetailsModal);
-
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -177,7 +175,6 @@ const CalendarView = () => {
 
   // console.log("selected date", selectedDate);
   const EventWithImage = ({ event }) => {
-    console.log("event", event);
     return (
       <div
         className="event-container"
@@ -209,7 +206,6 @@ const CalendarView = () => {
     );
   };
 
-  console.log("selected event: " + JSON.stringify(selectedScheduledEvent));
   const eventsToShow =
     view === Views.WEEK
       ? weeklyEvents

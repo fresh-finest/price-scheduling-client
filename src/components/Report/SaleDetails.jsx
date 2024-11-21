@@ -266,6 +266,8 @@ const SaleDetails = () => {
   //   return <p>{error}</p>;
   // }
 
+  console.log("product price", productPrice);
+
   return (
     <div className="">
       {productInfo && (
@@ -281,7 +283,7 @@ const SaleDetails = () => {
             <h3 className="text-md">{productInfo?.AttributeSets[0]?.Title}</h3>
             <div className="flex items-center justify-start  gap-1 mt-1">
               <p className="px-2 py-1 bg-[#3B82F6] text-white rounded-sm">
-                ${productPrice}
+                ${parseFloat(productPrice).toFixed(2)}
               </p>
               <p className="flex items-center justify-center gap-1  text-sm border  px-2 py-1.5">
                 {sku1}{" "}

@@ -127,18 +127,20 @@ const ListView = () => {
     // Restore session data if available
     const storedSearchTerm = sessionStorage.getItem("searchTerm");
     const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
-    const storedProduct = sessionStorage.getItem("selectedProduct");
+
     const storedRowIndex = sessionStorage.getItem("selectedRowIndex");
     const storedCurrentPage = sessionStorage.getItem("currentPage");
     const storedScrollPosition = sessionStorage.getItem("scrollPosition");
     const storedFilterScheduled = sessionStorage.getItem("filterScheduled");
     const storedSelectedListing = sessionStorage.getItem("selectedListing");
     const storedSelectedAsin = sessionStorage.getItem("selectedAsin");
+    const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
 
     if (storedSearchTerm) setSearchTerm(storedSearchTerm);
     if (storedFilteredProducts)
       setFilteredProducts(JSON.parse(storedFilteredProducts));
-    if (storedProduct) setSelectedProduct(JSON.parse(storedProduct));
+    if (storedSelectedProduct)
+      setSelectedProduct(JSON.parse(storedSelectedProduct));
     if (storedRowIndex) setSelectedRowIndex(parseInt(storedRowIndex, 10));
     if (storedCurrentPage) setCurrentPage(parseInt(storedCurrentPage, 10));
     if (storedFilterScheduled)
@@ -166,49 +168,88 @@ const ListView = () => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   // Clear sessionStorage on page reload
-  //   const handlePageReload = () => {
-  //     sessionStorage.clear();
-  //   };
-  //   window.addEventListener("beforeunload", handlePageReload);
+  useEffect(() => {
+    // Restore state from session storage
+    const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
+    const storedSelectedListing = sessionStorage.getItem("selectedListing");
+    const storedSelectedAsin = sessionStorage.getItem("selectedAsin");
+    const storedSelectedSku = sessionStorage.getItem("selectedSku");
+    const storedSelectedPrice = sessionStorage.getItem("selectedPrice");
+    const storedFnSku = sessionStorage.getItem("selectedFnSku");
+    const storedChannelStockValue = sessionStorage.getItem("channelStockValue");
 
-  //   // Restore session data if available
-  //   const storedSearchTerm = sessionStorage.getItem("searchTerm");
-  //   const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
-  //   const storedProduct = sessionStorage.getItem("selectedProduct");
-  //   const storedRowIndex = sessionStorage.getItem("selectedRowIndex");
-  //   const storedCurrentPage = sessionStorage.getItem("currentPage");
-  //   const storedScrollPosition = sessionStorage.getItem("scrollPosition");
-  //   const storedFilterScheduled = sessionStorage.getItem("filterScheduled");
+    if (storedSelectedProduct) {
+      setSelectedProduct(JSON.parse(storedSelectedProduct));
+    }
+    if (storedSelectedListing) {
+      setSelectedListing(JSON.parse(storedSelectedListing));
+    }
+    if (storedSelectedAsin) {
+      setSelectedAsin(storedSelectedAsin);
+    }
+    if (storedSelectedSku) {
+      setSelectedSku(storedSelectedSku);
+    }
+    if (storedSelectedPrice) {
+      setSelectedPrice(storedSelectedPrice);
+    }
+    if (storedFnSku) {
+      setSelectedFnSku(storedFnSku);
+    }
+    if (storedChannelStockValue) {
+      setChannelStockValue(storedChannelStockValue);
+    }
 
-  //   if (storedSearchTerm) setSearchTerm(storedSearchTerm);
-  //   if (storedFilteredProducts)
-  //     setFilteredProducts(JSON.parse(storedFilteredProducts));
-  //   if (storedProduct) setSelectedProduct(JSON.parse(storedProduct));
-  //   if (storedRowIndex) setSelectedRowIndex(parseInt(storedRowIndex, 10));
-  //   if (storedCurrentPage) setCurrentPage(parseInt(storedCurrentPage, 10));
-  //   if (storedFilterScheduled)
-  //     setFilterScheduled(storedFilterScheduled === "true");
+    console.log("Restored state from session storage on mount");
+  }, []);
 
-  //   if (storedScrollPosition) {
-  //     window.scrollTo(0, parseInt(storedScrollPosition, 10)); // Scroll to the stored position
-  //     sessionStorage.removeItem("scrollPosition"); // Clear it once applied
-  //   }
+  useEffect(() => {
+    // Sync state to session storage
+    if (selectedProduct) {
+      sessionStorage.setItem(
+        "selectedProduct",
+        JSON.stringify(selectedProduct)
+      );
+    }
+    if (selectedListing) {
+      sessionStorage.setItem(
+        "selectedListing",
+        JSON.stringify(selectedListing)
+      );
+    }
+    if (selectedAsin) {
+      sessionStorage.setItem("selectedAsin", selectedAsin);
+    }
+    if (selectedSku) {
+      sessionStorage.setItem("selectedSku", selectedSku);
+    }
+    if (selectedPrice) {
+      sessionStorage.setItem("selectedPrice", selectedPrice);
+    }
+    if (selectedFnSku) {
+      sessionStorage.setItem("selectedFnSku", selectedFnSku);
+    }
+    if (channelStockValue) {
+      sessionStorage.setItem("channelStockValue", channelStockValue);
+    }
 
-  //   // Scroll to the selected row if available
-  //   if (storedRowIndex && itemRefs.current[storedRowIndex]) {
-  //     itemRefs.current[storedRowIndex].scrollIntoView({
-  //       behavior: "smooth",
-  //       block: "center",
-  //     });
-  //   }
+    console.log("Synced state to session storage", {
+      selectedProduct,
+      selectedListing,
+      selectedAsin,
+      selectedSku,
+    });
+  }, [
+    selectedProduct,
+    selectedListing,
+    selectedAsin,
+    selectedSku,
+    selectedFnSku,
+    selectedPrice,
+    channelStockValue,
+  ]);
 
-  //   // Cleanup event listener on component unmount
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handlePageReload);
-  //   };
-  // }, []);
+  console.log("selectedProduct", selectedProduct);
 
   // calculate paginated data
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -229,16 +270,17 @@ const ListView = () => {
 
     // Clear the previously selected product
     setSelectedRowIndex(null);
-    setSelectedProduct(null);
+    // setSelectedProduct(null);
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
 
     // Update sessionStorage
-    sessionStorage.removeItem("selectedProduct");
+
     sessionStorage.removeItem("selectedRowIndex");
     sessionStorage.removeItem("scrollPosition");
+    sessionStorage.removeItem("selectedProduct");
 
     sessionStorage.setItem("currentPage", pageNumber);
   };
@@ -382,16 +424,17 @@ const ListView = () => {
 
     // Clear the previously selected product
     setSelectedRowIndex(null);
-    setSelectedProduct(null);
+    // setSelectedProduct(null);
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
 
     // Update sessionStorage
-    sessionStorage.removeItem("selectedProduct");
+
     sessionStorage.removeItem("selectedRowIndex");
     sessionStorage.removeItem("scrollPosition");
+    sessionStorage.removeItem("selectedProduct");
 
     setCurrentPage(1);
     sessionStorage.setItem("searchTerm", value);
@@ -418,20 +461,6 @@ const ListView = () => {
     [productData, scheduledData, filterScheduled]
   );
 
-  // const handleClearInput = () => {
-  //   setSearchTerm("");
-  //   debouncedFilterProducts("");
-  //   setCurrentPage(1);
-
-  //   setFilteredProducts(productData.listings); // Reset to full product list
-
-  //   // Update sessionStorage
-  //   sessionStorage.removeItem("searchTerm");
-  //   sessionStorage.setItem(
-  //     "filteredProducts",
-  //     JSON.stringify(productData.listings)
-  //   );
-  // };
   const handleClearInput = () => {
     setSearchTerm("");
     debouncedFilterProducts("");
@@ -439,7 +468,7 @@ const ListView = () => {
 
     // Clear the previously selected product
     setSelectedRowIndex(null);
-    setSelectedProduct(null);
+    // setSelectedProduct(null);
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
@@ -450,9 +479,10 @@ const ListView = () => {
 
     // Update sessionStorage
     sessionStorage.removeItem("searchTerm");
-    sessionStorage.removeItem("selectedProduct");
+
     sessionStorage.removeItem("selectedRowIndex");
     sessionStorage.removeItem("scrollPosition");
+    sessionStorage.removeItem("selectedProduct");
     sessionStorage.setItem(
       "filteredProducts",
       JSON.stringify(productData.listings)
@@ -471,44 +501,6 @@ const ListView = () => {
       ); // Immediate filtering on Enter press
     }
   };
-
-  // const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
-  //   let filtered = products;
-  //   const now = new Date();
-
-  //   if (onlyScheduled) {
-  //     const scheduledAsins = scheduled
-
-  //       .filter(
-  //         (item) =>
-  //           item.status !== "deleted" &&
-  //           (item.weekly ||
-  //             item.monthly ||
-  //             item.endDate === null ||
-  //             (item.endDate && new Date(item.endDate) >= now))
-  //       )
-
-  //       .map((item) => item.sku);
-
-  //     filtered = products.filter((product) =>
-  //       scheduledAsins.includes(product.sellerSku)
-  //     );
-  //   }
-
-  //   if (searchValue) {
-  //     filtered = filtered.filter(
-  //       (product) =>
-  //         product.itemName?.toLowerCase().includes(searchValue.toLowerCase()) ||
-  //         product.asin1?.toLowerCase().includes(searchValue.toLowerCase()) ||
-  //         product.sellerSku
-  //           ?.toLowerCase()
-  //           .includes(searchValue.toLowerCase()) ||
-  //         product.status?.toLowerCase().includes(searchValue.toLowerCase())
-  //     );
-  //   }
-
-  //   setFilteredProducts(filtered);
-  // };
 
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
@@ -548,44 +540,6 @@ const ListView = () => {
     return filtered; // Return for immediate usage
   };
 
-  // const handleToggleFilter = () => {
-  //   const newFilterScheduled = !filterScheduled;
-  //   setFilterScheduled(newFilterScheduled);
-  //   filterProducts(
-  //     productData?.listings || [],
-  //     scheduledData,
-  //     newFilterScheduled,
-  //     searchTerm
-  //   );
-  // };
-  // const handleToggleFilter = () => {
-  //   const newFilterScheduled = !filterScheduled;
-  //   setFilterScheduled(newFilterScheduled);
-
-  //   // Clear the previously selected product
-  //   setSelectedRowIndex(null);
-  //   setSelectedProduct(null);
-  //   setSelectedAsin("");
-  //   setSelectedSku("");
-  //   setSelectedFnSku("");
-  //   setSelectedPrice("");
-
-  //   // Update sessionStorage
-  //   sessionStorage.removeItem("selectedProduct");
-  //   sessionStorage.removeItem("selectedRowIndex");
-  //   sessionStorage.removeItem("scrollPosition");
-
-  //   // Apply the filter
-  //   const filtered = filterProducts(
-  //     productData?.listings || [],
-  //     scheduledData,
-  //     newFilterScheduled,
-  //     searchTerm
-  //   );
-
-  //   setFilteredProducts(filtered);
-  // };
-
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
@@ -599,7 +553,7 @@ const ListView = () => {
     setSelectedPrice("");
 
     // Update sessionStorage
-    sessionStorage.removeItem("selectedProduct");
+
     sessionStorage.removeItem("selectedRowIndex");
     sessionStorage.removeItem("scrollPosition");
 
@@ -640,89 +594,6 @@ const ListView = () => {
     setChannelStockValue(channelStock);
   };
 
-  // const handleProductSelect = async (
-  //   price,
-  //   sku1,
-  //   asin,
-  //   fnSku,
-  //   index,
-  //   fulfillmentChannel,
-  //   quantity,
-  //   fulfillableQuantity,
-  //   pendingTransshipmentQuantity,
-  //   item
-  // ) => {
-  //   const scrollPosition =
-  //     document.documentElement.scrollTop || document.body.scrollTop;
-  //   // Save current state in sessionStorage
-  //   sessionStorage.setItem("selectedRowIndex", index);
-  //   sessionStorage.setItem("currentPage", currentPage);
-  //   sessionStorage.setItem("scrollPosition", scrollPosition);
-  //   sessionStorage.setItem("selectedProduct", JSON.stringify(item));
-  //   sessionStorage.setItem("selectedListing", JSON.stringify(item));
-  //   sessionStorage.setItem("selectedAsin", asin);
-
-  //   if (selectedRowIndex === index) {
-  //     setSelectedRowIndex(null);
-  //     setSelectedProduct(null);
-  //     setSelectedListing(null);
-  //     setSelectedAsin("");
-  //     setSelectedSku("");
-  //     setSelectedFnSku("");
-  //     setSelectedPrice("");
-  //     handleSetChannelStockValue(null);
-  //     setFulfillmentChannel(null);
-  //     setShowFilterDropdown(false);
-  //     sessionStorage.removeItem("selectedProduct");
-  //     sessionStorage.removeItem("selectedRowIndex");
-  //     sessionStorage.removeItem("scrollPosition");
-  //   } else {
-  //     setSelectedRowIndex(index);
-  //     setSelectedAsin(asin);
-  //     setSelectedSku(sku1);
-  //     setSelectedFnSku(fnSku);
-  //     setSelectedPrice(price);
-  //     setFulfillmentChannel(fulfillmentChannel);
-  //     setShowFilterDropdown(false);
-  //     handleSetChannelStockValue(
-  //       fulfillmentChannel,
-  //       quantity,
-  //       fulfillableQuantity,
-  //       pendingTransshipmentQuantity
-  //     );
-
-  //     setSelectedProduct(item);
-
-  //     sessionStorage.setItem("selectedProduct", JSON.stringify(item));
-  //     sessionStorage.setItem("selectedRowIndex", JSON.stringify(index));
-
-  //     try {
-  //       const [responseOne, responseTwo] = await Promise.all([
-  //         axios.get(`${BASE_URL}/details/${asin}`),
-  //         axios.get(`${BASE_URL}/product/${asin}`),
-  //       ]);
-
-  //       setSelectedProduct(responseOne.data.payload);
-
-  //       setSelectedListing(responseTwo.data);
-
-  //       // Update sessionStorage with fetched details
-  //       sessionStorage.setItem(
-  //         "selectedProduct",
-  //         JSON.stringify(responseOne.data.payload)
-  //       );
-  //       sessionStorage.setItem(
-  //         "selectedListing",
-  //         JSON.stringify(responseTwo.data)
-  //       );
-  //     } catch (error) {
-  //       console.error("Error fetching product details:", error.message);
-  //     } finally {
-  //       setProductDetailLoading(false);
-  //     }
-  //   }
-  // };
-
   const handleProductSelect = async (
     price,
     sku1,
@@ -752,8 +623,9 @@ const ListView = () => {
       handleSetChannelStockValue(null);
       setFulfillmentChannel(null);
       setShowFilterDropdown(false);
-      sessionStorage.removeItem("selectedProduct");
+
       sessionStorage.removeItem("selectedRowIndex");
+      sessionStorage.removeItem("selectedProduct");
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
@@ -769,9 +641,8 @@ const ListView = () => {
         pendingTransshipmentQuantity
       );
 
-      setSelectedProduct(item);
+      // setSelectedProduct(item);
 
-      sessionStorage.setItem("selectedProduct", JSON.stringify(item));
       sessionStorage.setItem("selectedRowIndex", JSON.stringify(index));
 
       try {
@@ -781,6 +652,12 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
+
+        //store selected Product to session storage
+        sessionStorage.setItem(
+          "selectedProduct",
+          JSON.stringify(responseOne.data.payload)
+        );
 
         setSelectedListing(responseTwo.data);
       } catch (error) {
@@ -1438,7 +1315,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
-                        ${item?.price}
+                        ${parseFloat(item?.price).toFixed(2)}
                       </td>
                       <td
                         style={{
@@ -1597,6 +1474,7 @@ const ListView = () => {
               // style={{ marginTop: "20px", position: "fixed", width: "510px" }}
             >
               <ProductDetailView
+                key={selectedAsin}
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}
