@@ -1,38 +1,29 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Card, Table, Button, Modal } from "react-bootstrap";
-import { LuPencilLine } from "react-icons/lu";
-import { PiWarehouse } from "react-icons/pi";
-import { CiEdit } from "react-icons/ci";
-import { PenLine, Timer, TimerOff, Trash } from "lucide-react";
+
+import { PenLine } from "lucide-react";
 import { HiOutlineArrowNarrowRight } from "react-icons/hi";
 import axios from "axios";
 import { useSelector } from "react-redux";
-// import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+
 import EditScheduleFromList from "./EditScheduleFromList";
 import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
-import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { MdCheck } from "react-icons/md";
-import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
+
+import {  BsFillInfoSquareFill } from "react-icons/bs";
 import { FaArrowRightLong, FaRankingStar } from "react-icons/fa6";
-import { Calendar } from "../ui/calendar";
-import { DateTime } from "luxon";
+
 import { useNavigate } from "react-router-dom";
 import {
   Card as ShadCdnCard,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FaTrash } from "react-icons/fa";
+
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeletong";
-// import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
+
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -83,38 +74,38 @@ const dateNames = [
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
-    return "Invalid Time"; // Return a default value or handle it gracefully
+    return "Invalid Time"; 
   }
 
   const [hours, minutes] = timeString.split(":").map(Number);
-  const newHours = (hours + hoursToAdd) % 24; // Ensures the hour stays in 24-hour format
-  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Add leading zero to minutes if necessary
+  const newHours = (hours + hoursToAdd) % 24; 
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; 
 
-  // Convert 24-hour time to 12-hour format with AM/PM
+  
   const period = newHours >= 12 ? "PM" : "AM";
-  const hours12 = newHours % 12 || 12; // Convert to 12-hour format
+  const hours12 = newHours % 12 || 12; 
   const formattedHours = hours12 < 10 ? `0${hours12}` : hours12;
 
-  return `${formattedHours}:${formattedMinutes} ${period}`; // Return time in 12-hour format with AM/PM
+  return `${formattedHours}:${formattedMinutes} ${period}`; 
 }
 
 function convertToUserLocalTime(utcTimeString) {
   if (!utcTimeString || typeof utcTimeString !== "string") {
     console.error("Invalid timeString:", utcTimeString);
-    return "Invalid Time"; // Return a default value or handle it gracefully
+    return "Invalid Time"; 
   }
 
-  // Parse the time string assuming it's in UTC
+  
   const [hours, minutes] = utcTimeString.split(":").map(Number);
 
-  // Create a Date object using the current date and UTC time
+  
   const now = new Date();
   const utcDate = new Date(
     Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes)
   );
-  // Convert to the user's local time zone with AM/PM format
+
   const options = { hour: "2-digit", minute: "2-digit", hour12: true };
-  const localTime = utcDate.toLocaleTimeString([], options); // This will format with AM/PM
+  const localTime = utcDate.toLocaleTimeString([], options); 
 
   return localTime;
 }
@@ -123,7 +114,7 @@ const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
 };
 const getDateLabelFromNumber = (dateNumber) => {
-  return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
+  return dateNames[dateNumber - 1] || `Day ${dateNumber}`; 
 };
 
 const displayTimeSlotsWithDayLabels = (timeSlots, isWeekly = false) => {
@@ -160,13 +151,12 @@ const ProductDetailView = ({
     return (
       <div
         style={{
-          // marginTop: "20px",
+       
           paddingTop: "11px",
           height: "93vh",
           display: "flex",
 
-          // justifyContent: "center",
-          // alignItems: "center",
+         
         }}
       >
         <div
@@ -198,7 +188,7 @@ const ProductDetailView = ({
   const [editSchedule, setEditSchedule] = useState(null);
   const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
   const [currentPrice, setCurrentPrice] = useState("");
-  // const { addEvent, removeEvent } = useContext(PriceScheduleContext);
+  
 
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
@@ -213,12 +203,12 @@ const ProductDetailView = ({
 
   const { currentUser } = useSelector((state) => state.user);
 
-  // const { events } = useContext(PriceScheduleContext);
+  
   const [selectedDays, setSelectedDays] = useState([]);
 
   const navigate = useNavigate();
   const handleDateSelect = (dates) => {
-    setSelectedDays(dates); // Update the selected days on user interaction
+    setSelectedDays(dates); 
   };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
@@ -483,31 +473,9 @@ const ProductDetailView = ({
     <div style={{ width: "100%", paddingTop: "10px" }}>
       <Card style={detailStyles.card} className=" p-0">
         {loading || productDetailLoading ? (
-          // <div
-          //   style={{
-          //     marginTop: "100px",
-          //     display: "flex",
-          //     justifyContent: "center",
-          //     alignItems: "center",
-          //     height: "60vh",
-          //   }}
-          // >
-          //   {/* <Spinner animation="border" /> Loading... */}
-          //   <img
-          //     style={{ width: "40px", marginRight: "6px" }}
-          //     className="animate-pulse"
-          //     src={priceoboIcon}
-          //     alt="Priceobo Icon"
-          //   />
-          //   <br />
-
-          //   <div className="block">
-          //     <p className="text-xl"> Loading...</p>
-          //   </div>
-          // </div>
           <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
         ) : (
-          <Card.Body className="p-0">
+          <div className="p-0">
             <div>
               <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
                 <h2 className="py-[6px] text-center text-sm">
@@ -515,7 +483,7 @@ const ProductDetailView = ({
                 </h2>
               </div>
 
-              {/* product image and details with asin numbers */}
+          
 
               <ProductDetailsWithNumbers
                 product={product}
@@ -549,16 +517,14 @@ const ProductDetailView = ({
                 </button>
               </div>
 
-              {/* <div className="m-3 w-[30%] mx-auto">
-                <p>hello</p>
-              </div> */}
-
-              <div className="m-3 ">
+              <div className=" absolute w-full ">
                 <DetailedCalendarView sku1={sku1} />
               </div>
-              {/* tabs  */}
 
-              <div className="px-2 py-1 m-2 h-[45vh] overflow-y-auto">
+    
+
+              <div className="px-2 py-1 m-2 h-[40vh] overflow-y-auto absolute bottom-0  w-[98%] mx-auto">
+      
                 <Tabs defaultValue="single" className="">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="single">
@@ -573,7 +539,7 @@ const ProductDetailView = ({
                   </TabsList>
                   <TabsContent value="single">
                     <>
-                      {/* Filter schedules for single entries and check if data exists */}
+                    
                       {priceSchedule.filter(
                         (sc) =>
                           sc.status !== "deleted" &&
@@ -900,7 +866,7 @@ const ProductDetailView = ({
                 </Tabs>
               </div>
             </div>
-          </Card.Body>
+          </div>
         )}
       </Card>
 
