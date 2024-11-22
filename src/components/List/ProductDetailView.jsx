@@ -507,7 +507,7 @@ const ProductDetailView = ({
           // </div>
           <ProductDetailLoadingSkeleton></ProductDetailLoadingSkeleton>
         ) : (
-          <Card.Body className="p-0">
+          <div className="p-0">
             <div>
               <div className="border-b-2 mb-2 bg-[#F6F6F8] ">
                 <h2 className="py-[6px] text-center text-sm">
@@ -549,13 +549,13 @@ const ProductDetailView = ({
                 </button>
               </div>
 
-              <div className=" m-3">
+              <div className=" absolute w-full ">
                 <DetailedCalendarView sku1={sku1} />
               </div>
 
               {/* tabs  */}
 
-              <div className="px-2 py-1 m-2 h-[45vh] overflow-y-auto">
+              <div className="px-2 py-1 m-2 h-[40vh] overflow-y-auto absolute bottom-0  w-[98%] mx-auto">
                 {/* <div className=" flex justify-center items-center mt-2 absolute top-[20%] left-[25%]">
                   <button
                     onClick={() =>
@@ -914,7 +914,7 @@ const ProductDetailView = ({
                 </Tabs>
               </div>
             </div>
-          </Card.Body>
+          </div>
         )}
       </Card>
 
