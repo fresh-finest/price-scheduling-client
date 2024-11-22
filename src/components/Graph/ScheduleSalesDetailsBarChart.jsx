@@ -64,8 +64,6 @@ const  ScheduleSalesDetailsBarChart=({
 })=> {
   const [activeChart, setActiveChart] = useState("desktop");
 
-  console.log("sales data", scheduleSalesData);
-  console.log("view", view);
 
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {

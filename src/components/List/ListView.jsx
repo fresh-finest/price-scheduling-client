@@ -1,28 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
-import {
-  Table,
-  Form,
-  InputGroup,
-  Button,
-  Pagination,
-  Card,
-} from "react-bootstrap";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-import { IoFunnelOutline } from "react-icons/io5";
-import { FaCheck } from "react-icons/fa"; // Using Font Awesome check icon for better visuals
 import UpdatePriceFromList from "./UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
+import { FixedSizeList as List } from "react-window";
 
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-// const BASE_URL = "http://localhost:3000"; 
+// const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -30,16 +22,9 @@ const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import {
-  BsClipboardCheck,
-  BsFillInfoSquareFill,
-  BsSortNumericDownAlt,
-} from "react-icons/bs";
-import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
-import CalendarView from "../Calendar/DetailedCalendarView";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
 import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
-import { ListStatusDropdown } from "../shared/ui/ListStatusDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
 import ListLoadingSkeleton from "../LoadingSkeleton/ListingLoadingSkeleton";
 
@@ -54,40 +39,87 @@ const fetchScheduledData = async () => {
 };
 
 const ListView = () => {
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [highQuatilyImage, setHighQuanlityImage] = useState(null);
-  const [selectedListing, setSelectedListing] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
+  // const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(() => {
+    const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
+    return storedSelectedProduct ? JSON.parse(storedSelectedProduct) : null;
+  });
+
+  // const [selectedListing, setSelectedListing] = useState(null);
+  const [selectedListing, setSelectedListing] = useState(() => {
+    const storedSelectedListing = sessionStorage.getItem("selectedListing");
+    return storedSelectedListing ? JSON.parse(storedSelectedListing) : null;
+  });
+
+  // const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(
+    () => sessionStorage.getItem("searchTerm") || ""
+  );
+
   const [columnWidths, setColumnWidths] = useState([
     80, 80, 350, 80, 90, 110, 90, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [selectedAsin, setSelectedAsin] = useState("");
-  const [selectedSku, setSelectedSku] = useState("");
-  const [selectedPrice, setSelectedPrice] = useState("");
-  const [selectedFnSku, setSelectedFnSku] = useState("");
-  const [channelStockValue, setChannelStockValue] = useState("");
+  // const [selectedAsin, setSelectedAsin] = useState("");
+  const [selectedAsin, setSelectedAsin] = useState(
+    () => sessionStorage.getItem("selectedAsin") || ""
+  );
+
+  // const [selectedSku, setSelectedSku] = useState("");
+  const [selectedSku, setSelectedSku] = useState(
+    () => sessionStorage.getItem("selectedSku") || ""
+  );
+
+  // const [selectedPrice, setSelectedPrice] = useState("");
+  const [selectedPrice, setSelectedPrice] = useState(
+    () => sessionStorage.getItem("selectedPrice") || ""
+  );
+
+  // const [selectedFnSku, setSelectedFnSku] = useState("");
+  const [selectedFnSku, setSelectedFnSku] = useState(
+    () => sessionStorage.getItem("selectedFnSku") || ""
+  );
+
+  // const [channelStockValue, setChannelStockValue] = useState("");
+  const [channelStockValue, setChannelStockValue] = useState(
+    () => sessionStorage.getItem("channelStockValue") || ""
+  );
   const [fulfillmentChannel, setFulfillmentChannel] = useState("");
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  // const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+  const [selectedRowIndex, setSelectedRowIndex] = useState(() => {
+    const storedRowIndex = sessionStorage.getItem("selectedRowIndex");
+    return storedRowIndex ? parseInt(storedRowIndex, 10) : null;
+  });
+  // const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState(() => {
+    const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
+    return storedFilteredProducts ? JSON.parse(storedFilteredProducts) : [];
+  });
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
-  const [filterScheduled, setFilterScheduled] = useState(false);
+  // const [filterScheduled, setFilterScheduled] = useState(false);
+  const [filterScheduled, setFilterScheduled] = useState(
+    () => sessionStorage.getItem("filterScheduled") === "true"
+  );
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [channelStockSortOrder, setChannelStockSortOrder] = useState(null); // State for sorting order
   const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null); // State for FBA/FBM sorting order
   const [statusSortOrder, setStatusSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [productDetailLoading,setProductDetailLoading] = useState(false);
+  const [productDetailLoading, setProductDetailLoading] = useState(false);
 
+  // const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const storedCurrentPage = sessionStorage.getItem("currentPage");
+    return storedCurrentPage ? parseInt(storedCurrentPage, 10) : 1;
+  });
 
   const itemsPerPage = 20;
+  const itemRefs = useRef([]); // Create a ref array to hold row references
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -111,8 +143,9 @@ const ListView = () => {
         setFilteredProducts(data.listings);
       }
     },
-    staleTime:Infinity,
-    cacheTime:1000*60*30,
+    staleTime: Infinity,
+    // staleTime: 1000 * 60 * 5, // data is fresh for 5 minutes
+    cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
 
   useEffect(() => {
@@ -129,7 +162,139 @@ const ListView = () => {
       }
     };
     getScheduledData();
-  }, [productData]);
+  }, [productData, filterScheduled, searchTerm]);
+
+  useEffect(() => {
+    // Clear sessionStorage on page reload
+    const handlePageReload = () => {
+      sessionStorage.clear();
+    };
+    window.addEventListener("beforeunload", handlePageReload);
+
+    // Restore session data if available
+    const storedSearchTerm = sessionStorage.getItem("searchTerm");
+    const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
+
+    const storedRowIndex = sessionStorage.getItem("selectedRowIndex");
+    const storedCurrentPage = sessionStorage.getItem("currentPage");
+    const storedScrollPosition = sessionStorage.getItem("scrollPosition");
+    const storedFilterScheduled = sessionStorage.getItem("filterScheduled");
+    const storedSelectedListing = sessionStorage.getItem("selectedListing");
+    const storedSelectedAsin = sessionStorage.getItem("selectedAsin");
+    const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
+
+    if (storedSearchTerm) setSearchTerm(storedSearchTerm);
+    if (storedFilteredProducts)
+      setFilteredProducts(JSON.parse(storedFilteredProducts));
+    if (storedSelectedProduct)
+      setSelectedProduct(JSON.parse(storedSelectedProduct));
+    if (storedRowIndex) setSelectedRowIndex(parseInt(storedRowIndex, 10));
+    if (storedCurrentPage) setCurrentPage(parseInt(storedCurrentPage, 10));
+    if (storedFilterScheduled)
+      setFilterScheduled(storedFilterScheduled === "true");
+    if (storedSelectedListing)
+      setSelectedListing(JSON.parse(storedSelectedListing));
+    if (storedSelectedAsin) setSelectedAsin(storedSelectedAsin);
+
+    if (storedScrollPosition) {
+      window.scrollTo(0, parseInt(storedScrollPosition, 10)); // Scroll to the stored position
+      sessionStorage.removeItem("scrollPosition"); // Clear it once applied
+    }
+
+    // Scroll to the selected row if available
+    if (storedRowIndex && itemRefs.current[storedRowIndex]) {
+      itemRefs.current[storedRowIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener("beforeunload", handlePageReload);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Restore state from session storage
+    const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
+    const storedSelectedListing = sessionStorage.getItem("selectedListing");
+    const storedSelectedAsin = sessionStorage.getItem("selectedAsin");
+    const storedSelectedSku = sessionStorage.getItem("selectedSku");
+    const storedSelectedPrice = sessionStorage.getItem("selectedPrice");
+    const storedFnSku = sessionStorage.getItem("selectedFnSku");
+    const storedChannelStockValue = sessionStorage.getItem("channelStockValue");
+
+    if (storedSelectedProduct) {
+      setSelectedProduct(JSON.parse(storedSelectedProduct));
+    }
+    if (storedSelectedListing) {
+      setSelectedListing(JSON.parse(storedSelectedListing));
+    }
+    if (storedSelectedAsin) {
+      setSelectedAsin(storedSelectedAsin);
+    }
+    if (storedSelectedSku) {
+      setSelectedSku(storedSelectedSku);
+    }
+    if (storedSelectedPrice) {
+      setSelectedPrice(storedSelectedPrice);
+    }
+    if (storedFnSku) {
+      setSelectedFnSku(storedFnSku);
+    }
+    if (storedChannelStockValue) {
+      setChannelStockValue(storedChannelStockValue);
+    }
+
+    console.log("Restored state from session storage on mount");
+  }, []);
+
+  useEffect(() => {
+    // Sync state to session storage
+    if (selectedProduct) {
+      sessionStorage.setItem(
+        "selectedProduct",
+        JSON.stringify(selectedProduct)
+      );
+    }
+    if (selectedListing) {
+      sessionStorage.setItem(
+        "selectedListing",
+        JSON.stringify(selectedListing)
+      );
+    }
+    if (selectedAsin) {
+      sessionStorage.setItem("selectedAsin", selectedAsin);
+    }
+    if (selectedSku) {
+      sessionStorage.setItem("selectedSku", selectedSku);
+    }
+    if (selectedPrice) {
+      sessionStorage.setItem("selectedPrice", selectedPrice);
+    }
+    if (selectedFnSku) {
+      sessionStorage.setItem("selectedFnSku", selectedFnSku);
+    }
+    if (channelStockValue) {
+      sessionStorage.setItem("channelStockValue", channelStockValue);
+    }
+
+    console.log("Synced state to session storage", {
+      selectedProduct,
+      selectedListing,
+      selectedAsin,
+      selectedSku,
+    });
+  }, [
+    selectedProduct,
+    selectedListing,
+    selectedAsin,
+    selectedSku,
+    selectedFnSku,
+    selectedPrice,
+    channelStockValue,
+  ]);
 
   // calculate paginated data
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -141,9 +306,30 @@ const ListView = () => {
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
+  // const handlePageChange = (pageNumber) => {
+  //   setCurrentPage(pageNumber);
+  //   sessionStorage.setItem("currentPage", pageNumber);
+  // };
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+
+    // Clear the previously selected product
+    setSelectedRowIndex(null);
+    // setSelectedProduct(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
+
+    // Update sessionStorage
+
+    sessionStorage.removeItem("selectedRowIndex");
+    sessionStorage.removeItem("scrollPosition");
+    sessionStorage.removeItem("selectedProduct");
+
+    sessionStorage.setItem("currentPage", pageNumber);
   };
+
   const toggleChannelStockSort = () => {
     const newOrder = channelStockSortOrder === "asc" ? "desc" : "asc";
     setChannelStockSortOrder(newOrder);
@@ -170,26 +356,6 @@ const ListView = () => {
 
     setFilteredProducts(sortedProducts);
   };
-
-  // Function to toggle sorting for FBA/FBM column
-  // const toggleFbaFbmSort = () => {
-  //   const newOrder = fbaFbmSortOrder === "asc" ? "desc" : "asc";
-  //   setFbaFbmSortOrder(newOrder);
-
-  //   // Sort displayedProducts based on FBA/FBM value
-  //   const sortedProducts = [...filteredProducts].sort((a, b) => {
-  //     const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-  //     const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-
-  //     if (newOrder === "asc") {
-  //       return fulfillmentA.localeCompare(fulfillmentB);
-  //     } else {
-  //       return fulfillmentB.localeCompare(fulfillmentA);
-  //     }
-  //   });
-
-  //   setFilteredProducts(sortedProducts);
-  // };
 
   // Function to toggle sorting for FBA/FBM column based on selected option
   const toggleFbaFbmSort = (option) => {
@@ -244,18 +410,6 @@ const ListView = () => {
       }
     });
 
-    // Sort displayedProducts based on Status priority
-    // const sortedProducts = [...filteredProducts].sort((a, b) => {
-    //   const statusA = statusPriority[a.status] ?? Number.MAX_VALUE; // Fallback for unlisted statuses
-    //   const statusB = statusPriority[b.status] ?? Number.MAX_VALUE;
-
-    //   if (newOrder === "asc") {
-    //     return statusA - statusB;
-    //   } else {
-    //     return statusB - statusA;
-    //   }
-    // });
-
     setFilteredProducts(sortedProducts);
   };
 
@@ -287,6 +441,50 @@ const ListView = () => {
     ));
   };
 
+  // const debouncedFilterProducts = useCallback(
+  //   debounce((value) => {
+  //     filterProducts(
+  //       productData?.listings || [],
+  //       scheduledData,
+  //       filterScheduled,
+  //       value
+  //     );
+  //   }, 300),
+  //   [productData, scheduledData, filterScheduled]
+  // );
+
+  // const handleSearch = (e) => {
+  //   const value = e.target.value;
+  //   setSearchTerm(value); // Update search term immediately in the input
+  //   debouncedFilterProducts(value); // Apply debounced filtering
+  //   setCurrentPage(1);
+
+  //   sessionStorage.setItem("searchTerm", value);
+  // };
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value); // Update search term immediately in the input
+    debouncedFilterProducts(value); // Apply debounced filtering
+
+    // Clear the previously selected product
+    setSelectedRowIndex(null);
+    // setSelectedProduct(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
+
+    // Update sessionStorage
+
+    sessionStorage.removeItem("selectedRowIndex");
+    sessionStorage.removeItem("scrollPosition");
+    sessionStorage.removeItem("selectedProduct");
+
+    setCurrentPage(1);
+    sessionStorage.setItem("searchTerm", value);
+  };
+
   const debouncedFilterProducts = useCallback(
     debounce((value) => {
       filterProducts(
@@ -295,20 +493,45 @@ const ListView = () => {
         filterScheduled,
         value
       );
+      const filtered = filterProducts(
+        productData?.listings || [],
+        scheduledData,
+        filterScheduled,
+        value
+      );
+
+      setFilteredProducts(filtered); // Update state
+      sessionStorage.setItem("filteredProducts", JSON.stringify(filtered)); // Save to sessionStorage
     }, 300),
     [productData, scheduledData, filterScheduled]
   );
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setCurrentPage(1);
-    setSearchTerm(value); // Update search term immediately in the input
-    debouncedFilterProducts(value); // Apply debounced filtering
-  };
 
   const handleClearInput = () => {
-    setCurrentPage(1);
     setSearchTerm("");
     debouncedFilterProducts("");
+    setCurrentPage(1);
+
+    // Clear the previously selected product
+    setSelectedRowIndex(null);
+    // setSelectedProduct(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
+
+    // Reset to the full product list
+    setFilteredProducts(productData.listings);
+
+    // Update sessionStorage
+    sessionStorage.removeItem("searchTerm");
+
+    sessionStorage.removeItem("selectedRowIndex");
+    sessionStorage.removeItem("scrollPosition");
+    sessionStorage.removeItem("selectedProduct");
+    sessionStorage.setItem(
+      "filteredProducts",
+      JSON.stringify(productData.listings)
+    );
   };
 
   const handleKeyPress = (event) => {
@@ -330,7 +553,6 @@ const ListView = () => {
 
     if (onlyScheduled) {
       const scheduledAsins = scheduled
-
         .filter(
           (item) =>
             item.status !== "deleted" &&
@@ -339,7 +561,6 @@ const ListView = () => {
               item.endDate === null ||
               (item.endDate && new Date(item.endDate) >= now))
         )
-
         .map((item) => item.sku);
 
       filtered = products.filter((product) =>
@@ -359,19 +580,47 @@ const ListView = () => {
       );
     }
 
-    setFilteredProducts(filtered);
+    setFilteredProducts(filtered); // Update filtered products in state
+    sessionStorage.setItem("filteredProducts", JSON.stringify(filtered)); // Update sessionStorage
+    return filtered; // Return for immediate usage
   };
 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
-    filterProducts(
-      productData?.listings || [],
-      scheduledData,
-      newFilterScheduled,
-      searchTerm
-    );
+
+    // Clear the previously selected product
+    setSelectedRowIndex(null);
+    setSelectedProduct(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
+
+    // Update sessionStorage
+
+    sessionStorage.removeItem("selectedRowIndex");
+    sessionStorage.removeItem("scrollPosition");
+
+    if (newFilterScheduled) {
+      // Apply the filter and store in sessionStorage
+      const filtered = filterProducts(
+        productData?.listings || [],
+        scheduledData,
+        newFilterScheduled,
+        searchTerm
+      );
+      setFilteredProducts(filtered);
+      sessionStorage.setItem("filteredProducts", JSON.stringify(filtered));
+      sessionStorage.setItem("filterScheduled", "true");
+    } else {
+      // Clear scheduled filter from sessionStorage
+      setFilteredProducts(productData?.listings || []);
+      sessionStorage.removeItem("filteredProducts");
+      sessionStorage.setItem("filterScheduled", "false");
+    }
   };
+
   const handleSetChannelStockValue = (
     fulfillmentChannel,
     quantity,
@@ -399,8 +648,15 @@ const ListView = () => {
     fulfillmentChannel,
     quantity,
     fulfillableQuantity,
-    pendingTransshipmentQuantity
+    pendingTransshipmentQuantity,
+    item
   ) => {
+    const scrollPosition =
+      document.documentElement.scrollTop || document.body.scrollTop;
+    sessionStorage.setItem("scrollPosition", scrollPosition); // Save the scroll position
+    sessionStorage.setItem("selectedRowIndex", index); // Save the selected row index
+    sessionStorage.setItem("currentPage", currentPage); // Save the current page
+
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
       setSelectedProduct(null);
@@ -412,6 +668,9 @@ const ListView = () => {
       handleSetChannelStockValue(null);
       setFulfillmentChannel(null);
       setShowFilterDropdown(false);
+
+      sessionStorage.removeItem("selectedRowIndex");
+      sessionStorage.removeItem("selectedProduct");
     } else {
       setSelectedRowIndex(index);
       setSelectedAsin(asin);
@@ -427,6 +686,10 @@ const ListView = () => {
         pendingTransshipmentQuantity
       );
 
+      // setSelectedProduct(item);
+
+      sessionStorage.setItem("selectedRowIndex", JSON.stringify(index));
+
       try {
         const [responseOne, responseTwo] = await Promise.all([
           axios.get(`${BASE_URL}/details/${asin}`),
@@ -434,6 +697,12 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
+
+        //store selected Product to session storage
+        sessionStorage.setItem(
+          "selectedProduct",
+          JSON.stringify(responseOne.data.payload)
+        );
 
         setSelectedListing(responseTwo.data);
       } catch (error) {
@@ -532,6 +801,32 @@ const ListView = () => {
       });
   };
 
+  // if (isLoading)
+  //   return (
+  //     <div
+  //       style={{
+  //         marginTop: "100px",
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         height: "60vh",
+  //       }}
+  //     >
+  //       {/* <Spinner animation="border" /> Loading... */}
+  //       <img
+  //         style={{ width: "40px", marginRight: "6px" }}
+  //         className="animate-pulse"
+  //         src={priceoboIcon}
+  //         alt="Priceobo Icon"
+  //       />
+  //       <br />
+
+  //       <div className="block">
+  //         <p className="text-xl"> Loading...</p>
+  //       </div>
+  //     </div>
+  //   );
+
   if (isLoading) {
     return <ListLoadingSkeleton></ListLoadingSkeleton>;
   }
@@ -548,7 +843,7 @@ const ListView = () => {
         fnSku={selectedFnSku}
         channelStockValue={channelStockValue}
         fulfillmentChannel={fulfillmentChannel}
-        productDetailLoading ={productDetailLoading}
+        productDetailLoading={productDetailLoading}
         setProductDetailLoading={setProductDetailLoading}
       />
 
@@ -877,6 +1172,7 @@ const ListView = () => {
                     // {filteredProducts.slice(0, 20).map((item, index) => (
                     <tr
                       key={index}
+                      ref={(el) => (itemRefs.current[index] = el)} // Store reference to each row element
                       onClick={() =>
                         handleProductSelect(
                           item?.price,
@@ -887,7 +1183,8 @@ const ListView = () => {
                           item.fulfillmentChannel,
                           item.quantity,
                           item.fulfillableQuantity,
-                          item.pendingTransshipmentQuantity
+                          item.pendingTransshipmentQuantity,
+                          item
                         )
                       }
                       style={{
@@ -1063,7 +1360,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
-                        ${item?.price}
+                        ${parseFloat(item?.price).toFixed(2)}
                       </td>
                       <td
                         style={{
@@ -1140,6 +1437,7 @@ const ListView = () => {
                             border: "none",
                             backgroundColor: "#0662BB",
                             borderRadius: "3px",
+                            zIndex: 1,
                           }}
                           onClick={(e) =>
                             handleUpdate(
@@ -1221,6 +1519,7 @@ const ListView = () => {
               // style={{ marginTop: "20px", position: "fixed", width: "510px" }}
             >
               <ProductDetailView
+                key={selectedAsin}
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}

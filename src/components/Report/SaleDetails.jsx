@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { useLocation, useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 import moment from "moment";
 import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
 import { MdCheck } from "react-icons/md";
@@ -19,9 +19,11 @@ import ChartsLoadingSkeleton from "../LoadingSkeleton/ChartsLoadingSkeleton";
 
 const BASE_URL = `https://api.priceobo.com`;
 
+
 const SaleDetails = () => {
   //decodeURIComponent
   const { sku } = useParams();
+
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
   const [productData, setProductData] = useState("");
@@ -35,13 +37,14 @@ const SaleDetails = () => {
   const [showTable, setShowTable] = useState(false);
   const [showScheduleSalesTable, setShowScheduleSalesTable] = useState(false);
   const [productPrice, setProductPrice] = useState("");
+  const [productDetails,setProductDetails]= useState("");
 
-  const location = useLocation();
-  const { productInfo, sku1 } = location.state || {};
+ 
+
   const fetchSalesMetrics = async () => {
     setSalesChartLoading(true);
     setError(null);
-     const decodedSku = encodeURIComponent(sku1);
+     const decodedSku = encodeURIComponent(sku);
     
     try {
       let url = `${BASE_URL}/sales-metrics/${view}/${decodedSku}`;
@@ -81,7 +84,7 @@ const SaleDetails = () => {
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
     setError(null);
-    const decodedSku = encodeURIComponent(sku1);
+    const decodedSku = encodeURIComponent(sku);
     try {
       let url = `${BASE_URL}/api/report/${decodedSku}`;
       const params = {};
@@ -130,27 +133,46 @@ const SaleDetails = () => {
 
   
 
- 
-
   const fetchProductPrice = async () => {
-    setError(null);
-    const encodedSku = encodeURIComponent(sku1);
+    
+    
+    const encodedSku = encodeURIComponent(sku); // URL encode the SKU
+   console.log("endocode sku",encodedSku)
+  
     try {
-      const response = await axios.get(`https://api.priceobo.com/list/${encodedSku}`);
-      const price = response?.data?.offerAmount;
-
-     
-
-      setProductPrice(price);
+      const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
+      const price = response?.data?.offerAmount; 
+  
+      setProductPrice(price); 
+      console.log("price",price)
     } catch (err) {
-      setError("An Error occurred while fetching product price.");
-    } finally {
-      // setLoading(false);
+      setError("An error occurred while fetching product price."); 
     }
   };
+ 
+  const fetchProductDetails = async()=>{
+     
+    const encodedSku = encodeURIComponent(sku);
+    try {
+      const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
+
+      setProductDetails(response.data);
+    } catch (error) {
+      setError("An error occurred while fetching product price."); 
+    }
+  }
+  console.log("details",productDetails)
+  useEffect(() => {
+    console.log("sku",sku);
+    if (sku) {
+      fetchProductPrice();
+      fetchProductDetails();
+    }
+  }, [sku]); // Dependency array ensures effect runs only when SKU changes
 
   useEffect(() => {
     fetchSalesMetrics();
+    
     // fetchSalesProductData();
     // fetchScheduleSalesMetrics();
   }, [sku, view, startDate, endDate]);
@@ -159,9 +181,7 @@ const SaleDetails = () => {
     fetchScheduleSalesMetrics();
   }, [sku, startDate, endDate]);
 
-  useEffect(() => {
-    fetchProductPrice();
-  }, []);
+ 
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -189,24 +209,24 @@ const SaleDetails = () => {
  
   return (
     <div className="">
-      {productInfo && (
+      {productDetails && (
         <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px] gap-2">
           <img
             className="object-cover"
-            src={productInfo?.AttributeSets[0]?.SmallImage?.URL}
-            // width="70px"
-            // height="40px"
+            src={productDetails?.summaries[0]?.mainImage?.link}
+            width="70px"
+            height="40px"
             alt="product image"
           />
           <div>
-            <h3 className="text-md">{productInfo?.AttributeSets[0]?.Title}</h3>
+            <h3 className="text-md">{productDetails?.summaries[0]?.itemName}</h3>
             <div className="flex items-center justify-start  gap-1 mt-1">
               <p className="px-2 py-1 bg-[#3B82F6] text-white rounded-sm">
-                ${productPrice}
+              ${parseFloat(productPrice).toFixed(2)}
               </p>
               <p className="flex items-center justify-center gap-1  text-sm border  px-2 py-1.5">
-                {sku1}{" "}
-                {copiedSku === sku1 ? (
+                {sku}{" "}
+                {copiedSku === sku ? (
                   <MdCheck
                     style={{
                       marginLeft: "5px",
@@ -219,7 +239,7 @@ const SaleDetails = () => {
                   <BsClipboardCheck
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleCopy(sku1, "sku");
+                      handleCopy(sku, "sku");
                     }}
                     style={{
                       marginLeft: "5px",

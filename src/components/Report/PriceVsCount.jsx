@@ -60,14 +60,7 @@ const PriceVsCount = ({
         className={`transition-all duration-500 ${
           showTable ? "h-full opacity-100" : "max-h-0 opacity-0"
         } overflow-hidden`}
-        style={
-          {
-            // maxHeight: "91vh",
-            // overflowY: "auto",
-            // marginTop: "20px",
-            // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-          }
-        }
+        
       >
         <table
           style={{

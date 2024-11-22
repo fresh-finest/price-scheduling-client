@@ -63,8 +63,6 @@ const CustomXAxisTick = ({ x, y, payload }) => {
 const  SalesDetailsBarChart=({ view, salesData }) =>{
   const [activeChart, setActiveChart] = useState("desktop");
 
-  console.log("sales data", salesData);
-  console.log("view", view);
 
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {
@@ -74,17 +72,43 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
     return "date"; // Default to "date"
   }, [view]);
 
+  // const formatXAxisLabel = (value) => {
+  //   if (view === "day") {
+  //     const [day, month, year] = value.split("/"); 
+  //     const formattedDate = new Date(`${year}-${month}-${day}`);
+  //     return formattedDate.toLocaleDateString("en-US", {
+  //       month: "short",
+  //       day: "numeric",
+  //     });
+  //   }
+  //   return value; // For week and month, assume they're already formatted properly
+  // };
+
   const formatXAxisLabel = (value) => {
     if (view === "day") {
-      const [day, month, year] = value.split("/"); // Parse DD/MM/YYYY format
-      const formattedDate = new Date(`${year}-${month}-${day}`);
-      return formattedDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
+      try {
+        // Parse the value assuming DD/MM/YYYY format
+        const [day, month, year] = value.split("/");
+        if (!day || !month || !year) throw new Error("Invalid date format");
+  
+       
+        const formattedDate = new Date(`${year}-${month}-${day}T00:00:00`);
+  
+       
+        return new Intl.DateTimeFormat("en-US", {
+          month: "short",
+          day: "numeric",
+          timeZone: "Asia/Dhaka",
+        }).format(formattedDate);
+      } catch (error) {
+        console.error("Error formatting date:", error.message);
+        return value; 
+      }
     }
-    return value; // For week and month, assume they're already formatted properly
+  
+    return value; 
   };
+  
 
   return (
     <>

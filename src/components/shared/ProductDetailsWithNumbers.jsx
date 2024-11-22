@@ -53,7 +53,11 @@ const ProductDetailsWithNumbers = ({
       >
         <Card.Img
           variant="top"
-          src={product?.AttributeSets[0]?.SmallImage?.URL}
+          // src={product?.AttributeSets[0]?.SmallImage?.URL}
+          src={
+            product?.AttributeSets?.[0]?.SmallImage?.URL ||
+            "https://beautyrepublicfdl.com/wp-content/uploads/2020/06/placeholder-image-600x450.jpg" // Provide a fallback if the URL is not available
+          }
           className={`${
             updatePriceModal
               ? "max-w-[120px] max-h-[120px] object-fill"
@@ -61,17 +65,17 @@ const ProductDetailsWithNumbers = ({
           }  mr-[20px]`}
           // style={detailStyles.image}
         />
-        <div>
+        <div className={`${updatePriceModal ? "min-w-[90%]" : "min-w-[85%]"}`}>
           <Card.Title
             className={`${
               updatePriceModal ? "text-[16px]" : "text-[14px]"
             }  text-left font-normal`}
           >
-            {product?.AttributeSets[0]?.Title}
+            {product?.AttributeSets?.[0]?.Title || product?.itemName}
           </Card.Title>
           {updatePriceModal && (
-            <div className="flex flex-col  gap-2 mt-2">
-              <div className="flex  gap-2">
+            <div className="flex   gap-2 mt-2 ">
+              <div className="flex   gap-2">
                 <div
                   style={{
                     borderRadius: "3px",
@@ -81,7 +85,9 @@ const ProductDetailsWithNumbers = ({
                   }}
                   className=" bg-blue-500 text-white flex justify-center items-center "
                 >
-                  <h2 style={{ fontSize: "13px" }}>${price}</h2>
+                  <h2 style={{ fontSize: "13px" }}>
+                    ${parseFloat(price).toFixed(2)}
+                  </h2>
                 </div>
 
                 <div className="flex flex-col  items-start gap-2">
@@ -225,7 +231,9 @@ const ProductDetailsWithNumbers = ({
             style={{ borderRadius: "3px", height: "30px" }}
             className="row-span-2 bg-blue-500 text-white flex justify-center items-center  "
           >
-            <h2 style={{ fontSize: "13px" }}>${price}</h2>
+            <h2 style={{ fontSize: "13px" }}>
+              ${parseFloat(price).toFixed(2)}
+            </h2>
           </div>
 
           <div>
