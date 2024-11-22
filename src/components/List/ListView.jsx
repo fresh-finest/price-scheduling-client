@@ -39,28 +39,71 @@ const fetchScheduledData = async () => {
 };
 
 const ListView = () => {
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedListing, setSelectedListing] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
+  // const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(() => {
+    const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
+    return storedSelectedProduct ? JSON.parse(storedSelectedProduct) : null;
+  });
+
+  // const [selectedListing, setSelectedListing] = useState(null);
+  const [selectedListing, setSelectedListing] = useState(() => {
+    const storedSelectedListing = sessionStorage.getItem("selectedListing");
+    return storedSelectedListing ? JSON.parse(storedSelectedListing) : null;
+  });
+
+  // const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(
+    () => sessionStorage.getItem("searchTerm") || ""
+  );
+
   const [columnWidths, setColumnWidths] = useState([
     80, 80, 350, 80, 90, 110, 90, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [selectedAsin, setSelectedAsin] = useState("");
-  const [selectedSku, setSelectedSku] = useState("");
-  const [selectedPrice, setSelectedPrice] = useState("");
-  const [selectedFnSku, setSelectedFnSku] = useState("");
-  const [channelStockValue, setChannelStockValue] = useState("");
+  // const [selectedAsin, setSelectedAsin] = useState("");
+  const [selectedAsin, setSelectedAsin] = useState(
+    () => sessionStorage.getItem("selectedAsin") || ""
+  );
+
+  // const [selectedSku, setSelectedSku] = useState("");
+  const [selectedSku, setSelectedSku] = useState(
+    () => sessionStorage.getItem("selectedSku") || ""
+  );
+
+  // const [selectedPrice, setSelectedPrice] = useState("");
+  const [selectedPrice, setSelectedPrice] = useState(
+    () => sessionStorage.getItem("selectedPrice") || ""
+  );
+
+  // const [selectedFnSku, setSelectedFnSku] = useState("");
+  const [selectedFnSku, setSelectedFnSku] = useState(
+    () => sessionStorage.getItem("selectedFnSku") || ""
+  );
+
+  // const [channelStockValue, setChannelStockValue] = useState("");
+  const [channelStockValue, setChannelStockValue] = useState(
+    () => sessionStorage.getItem("channelStockValue") || ""
+  );
   const [fulfillmentChannel, setFulfillmentChannel] = useState("");
-  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  // const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+  const [selectedRowIndex, setSelectedRowIndex] = useState(() => {
+    const storedRowIndex = sessionStorage.getItem("selectedRowIndex");
+    return storedRowIndex ? parseInt(storedRowIndex, 10) : null;
+  });
+  // const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState(() => {
+    const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
+    return storedFilteredProducts ? JSON.parse(storedFilteredProducts) : [];
+  });
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
-  const [filterScheduled, setFilterScheduled] = useState(false);
+  // const [filterScheduled, setFilterScheduled] = useState(false);
+  const [filterScheduled, setFilterScheduled] = useState(
+    () => sessionStorage.getItem("filterScheduled") === "true"
+  );
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [channelStockSortOrder, setChannelStockSortOrder] = useState(null); // State for sorting order
@@ -69,7 +112,11 @@ const ListView = () => {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [productDetailLoading, setProductDetailLoading] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const storedCurrentPage = sessionStorage.getItem("currentPage");
+    return storedCurrentPage ? parseInt(storedCurrentPage, 10) : 1;
+  });
 
   const itemsPerPage = 20;
   const itemRefs = useRef([]); // Create a ref array to hold row references
@@ -248,8 +295,6 @@ const ListView = () => {
     selectedPrice,
     channelStockValue,
   ]);
-
-  console.log("selectedProduct", selectedProduct);
 
   // calculate paginated data
   const indexOfLastItem = currentPage * itemsPerPage;
