@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -9,17 +9,8 @@ import {
   Rectangle,
 } from "recharts";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
-import { TrendingUp } from "lucide-react";
-
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip } from "../ui/chart";
 
 const chartConfig = {
   desktop: {
@@ -33,7 +24,6 @@ const chartConfig = {
 };
 
 const CustomXAxisTick = ({ x, y, payload }) => {
-  // Shorten the date range text (e.g., "August 20 - August 24, 2024" -> "Aug 20 - Aug 24")
   const [startDate, endDate] = payload.value.split(" - ");
   const shortStartDate = new Date(startDate).toLocaleDateString("en-US", {
     month: "short",
@@ -59,10 +49,8 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
-
 const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
-  const [activeChart, setActiveChart] = useState("desktop");
-
+  const filteredSalesData = salesData.filter((data) => data.unitCount > 0);
 
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {
@@ -95,7 +83,8 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
     return value;
   };
 
-  const showLabels = salesData.length <= 31;
+  // const showLabels = salesData.length <= 31;
+  const showLabels = filteredSalesData.length <= 40;
 
   const CustomTooltip = ({ active, payload, label, view, isMatchingDate }) => {
     if (active && payload && payload.length) {
@@ -164,7 +153,8 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
         >
           <BarChart
             // width={Math.max(600, salesData.length * 100)}
-            data={salesData}
+            // data={salesData}
+            data={filteredSalesData}
             margin={{
               top: 40,
               right: 30,

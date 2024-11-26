@@ -15,6 +15,12 @@ const PriceVsCount = ({
   identifierType,
   scheduleSalesData,
 }) => {
+  
+  const totalUnitCount = salesData.reduce(
+    (sum, data) => sum + data.unitCount,
+    0
+  );
+  const formattedTotalUnitCount = totalUnitCount.toLocaleString();
   return (
     <Card className="mt-[1.5rem] relative ">
       <div className="absolute top-1 right-[5.8%]">
@@ -49,33 +55,42 @@ const PriceVsCount = ({
         salesData={salesData}
         scheduleSalesData={scheduleSalesData}
       ></SalesDetailsBarChart>
-      <div className="flex justify-end mx-2 mb-1 gap-2">
-        <Button
-          onClick={() => handleViewChange("day")}
-          variant="outline"
-          className={`w-[80px] justify-center ${
-            view === "day"
-              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-              : ""
-          }`}
-        >
-          By Day
-        </Button>
- 
-        <Button
-          onClick={() => handleViewChange("month")}
-          variant="outline"
-          className={`w-[80px] justify-center ${
-            view === "month"
-              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-              : ""
-          }`}
-        >
-          By Month
-        </Button>
-        <Button variant="outline" onClick={() => setShowTable(!showTable)}>
-          {showTable ? "Hide Table" : "View Data in Table"}
-        </Button>
+
+      <div className="flex justify-between items-center mx-2 mb-1 gap-2">
+        <div>
+          <h2 className="mx-5 text-lg  border px-2 py-1 mb-2">
+            Total Unit Count :{" "}
+            <span className="font-semibold"> {formattedTotalUnitCount} </span>
+          </h2>
+        </div>
+        <div className="space-x-2">
+          <Button
+            onClick={() => handleViewChange("day")}
+            variant="outline"
+            className={`w-[80px] justify-center ${
+              view === "day"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
+          >
+            By Day
+          </Button>
+
+          <Button
+            onClick={() => handleViewChange("month")}
+            variant="outline"
+            className={`w-[80px] justify-center ${
+              view === "month"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
+          >
+            By Month
+          </Button>
+          <Button variant="outline" onClick={() => setShowTable(!showTable)}>
+            {showTable ? "Hide Table" : "View Data in Table"}
+          </Button>
+        </div>
       </div>
       <section
         className={`transition-all duration-500 ${

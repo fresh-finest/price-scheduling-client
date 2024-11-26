@@ -20,7 +20,12 @@ const ScheduleVsCount = ({
     }
   });
 
- 
+  const totalUnitCount = scheduleSalesData.reduce(
+    (sum, data) => sum + data.unitCount,
+    0
+  );
+  const formattedTotalUnitCount = totalUnitCount.toLocaleString();
+
   const formatDate = (interval) => {
     // Split the interval into start and end times
     const [start, end] = interval.split(" - ");
@@ -52,7 +57,6 @@ const ScheduleVsCount = ({
     return `${formattedStart} - ${formattedEnd}`;
   };
 
-
   return (
     <Card className="mt-[1.5rem]  ">
       {scheduleSalesData.length ? (
@@ -61,13 +65,26 @@ const ScheduleVsCount = ({
             view={view}
             scheduleSalesData={scheduleSalesData}
           ></ScheduleSalesDetailsBarChart>
-          <div className="flex justify-end mx-2 mb-1">
-            <Button
-              variant="outline"
-              onClick={() => setShowScheduleSalesTable(!showScheduleSalesTable)}
-            >
-              {showScheduleSalesTable ? "Hide Table" : "View Data in Table"}
-            </Button>
+          <div className="flex justify-between mx-2 mb-1">
+            <div>
+              <h2 className="mx-5 text-lg  border px-2 py-1 mb-2">
+                Total Unit Count :{" "}
+                <span className="font-semibold">
+                  {" "}
+                  {formattedTotalUnitCount}{" "}
+                </span>
+              </h2>
+            </div>
+            <div>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setShowScheduleSalesTable(!showScheduleSalesTable)
+                }
+              >
+                {showScheduleSalesTable ? "Hide Table" : "View Data in Table"}
+              </Button>
+            </div>
           </div>
           <section
             className={`transition-all duration-500 ${
@@ -139,7 +156,11 @@ const ScheduleVsCount = ({
                           verticalAlign: "middle",
                         }}
                       >
-                
+                        {/* {view === "day"
+                      ? item.interval
+                      : view === "week" && item.weekly
+                      ? item.interval
+                      : item.monthly} */}
 
                         {formatDate(item?.interval)}
                       </td>
@@ -162,7 +183,15 @@ const ScheduleVsCount = ({
                           verticalAlign: "middle",
                         }}
                       >
-                        
+                        {/* {item.unitCount} */}
+
+                        {/* {view === "day" && item.scheduleType === "single"
+                      ? item.price
+                      : view === "week" && item.weekly
+                      ? item.price
+                      : view === "month" && item.monthly
+                      ? item.price
+                      : null} */}
 
                         {item.unitCount}
                       </td>
@@ -190,5 +219,4 @@ const ScheduleVsCount = ({
     </Card>
   );
 };
-
 export default ScheduleVsCount;
