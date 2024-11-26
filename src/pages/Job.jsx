@@ -29,7 +29,6 @@ const JobTable = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch job, schedule, and listing data
         const [jobResponse, scheduleResponse, listingResponse] =
           await Promise.all([
             axios.get(`${BASE_URL}/api/jobs`),
@@ -37,11 +36,23 @@ const JobTable = () => {
             axios.get(`${BASE_URL}/fetch-all-listings`),
           ]);
 
+        console.log("jobs response", jobResponse);
+
         const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
-          const dateA = new Date(a.nextRunAt || a.lastRunAt);
-          const dateB = new Date(b.nextRunAt || b.lastRunAt);
+          const dateA = a.nextRunAt
+            ? new Date(a.nextRunAt)
+            : new Date(a.lastRunAt);
+          const dateB = b.nextRunAt
+            ? new Date(b.nextRunAt)
+            : new Date(b.lastRunAt);
+
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+
           return dateB - dateA;
         });
+
+        console.log("sorted jobs", sortedJobs);
 
         const schedules = scheduleResponse.data.result;
         const listings = listingResponse.data.listings;
@@ -52,6 +63,7 @@ const JobTable = () => {
           const listing = listings.find(
             (listing) => listing.sellerSku === job.data.sku
           );
+
           return {
             ...job,
             userName: schedule?.userName || "N/A",
@@ -70,6 +82,55 @@ const JobTable = () => {
 
     fetchData();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       // Fetch job, schedule, and listing data
+  //       const [jobResponse, scheduleResponse, listingResponse] =
+  //         await Promise.all([
+  //           axios.get(`${BASE_URL}/api/jobs`),
+  //           axios.get(`${BASE_URL}/api/schedule`),
+  //           axios.get(`${BASE_URL}/fetch-all-listings`),
+  //         ]);
+
+  //       console.log("jobs response", jobResponse);
+
+  //       const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
+  //         const dateA = new Date(a.nextRunAt || a.lastRunAt);
+  //         const dateB = new Date(b.nextRunAt || b.lastRunAt);
+  //         return dateB - dateA;
+  //       });
+
+  //       console.log("sorted jobs", sortedJobs);
+
+  //       const schedules = scheduleResponse.data.result;
+  //       const listings = listingResponse.data.listings;
+
+  //       // Merge job, schedule, and listing data by SKU
+  //       const mergedData = sortedJobs.map((job) => {
+  //         const schedule = schedules.find((s) => s._id === job.data.scheduleId);
+  //         const listing = listings.find(
+  //           (listing) => listing.sellerSku === job.data.sku
+  //         );
+  //         return {
+  //           ...job,
+  //           userName: schedule?.userName || "N/A",
+  //           createdAt: schedule?.createdAt || "N/A",
+  //           listing, // Attach listing details if found
+  //         };
+  //       });
+
+  //       setJobData(mergedData);
+  //     } catch (err) {
+  //       setError("Error fetching job, schedule, or listing data");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
 
   console.log(JSON.stringify(jobData));
   const getStatus = (job, isUpcoming) => {
@@ -172,34 +233,6 @@ const JobTable = () => {
           (jobType === "Monthly" || jobType === "Monthly Revert"))
       );
     });
-
-  /*
-  const filteredProducts = jobData
-  .filter((item) =>
-    item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  .filter(
-    (item) =>
-      filteredStatus === "all" ||
-      getStatus(item).statusText === filteredStatus
-  )
-  .filter((item) => {
-    const jobType = getJobType(item.name);
-
-    // Show all types if 'Show All' is selected
-    if (filteredScheduleType === "all") return true;
-
-    // Filter based on selected type and include revert types
-    return (
-      (filteredScheduleType === "Single" &&
-        (jobType === "Single" || jobType === "Single Revert")) ||
-      (filteredScheduleType === "Weekly" &&
-        (jobType === "Weekly" || jobType === "Weekly Revert")) ||
-      (filteredScheduleType === "Monthly" &&
-        (jobType === "Monthly" || jobType === "Monthly Revert"))
-    );
-  });
-*/
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -461,6 +494,7 @@ const JobTable = () => {
                 currentItems.map((job, index) => {
                   const { statusElement } = getStatus(job, job.isUpcoming);
 
+                  console.log("job", job);
                   return (
                     <tr key={index}>
                       <td
@@ -547,6 +581,7 @@ const JobTable = () => {
                         }}
                       >
                         {formatDate(job.displayRunAt)}
+                        {/* {formatDate(job.nextRunAt)} */}
                       </td>
                       <td
                         style={{

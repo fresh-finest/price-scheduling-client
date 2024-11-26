@@ -86,7 +86,7 @@ export default function ScheduleSalesDetailsBarChart({
     return `${startFormat} - ${endFormat}`;
   }
 
-  const showLabels = scheduleSalesData.length <= 31;
+  const showLabels = scheduleSalesData.length <= 40;
 
   // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
@@ -145,7 +145,7 @@ export default function ScheduleSalesDetailsBarChart({
             margin={{
               top: 40,
               right: 30,
-              left: 20,
+              left: 70,
               bottom: 140,
             }}
             barCategoryGap="20%"

@@ -54,6 +54,8 @@ export default function SalesDetailsBarChart({
   salesData,
   scheduleSalesData,
 }) {
+  const filteredSalesData = salesData.filter((data) => data.unitCount > 0);
+
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {
     if (view === "day") return "date";
@@ -85,7 +87,8 @@ export default function SalesDetailsBarChart({
     return value;
   };
 
-  const showLabels = salesData.length <= 31;
+  // const showLabels = salesData.length <= 31;
+  const showLabels = filteredSalesData.length <= 40;
 
   const CustomTooltip = ({ active, payload, label, view, isMatchingDate }) => {
     if (active && payload && payload.length) {
@@ -154,7 +157,8 @@ export default function SalesDetailsBarChart({
         >
           <BarChart
             // width={Math.max(600, salesData.length * 100)}
-            data={salesData}
+            // data={salesData}
+            data={filteredSalesData}
             margin={{
               top: 40,
               right: 30,

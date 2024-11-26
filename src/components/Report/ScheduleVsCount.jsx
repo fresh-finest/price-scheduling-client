@@ -20,30 +20,11 @@ const ScheduleVsCount = ({
     }
   });
 
-  // const formatDateTime = (dateString) => {
-  //   // Attempt to normalize the date string
-  //   const normalizedDateString = dateString.includes("T")
-  //     ? dateString // Already in ISO format
-  //     : dateString.replace(" ", "T"); // Replace space with 'T' for ISO compliance
-
-  //   const date = new Date(normalizedDateString);
-
-  //   if (isNaN(date.getTime())) {
-  //     console.error(`Invalid date string: ${dateString}`);
-  //     return "Invalid date";
-  //   }
-
-  //   const options = {
-  //     year: "numeric",
-  //     month: "long",
-  //     day: "numeric",
-  //     hour: "numeric",
-  //     minute: "2-digit",
-  //     hour12: true,
-  //   };
-
-  //   return new Intl.DateTimeFormat("en-US", options).format(date);
-  // };
+  const totalUnitCount = scheduleSalesData.reduce(
+    (sum, data) => sum + data.unitCount,
+    0
+  );
+  const formattedTotalUnitCount = totalUnitCount.toLocaleString();
 
   const formatDate = (interval) => {
     // Split the interval into start and end times
@@ -84,13 +65,26 @@ const ScheduleVsCount = ({
             view={view}
             scheduleSalesData={scheduleSalesData}
           ></ScheduleSalesDetailsBarChart>
-          <div className="flex justify-end mx-2 mb-1">
-            <Button
-              variant="outline"
-              onClick={() => setShowScheduleSalesTable(!showScheduleSalesTable)}
-            >
-              {showScheduleSalesTable ? "Hide Table" : "View Data in Table"}
-            </Button>
+          <div className="flex justify-between mx-2 mb-1">
+            <div>
+              <h2 className="mx-5 text-lg  border px-2 py-1 mb-2">
+                Total Unit Count :{" "}
+                <span className="font-semibold">
+                  {" "}
+                  {formattedTotalUnitCount}{" "}
+                </span>
+              </h2>
+            </div>
+            <div>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setShowScheduleSalesTable(!showScheduleSalesTable)
+                }
+              >
+                {showScheduleSalesTable ? "Hide Table" : "View Data in Table"}
+              </Button>
+            </div>
           </div>
           <section
             className={`transition-all duration-500 ${
