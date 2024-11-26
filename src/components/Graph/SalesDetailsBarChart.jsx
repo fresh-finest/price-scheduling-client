@@ -5,8 +5,8 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  Tooltip,
   LabelList,
+  Rectangle,
 } from "recharts";
 
 import {
@@ -60,7 +60,7 @@ const CustomXAxisTick = ({ x, y, payload }) => {
 };
 
 
-const  SalesDetailsBarChart=({ view, salesData }) =>{
+const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
   const [activeChart, setActiveChart] = useState("desktop");
 
 
@@ -72,29 +72,15 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
     return "date"; // Default to "date"
   }, [view]);
 
-  // const formatXAxisLabel = (value) => {
-  //   if (view === "day") {
-  //     const [day, month, year] = value.split("/"); 
-  //     const formattedDate = new Date(`${year}-${month}-${day}`);
-  //     return formattedDate.toLocaleDateString("en-US", {
-  //       month: "short",
-  //       day: "numeric",
-  //     });
-  //   }
-  //   return value; // For week and month, assume they're already formatted properly
-  // };
-
   const formatXAxisLabel = (value) => {
     if (view === "day") {
       try {
         // Parse the value assuming DD/MM/YYYY format
         const [day, month, year] = value.split("/");
         if (!day || !month || !year) throw new Error("Invalid date format");
-  
-       
+
         const formattedDate = new Date(`${year}-${month}-${day}T00:00:00`);
-  
-       
+
         return new Intl.DateTimeFormat("en-US", {
           month: "short",
           day: "numeric",
@@ -102,21 +88,71 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
         }).format(formattedDate);
       } catch (error) {
         console.error("Error formatting date:", error.message);
-        return value; 
+        return value;
       }
     }
-  
-    return value; 
-  };
-  
 
+    return value;
+  };
+
+  const showLabels = salesData.length <= 31;
+
+  const CustomTooltip = ({ active, payload, label, view, isMatchingDate }) => {
+    if (active && payload && payload.length) {
+      const unitCount = payload[0].value;
+      const price =
+        payload[0].payload?.amount || payload[0].payload?.averageAmount;
+
+      const formattedDate =
+        view === "day" && typeof label === "string"
+          ? new Date(
+              label.includes("/") ? label.split("/").reverse().join("-") : label
+            ).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : label;
+
+      return (
+        <div className="rounded bg-white w-[150px] border shadow-lg py-2 px-2">
+          {formattedDate && (
+            <p className="font-semibold text-xs">{formattedDate}</p>
+          )}
+
+          <div className="grid grid-cols-[10px_70px_auto] gap-x-2 items-center mt-1 text-xs">
+            <span
+              className={`w-[10px] h-[10px]  ${
+                isMatchingDate ? "bg-[#ED927C]" : "bg-[#2A9C8F]"
+              } `}
+            ></span>
+            <span className="text-gray-600">Unit Count</span>
+            <span className="font-semibold text-right">{unitCount}</span>
+          </div>
+          {
+            <div className="grid grid-cols-[10px_70px_auto] gap-x-2 items-center text-xs mt-0.5">
+              <span className="w-[10px] h-[10px] bg-transparent"></span>
+              <span className="text-gray-600">Price</span>
+              {price ? (
+                <span className="font-semibold text-right">${price}</span>
+              ) : (
+                <span className="font-semibold text-right">0</span>
+              )}
+            </div>
+          }
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  console.log("sales Data", salesData);
+  console.log("schedule sales data", scheduleSalesData);
   return (
     <>
-
-
       <CardHeader className="items-center pb-0">
         <CardTitle>Amazon Sale Report</CardTitle>
-       
       </CardHeader>
 
       <CardContent className="px-2  sm:p-6">
@@ -127,37 +163,35 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
           }`}
         >
           <BarChart
-            // data={chartData}
+            // width={Math.max(600, salesData.length * 100)}
             data={salesData}
-            
             margin={{
               top: 40,
               right: 30,
               left: 20,
               bottom: view === "week" ? 120 : 20,
-            }} // Add more bottom margin for label rotation
+            }}
+            // barCategoryGap="10%"
           >
             <CartesianGrid vertical={false} />
-        
+
             <XAxis
               dataKey={xAxisKey}
-              
-              tickFormatter={(value) => formatXAxisLabel(value)} // Format based on view
+              tickFormatter={(value) => formatXAxisLabel(value)}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              angle={view === "week" ? -40 : 0} // Set angle to -45 degrees for weekly view
-              textAnchor={view === "week" ? "end" : "middle"} // Adjust text anchor for alignment
+              angle={view === "week" ? -40 : 0}
+              textAnchor={view === "week" ? "end" : "middle"}
               dx={view === "week" ? -10 : 0}
             />
 
-            {/* <YAxis axisLine={false} tickLine={false} tickMargin={8} /> */}
             <YAxis
               dataKey="unitCount"
               axisLine={false}
               tickLine={false}
               tickMargin={8}
-              allowDecimals={false} // Prevents fractions
+              allowDecimals={false}
               label={{
                 value: "Units Sold",
                 angle: -90,
@@ -165,59 +199,80 @@ const  SalesDetailsBarChart=({ view, salesData }) =>{
               }}
             />
 
-            {/* <Tooltip
-              formatter={(value, name) =>
-                name === "price" ? `$${value}` : value
-              }
-            /> */}
             <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  // nameKey="views"
-                  labelFormatter={(value) => {
-                    if (view === "day" && typeof value === "string") {
-                      const [day, month, year] = value.split("/");
-                      const formattedDate = new Date(`${year}-${month}-${day}`);
-                      return formattedDate.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      });
-                    }
-                    return value; // For week and month
-                  }}
-                />
-              }
+              content={({ active, payload, label }) => {
+                // Pass `isMatchingDate` condition to the tooltip
+                const matchingDates = scheduleSalesData.map((schedule) => {
+                  const [startDate] = schedule.interval.split(" - ");
+                  const [year, month, day] = startDate.split(" ")[0].split("-");
+                  return `${day}/${month}/${year}`;
+                });
+                const isMatchingDate = matchingDates.includes(
+                  payload?.[0]?.payload.date
+                );
+
+                return (
+                  <CustomTooltip
+                    active={active}
+                    payload={payload}
+                    label={label}
+                    view={view}
+                    isMatchingDate={isMatchingDate} // Pass the condition
+                  />
+                );
+              }}
             />
-          
+            <Bar
+              dataKey="unitCount"
+              barSize={40}
+              shape={(props) => {
+                const { x, y, width, height, payload } = props;
 
-            <Bar dataKey="unitCount" fill="#2A9D90">
-              {/* Label for price */}
-              <LabelList
-                dataKey={view === "day" ? "amount" : "averageAmount"}
-                position="top"
-                formatter={(value) => `$${value}`}
-                // formatter={(value) => `$${value.toFixed(2)}`}
-              />
+                // Extract start dates from scheduleSalesData
+                const matchingDates = scheduleSalesData.map((schedule) => {
+                  const [startDate] = schedule.interval.split(" - "); // Extract start date
+                  const [year, month, day] = startDate.split(" ")[0].split("-"); // Parse date (YYYY-MM-DD)
+                  return `${day}/${month}/${year}`; // Convert to DD/MM/YYYY for comparison
+                });
 
-              {/* display unitCount above the bar */}
-              <LabelList
-                dataKey="unitCount"
-                position="top"
-                formatter={(value) => `${value}`}
-                offset={19}
-                fontSize={12}
-                fill="#555"
-                fontWeight="bold"
-              ></LabelList>
+                // Check if the payload date is in the list of matching dates
+                const isMatchingDate = matchingDates.includes(payload.date);
 
-              
+                return (
+                  <Rectangle
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    fill={isMatchingDate ? "#ED927C" : "#2A9D90"} // Highlight matching date
+                    stroke={isMatchingDate ? "#FFA500" : "none"} // Optional stroke
+                    strokeWidth={isMatchingDate ? 0 : 0}
+                  />
+                );
+              }}
+            >
+              {/* Conditionally render LabelList */}
+              {showLabels && (
+                <>
+                  <LabelList
+                    dataKey={view === "day" ? "amount" : "averageAmount"}
+                    position="top"
+                    formatter={(value) => `$${value}`}
+                  />
+                  <LabelList
+                    dataKey="unitCount"
+                    position="top"
+                    formatter={(value) => `${value}`}
+                    offset={19}
+                    fontSize={12}
+                    fill="#555"
+                    fontWeight="bold"
+                  />
+                </>
+              )}
             </Bar>
           </BarChart>
         </ChartContainer>
-
-        
       </CardContent>
     </>
   );

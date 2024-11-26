@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import DatePicker from "react-datepicker";
+// import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import {  useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import moment from "moment";
 import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
 import { MdCheck } from "react-icons/md";
@@ -13,20 +13,25 @@ import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
 import ScheduleVsCount from "./ScheduleVsCount";
 import ChartsLoadingSkeleton from "../LoadingSkeleton/ChartsLoadingSkeleton";
+import { DatePicker, Space } from "antd";
+import dayjs from "dayjs";
+import "./SaleDetails.css";
+import SaleDetailsProductDetailSkeleton from "../LoadingSkeleton/SaleDetailsProductDetailSkeleton";
+const { RangePicker } = DatePicker;
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.167:3000";
+// const BASE_URL = "http://192.168.0.152:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
-
 const SaleDetails = () => {
-  //decodeURIComponent
   const { sku } = useParams();
-
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
+  const [asin, setAsin] = useState([]);
+  const [identifierType, setIdentifierType] = useState("sku");
   const [productData, setProductData] = useState("");
+
   const [salesChartloading, setSalesChartLoading] = useState(false);
   const [schduleChartLoading, setScheduleChartLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,41 +39,46 @@ const SaleDetails = () => {
   const [dateRange, setDateRange] = useState([null, null]); // Store start and end date as a range
   const [startDate, endDate] = dateRange; // Destructure for easy access
   const [copiedSku, setCopiedSku] = useState(null);
+  const [copiedAsin, setCopiedAsin] = useState(null);
   const [showTable, setShowTable] = useState(false);
   const [showScheduleSalesTable, setShowScheduleSalesTable] = useState(false);
   const [productPrice, setProductPrice] = useState("");
-  const [productDetails,setProductDetails]= useState("");
+  const [productDetails, setProductDetails] = useState("");
+  const [loading, setLoading] = useState(false);
 
- 
+  const identifier = identifierType === "sku" ? sku : asin;
 
+  const location = useLocation();
+  // const { productInfo, sku1, asin } = location.state || {};
   const fetchSalesMetrics = async () => {
+    if (!identifier) return;
+
     setSalesChartLoading(true);
     setError(null);
-     const decodedSku = encodeURIComponent(sku);
-    
+
     try {
-      let url = `${BASE_URL}/sales-metrics/${view}/${decodedSku}`;
-      const params = {};
+      let url = `${BASE_URL}/sales-metrics/${view}/${identifier}`;
+      const params = { type: identifierType };
 
       if (startDate && endDate) {
-        url = `${BASE_URL}/sales-metrics/range/${decodedSku}`;
+        url = `${BASE_URL}/sales-metrics/range/${identifier}`;
         params.startDate = moment(startDate).format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
       }
 
+      // Pass query parameters in the GET request
       const response = await axios.get(url, { params });
 
-      // If a date range is selected, sort the data by date in ascending order
       if (startDate && endDate) {
         const sortedData = response.data.sort((a, b) => {
-          const dateA = new Date(a.date.split("/").reverse().join("-")); // Convert DD/MM/YYYY to YYYY-MM-DD
+          const dateA = new Date(a.date.split("/").reverse().join("-"));
           const dateB = new Date(b.date.split("/").reverse().join("-"));
-          return dateA - dateB; // Ascending order
+          return dateA - dateB;
         });
         setSalesData(sortedData);
       } else {
-        setSalesData(response.data); // Default unsorted if no range is selected
+        setSalesData(response.data);
       }
     } catch (err) {
       setError("An error occurred while fetching sales data.");
@@ -77,93 +87,64 @@ const SaleDetails = () => {
     }
   };
 
-
-
-  
-
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
-    setError(null);
-    const decodedSku = encodeURIComponent(sku);
     try {
-      let url = `${BASE_URL}/api/report/${decodedSku}`;
-      const params = {};
+      const response = await axios.get(`${BASE_URL}/api/report/${sku}`);
+      const filterStartDate = startDate ? new Date(startDate) : null;
+      const filterEndDate = endDate ? new Date(endDate) : null;
 
-      // Fetch data from the API
-      const response = await axios.get(url, { params });
-
-      // Parse startDate and endDate for filtering
-      const filterStartDate = startDate
-        ? new Date(moment(startDate).startOf("day"))
-        : null;
-      const filterEndDate = endDate
-        ? new Date(moment(endDate).endOf("day"))
-        : null;
-
-      // Filter the data if date range is provided
       const filteredData = response.data.filter((item) => {
-        const itemStartDate = new Date(item.interval.split(" - ")[0]); // Extract start date from interval
-
-        if (filterStartDate && filterEndDate) {
-          // Return true if the item's start date is within the range
-          return (
-            itemStartDate >= filterStartDate && itemStartDate <= filterEndDate
-          );
-        }
-        // If no filtering is needed, include all items
-        return true;
+        const itemStartDate = new Date(item.interval.split(" - ")[0]);
+        return (
+          (!filterStartDate || itemStartDate >= filterStartDate) &&
+          (!filterEndDate || itemStartDate <= filterEndDate)
+        );
       });
 
-      // Sort the data by the start date of the interval
       const sortedData = filteredData.sort((a, b) => {
-        const startDateA = new Date(a.interval.split(" - ")[0]); // Extract start date
-        const startDateB = new Date(b.interval.split(" - ")[0]);
-
-        return startDateA - startDateB; // Sort in ascending order
+        return (
+          new Date(a.interval.split(" - ")[0]) -
+          new Date(b.interval.split(" - ")[0])
+        );
       });
 
-      // Update state with the sorted and filtered data
       setScheduleSalesData(sortedData);
     } catch (err) {
-      setError("An error occurred while fetching schedule sales data.");
+      console.error("Error fetching schedule sales data:", err);
     } finally {
       setScheduleChartLoading(false);
     }
   };
 
-  
-
   const fetchProductPrice = async () => {
-    
-    
-    const encodedSku = encodeURIComponent(sku); // URL encode the SKU
-   console.log("endocode sku",encodedSku)
-  
+    setLoading(true);
+    setError(null);
     try {
-      const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
-      const price = response?.data?.offerAmount; 
-  
-      setProductPrice(price); 
-      console.log("price",price)
+      const response = await axios.get(`https://api.priceobo.com/list/${sku}`);
+      const price = response?.data?.offerAmount;
+
+      setProductPrice(price);
+      setLoading(false);
     } catch (err) {
-      setError("An error occurred while fetching product price."); 
+      setError("An Error occurred while fetching product price.");
+    } finally {
+      setLoading(false);
     }
   };
- 
-  const fetchProductDetails = async()=>{
-     
+
+  const fetchProductDetails = async () => {
     const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
-
+      setAsin(response.data?.summaries[0]?.asin);
       setProductDetails(response.data);
     } catch (error) {
-      setError("An error occurred while fetching product price."); 
+      setError("An error occurred while fetching product price.");
     }
-  }
-  console.log("details",productDetails)
+  };
+
   useEffect(() => {
-    console.log("sku",sku);
     if (sku) {
       fetchProductPrice();
       fetchProductDetails();
@@ -172,16 +153,14 @@ const SaleDetails = () => {
 
   useEffect(() => {
     fetchSalesMetrics();
-    
+
     // fetchSalesProductData();
     // fetchScheduleSalesMetrics();
-  }, [sku, view, startDate, endDate]);
+  }, [identifier, view, startDate, endDate]);
 
   useEffect(() => {
     fetchScheduleSalesMetrics();
   }, [sku, startDate, endDate]);
-
- 
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -191,6 +170,10 @@ const SaleDetails = () => {
   const formatDate = (date) => {
     return moment(date, "DD/MM/YYYY").format("MM/DD/YYYY, dddd");
   };
+  const handleIdentifierTypeChange = (type) => {
+    // setIdentifierType((prev) => (prev === "sku" ? "asin" : "sku"));
+    setIdentifierType(type);
+  };
 
   const handleCopy = (text, type) => {
     navigator.clipboard
@@ -199,6 +182,9 @@ const SaleDetails = () => {
         if (type === "sku") {
           setCopiedSku(text); // Set the copied SKU
           setTimeout(() => setCopiedSku(null), 2000); // Reset after 2 seconds
+        } else if (type === "asin") {
+          setCopiedAsin(text); // Set the copied SKU
+          setTimeout(() => setCopiedAsin(null), 2000); // Reset after 2 seconds
         }
       })
       .catch((err) => {
@@ -206,11 +192,72 @@ const SaleDetails = () => {
       });
   };
 
- 
+  const onRangeChange = (dates) => {
+    if (dates) {
+      setDateRange([dates[0]?.toDate() || null, dates[1]?.toDate() || null]);
+    } else {
+      setDateRange([null, null]);
+    }
+  };
+  const rangePresets = [
+    {
+      label: "Today",
+      value: [dayjs().startOf("day"), dayjs().endOf("day")],
+    },
+
+    {
+      label: "Last 7 Days",
+      value: [dayjs().subtract(7, "day").startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "This Week",
+      value: [dayjs().startOf("week"), dayjs().endOf("week")],
+    },
+    {
+      label: "Last Week",
+      value: [
+        dayjs().subtract(1, "week").startOf("week"),
+        dayjs().subtract(1, "week").endOf("week"),
+      ],
+    },
+    {
+      label: "Last 30 Days",
+      value: [dayjs().subtract(30, "day").startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "Last 90 Days",
+      value: [dayjs().subtract(90, "day").startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "This Month",
+      value: [dayjs().startOf("month"), dayjs().endOf("month")],
+    },
+    {
+      label: "Last Month",
+      value: [
+        dayjs().subtract(1, "month").startOf("month"),
+        dayjs().subtract(1, "month").endOf("month"),
+      ],
+    },
+    {
+      label: "Last 6 Months",
+      value: [
+        dayjs().subtract(6, "month").startOf("month"),
+        dayjs().endOf("month"),
+      ],
+    },
+    {
+      label: "Year to Date",
+      value: [dayjs().startOf("year"), dayjs().endOf("day")],
+    },
+  ];
+
+  console.log("schedule sales data", scheduleSalesData);
+
   return (
     <div className="">
-      {productDetails && (
-        <div className="flex max-w-[50%]  px-2 py-2 rounded  mt-[-8px] gap-2">
+      {productDetails ? (
+        <div className="flex max-w-[50%] px-2 py-2 rounded mt-[-8px] gap-2">
           <img
             className="object-cover"
             src={productDetails?.summaries[0]?.mainImage?.link}
@@ -219,12 +266,14 @@ const SaleDetails = () => {
             alt="product image"
           />
           <div>
-            <h3 className="text-md">{productDetails?.summaries[0]?.itemName}</h3>
-            <div className="flex items-center justify-start  gap-1 mt-1">
+            <h3 className="text-md">
+              {productDetails?.summaries[0]?.itemName}
+            </h3>
+            <div className="flex items-center justify-start gap-1 mt-1">
               <p className="px-2 py-1 bg-[#3B82F6] text-white rounded-sm">
-              ${parseFloat(productPrice).toFixed(2)}
+                ${parseFloat(productPrice).toFixed(2)}
               </p>
-              <p className="flex items-center justify-center gap-1  text-sm border  px-2 py-1.5">
+              <p className="flex items-center justify-center gap-1 text-sm border px-2 py-1.5">
                 {sku}{" "}
                 {copiedSku === sku ? (
                   <MdCheck
@@ -249,30 +298,47 @@ const SaleDetails = () => {
                   />
                 )}
               </p>
+              <p className="flex items-center justify-center gap-1 text-sm border px-2 py-1.5">
+                {asin}{" "}
+                {copiedAsin === asin ? (
+                  <MdCheck
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      color: "green",
+                      fontSize: "16px",
+                    }}
+                  />
+                ) : (
+                  <BsClipboardCheck
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(asin, "asin");
+                    }}
+                    style={{
+                      marginLeft: "5px",
+                      cursor: "pointer",
+                      fontSize: "16px",
+                    }}
+                  />
+                )}
+              </p>
             </div>
           </div>
+
+          <div className="absolute top-[10px] right-[17%]">
+            <RangePicker
+              className="ant-datePicker-input"
+              presets={rangePresets}
+              onChange={onRangeChange}
+            />
+          </div>
         </div>
+      ) : (
+        <SaleDetailsProductDetailSkeleton />
       )}
 
-      <div>
-    
-       
-        <div className="absolute top-[5px]  right-[17%]">
-          {/* <div className="absolute top-[0px]  right-[17%]"> */}
-          <DatePicker
-            selected={startDate}
-            onChange={(update) => setDateRange(update)}
-            startDate={startDate}
-            endDate={endDate}
-            selectsRange
-            isClearable
-            placeholderText="Select a date range"
-            className="custom-date-input form-control py-[7px]"
-          />
-        </div>
-      </div>
-
-      <div className="mt-5">
+      <div className="mt-3">
         {salesChartloading ? (
           <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
         ) : (
@@ -285,6 +351,9 @@ const SaleDetails = () => {
             startDate={startDate}
             endDate={endDate}
             formatDate={formatDate}
+            handleIdentifierTypeChange={handleIdentifierTypeChange}
+            identifierType={identifierType}
+            scheduleSalesData={scheduleSalesData}
           ></PriceVsCount>
         )}
       </div>

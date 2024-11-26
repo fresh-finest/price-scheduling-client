@@ -11,12 +11,43 @@ const PriceVsCount = ({
   endDate,
   formatDate,
   handleViewChange,
+  handleIdentifierTypeChange,
+  identifierType,
+  scheduleSalesData,
 }) => {
   return (
-    <Card className="mt-[1.5rem]  ">
+    <Card className="mt-[1.5rem] relative ">
+      <div className="absolute top-1 right-[5.8%]">
+        <Button
+          className={` ${
+            identifierType === "sku"
+              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+              : ""
+          }`}
+          onClick={() => handleIdentifierTypeChange("sku")}
+          variant="outline"
+        >
+          SKU
+        </Button>
+      </div>
+      <div className="absolute top-1 right-2">
+        <Button
+          className={` ${
+            identifierType === "asin"
+              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+              : ""
+          }`}
+          onClick={() => handleIdentifierTypeChange("asin")}
+          variant="outline"
+        >
+          ASIN
+        </Button>
+      </div>
+
       <SalesDetailsBarChart
         view={view}
         salesData={salesData}
+        scheduleSalesData={scheduleSalesData}
       ></SalesDetailsBarChart>
       <div className="flex justify-end mx-2 mb-1 gap-2">
         <Button
@@ -30,7 +61,7 @@ const PriceVsCount = ({
         >
           By Day
         </Button>
-       {/*  <Button
+        <Button
           onClick={() => handleViewChange("week")}
           variant="outline"
           className={`w-[80px] justify-center ${
@@ -40,7 +71,7 @@ const PriceVsCount = ({
           }`}
         >
           By Week
-        </Button> */}
+        </Button>
         <Button
           onClick={() => handleViewChange("month")}
           variant="outline"
@@ -60,7 +91,14 @@ const PriceVsCount = ({
         className={`transition-all duration-500 ${
           showTable ? "h-full opacity-100" : "max-h-0 opacity-0"
         } overflow-hidden`}
-        
+        style={
+          {
+            // maxHeight: "91vh",
+            // overflowY: "auto",
+            // marginTop: "20px",
+            // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+          }
+        }
       >
         <table
           style={{
@@ -168,5 +206,4 @@ const PriceVsCount = ({
     </Card>
   );
 };
-
 export default PriceVsCount;

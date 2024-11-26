@@ -1,0 +1,10 @@
+.ant-datePicker-input {
+    border: 1px solid lightgray;
+  }
+  .ant-datePicker-input:hover {
+    border: 1px solid lightgray;
+  }
+ 
+  .ant-picker-panel-layout {
+    height: 350px;
+  }

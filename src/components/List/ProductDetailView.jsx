@@ -221,7 +221,7 @@ const ProductDetailView = ({
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York", // Ensures display in New York time zone
+      timeZone: "America/New_York", 
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
@@ -565,7 +565,7 @@ const ProductDetailView = ({
                             >
                               <div key={index} className="w-full">
                                 <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {formatDateTime(sc.startDate)}
+                                  {formatDateTime(sc.startDate)} 
                                   {sc.price && (
                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                       ${sc?.price?.toFixed(2)}

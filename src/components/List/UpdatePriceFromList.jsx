@@ -21,6 +21,7 @@ import { IoMdClose } from "react-icons/io";
 
 import Swal from "sweetalert2";
 import UpdatePriceFromListSkeleton from "../LoadingSkeleton/UpdatePriceFromListSkeleton";
+import UpdateSalePrice from "./UpdateSalePrice";
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const BASE_URL = "https://api.priceobo.com";
@@ -1093,7 +1094,7 @@ const validateTimeSlots = () => {
                   className=" "
                 >
                   {/* <Tabs defaultValue="single" className=" "> */}
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="single">Single </TabsTrigger>
                     <TabsTrigger
                       // disabled={loading || monthly || weeklyExists}
@@ -1108,6 +1109,12 @@ const validateTimeSlots = () => {
                       value="monthly"
                     >
                       Monthly{" "}
+                    </TabsTrigger>
+                    <TabsTrigger
+                      // disabled={loading || weekly || monthlyExists}
+                      value="sale"
+                    >
+                      Sale Price
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="single" className="py-2">
@@ -1548,28 +1555,39 @@ const validateTimeSlots = () => {
                       </>
                     )}
                   </TabsContent>
+
+                  <TabsContent value="sale">
+                    <div className="max-w-[55%] mx-auto mt-4  ">
+                      <UpdateSalePrice
+                        sku1={sku1}
+                        onClose={onClose}
+                      ></UpdateSalePrice>
+                    </div>
+                  </TabsContent>
                 </Tabs>
 
-                <Button
-                  style={{
-                    width: "20%",
-                    backgroundColor: "#0662BB",
+                {activeTab !== "sale" && (
+                  <Button
+                    style={{
+                      width: "20%",
+                      backgroundColor: "#0662BB",
 
-                    margin: "0 auto",
-                    display: "block",
-                    position: "absolute",
-                    bottom: 22,
-                    right: 30,
-                  }}
-                  type="submit"
-                  disabled={loading}
-                >
-                  {weekly
-                    ? "Weekly Update"
-                    : monthly
-                    ? "Monthly Update Price"
-                    : "Update Price"}
-                </Button>
+                      margin: "0 auto",
+                      display: "block",
+                      position: "absolute",
+                      bottom: 22,
+                      right: 30,
+                    }}
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {weekly
+                      ? "Weekly Update"
+                      : monthly
+                      ? "Monthly Update Price"
+                      : "Update Price"}
+                  </Button>
+                )}
               </Form>
             </Modal.Body>
           </>

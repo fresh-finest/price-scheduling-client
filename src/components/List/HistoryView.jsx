@@ -346,7 +346,7 @@ export default function HistoryView() {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York" // Ensures display in New York time zone
+      timeZone: "America/New_York"
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
