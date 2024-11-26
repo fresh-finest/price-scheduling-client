@@ -1,16 +1,25 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
   XAxis,
   YAxis,
+  Tooltip,
   LabelList,
-  Rectangle,
 } from "recharts";
 
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip } from "../ui/chart";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
+import { TrendingUp } from "lucide-react";
+import { Button } from "../ui/button";
 
 const chartConfig = {
   desktop: {
@@ -49,11 +58,9 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
-export default function SalesDetailsBarChart({
-  view,
-  salesData,
-  scheduleSalesData,
-}) {
+export default function SalesDetailsBarChart({ view, salesData }) {
+  const [activeChart, setActiveChart] = useState("desktop");
+
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {
     if (view === "day") return "date";
@@ -87,12 +94,13 @@ export default function SalesDetailsBarChart({
 
   const showLabels = salesData.length <= 31;
 
-  const CustomTooltip = ({ active, payload, label, view, isMatchingDate }) => {
+  const CustomTooltip = ({ active, payload, label, view }) => {
     if (active && payload && payload.length) {
       const unitCount = payload[0].value;
       const price =
         payload[0].payload?.amount || payload[0].payload?.averageAmount;
 
+      // Format the date label (if needed, based on `view`)
       const formattedDate =
         view === "day" && typeof label === "string"
           ? new Date(
@@ -111,16 +119,13 @@ export default function SalesDetailsBarChart({
           )}
 
           <div className="grid grid-cols-[10px_70px_auto] gap-x-2 items-center mt-1 text-xs">
-            <span
-              className={`w-[10px] h-[10px]  ${
-                isMatchingDate ? "bg-[#ED927C]" : "bg-[#2A9C8F]"
-              } `}
-            ></span>
+            <span className="w-[10px] h-[10px] bg-[#2A9C8F]"></span>
             <span className="text-gray-600">Unit Count</span>
             <span className="font-semibold text-right">{unitCount}</span>
           </div>
           {
             <div className="grid grid-cols-[10px_70px_auto] gap-x-2 items-center text-xs mt-0.5">
+              {/* Empty span for alignment */}
               <span className="w-[10px] h-[10px] bg-transparent"></span>
               <span className="text-gray-600">Price</span>
               {price ? (
@@ -137,8 +142,6 @@ export default function SalesDetailsBarChart({
     return null;
   };
 
-  console.log("sales Data", salesData);
-  console.log("schedule sales data", scheduleSalesData);
   return (
     <>
       <CardHeader className="items-center pb-0">
@@ -189,58 +192,9 @@ export default function SalesDetailsBarChart({
               }}
             />
 
-            <ChartTooltip
-              content={({ active, payload, label }) => {
-                // Pass `isMatchingDate` condition to the tooltip
-                const matchingDates = scheduleSalesData.map((schedule) => {
-                  const [startDate] = schedule.interval.split(" - ");
-                  const [year, month, day] = startDate.split(" ")[0].split("-");
-                  return `${day}/${month}/${year}`;
-                });
-                const isMatchingDate = matchingDates.includes(
-                  payload?.[0]?.payload.date
-                );
+            <ChartTooltip content={<CustomTooltip />} />
 
-                return (
-                  <CustomTooltip
-                    active={active}
-                    payload={payload}
-                    label={label}
-                    view={view}
-                    isMatchingDate={isMatchingDate} // Pass the condition
-                  />
-                );
-              }}
-            />
-            <Bar
-              dataKey="unitCount"
-              barSize={40}
-              shape={(props) => {
-                const { x, y, width, height, payload } = props;
-
-                // Extract start dates from scheduleSalesData
-                const matchingDates = scheduleSalesData.map((schedule) => {
-                  const [startDate] = schedule.interval.split(" - "); // Extract start date
-                  const [year, month, day] = startDate.split(" ")[0].split("-"); // Parse date (YYYY-MM-DD)
-                  return `${day}/${month}/${year}`; // Convert to DD/MM/YYYY for comparison
-                });
-
-                // Check if the payload date is in the list of matching dates
-                const isMatchingDate = matchingDates.includes(payload.date);
-
-                return (
-                  <Rectangle
-                    x={x}
-                    y={y}
-                    width={width}
-                    height={height}
-                    fill={isMatchingDate ? "#ED927C" : "#2A9D90"} // Highlight matching date
-                    stroke={isMatchingDate ? "#FFA500" : "none"} // Optional stroke
-                    strokeWidth={isMatchingDate ? 0 : 0}
-                  />
-                );
-              }}
-            >
+            <Bar dataKey="unitCount" fill="#2A9D90" barSize={40}>
               {/* Conditionally render LabelList */}
               {showLabels && (
                 <>

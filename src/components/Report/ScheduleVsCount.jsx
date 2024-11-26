@@ -76,8 +76,6 @@ const ScheduleVsCount = ({
     return `${formattedStart} - ${formattedEnd}`;
   };
 
-  console.log("schedule sales data", scheduleSalesData);
-
   return (
     <Card className="mt-[1.5rem]  ">
       {scheduleSalesData.length ? (

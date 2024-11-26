@@ -34,9 +34,9 @@ import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeleton";
 // import { PriceScheduleContext } from "@/contexts/PriceScheduleContext";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-// const BASE_URL ='http://localhost:3000'
+const BASE_URL = "http://localhost:3000";
 const dayNames = [
   "Sunday",
   "Monday",

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -17,8 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
-import { TrendingUp } from "lucide-react";
+import { ChartContainer } from "../ui/chart";
 
 const chartConfig = {
   desktop: {
@@ -31,105 +30,108 @@ const chartConfig = {
   },
 };
 
-const CustomXAxisTick = ({ x, y, payload }) => {
-  // Shorten the date range text (e.g., "August 20 - August 24, 2024" -> "Aug 20 - Aug 24")
-  const [startDate, endDate] = payload.value.split(" - ");
-  const shortStartDate = new Date(startDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  const shortEndDate = new Date(endDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-  const shortLabel = `${shortStartDate} - ${shortEndDate}`;
-
-  return (
-    <text
-      x={x}
-      y={y}
-      textAnchor="middle"
-      fill="#666"
-      transform="rotate(-30)"
-      title={payload.value}
-    >
-      {shortLabel}
-    </text>
-  );
-};
-
 export default function ScheduleSalesDetailsBarChart({
   view,
   scheduleSalesData,
 }) {
-  const [activeChart, setActiveChart] = useState("desktop");
-
-  console.log("sales data", scheduleSalesData);
-  console.log("view", view);
-
-  // Determine the dataKey for the X-axis dynamically
-  const xAxisKey = useMemo(() => {
-    return "interval"; // Default to "date"
-  }, [view]);
-
-  // function formatXAxisLabel(value) {
-  //   const [start, end] = value.split(" - ");
-  //   const formatOptions = {
-  //     month: "short",
-  //     day: "numeric",
-  //     hour: "numeric",
-  //     minute: "numeric",
-  //   };
-
-  //   const startDate = new Date(start)
-  //     .toLocaleDateString("en-US", formatOptions)
-  //     .replace(", ", " at ");
-  //   const endDate = new Date(end)
-  //     .toLocaleDateString("en-US", formatOptions)
-  //     .replace(", ", " at ");
-
-  //   return `${startDate} - ${endDate}`;
-  // }
+  const xAxisKey = useMemo(() => "interval", [view]);
 
   function formatXAxisLabel(value) {
     const [start, end] = value.split(" - ");
     const startDate = new Date(start);
     const endDate = new Date(end);
 
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+
+    // Format start date with the year
     const startFormat = startDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric",
+      year: "numeric", // Always include the year
       hour: "numeric",
       minute: "numeric",
     });
 
+    // Format end date with the year
+    const endFormat = endDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric", // Always include the year
+      hour: "numeric",
+      minute: "numeric",
+    });
+
+    // Same day case
     if (startDate.toDateString() === endDate.toDateString()) {
-      // Same day: show time only for the second part
       const endTime = endDate.toLocaleTimeString("en-US", {
         hour: "numeric",
         minute: "numeric",
       });
       return `${startFormat} - ${endTime}`;
-    } else {
-      // Different days: show full format for both
-      const endFormat = endDate.toLocaleDateString("en-US", {
+    }
+
+    // Same year case but different days
+    if (startYear === endYear) {
+      const startWithoutYear = startDate.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
-        year: "numeric",
         hour: "numeric",
         minute: "numeric",
       });
-      return `${startFormat} - ${endFormat}`;
+      return `${startWithoutYear} - ${endFormat}`;
     }
+
+    // Different year case
+    return `${startFormat} - ${endFormat}`;
   }
+
+  const showLabels = scheduleSalesData.length <= 31;
+
+  // Custom Tooltip
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const unitCount = payload[0].value;
+      const price =
+        payload[0].payload?.price || payload[0].payload?.averagePrice;
+
+      // Format the interval label
+      const formattedInterval = formatXAxisLabel(label);
+
+      return (
+        <div className="rounded bg-white w-[170px] border shadow-lg py-2 px-2">
+          {formattedInterval && (
+            <p className="font-semibold text-xs">{formattedInterval}</p>
+          )}
+
+          <div className="grid grid-cols-[10px_70px_auto] gap-x-2 items-center mt-1 text-xs">
+            <span className="w-[10px] h-[10px] bg-[#E9907A]"></span>
+            <span className="text-gray-600">Unit Count</span>
+            <span className="font-semibold text-right">{unitCount}</span>
+          </div>
+
+          {
+            <div className="grid grid-cols-[10px_70px_auto] gap-x-2 items-center text-xs mt-0.5">
+              <span className="w-[10px] h-[10px] bg-transparent"></span>
+              <span className="text-gray-600">Price</span>
+              {price ? (
+                <span className="font-semibold text-right">${price}</span>
+              ) : (
+                <span className="font-semibold text-right">0</span>
+              )}
+            </div>
+          }
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <>
-      {/* <Card className="h-[50vh]"> */}
       <CardHeader className="items-center pb-0">
         <CardTitle>On Schedule Sale Report</CardTitle>
-        {/* <CardDescription>January - June 2024</CardDescription> */}
       </CardHeader>
       <CardContent className="px-2  sm:p-6">
         <ChartContainer
@@ -139,67 +141,34 @@ export default function ScheduleSalesDetailsBarChart({
           }`}
         >
           <BarChart
-            // data={chartData}
             data={scheduleSalesData}
-            // width={600}
-            // width={900} // Increase the width
-            // height={500}
-            // margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
             margin={{
               top: 40,
               right: 30,
-              left: 80,
-              bottom: 120,
-            }} // Add more bottom margin for label rotation
+              left: 20,
+              bottom: 140,
+            }}
+            barCategoryGap="20%"
           >
             <CartesianGrid vertical={false} />
-            {/* <CartesianGrid strokeDasharray="3 3" /> */}
-            {/* <XAxis
-              dataKey="date"
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                });
-              }}
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-            /> */}
+
             <XAxis
               dataKey={xAxisKey}
-              // tickFormatter={(value) => {
-              //   const dateParts = value.split("/");
-              //   const formattedDate = new Date(
-              //     dateParts[2],
-              //     dateParts[1] - 1,
-              //     dateParts[0]
-              //   );
-              //   return formattedDate.toLocaleDateString("en-US", {
-              //     month: "short",
-              //     day: "numeric",
-              //   });
-              // }}
-              // tickFormatter={(value)} // Format based on view
-              tickFormatter={(value) => formatXAxisLabel(value)} // Format based on view
+              tickFormatter={(value) => formatXAxisLabel(value)}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              angle={-40} // Set angle to -45 degrees for weekly view
-              textAnchor={"end"} // Adjust text anchor for alignment
+              angle={-40}
+              textAnchor={"end"}
               dx={-10}
             />
 
-            {/* <YAxis axisLine={false} tickLine={false} tickMargin={8} /> */}
             <YAxis
               dataKey="unitCount"
               axisLine={false}
               tickLine={false}
               tickMargin={8}
-              allowDecimals={false} // Prevents fractions
+              allowDecimals={false}
               label={{
                 value: "Units Sold",
                 angle: -90,
@@ -207,64 +176,31 @@ export default function ScheduleSalesDetailsBarChart({
               }}
             />
 
-            {/* <Tooltip
-              formatter={(value, name) =>
-                name === "price" ? `$${value}` : value
-              }
-            /> */}
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="views"
-                  // labelFormatter={(value) => {
-                  //   if (view === "day" && typeof value === "string") {
-                  //     const [day, month, year] = value.split("/");
-                  //     const formattedDate = new Date(`${year}-${month}-${day}`);
-                  //     return formattedDate.toLocaleDateString("en-US", {
-                  //       month: "short",
-                  //       day: "numeric",
-                  //       year: "numeric",
-                  //     });
-                  //   }
-                  //   return value; // For week and month
-                  // }}
-                  labelFormatter={(value) => formatXAxisLabel(value)}
-                />
-              }
-            />
+            <Tooltip content={<CustomTooltip />} />
 
-            <Bar dataKey="unitCount" fill="#ED927C">
-              {/* Label for price */}
-              <LabelList
-                dataKey={"price"}
-                position="top"
-                formatter={(value) => `$${value}`}
-                // formatter={(value) => `$${value.toFixed(2)}`}
-              />
+            <Bar dataKey="unitCount" fill="#ED927C" barSize={40}>
+              {showLabels && (
+                <>
+                  <LabelList
+                    dataKey={"price"}
+                    position="top"
+                    formatter={(value) => `$${value}`}
+                  />
 
-              {/* Display unitCount inside the bar */}
-              <LabelList
-                dataKey="unitCount"
-                position="top"
-                offset={19}
-                formatter={(value) => `${value}`} // Show raw unitCount
-                fontSize={12}
-                fill="#555"
-                fontWeight="bold"
-              />
+                  <LabelList
+                    dataKey="unitCount"
+                    position="top"
+                    offset={19}
+                    formatter={(value) => `${value}`}
+                    fontSize={12}
+                    fill="#555"
+                    fontWeight="bold"
+                  />
+                </>
+              )}
             </Bar>
           </BarChart>
         </ChartContainer>
-
-        {/* <CardFooter className="flex-col gap-2 text-sm">
-          <div className="flex items-center gap-2 font-medium leading-none">
-            Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing total visitors for the last 6 months
-          </div>
-        </CardFooter> */}
       </CardContent>
     </>
   );

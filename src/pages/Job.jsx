@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { InputGroup, Form, Pagination } from "react-bootstrap";
+import { Table, Badge, InputGroup, Form, Pagination } from "react-bootstrap";
 import priceoboIcon from "../../src/assets/images/pricebo-icon.png";
 import "./Job.css";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
-
+// import SettingsUserRoleSelect from "@/components/shared/ui/SettingsUserRoleSelect";
+import StatusFilterDropDown from "@/components/shared/ui/StatusFilterDropdown";
 import StatusScheduleTypeDropdown from "@/components/shared/ui/StatusScheduleTypeDropdown";
-import StatusFilterDropdown from "@/components/shared/ui/StatusFilterDropdown";
 import StatusLoadingSkeleton from "@/components/LoadingSkeleton/StatusLoadingSkeleton";
 
 // const BASE_URL = "http://localhost:3000";
@@ -38,8 +38,8 @@ const JobTable = () => {
           ]);
 
         const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
-          const dateA = new Date(a.lastRunAt || a.nextRunAt);
-          const dateB = new Date(b.lastRunAt || b.nextRunAt);
+          const dateA = new Date(a.nextRunAt || a.lastRunAt);
+          const dateB = new Date(b.nextRunAt || b.lastRunAt);
           return dateB - dateA;
         });
 
@@ -71,54 +71,70 @@ const JobTable = () => {
     fetchData();
   }, []);
 
-  const getStatus = (job) => {
+  console.log(JSON.stringify(jobData));
+  const getStatus = (job, isUpcoming) => {
     const now = new Date();
-    const nextRunAt = new Date(job.nextRunAt);
-    const isSingle =
-      !job.name.includes("monthly") && !job.name.includes("weekly");
+    const nextRunAt = job.nextRunAt ? new Date(job.nextRunAt) : null;
 
-    let statusText = "upcoming"; // Default status
-    let statusElement = (
-      <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
-        Upcoming
-      </span>
-    );
-
-    if (isSingle) {
-      if (job.lastRunAt) {
-        statusText = "success";
-        statusElement = (
-          <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
-            Success
-          </span>
-        );
-      } else if (!job.lastRunAt && nextRunAt < now) {
-        statusText = "failed";
-        statusElement = (
+    if (job.failCount || (nextRunAt && nextRunAt < now)) {
+      return {
+        statusText: "failed",
+        statusElement: (
           <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
             Failed
           </span>
-        );
-      }
-    } else if (job.failCount || nextRunAt < now) {
-      statusText = "failed";
-      statusElement = (
-        <span className="bg-red-100 px-2 py-2 text-red-700 text-xs font-semibold rounded-sm">
-          Failed
-        </span>
-      );
-    } else if (job.lastRunAt) {
-      statusText = "success";
-      statusElement = (
+        ),
+      };
+    }
+
+    if (isUpcoming) {
+      return {
+        statusText: "upcoming",
+        statusElement: (
+          <span className="bg-blue-100 px-2 py-2 text-blue-700 text-xs font-semibold rounded-sm">
+            Upcoming
+          </span>
+        ),
+      };
+    }
+
+    return {
+      statusText: "success",
+      statusElement: (
         <span className="bg-green-100 px-2 py-2 text-green-700 text-xs font-semibold rounded-sm">
           Success
         </span>
-      );
-    }
-
-    return { statusText, statusElement };
+      ),
+    };
   };
 
+  // Extend job data for recurring jobs
+  const extendRecurringJobs = (jobs) => {
+    return jobs.flatMap((job) => {
+      const rows = [];
+      const now = new Date();
+
+      // For lastRunAt, mark as success
+      if (job.lastRunAt) {
+        rows.push({
+          ...job,
+          displayRunAt: job.lastRunAt,
+          isUpcoming: false,
+        });
+      }
+
+      // For nextRunAt, mark as upcoming if in the future or failed if in the past
+      if (job.nextRunAt) {
+        rows.push({
+          ...job,
+          displayRunAt: job.nextRunAt,
+          isUpcoming: true,
+        });
+      }
+
+      return rows;
+    });
+  };
   const getJobType = (jobName) => {
     const isRevert = jobName.includes("revert");
     if (jobName.includes("weekly")) {
@@ -129,23 +145,24 @@ const JobTable = () => {
       return isRevert ? "Single Revert" : "Single";
     }
   };
+  // Extend the jobs for recurring entries
+  const extendedJobData = extendRecurringJobs(jobData);
 
-  const filteredProducts = jobData
+  // Apply filtering
+  const filteredProducts = extendedJobData
     .filter((item) =>
       item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter(
       (item) =>
         filteredStatus === "all" ||
-        getStatus(item).statusText === filteredStatus
+        getStatus(item, item.isUpcoming).statusText === filteredStatus
     )
     .filter((item) => {
       const jobType = getJobType(item.name);
 
-      // Show all types if 'Show All' is selected
       if (filteredScheduleType === "all") return true;
 
-      // Filter based on selected type and include revert types
       return (
         (filteredScheduleType === "Single" &&
           (jobType === "Single" || jobType === "Single Revert")) ||
@@ -155,6 +172,35 @@ const JobTable = () => {
           (jobType === "Monthly" || jobType === "Monthly Revert"))
       );
     });
+
+  /*
+  const filteredProducts = jobData
+  .filter((item) =>
+    item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  .filter(
+    (item) =>
+      filteredStatus === "all" ||
+      getStatus(item).statusText === filteredStatus
+  )
+  .filter((item) => {
+    const jobType = getJobType(item.name);
+
+    // Show all types if 'Show All' is selected
+    if (filteredScheduleType === "all") return true;
+
+    // Filter based on selected type and include revert types
+    return (
+      (filteredScheduleType === "Single" &&
+        (jobType === "Single" || jobType === "Single Revert")) ||
+      (filteredScheduleType === "Weekly" &&
+        (jobType === "Weekly" || jobType === "Weekly Revert")) ||
+      (filteredScheduleType === "Monthly" &&
+        (jobType === "Monthly" || jobType === "Monthly Revert"))
+    );
+  });
+*/
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -249,11 +295,9 @@ const JobTable = () => {
   if (loading) {
     return <StatusLoadingSkeleton></StatusLoadingSkeleton>;
   }
-
   if (error) {
     return <p>{error}</p>;
   }
-
   return (
     <div>
       <InputGroup className="max-w-[500px] absolute top-[11px] ">
@@ -288,7 +332,7 @@ const JobTable = () => {
             style={{
               tableLayout: "fixed",
             }}
-            className="statusCustomTable table"
+            className="reportCustomTable table"
           >
             <thead
               style={{
@@ -395,14 +439,13 @@ const JobTable = () => {
                     position: "sticky", // Sticky header
                     textAlign: "center",
                     verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   <p className="flex  items-center justify-center gap-1">
                     Status
-                    <StatusFilterDropdown
+                    <StatusFilterDropDown
                       handleStatusChange={handleStatusChange}
-                    ></StatusFilterDropdown>
+                    ></StatusFilterDropDown>
                   </p>
                 </th>
               </tr>
@@ -415,128 +458,130 @@ const JobTable = () => {
               }}
             >
               {currentItems.length > 0 ? (
-                currentItems.map((job, index) => (
-                  <tr key={index}>
-                    <td
-                      style={{
-                        // cursor: "pointer",
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {job.listing?.imageUrl ? (
-                        <img
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "contain",
-                            margin: "0 auto",
-                          }}
-                          src={job.listing.imageUrl}
-                          alt="Product"
-                        />
-                      ) : (
-                        "No Image"
-                      )}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      <p className="flex justify-center items-center">
-                        {job.data.sku}
-                        {copiedSkuIndex === index ? (
-                          <MdCheck
+                currentItems.map((job, index) => {
+                  const { statusElement } = getStatus(job, job.isUpcoming);
+
+                  return (
+                    <tr key={index}>
+                      <td
+                        style={{
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {job.listing?.imageUrl ? (
+                          <img
                             style={{
-                              marginLeft: "10px",
-                              cursor: "pointer",
-                              color: "green",
-                              fontSize: "16px",
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "contain",
+                              margin: "0 auto",
                             }}
+                            src={job.listing.imageUrl}
+                            alt="Product"
                           />
                         ) : (
-                          <BsClipboardCheck
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCopy(job.data.sku, "sku", index);
-                            }}
-                            style={{
-                              marginLeft: "10px",
-                              cursor: "pointer",
-                              fontSize: "16px",
-                            }}
-                          />
+                          "No Image"
                         )}
-                      </p>
-                    </td>
-                    <td
-                      style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        // cursor: "pointer",
-                        height: "40px",
-                        textAlign: "start",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {job.listing?.itemName || "No Title"}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {getJobType(job.name)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {formatDate(job.lastRunAt || job.nextRunAt)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {job.userName}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {formatDate(job.createdAt)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {getStatus(job).statusElement}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        <p className="flex justify-center items-center">
+                          {job.data.sku}
+                          {copiedSkuIndex === index ? (
+                            <MdCheck
+                              style={{
+                                marginLeft: "10px",
+                                cursor: "pointer",
+                                color: "green",
+                                fontSize: "16px",
+                              }}
+                            />
+                          ) : (
+                            <BsClipboardCheck
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(job.data.sku, "sku", index);
+                              }}
+                              style={{
+                                marginLeft: "10px",
+                                cursor: "pointer",
+                                fontSize: "16px",
+                              }}
+                            />
+                          )}
+                        </p>
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "start",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {job.listing?.itemName || "No Title"}
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {getJobType(job.name)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {formatDate(job.displayRunAt)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {job.userName}
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {formatDate(job.createdAt)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {statusElement}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="8"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No Data Found
