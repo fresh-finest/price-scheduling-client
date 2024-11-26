@@ -61,17 +61,7 @@ const PriceVsCount = ({
         >
           By Day
         </Button>
-        <Button
-          onClick={() => handleViewChange("week")}
-          variant="outline"
-          className={`w-[80px] justify-center ${
-            view === "week"
-              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-              : ""
-          }`}
-        >
-          By Week
-        </Button>
+ 
         <Button
           onClick={() => handleViewChange("month")}
           variant="outline"
