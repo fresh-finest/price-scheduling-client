@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 // import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams,useNavigate } from "react-router-dom";
 import moment from "moment";
 import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
-import { MdCheck } from "react-icons/md";
+import { MdCheck,MdOutlineArrowBackIos  } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
@@ -49,6 +49,7 @@ const SaleDetails = () => {
   const identifier = identifierType === "sku" ? sku : asin;
 
   const location = useLocation();
+  const navigate = useNavigate();
   // const { productInfo, sku1, asin } = location.state || {};
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
@@ -337,8 +338,16 @@ const SaleDetails = () => {
       ) : (
         <SaleDetailsProductDetailSkeleton />
       )}
-
-      <div className="mt-3">
+      <div>
+        <Button
+          variant="outline"
+          className=" my-1"
+          onClick={() => navigate(-1)}
+        >
+          <MdOutlineArrowBackIos className="mr-1" /> Back
+        </Button>
+      </div>
+      <div className="mt-1">
         {salesChartloading ? (
           <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
         ) : (

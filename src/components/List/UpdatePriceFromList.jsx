@@ -175,7 +175,7 @@ const UpdatePriceFromList = ({
 
   const [weeklyExists, setWeeklyExists] = useState(false);
   const [monthlyExists, setMonthlyExists] = useState(false);
-
+  const [saleInformation, setSaleInformation] = useState(null);
   const [activeTab, setActiveTab] = useState("single");
   // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
   //   label: `${i + 1}`,
@@ -1079,6 +1079,8 @@ const validateTimeSlots = () => {
                 sku1={sku1}
                 fnSku={fnSku}
                 updatePriceModal={true}
+                saleInformation={saleInformation}
+                setSaleInformation={setSaleInformation}
               ></ProductDetailsWithNumbers>
             </Modal.Header>
 
@@ -1561,6 +1563,7 @@ const validateTimeSlots = () => {
                       <UpdateSalePrice
                         sku1={sku1}
                         onClose={onClose}
+                        saleInformation={saleInformation}
                       ></UpdateSalePrice>
                     </div>
                   </TabsContent>

@@ -1,9 +1,13 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { Card } from "react-bootstrap";
-import { BsClipboardCheck } from "react-icons/bs";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { FaRankingStar } from "react-icons/fa6";
 import { MdCheck } from "react-icons/md";
 import { PiWarehouse } from "react-icons/pi";
+
+
+const BASE_URL = `https://api.priceobo.com`;
 
 const ProductDetailsWithNumbers = ({
   product,
@@ -14,10 +18,51 @@ const ProductDetailsWithNumbers = ({
   sku1,
   fnSku,
   updatePriceModal,
+  saleInformation,
+  setSaleInformation,
 }) => {
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
+
+  const fetchSalePrice = async (sku) => {
+    try {
+      setSaleInformation(null);
+      const response = await axios.get(`${BASE_URL}/sale-price/${sku}`);
+      if (response.status === 200) {
+        const data = response?.data;
+        const schedule = data[0]?.discounted_price?.[0]?.schedule?.[0];
+
+        if (schedule) {
+          const endAt = new Date(schedule.end_at);
+          const today = new Date();
+
+          if (endAt > today) {
+            return schedule;
+          }
+        }
+
+        return null;
+      } else {
+        console.error(`Failed to fetch sale price for SKU: ${sku}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error fetching sale price for SKU: ${sku}`, error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const updateSalePrice = async () => {
+      const saleSchedule = await fetchSalePrice(sku1);
+      setSaleInformation(saleSchedule);
+    };
+
+    if (sku1) {
+      updateSalePrice();
+    }
+  }, [sku1]);
 
   const handleCopy = (text, type) => {
     navigator.clipboard
@@ -42,14 +87,9 @@ const ProductDetailsWithNumbers = ({
   return (
     <div>
       <div
-        className={`flex justify-start  mx-[10px] ${
+        className={`flex justify-start relative  mx-[10px] ${
           updatePriceModal ? "pt-2 px-1" : "p-1"
         }`}
-        // style={{
-        //   display: "flex",
-        //   alignItems: "start",
-        //   margin: "0 10px",
-        // }}
       >
         <Card.Img
           variant="top"
@@ -74,153 +114,165 @@ const ProductDetailsWithNumbers = ({
             {product?.AttributeSets?.[0]?.Title || product?.itemName}
           </Card.Title>
           {updatePriceModal && (
-            <div className="flex   gap-2 mt-2 ">
-              <div className="flex   gap-2">
-                <div
-                  style={{
-                    borderRadius: "3px",
-                    height: "",
-                    verticalAlign: "bottom",
-                    width: "50px",
-                  }}
-                  className=" bg-blue-500 text-white flex justify-center items-center "
-                >
-                  <h2 style={{ fontSize: "13px" }}>
-                    ${parseFloat(price).toFixed(2)}
-                  </h2>
+            <>
+              {saleInformation && (
+                <div className="absolute top-[8vh] right-[3vw]">
+                  <div className="flex items-center gap-1">
+                    <p>
+                      <BsFillInfoSquareFill className="text-[#0D6EFD] text-xl" />
+                    </p>
+                    <h2 className="text-[#0D6EFD]"> It has a sale Price</h2>
+                  </div>
                 </div>
+              )}
+              <div className="flex   gap-2 mt-2 ">
+                <div className="flex   gap-2">
+                  <div
+                    style={{
+                      borderRadius: "3px",
+                      height: "",
+                      verticalAlign: "bottom",
+                      width: "50px",
+                    }}
+                    className=" bg-blue-500 text-white flex justify-center items-center "
+                  >
+                    <h2 style={{ fontSize: "13px" }}>
+                      ${parseFloat(price).toFixed(2)}
+                    </h2>
+                  </div>
 
-                <div className="flex flex-col  items-start gap-2">
-                  <div>
-                    <div className="text-left text-[#505050]">
-                      <p className="flex justify-center items-center  gap-2 text-xs">
-                        <FaRankingStar style={{ fontSize: "16px" }} />{" "}
-                        {product?.SalesRankings?.[0]?.Rank
-                          ? "#" +
-                            new Intl.NumberFormat().format(
-                              product.SalesRankings[0].Rank
-                            )
-                          : "N/A"}
+                  <div className="flex flex-col  items-start gap-2">
+                    <div>
+                      <div className="text-left text-[#505050]">
+                        <p className="flex justify-center items-center  gap-2 text-xs">
+                          <FaRankingStar style={{ fontSize: "16px" }} />{" "}
+                          {product?.SalesRankings?.[0]?.Rank
+                            ? "#" +
+                              new Intl.NumberFormat().format(
+                                product.SalesRankings[0].Rank
+                              )
+                            : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
+                      style={{
+                        cursor: "pointer",
+                        // display: "inline-flex",
+                        // alignItems: "stretch",
+                      }}
+                    >
+                      {asin}{" "}
+                      {copiedAsinIndex ? (
+                        <MdCheck
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            color: "green",
+                          }}
+                        />
+                      ) : (
+                        <BsClipboardCheck
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(asin, "asin");
+                          }}
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                          }}
+                        />
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="  text-xs text-[#505050]">
+                      <p className="flex justify-start items-center gap-2 text-xs">
+                        {" "}
+                        <PiWarehouse style={{ fontSize: "16px" }} />
+                        {new Intl.NumberFormat().format(channelStockValue)}
                       </p>
                     </div>
-                  </div>
-                  <span
-                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
-                    style={{
-                      cursor: "pointer",
-                      // display: "inline-flex",
-                      // alignItems: "stretch",
-                    }}
-                  >
-                    {asin}{" "}
-                    {copiedAsinIndex ? (
-                      <MdCheck
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          color: "green",
-                        }}
-                      />
-                    ) : (
-                      <BsClipboardCheck
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopy(asin, "asin");
-                        }}
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                        }}
-                      />
-                    )}
-                  </span>
-                </div>
 
-                <div className="flex flex-col gap-2">
-                  <div className="  text-xs text-[#505050]">
-                    <p className="flex justify-start items-center gap-2 text-xs">
-                      {" "}
-                      <PiWarehouse style={{ fontSize: "16px" }} />
-                      {new Intl.NumberFormat().format(channelStockValue)}
-                    </p>
+                    <span
+                      className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
+                      style={{
+                        cursor: "pointer",
+                        // display: "inline-flex",
+                        // alignItems: "stretch",
+                      }}
+                    >
+                      {sku1}{" "}
+                      {copiedSkuIndex ? (
+                        <MdCheck
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            color: "green",
+                          }}
+                        />
+                      ) : (
+                        <BsClipboardCheck
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(sku1, "sku");
+                          }}
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                          }}
+                        />
+                      )}
+                    </span>
                   </div>
 
-                  <span
-                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
-                    style={{
-                      cursor: "pointer",
-                      // display: "inline-flex",
-                      // alignItems: "stretch",
-                    }}
-                  >
-                    {sku1}{" "}
-                    {copiedSkuIndex ? (
-                      <MdCheck
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          color: "green",
-                        }}
-                      />
-                    ) : (
-                      <BsClipboardCheck
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopy(sku1, "sku");
-                        }}
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                        }}
-                      />
-                    )}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <div>
-                    <div className="text-start text-xs text-[#505050]">
-                      <span>
-                        {fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
-                      </span>
+                  <div className="flex flex-col gap-2">
+                    <div>
+                      <div className="text-start text-xs text-[#505050]">
+                        <span>
+                          {fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
+                        </span>
+                      </div>
                     </div>
+                    <span
+                      className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
+                      style={{
+                        cursor: "pointer",
+                        // display: "inline-flex",
+                        // alignItems: "stretch",
+                      }}
+                    >
+                      {fnSku}{" "}
+                      {copiedfnSkuIndex ? (
+                        <MdCheck
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            color: "green",
+                          }}
+                        />
+                      ) : (
+                        <BsClipboardCheck
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(fnSku, "fnSku");
+                          }}
+                          style={{
+                            marginLeft: "10px",
+                            cursor: "pointer",
+                            fontSize: "16px",
+                          }}
+                        />
+                      )}
+                    </span>
                   </div>
-                  <span
-                    className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
-                    style={{
-                      cursor: "pointer",
-                      // display: "inline-flex",
-                      // alignItems: "stretch",
-                    }}
-                  >
-                    {fnSku}{" "}
-                    {copiedfnSkuIndex ? (
-                      <MdCheck
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          color: "green",
-                        }}
-                      />
-                    ) : (
-                      <BsClipboardCheck
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCopy(fnSku, "fnSku");
-                        }}
-                        style={{
-                          marginLeft: "10px",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                        }}
-                      />
-                    )}
-                  </span>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>

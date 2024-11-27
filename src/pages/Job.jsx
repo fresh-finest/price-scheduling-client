@@ -85,10 +85,12 @@ const JobTable = () => {
   
         // Sort jobs by nextRunAt (descending), falling back to lastRunAt
         const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
+        
           const dateA = new Date(a.nextRunAt || a.lastRunAt || 0);
           const dateB = new Date(b.nextRunAt || b.lastRunAt || 0);
           return dateB - dateA; // Descending order
         });
+        console.log(jobResponse.data.jobs);
   
         const schedules = scheduleResponse.data.result;
         const listings = listingResponse.data.listings;
@@ -119,7 +121,7 @@ const JobTable = () => {
   }, []);
   
 
-  console.log("Job data",JSON.stringify(jobData));
+ 
 
   const getStatus = (job, isUpcoming) => {
     const now = new Date();

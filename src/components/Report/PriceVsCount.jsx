@@ -22,7 +22,7 @@ const PriceVsCount = ({
   );
   const formattedTotalUnitCount = totalUnitCount.toLocaleString();
   return (
-    <Card className="mt-[1.5rem] relative ">
+    <Card className="mt-1 relative ">
       <div className="absolute top-1 right-[5.8%]">
         <Button
           className={` ${
