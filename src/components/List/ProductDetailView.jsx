@@ -556,23 +556,6 @@ const ProductDetailView = ({
               {/* tabs  */}
 
               <div className="px-2 py-1 m-2 h-[40vh] overflow-y-auto absolute bottom-0  w-[98%] mx-auto">
-                {/* <div className=" flex justify-center items-center mt-2 absolute top-[20%] left-[25%]">
-                  <button
-                    onClick={() =>
-                      navigate(`/details/${encodeURIComponent(sku1)}`, {
-                        state: { productInfo: product, price, asin, sku1 },
-                      })
-                    }
-                    className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
-                  >
-                    <span className="inline-block mb-1">
-                      See Pricing and Sales Report
-                    </span>
-                    <span className="absolute top-[8.5px] right-1">
-                      <HiOutlineArrowNarrowRight />
-                    </span>
-                  </button>
-                </div> */}
                 <Tabs defaultValue="single" className="">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="single">

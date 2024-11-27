@@ -49,11 +49,7 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
-export default function SalesDetailsBarChart({
-  view,
-  salesData,
-  scheduleSalesData,
-}) {
+const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
   const filteredSalesData = salesData.filter((data) => data.unitCount > 0);
 
   // Determine the dataKey for the X-axis dynamically
@@ -270,4 +266,6 @@ export default function SalesDetailsBarChart({
       </CardContent>
     </>
   );
-}
+};
+
+export default SalesDetailsBarChart;
