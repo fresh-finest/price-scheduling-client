@@ -26,9 +26,10 @@ import UpdateSalePrice from "./UpdateSalePrice";
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const BASE_URL = "https://api.priceobo.com";
 // const BASE_URL ='http://localhost:3000'
-const fetchProductDetails = async (asin) => {
+const fetchProductDetails = async (sku) => {
+  const encodedSku = encodeURIComponent(sku);
   try {
-    const response = await axios.get(`${BASE_URL}/product/${asin}`);
+    const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
     return response.data;
   } catch (error) {
     console.error(
@@ -187,7 +188,7 @@ const UpdatePriceFromList = ({
       setActiveTab("single");
       resetForm();
       fetchProductPriceBySku(sku1);
-      fetchProductDetailsByAsin(asin);
+      fetchProductDetailsByAsin(sku1);
 
       fetchSchedules(sku1);
     } else if (show && !asin) {
@@ -787,29 +788,38 @@ const validateTimeSlots = () => {
     }
   };
 
-  const fetchProductDetailsByAsin = async (asin) => {
+  const fetchProductDetailsByAsin = async (sku) => {
     setLoading(true);
     try {
-      const data = await fetchProductDetails(asin);
-      if (data && data.payload && data.payload[0] && data.payload[0].Product) {
-        const productDetails = data.payload[0].Product.Offers[0];
-        // setSku(productDetails.SellerSKU);
-        // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
-
-        const additionalData = await fetchProductAdditionalDetails(asin);
-        if (
-          additionalData &&
-          additionalData.payload &&
-          additionalData.payload.AttributeSets[0]
-        ) {
-          setTitle(additionalData.payload.AttributeSets[0].Title);
-          setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-        } else {
-          setErrorMessage("Failed to fetch additional product details.");
-        }
-      } else {
+      const data = await fetchProductDetails(sku);
+      if(data){
+        setTitle(data?.summaries[0]?.itemName);
+        setImageUrl(data?.summaries[0]?.mainImage.link);
+      }
+      else {
         setErrorMessage("Failed to fetch product details.");
       }
+      
+
+      // if (data && data.payload && data.payload[0] && data.payload[0].Product) {
+      //   const productDetails = data.payload[0].Product.Offers[0];
+      //   // setSku(productDetails.SellerSKU);
+      //   // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+
+      //   const additionalData = await fetchProductAdditionalDetails(asin);
+      //   if (
+      //     additionalData &&
+      //     additionalData.payload &&
+      //     additionalData.payload.AttributeSets[0]
+      //   ) {
+      //     setTitle(additionalData.payload.AttributeSets[0].Title);
+      //     setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+      //   } else {
+      //     setErrorMessage("Failed to fetch additional product details.");
+      //   }
+      // } else {
+      //   setErrorMessage("Failed to fetch product details.");
+      // }
     } catch (error) {
       setErrorMessage(
         "Error fetching product details: " +
