@@ -1,23 +1,53 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { Table, Badge, InputGroup, Form, Pagination } from "react-bootstrap";
-import priceoboIcon from "../../src/assets/images/pricebo-icon.png";
+import { InputGroup, Form, Pagination } from "react-bootstrap";
 import "./Job.css";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
-// import SettingsUserRoleSelect from "@/components/shared/ui/SettingsUserRoleSelect";
+
 import StatusFilterDropDown from "@/components/shared/ui/StatusFilterDropDown";
 import StatusScheduleTypeDropdown from "@/components/shared/ui/StatusScheduleTypeDropdown";
 import StatusLoadingSkeleton from "@/components/LoadingSkeleton/StatusLoadingSkeleton";
+import { useQuery } from "react-query";
 
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
+const fetchJobData = async () => {
+  const [jobResponse, scheduleResponse, listingResponse] = await Promise.all([
+    axios.get(`${BASE_URL}/api/jobs`),
+    axios.get(`${BASE_URL}/api/schedule`),
+    axios.get(`${BASE_URL}/fetch-all-listings`),
+  ]);
+
+  const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
+    const dateA = a.nextRunAt ? new Date(a.nextRunAt) : new Date(a.lastRunAt);
+    const dateB = b.nextRunAt ? new Date(b.nextRunAt) : new Date(b.lastRunAt);
+
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return dateB - dateA;
+  });
+
+  const schedules = scheduleResponse.data.result;
+  const listings = listingResponse.data.listings;
+
+  return sortedJobs.map((job) => {
+    const schedule = schedules.find((s) => s._id === job.data.scheduleId);
+    const listing = listings.find(
+      (listing) => listing.sellerSku === job.data.sku
+    );
+
+    return {
+      ...job,
+      userName: schedule?.userName || "N/A",
+      createdAt: schedule?.createdAt || "N/A",
+      listing,
+    };
+  });
+};
+
 const JobTable = () => {
-  const [jobData, setJobData] = useState([]);
-  const [listingData, setListingData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,102 +56,18 @@ const JobTable = () => {
 
   const itemsPerPage = 20;
 
-  /*
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch job, schedule, and listing data
-        const [jobResponse, scheduleResponse, listingResponse] =
-          await Promise.all([
-            axios.get(`${BASE_URL}/api/jobs`),
-            axios.get(`${BASE_URL}/api/schedule`),
-            axios.get(`${BASE_URL}/fetch-all-listings`),
-          ]);
-
-          const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
-            const dateA = new Date(a.nextRunAt || a.lastRunAt || 0);
-            const dateB = new Date(b.nextRunAt || b.lastRunAt || 0);
-            return dateB - dateA; // Sort descending
-          });
-          console.log(sortedJobs)
-
-        const schedules = scheduleResponse.data.result;
-        const listings = listingResponse.data.listings;
-
-        // Merge job, schedule, and listing data by SKU
-        const mergedData = sortedJobs.map((job) => {
-          const schedule = schedules.find((s) => s._id === job.data.scheduleId);
-          const listing = listings.find(
-            (listing) => listing.sellerSku === job.data.sku
-          );
-          return {
-            ...job,
-            userName: schedule?.userName || "N/A",
-            createdAt: schedule?.createdAt || "N/A",
-            listing, // Attach listing details if found
-          };
-        });
-
-        setJobData(mergedData);
-      } catch (err) {
-        setError("Error fetching job, schedule, or listing data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-  */
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch job, schedule, and listing data
-        const [jobResponse, scheduleResponse, listingResponse] = await Promise.all([
-          axios.get(`${BASE_URL}/api/jobs`),
-          axios.get(`${BASE_URL}/api/schedule`),
-          axios.get(`${BASE_URL}/fetch-all-listings`),
-        ]);
-  
-        // Sort jobs by nextRunAt (descending), falling back to lastRunAt
-        const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
-        
-          const dateA = new Date(a.nextRunAt || a.lastRunAt || 0);
-          const dateB = new Date(b.nextRunAt || b.lastRunAt || 0);
-          return dateB - dateA; // Descending order
-        });
-        console.log(jobResponse.data.jobs);
-  
-        const schedules = scheduleResponse.data.result;
-        const listings = listingResponse.data.listings;
-  
-        // Merge job, schedule, and listing data by SKU
-        const mergedData = sortedJobs.map((job) => {
-          const schedule = schedules.find((s) => s._id === job.data.scheduleId);
-          const listing = listings.find(
-            (listing) => listing.sellerSku === job.data.sku
-          );
-          return {
-            ...job,
-            userName: schedule?.userName || "N/A",
-            createdAt: schedule?.createdAt || "N/A",
-            listing, // Attach listing details if found
-          };
-        });
-  
-        setJobData(mergedData);
-      } catch (err) {
-        setError("Error fetching job, schedule, or listing data");
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchData();
-  }, []);
-  
-
- 
+  const {
+    data: jobData = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery("jobData", fetchJobData, {
+    staleTime: 1 * 60 * 1000, // Data is fresh for 5 minutes
+    cacheTime: 5 * 60 * 1000, // Data remains in cache for 10 minutes
+    refetchInterval: 1 * 60 * 1000, // Automatically refetch every 1 minutes
+    refetchIntervalInBackground: true, // Continue polling in the background
+    refetchOnWindowFocus: true, // Enable refetching on window focus
+  });
 
   const getStatus = (job, isUpcoming) => {
     const now = new Date();
@@ -159,13 +105,9 @@ const JobTable = () => {
     };
   };
 
-  // Extend job data for recurring jobs
   const extendRecurringJobs = (jobs) => {
     return jobs.flatMap((job) => {
       const rows = [];
-      const now = new Date();
-
-      // For lastRunAt, mark as success
       if (job.lastRunAt) {
         rows.push({
           ...job,
@@ -173,8 +115,6 @@ const JobTable = () => {
           isUpcoming: false,
         });
       }
-
-      // For nextRunAt, mark as upcoming if in the future or failed if in the past
       if (job.nextRunAt) {
         rows.push({
           ...job,
@@ -182,10 +122,10 @@ const JobTable = () => {
           isUpcoming: true,
         });
       }
-
       return rows;
     });
   };
+
   const getJobType = (jobName) => {
     const isRevert = jobName.includes("revert");
     if (jobName.includes("weekly")) {
@@ -196,10 +136,10 @@ const JobTable = () => {
       return isRevert ? "Single Revert" : "Single";
     }
   };
+
   // Extend the jobs for recurring entries
   const extendedJobData = extendRecurringJobs(jobData);
 
-  // Apply filtering
   const filteredProducts = extendedJobData
     .filter((item) =>
       item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -223,34 +163,6 @@ const JobTable = () => {
           (jobType === "Monthly" || jobType === "Monthly Revert"))
       );
     });
-
-  /*
-  const filteredProducts = jobData
-  .filter((item) =>
-    item.data.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  .filter(
-    (item) =>
-      filteredStatus === "all" ||
-      getStatus(item).statusText === filteredStatus
-  )
-  .filter((item) => {
-    const jobType = getJobType(item.name);
-
-    // Show all types if 'Show All' is selected
-    if (filteredScheduleType === "all") return true;
-
-    // Filter based on selected type and include revert types
-    return (
-      (filteredScheduleType === "Single" &&
-        (jobType === "Single" || jobType === "Single Revert")) ||
-      (filteredScheduleType === "Weekly" &&
-        (jobType === "Weekly" || jobType === "Weekly Revert")) ||
-      (filteredScheduleType === "Monthly" &&
-        (jobType === "Monthly" || jobType === "Monthly Revert"))
-    );
-  });
-*/
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -343,7 +255,7 @@ const JobTable = () => {
       });
   };
 
-  if (loading) {
+  if (isLoading) {
     return <StatusLoadingSkeleton></StatusLoadingSkeleton>;
   }
   if (error) {
@@ -398,7 +310,7 @@ const JobTable = () => {
                   className="tableHeader"
                   style={{
                     width: "100px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -410,7 +322,7 @@ const JobTable = () => {
                   className="tableHeader"
                   style={{
                     width: "180px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -422,7 +334,7 @@ const JobTable = () => {
                   className="tableHeader"
                   style={{
                     width: "455px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -433,8 +345,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -450,8 +361,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -462,8 +372,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -474,8 +383,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                     borderRight: "2px solid #C3C6D4",
@@ -486,8 +394,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    // width: "100px",
-                    position: "sticky", // Sticky header
+                    position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
                   }}
@@ -598,6 +505,7 @@ const JobTable = () => {
                         }}
                       >
                         {formatDate(job.displayRunAt)}
+                        {/* {formatDate(job.nextRunAt)} */}
                       </td>
                       <td
                         style={{

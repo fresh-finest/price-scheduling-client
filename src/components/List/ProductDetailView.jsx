@@ -394,6 +394,12 @@ const ProductDetailView = ({
   };
 
   const now = new Date();
+const filterNow = new Date();
+filterNow.setDate(filterNow.getDate() - 2);
+const NYnow = new Date();
+// NYnow.setDate(filterNow.getDate() - 1);
+NYnow.setHours(NYnow.getHours() - 12);
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
 
@@ -431,7 +437,7 @@ const ProductDetailView = ({
         !sc.weekly &&
         !sc.monthly && // Ensure it's not weekly or monthly
         sc.startDate && // Ensure there's a start date
-        (!sc.endDate || new Date(sc.endDate) >= now) // Either no end date or end date is in the future
+        (!sc.endDate || new Date(sc.endDate) >= filterNow) // Either no end date or end date is in the future
     ).length;
   };
   const getFilteredWeeklySlotLength = (priceSchedule) => {
@@ -546,7 +552,7 @@ const ProductDetailView = ({
                           !sc.weekly &&
                           !sc.monthly &&
                           (sc.endDate === null ||
-                            (sc.endDate && new Date(sc.endDate) >= now))
+                            (sc.endDate && new Date(sc.endDate) >= filterNow))
                       ).length > 0 ? (
                         // Map through the filtered schedules
                         priceSchedule
@@ -556,7 +562,7 @@ const ProductDetailView = ({
                               !sc.weekly &&
                               !sc.monthly &&
                               (sc.endDate === null ||
-                                (sc.endDate && new Date(sc.endDate) >= now))
+                                (sc.endDate && new Date(sc.endDate) >= filterNow))
                           )
                           .map((sc, index) => (
                             <ShadCdnCard
@@ -603,7 +609,7 @@ const ProductDetailView = ({
                                       !sc.monthly &&
                                       sc.endDate != null &&
                                       (sc.endDate && new Date(sc.endDate)) <
-                                        now) ||
+                                        NYnow) ||
                                     !currentUser?.permissions?.write
                                   }
                                   className="bg-[#0662BB] py-1 px-1 rounded-sm"

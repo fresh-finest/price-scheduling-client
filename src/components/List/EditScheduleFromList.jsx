@@ -65,9 +65,10 @@ const dateNames = [
   "31st",
 ];
 
-const fetchProductDetails = async (asin) => {
+const fetchProductDetails = async (sku) => {
+  const encodedSku = encodeURIComponent(sku);
   try {
-    const response = await axios.get(`${BASE_URL}/product/${asin}`);
+    const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
     return response.data;
   } catch (error) {
     console.error(
@@ -406,23 +407,25 @@ const formatTimeToHHMM = (date) => {
   console.log("weekly slots: " + JSON.stringify(weeklyTimeSlots));
 
   useEffect(() => {
-    if (show && asin) {
-      fetchProductDetailsByAsin(asin);
+    if (show && sku1) {
+      fetchProductDetailsByAsin(sku1);
       setPrice(existingSchedule.price);
       setCurrentPrice(existingSchedule.currentPrice);
     }
-  }, [show, asin]);
+  }, [show, sku1]);
 
-  const fetchProductDetailsByAsin = async (asin) => {
+  const fetchProductDetailsByAsin = async (sku) => {
     try {
-      const data = await fetchProductDetails(asin);
-      const productDetails = data.payload[0].Product.Offers[0];
-      setSku(productDetails.SellerSKU);
+      const data = await fetchProductDetails(sku);
+      // const productDetails = data.payload[0].Product.Offers[0];
+      // setSku(productDetails.SellerSKU);
       // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
-      const additionalData = await fetchProductAdditionalDetails(asin);
-      setTitle(additionalData.payload.AttributeSets[0].Title);
-      setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+      // const additionalData = await fetchProductAdditionalDetails(asin);
+      if(data){
+        setTitle(data?.summaries[0]?.itemName);
+        setImageUrl(data?.summaries[0]?.mainImage.link);
+      }
     } catch (error) {
       setErrorMessage(
         "Error fetching product details: " +

@@ -550,6 +550,8 @@ const ListView = () => {
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
     let filtered = products;
     const now = new Date();
+    const filterNow = new Date();
+    filterNow.setDate(filterNow.getDate() - 2);
 
     if (onlyScheduled) {
       const scheduledAsins = scheduled
@@ -559,7 +561,7 @@ const ListView = () => {
             (item.weekly ||
               item.monthly ||
               item.endDate === null ||
-              (item.endDate && new Date(item.endDate) >= now))
+              (item.endDate && new Date(item.endDate) >= filterNow))
         )
         .map((item) => item.sku);
 
