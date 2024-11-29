@@ -213,7 +213,7 @@ const ProductDetailView = ({
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = (dateString,timeZone) => {
     const options = {
       day: "2-digit",
       month: "short",
@@ -221,7 +221,7 @@ const ProductDetailView = ({
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York", 
+      timeZone: timeZone, 
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
@@ -243,7 +243,7 @@ const ProductDetailView = ({
       (sc) =>
         sc.status !== "deleted" &&
         sc.weekly &&
-        (sc.endDate === null || (sc.endDate && new Date(sc.endDate) >= now))
+        (sc.endDate === null || (sc.endDate && new Date(sc.endDate+1) >= now))
     );
 
     if (validSchedule) {
@@ -565,7 +565,8 @@ const ProductDetailView = ({
                             >
                               <div key={index} className="w-full">
                                 <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {formatDateTime(sc.startDate)} 
+                                  {formatDateTime(sc.startDate, sc?.timeZone)} 
+                                   {/* {sc.startDate} */}
                                   {sc.price && (
                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                       ${sc?.price?.toFixed(2)}
@@ -579,7 +580,7 @@ const ProductDetailView = ({
                               {sc.endDate ? (
                                 <div className="w-full">
                                   <h3 className="flex justify-between text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                    {formatDateTime(sc.endDate)}
+                                    {formatDateTime(sc.endDate,sc?.timeZone)}
                                     {sc.currentPrice && (
                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                         ${sc?.currentPrice?.toFixed(2)}

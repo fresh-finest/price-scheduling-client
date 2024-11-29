@@ -338,7 +338,20 @@ export default function HistoryView() {
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-  const formatDateTime = (dateString) => {
+  // const formatDateTime = (dateString,timeZone) => {
+  //   const options = {
+  //     day: "2-digit",
+  //     month: "short",
+  //     year: "numeric",
+  //     hour: "numeric",
+  //     minute: "numeric",
+  //     hour12: true,
+  //     timeZone: timeZone
+  //   };
+  //   return new Date(dateString).toLocaleString("en-US", options);
+  // };
+  const formatDateTime = (dateString,timeZone) => {
+    console.log("timeZone"+timeZone)
     const options = {
       day: "2-digit",
       month: "short",
@@ -346,11 +359,10 @@ export default function HistoryView() {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York"
+      timeZone: timeZone, 
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
-  
 
   const formatDateTimeCreated = (dateString) => {
     const options = {
@@ -899,7 +911,7 @@ export default function HistoryView() {
                                 <div className="w-full flex gap-2">
                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                     {displayData?.startDate
-                                      ? formatDateTime(displayData.startDate)
+                                      ? formatDateTime(displayData.startDate, displayData?.timeZone)
                                       : "N/A"}
                                     {displayData.price && (
                                       <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
@@ -914,7 +926,7 @@ export default function HistoryView() {
                                   {displayData.endDate ? (
                                     <div className="w-full">
                                       <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                        {formatDateTime(displayData.endDate)}
+                                        {formatDateTime(displayData.endDate, displayData?.timeZone)}
                                         {displayData.currentPrice && (
                                           <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
                                             $
@@ -1257,7 +1269,7 @@ export default function HistoryView() {
                                                             ? formatDateTime(
                                                                 nestedItem
                                                                   .previousState
-                                                                  .startDate
+                                                                  .startDate, nestedItem?.previousState?.timeZone
                                                               )
                                                             : "N/A"}
                                                           {nestedItem
@@ -1281,7 +1293,7 @@ export default function HistoryView() {
                                                             {formatDateTime(
                                                               nestedItem
                                                                 .previousState
-                                                                .endDate
+                                                                .endDate, nestedItem?.previousState?.timeZone
                                                             )}
                                                             {nestedItem
                                                               .previousState
@@ -1688,11 +1700,11 @@ export default function HistoryView() {
                                                         ? formatDateTime(
                                                             nestedItem
                                                               .updatedState
-                                                              .startDate
+                                                              .startDate, nestedItem?.previousState?.timeZone
                                                           )
                                                         : nestedItem?.startDate
                                                         ? formatDateTime(
-                                                            nestedItem.startDate
+                                                            nestedItem.startDate,nestedItem?.timeZone
                                                           )
                                                         : "N/A"}
                                                       {nestedItem?.updatedState
@@ -1726,7 +1738,7 @@ export default function HistoryView() {
                                                         {formatDateTime(
                                                           nestedItem
                                                             .updatedState
-                                                            .endDate
+                                                            .endDate,nestedItem?.updatedState?.timeZone
                                                         )}
                                                         {nestedItem
                                                           ?.updatedState
@@ -1742,7 +1754,7 @@ export default function HistoryView() {
                                                     ) : nestedItem?.endDate ? (
                                                       <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
                                                         {formatDateTime(
-                                                          nestedItem.endDate
+                                                          nestedItem.endDate, nestedItem.timeZone
                                                         )}
                                                         {nestedItem?.currentPrice && (
                                                           <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
