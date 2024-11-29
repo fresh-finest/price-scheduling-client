@@ -20,9 +20,9 @@ import SaleDetailsProductDetailSkeleton from "../LoadingSkeleton/SaleDetailsProd
 const { RangePicker } = DatePicker;
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.152:3000";
+// const BASE_URL = "http://192.168.0.152:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetails = () => {
   const { sku } = useParams();
@@ -252,8 +252,6 @@ const SaleDetails = () => {
       value: [dayjs().startOf("year"), dayjs().endOf("day")],
     },
   ];
-
-  console.log("schedule sales data", scheduleSalesData);
 
   return (
     <div className="">

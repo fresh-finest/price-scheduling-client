@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { Table, Badge, InputGroup, Form, Pagination } from "react-bootstrap";
-import priceoboIcon from "../../src/assets/images/pricebo-icon.png";
+import { InputGroup, Form, Pagination } from "react-bootstrap";
 import "./Job.css";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
@@ -63,9 +62,11 @@ const JobTable = () => {
     error,
     refetch,
   } = useQuery("jobData", fetchJobData, {
-    staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
-    cacheTime: 10 * 60 * 1000, // Data remains in cache for 10 minutes
-    refetchInterval: 5 * 60 * 1000, // Automatically refetch every 5 minutes
+    staleTime: 1 * 60 * 1000, // Data is fresh for 5 minutes
+    cacheTime: 5 * 60 * 1000, // Data remains in cache for 10 minutes
+    refetchInterval: 1 * 60 * 1000, // Automatically refetch every 1 minutes
+    refetchIntervalInBackground: true, // Continue polling in the background
+    refetchOnWindowFocus: true, // Enable refetching on window focus
   });
 
   const getStatus = (job, isUpcoming) => {

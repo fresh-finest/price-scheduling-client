@@ -7,9 +7,9 @@ import { MdCheck } from "react-icons/md";
 import { PiWarehouse } from "react-icons/pi";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.152:3000";
+// const BASE_URL = "http://192.168.0.152:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const ProductDetailsWithNumbers = ({
   product,
@@ -123,7 +123,7 @@ const ProductDetailsWithNumbers = ({
                     <p>
                       <BsFillInfoSquareFill className="text-[#0D6EFD] text-xl" />
                     </p>
-                    <h2 className="text-[#0D6EFD]"> It has a sale Price</h2>
+                    <h2 className=""> It has a sale Price</h2>
                   </div>
                 </div>
               )}

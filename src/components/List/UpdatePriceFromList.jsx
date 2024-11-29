@@ -25,9 +25,9 @@ import UpdateSalePrice from "./UpdateSalePrice";
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 // const BASE_URL = "https://api.priceobo.com";
 const BASE_URL = "http://localhost:3000";
-const fetchProductDetails = async (asin) => {
+const fetchProductDetails = async (sku) => {
   try {
-    const response = await axios.get(`${BASE_URL}/product/${asin}`);
+    const response = await axios.get(`${BASE_URL}/image/${sku}`);
     return response.data;
   } catch (error) {
     console.error(
@@ -186,7 +186,7 @@ const UpdatePriceFromList = ({
       setActiveTab("single");
       resetForm();
       fetchProductPriceBySku(sku1);
-      fetchProductDetailsByAsin(asin);
+      fetchProductDetailsByAsin(encodeURI(sku1));
 
       fetchSchedules(sku1);
     } else if (show && !asin) {
@@ -369,7 +369,7 @@ const UpdatePriceFromList = ({
     const now = new Date();
     const today = now.getDay(); // Get today's day index
     const currentDayOfMonth = now.getDate(); // Get today's date in the month
-    const tenHoursAgo = new Date(now.getTime() - 10 * 60 * 60 * 1000); // Calculate the time 10 hours ago from now
+    const tenHoursAgo = new Date(now.getTime() - 11 * 60 * 60 * 1000); // Calculate the time 10 hours ago from now
     for (const day in weeklyTimeSlots) {
       const slots = weeklyTimeSlots[day];
 
@@ -566,29 +566,33 @@ const UpdatePriceFromList = ({
     }
   };
 
-  const fetchProductDetailsByAsin = async (asin) => {
+  const fetchProductDetailsByAsin = async (sku) => {
     setLoading(true);
     try {
-      const data = await fetchProductDetails(asin);
-      if (data && data.payload && data.payload[0] && data.payload[0].Product) {
-        const productDetails = data.payload[0].Product.Offers[0];
-        // setSku(productDetails.SellerSKU);
-        // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+      const data = await fetchProductDetails(sku);
+      setTitle(data?.summaries[0]?.itemName);
+      setImageUrl(data?.summaries[0]?.mainImage.link);
 
-        const additionalData = await fetchProductAdditionalDetails(asin);
-        if (
-          additionalData &&
-          additionalData.payload &&
-          additionalData.payload.AttributeSets[0]
-        ) {
-          setTitle(additionalData.payload.AttributeSets[0].Title);
-          setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-        } else {
-          setErrorMessage("Failed to fetch additional product details.");
-        }
-      } else {
-        setErrorMessage("Failed to fetch product details.");
-      }
+      // const data = await fetchProductDetails(sku);
+      // if (data && data.payload && data.payload[0] && data.payload[0].Product) {
+      //   const productDetails = data.payload[0].Product.Offers[0];
+      //   // setSku(productDetails.SellerSKU);
+      //   // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
+
+      //   const additionalData = await fetchProductAdditionalDetails(asin);
+      //   if (
+      //     additionalData &&
+      //     additionalData.payload &&
+      //     additionalData.payload.AttributeSets[0]
+      //   ) {
+      //     setTitle(additionalData.payload.AttributeSets[0].Title);
+      //     setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
+      //   } else {
+      //     setErrorMessage("Failed to fetch additional product details.");
+      //   }
+      // } else {
+      //   setErrorMessage("Failed to fetch product details.");
+      // }
     } catch (error) {
       setErrorMessage(
         "Error fetching product details: " +
