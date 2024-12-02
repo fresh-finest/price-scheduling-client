@@ -92,3 +92,7 @@ input[type="number"] {
 .modal-backdrop {
   --bs-backdrop-bg: none;
 }
+
+.ant-picker-dropdown {
+  z-index: 1060 !important; /* Ensure it appears above Bootstrap modals */
+}

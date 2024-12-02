@@ -1,8 +1,9 @@
 import { useState, useContext, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
-import DatePicker from "react-datepicker";
-import { MultiSelect } from "react-multi-select-component";
+// import DatePicker from "react-datepicker";
+import { DatePicker } from "antd";
 import "react-datepicker/dist/react-datepicker.css";
+import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import moment from "moment-timezone";
@@ -22,12 +23,15 @@ import Swal from "sweetalert2";
 import UpdatePriceFromListSkeleton from "../LoadingSkeleton/UpdatePriceFromListSkeleton";
 import UpdateSalePrice from "./UpdateSalePrice";
 
+const { RangePicker } = DatePicker;
+
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-// const BASE_URL = "https://api.priceobo.com";
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://api.priceobo.com";
+// const BASE_URL ='http://localhost:3000'
 const fetchProductDetails = async (sku) => {
+  const encodedSku = encodeURIComponent(sku);
   try {
-    const response = await axios.get(`${BASE_URL}/image/${sku}`);
+    const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
     return response.data;
   } catch (error) {
     console.error(
@@ -174,7 +178,6 @@ const UpdatePriceFromList = ({
   const [weeklyExists, setWeeklyExists] = useState(false);
   const [monthlyExists, setMonthlyExists] = useState(false);
   const [saleInformation, setSaleInformation] = useState(null);
-
   const [activeTab, setActiveTab] = useState("single");
   // const datesOptions = Array.from({ length: 31 }, (_, i) => ({
   //   label: `${i + 1}`,
@@ -186,7 +189,7 @@ const UpdatePriceFromList = ({
       setActiveTab("single");
       resetForm();
       fetchProductPriceBySku(sku1);
-      fetchProductDetailsByAsin(encodeURI(sku1));
+      fetchProductDetailsByAsin(sku1);
 
       fetchSchedules(sku1);
     } else if (show && !asin) {
@@ -415,6 +418,18 @@ const UpdatePriceFromList = ({
         }
       }
 
+      /*
+      if (parseInt(day) === today) {
+        // If the selected day is today, check the time
+        for (let slot of slots) {
+          if (slot.startTime < now) {
+            setErrorMessage(
+              "The selected start time is in the past for today's time slot. Please select a future time."
+            );
+            return false;
+          }
+        }
+      } */
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
@@ -450,6 +465,18 @@ const UpdatePriceFromList = ({
 
     for (const date in monthlyTimeSlots) {
       const slots = monthlyTimeSlots[date];
+      /*
+      if (parseInt(date) === currentDayOfMonth) {
+        // If the selected date is today, check the time
+        for (let slot of slots) {
+          if (slot.startTime < now) {
+            setErrorMessage(
+              "The selected start time is in the past for today's time slot. Please select a future time."
+            );
+            return false;
+          }
+        }
+      } */
 
       if (timeZone === "America/New_York") {
         console.log("timeZone " + timeZone);
@@ -570,29 +597,12 @@ const UpdatePriceFromList = ({
     setLoading(true);
     try {
       const data = await fetchProductDetails(sku);
-      setTitle(data?.summaries[0]?.itemName);
-      setImageUrl(data?.summaries[0]?.mainImage.link);
-
-      // const data = await fetchProductDetails(sku);
-      // if (data && data.payload && data.payload[0] && data.payload[0].Product) {
-      //   const productDetails = data.payload[0].Product.Offers[0];
-      //   // setSku(productDetails.SellerSKU);
-      //   // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
-
-      //   const additionalData = await fetchProductAdditionalDetails(asin);
-      //   if (
-      //     additionalData &&
-      //     additionalData.payload &&
-      //     additionalData.payload.AttributeSets[0]
-      //   ) {
-      //     setTitle(additionalData.payload.AttributeSets[0].Title);
-      //     setImageUrl(additionalData.payload.AttributeSets[0].SmallImage.URL);
-      //   } else {
-      //     setErrorMessage("Failed to fetch additional product details.");
-      //   }
-      // } else {
-      //   setErrorMessage("Failed to fetch product details.");
-      // }
+      if (data) {
+        setTitle(data?.summaries[0]?.itemName);
+        setImageUrl(data?.summaries[0]?.mainImage.link);
+      } else {
+        setErrorMessage("Failed to fetch product details.");
+      }
     } catch (error) {
       setErrorMessage(
         "Error fetching product details: " +
@@ -817,49 +827,22 @@ const UpdatePriceFromList = ({
     }
   }, [showSuccessModal, setShowSuccessModal]);
 
+  // const onOk = (value) => {
+  //   console.log("onOk: ", value);
+  // };
+
+  console.log("schedules", schedules);
+
   return (
     <>
       <Modal
         centered={true}
         show={show}
         onHide={onClose}
-        dialogClassName="update-price-list-modal "
+        dialogClassName="update-price-list-modal"
       >
         {loading ? (
           // Display only the spinner when loading
-          // <div
-          //   className="flex items-center justify-center"
-          //   style={{ height: "75vh" }}
-          // >
-          //   <div
-          //     className=""
-          //     style={{
-          //       paddingTop: "30px",
-          //       display: "flex",
-          //       justifyContent: "center",
-          //       alignItems: "center",
-          //       height: "100%",
-          //       padding: "20px",
-          //       width: "100%",
-          //       textAlign: "center",
-          //     }}
-          //   >
-          //     <img
-          //       style={{
-          //         width: "30px",
-          //         marginRight: "6px",
-          //       }}
-          //       className="animate-pulse flex justify-center items-center"
-          //       src={priceoboIcon}
-          //       alt="Priceobo Icon"
-          //     />
-          //     <br />
-
-          //     <div className="block">
-          //       <p className="text-base"> Loading...</p>
-          //     </div>
-          //   </div>
-          // </div>
           <UpdatePriceFromListSkeleton></UpdatePriceFromListSkeleton>
         ) : (
           <>
@@ -931,7 +914,7 @@ const UpdatePriceFromList = ({
                                   controlId={`formStartDate-${index}`}
                                 >
                                   {/* <Form.Label>Start Date and Time</Form.Label> */}
-                                  <DatePicker
+                                  {/* <DatePicker
                                     selected={schedule.startDate}
                                     onChange={(date) =>
                                       handleScheduleChange(
@@ -945,6 +928,30 @@ const UpdatePriceFromList = ({
                                     className="form-control"
                                     required
                                     disabled={loading}
+                                  /> */}
+
+                                  <DatePicker
+                                    className="py-1.5"
+                                    showTime={{
+                                      format: "hh:mm A", // Hour, minute, and AM/PM
+                                      use12Hours: true, // Enables 12-hour format with AM/PM
+                                    }}
+                                    format="YYYY-MM-DD hh:mm A" // Combined date and time format
+                                    // onChange={(value, dateString) => {
+                                    //   console.log("Selected Time: ", value);
+                                    //   console.log(
+                                    //     "Formatted Selected Time: ",
+                                    //     dateString
+                                    //   );
+                                    // }}
+
+                                    onChange={(value) =>
+                                      handleScheduleChange(
+                                        index,
+                                        "startDate",
+                                        value ? value.toDate() : null
+                                      )
+                                    }
                                   />
                                 </Form.Group>
 

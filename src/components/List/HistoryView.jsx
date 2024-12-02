@@ -18,8 +18,8 @@ import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
 import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
 
-// const BASE_URL = `https://api.priceobo.com`;
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000";
 const fetchUsers = async () => {
   const { data } = await axios.get(`${BASE_URL}/api/user`);
   return data.result;
@@ -171,17 +171,15 @@ const displayWeekdays = (timeSlots) => {
 
 export default function HistoryView() {
   const [data, setData] = useState([]);
-  // const [users, setUsers] = useState([]);
-  const [cachedData, setCachedData] = useState(null); // Cached data for persistence
+
+  const [cachedData, setCachedData] = useState(null);
 
   const [nestedData, setNestedData] = useState({});
-  // const [expandedRow, setExpandedRow] = useState(null);
-  // const [searchTerm, setSearchTerm] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [loadingNested, setLoadingNested] = useState(false);
   const [error, setError] = useState(null);
-  // const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
-  // const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
+
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   // const [lengthNested, setLengthNested] = useState(null);
@@ -389,7 +387,21 @@ export default function HistoryView() {
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-  const formatDateTime = (dateString) => {
+  // const formatDateTime = (dateString) => {
+  //   const options = {
+  //     day: "2-digit",
+  //     month: "short",
+  //     year: "numeric",
+  //     hour: "numeric",
+  //     minute: "numeric",
+  //     hour12: true,
+  //     timeZone: "America/New_York",
+  //   };
+  //   return new Date(dateString).toLocaleString("en-US", options);
+  // };
+
+  const formatDateTime = (dateString, timeZone) => {
+    console.log("timeZone" + timeZone);
     const options = {
       day: "2-digit",
       month: "short",
@@ -397,7 +409,7 @@ export default function HistoryView() {
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: "America/New_York",
+      timeZone: timeZone,
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };

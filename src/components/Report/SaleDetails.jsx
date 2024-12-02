@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 // import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
 import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
 import { MdCheck, MdOutlineArrowBackIos } from "react-icons/md";
@@ -26,7 +26,6 @@ const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetails = () => {
   const { sku } = useParams();
-  const navigate = useNavigate();
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
   const [asin, setAsin] = useState([]);
@@ -50,19 +49,20 @@ const SaleDetails = () => {
   const identifier = identifierType === "sku" ? sku : asin;
 
   const location = useLocation();
-  // const { productInfo, sku1, asin } = location.state || {};
+  const navigate = useNavigate();
+
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
 
     setSalesChartLoading(true);
     setError(null);
-
+    const encodedIndentifier = encodeURIComponent(identifier);
     try {
-      let url = `${BASE_URL}/sales-metrics/${view}/${identifier}`;
+      let url = `${BASE_URL}/sales-metrics/${view}/${encodedIndentifier}`;
       const params = { type: identifierType };
 
       if (startDate && endDate) {
-        url = `${BASE_URL}/sales-metrics/range/${identifier}`;
+        url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
         params.startDate = moment(startDate).format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
@@ -90,8 +90,9 @@ const SaleDetails = () => {
 
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
+    const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(`${BASE_URL}/api/report/${sku}`);
+      const response = await axios.get(`${BASE_URL}/api/report/${encodedSku}`);
       const filterStartDate = startDate ? new Date(startDate) : null;
       const filterEndDate = endDate ? new Date(endDate) : null;
 
@@ -121,8 +122,11 @@ const SaleDetails = () => {
   const fetchProductPrice = async () => {
     setLoading(true);
     setError(null);
+    const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(`https://api.priceobo.com/list/${sku}`);
+      const response = await axios.get(
+        `https://api.priceobo.com/list/${encodedSku}`
+      );
       const price = response?.data?.offerAmount;
 
       setProductPrice(price);
@@ -253,6 +257,8 @@ const SaleDetails = () => {
     },
   ];
 
+  console.log("schedule sales data", scheduleSalesData);
+
   return (
     <div className="">
       {productDetails ? (
@@ -261,7 +267,7 @@ const SaleDetails = () => {
             className="object-cover"
             src={productDetails?.summaries[0]?.mainImage?.link}
             width="70px"
-            height="30px"
+            height="40px"
             alt="product image"
           />
           <div>
@@ -336,7 +342,6 @@ const SaleDetails = () => {
       ) : (
         <SaleDetailsProductDetailSkeleton />
       )}
-
       <div>
         <Button
           variant="outline"
@@ -346,7 +351,6 @@ const SaleDetails = () => {
           <MdOutlineArrowBackIos className="mr-1" /> Back
         </Button>
       </div>
-
       <div className="mt-1">
         {salesChartloading ? (
           <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
