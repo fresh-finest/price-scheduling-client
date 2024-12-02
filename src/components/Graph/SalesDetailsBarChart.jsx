@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -49,8 +49,12 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
-const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
+const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
   const filteredSalesData = salesData.filter((data) => data.unitCount > 0);
+
+  let isMatchingDate;
+
+  console.log("isMatchingDate", isMatchingDate);
 
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {
@@ -87,6 +91,7 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
   const showLabels = filteredSalesData.length <= 40;
 
   const CustomTooltip = ({ active, payload, label, view, isMatchingDate }) => {
+    console.log("is matching date from custom tooltip", isMatchingDate);
     if (active && payload && payload.length) {
       const unitCount = payload[0].value;
       const price =
@@ -136,8 +141,6 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
     return null;
   };
 
-  console.log("sales Data", salesData);
-  console.log("schedule sales data", scheduleSalesData);
   return (
     <>
       <CardHeader className="items-center pb-0">
@@ -192,14 +195,14 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
             <ChartTooltip
               content={({ active, payload, label }) => {
                 // Pass `isMatchingDate` condition to the tooltip
-                const matchingDates = scheduleSalesData.map((schedule) => {
-                  const [startDate] = schedule.interval.split(" - ");
-                  const [year, month, day] = startDate.split(" ")[0].split("-");
-                  return `${day}/${month}/${year}`;
-                });
-                const isMatchingDate = matchingDates.includes(
-                  payload?.[0]?.payload.date
-                );
+                // const matchingDates = scheduleSalesData.map((schedule) => {
+                //   const [startDate] = schedule.interval.split(" - ");
+                //   const [year, month, day] = startDate.split(" ")[0].split("-");
+                //   return `${day}/${month}/${year}`;
+                // });
+                // const isMatchingDate = matchingDates.includes(
+                //   payload?.[0]?.payload.date
+                // );
 
                 return (
                   <CustomTooltip
@@ -218,15 +221,43 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
               shape={(props) => {
                 const { x, y, width, height, payload } = props;
 
-                // Extract start dates from scheduleSalesData
-                const matchingDates = scheduleSalesData.map((schedule) => {
-                  const [startDate] = schedule.interval.split(" - "); // Extract start date
-                  const [year, month, day] = startDate.split(" ")[0].split("-"); // Parse date (YYYY-MM-DD)
-                  return `${day}/${month}/${year}`; // Convert to DD/MM/YYYY for comparison
+                // Function to generate all dates between start and end date
+                const getDatesInRange = (startDate, endDate) => {
+                  const dates = [];
+                  let currentDate = new Date(startDate);
+
+                  const lastDate = new Date(endDate);
+
+                  while (currentDate <= lastDate) {
+                    const formattedDate = currentDate
+                      .toLocaleDateString("en-GB") // DD/MM/YYYY
+                      .replace(/\//g, "/");
+                    dates.push(formattedDate);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                  }
+
+                  return dates;
+                };
+
+                const matchingDates = scheduleSalesData.flatMap((schedule) => {
+                  const [startDate, endDate] = schedule.interval
+                    .split(" - ")
+                    .map((date) => {
+                      const [onlyDate] = date.split(" ");
+                      return new Date(onlyDate)
+                        .toISOString()
+                        .split("T")[0]
+                        .replace(/-/g, "/");
+                    });
+
+                  return getDatesInRange(startDate, endDate);
                 });
 
                 // Check if the payload date is in the list of matching dates
-                const isMatchingDate = matchingDates.includes(payload.date);
+
+                isMatchingDate = matchingDates.includes(payload.date);
+
+                console.log("is Matching Date", { isMatchingDate });
 
                 return (
                   <Rectangle
@@ -234,8 +265,8 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
                     y={y}
                     width={width}
                     height={height}
-                    fill={isMatchingDate ? "#ED927C" : "#2A9D90"} // Highlight matching date
-                    stroke={isMatchingDate ? "#FFA500" : "none"} // Optional stroke
+                    fill={isMatchingDate ? "#ED927C" : "#2A9D90"}
+                    stroke={isMatchingDate ? "#FFA500" : "none"}
                     strokeWidth={isMatchingDate ? 0 : 0}
                   />
                 );
@@ -266,6 +297,6 @@ const  SalesDetailsBarChart=({ view, salesData,scheduleSalesData, }) =>{
       </CardContent>
     </>
   );
-}
+};
 
 export default SalesDetailsBarChart;
