@@ -96,3 +96,10 @@ input[type="number"] {
 .ant-picker-dropdown {
   z-index: 1060 !important; /* Ensure it appears above Bootstrap modals */
 }
+.ant-picker-footer {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+.ant-picker-panel-layout {
+  height: 100% !important;
+}

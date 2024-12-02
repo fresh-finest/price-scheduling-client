@@ -143,8 +143,8 @@ const ListView = () => {
         setFilteredProducts(data.listings);
       }
     },
-    staleTime: Infinity,
-    // staleTime: 1000 * 60 * 5, // data is fresh for 5 minutes
+    // staleTime: Infinity,
+    staleTime: 1000 * 60 * 30, // data is fresh for 5 minutes
     cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
 
@@ -440,27 +440,6 @@ const ListView = () => {
       </Pagination.Item>
     ));
   };
-
-  // const debouncedFilterProducts = useCallback(
-  //   debounce((value) => {
-  //     filterProducts(
-  //       productData?.listings || [],
-  //       scheduledData,
-  //       filterScheduled,
-  //       value
-  //     );
-  //   }, 300),
-  //   [productData, scheduledData, filterScheduled]
-  // );
-
-  // const handleSearch = (e) => {
-  //   const value = e.target.value;
-  //   setSearchTerm(value); // Update search term immediately in the input
-  //   debouncedFilterProducts(value); // Apply debounced filtering
-  //   setCurrentPage(1);
-
-  //   sessionStorage.setItem("searchTerm", value);
-  // };
 
   const handleSearch = (e) => {
     const value = e.target.value;

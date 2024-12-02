@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 // import DatePicker from "react-datepicker";
-import { DatePicker } from "antd";
+import { DatePicker, TimePicker } from "antd";
 import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
 import axios from "axios";
@@ -26,8 +26,8 @@ import UpdateSalePrice from "./UpdateSalePrice";
 const { RangePicker } = DatePicker;
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const BASE_URL = "https://api.priceobo.com";
-// const BASE_URL ='http://localhost:3000'
+// const BASE_URL = "https://api.priceobo.com";
+const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (sku) => {
   const encodedSku = encodeURIComponent(sku);
   try {
@@ -169,6 +169,8 @@ const UpdatePriceFromList = ({
       indefiniteEndDate: false,
     },
   ]);
+
+  console.log("schedules", schedules);
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
@@ -827,12 +829,6 @@ const UpdatePriceFromList = ({
     }
   }, [showSuccessModal, setShowSuccessModal]);
 
-  // const onOk = (value) => {
-  //   console.log("onOk: ", value);
-  // };
-
-  console.log("schedules", schedules);
-
   return (
     <>
       <Modal
@@ -931,7 +927,7 @@ const UpdatePriceFromList = ({
                                   /> */}
 
                                   <DatePicker
-                                    className="py-1.5"
+                                    className="py-[0.45rem]"
                                     showTime={{
                                       format: "hh:mm A", // Hour, minute, and AM/PM
                                       use12Hours: true, // Enables 12-hour format with AM/PM
@@ -987,7 +983,7 @@ const UpdatePriceFromList = ({
                                     className="flex flex-col"
                                     controlId={`formEndDate-${index}`}
                                   >
-                                    <DatePicker
+                                    {/* <DatePicker
                                       selected={schedule.endDate}
                                       onChange={(date) =>
                                         handleScheduleChange(
@@ -1001,6 +997,30 @@ const UpdatePriceFromList = ({
                                       className="form-control"
                                       required={!schedule.indefiniteEndDate}
                                       disabled={loading}
+                                    /> */}
+
+                                    <DatePicker
+                                      className="py-[0.45rem] "
+                                      showTime={{
+                                        format: "hh:mm A", // Hour, minute, and AM/PM
+                                        use12Hours: true, // Enables 12-hour format with AM/PM
+                                      }}
+                                      format="YYYY-MM-DD hh:mm A" // Combined date and time format
+                                      // onChange={(value, dateString) => {
+                                      //   console.log("Selected Time: ", value);
+                                      //   console.log(
+                                      //     "Formatted Selected Time: ",
+                                      //     dateString
+                                      //   );
+                                      // }}
+
+                                      onChange={(value) =>
+                                        handleScheduleChange(
+                                          index,
+                                          "endDate",
+                                          value ? value.toDate() : null
+                                        )
+                                      }
                                     />
                                   </Form.Group>
                                 )}
@@ -1021,7 +1041,7 @@ const UpdatePriceFromList = ({
                                           e.target.value
                                         )
                                       }
-                                      className="form-control update-custom-input"
+                                      className=" update-custom-input"
                                       placeholder="End Price"
                                       required={!schedule.indefiniteEndDate}
                                     />
@@ -1113,11 +1133,11 @@ const UpdatePriceFromList = ({
                               >
                                 {/* start time and start price */}
                                 {/* <div className="grid grid-cols-4 gap-1  my-1"> */}
-                                <div className="flex justify-center items-center gap-1  mt-3">
-                                  <h3 className="flex justify-center items-center w-[90px] text-sm ">
+                                <div className="flex justify-center items-center gap-1  mt-4">
+                                  <h3 className="flex justify-center items-center  text-sm  w-[30px]">
                                     Start
                                   </h3>
-                                  <DatePicker
+                                  {/* <DatePicker
                                     selected={slot.startTime}
                                     onChange={(time) =>
                                       handleTimeChange(
@@ -1134,7 +1154,30 @@ const UpdatePriceFromList = ({
                                     timeCaption="Start"
                                     dateFormat="h:mm aa"
                                     className="form-control modal-custom-input "
+                                  /> */}
+
+                                  {/* <TimePicker
+                                    use12Hours
+                                    format="hh:mm A" // Hour, minute, and AM/PM
+                                    className=" modal-custom-input w-[160px] "
+                                    // onChange={onChange}
+                                  /> */}
+
+                                  <TimePicker
+                                    use12Hours
+                                    format="hh:mm A" // Hour, minute, and AM/PM
+                                    className="modal-custom-input w-[160px]"
+                                    onChange={(time) =>
+                                      handleTimeChange(
+                                        "weekly", // Adjust to "monthly" if applicable
+                                        day.value, // Assuming `day.value` identifies the schedule
+                                        index, // Index of the time slot
+                                        "startTime", // Key to update
+                                        time ? time.toDate() : null // Convert moment object to Date
+                                      )
+                                    }
                                   />
+
                                   <Form.Control
                                     type="number"
                                     placeholder="Enter New Price "
@@ -1150,15 +1193,15 @@ const UpdatePriceFromList = ({
                                         e.target.value
                                       )
                                     }
-                                    className="form-control modal-custom-input "
+                                    className="form-control modal-custom-input  "
                                   />
                                 </div>
 
-                                <div className=" flex justify-center items-center gap-1">
-                                  <h3 className="flex justify-center items-center w-[90px] text-sm">
+                                <div className=" flex justify-center items-center gap-1 mt-1">
+                                  <h3 className="flex justify-center items-center  text-sm  w-[48px]">
                                     End
                                   </h3>
-                                  <DatePicker
+                                  {/* <DatePicker
                                     selected={slot.endTime}
                                     onChange={(time) =>
                                       handleTimeChange(
@@ -1175,6 +1218,21 @@ const UpdatePriceFromList = ({
                                     timeCaption="End"
                                     dateFormat="h:mm aa"
                                     className="form-control modal-custom-input"
+                                  /> */}
+
+                                  <TimePicker
+                                    use12Hours
+                                    format="hh:mm A" // Hour, minute, and AM/PM
+                                    className="modal-custom-input w-[160px]"
+                                    onChange={(time) =>
+                                      handleTimeChange(
+                                        "weekly", // Adjust to "monthly" if applicable
+                                        day.value, // Assuming `day.value` identifies the schedule
+                                        index, // Index of the time slot
+                                        "endTime", // Key to update
+                                        time ? time.toDate() : null // Convert moment object to Date
+                                      )
+                                    }
                                   />
 
                                   <Form.Control
@@ -1192,7 +1250,7 @@ const UpdatePriceFromList = ({
                                         e.target.value
                                       )
                                     }
-                                    className="form-control modal-custom-input "
+                                    className="form-control modal-custom-input"
                                   />
                                   <button
                                     type="button"
@@ -1250,10 +1308,10 @@ const UpdatePriceFromList = ({
                                       {/* start time and start price */}
                                       {/* <div className="grid grid-cols-4 gap-1  my-1"> */}
                                       <div className="flex justify-center items-center gap-1  mt-4 mb-1">
-                                        <h3 className="flex justify-center items-center w-[90px] text-[12px] ">
+                                        <h3 className="flex justify-center items-center w-[60px]  text-sm ">
                                           Start
                                         </h3>
-                                        <DatePicker
+                                        {/* <DatePicker
                                           selected={slot.startTime}
                                           onChange={(time) =>
                                             handleTimeChange(
@@ -1270,6 +1328,21 @@ const UpdatePriceFromList = ({
                                           timeCaption="Start"
                                           dateFormat="h:mm aa"
                                           className="form-control modal-custom-input "
+                                        /> */}
+
+                                        <TimePicker
+                                          use12Hours
+                                          format="hh:mm A" // Hour, minute, and AM/PM
+                                          className="modal-custom-input w-[250px]"
+                                          onChange={(time) =>
+                                            handleTimeChange(
+                                              "monthly", // Adjust to "monthly" if applicable
+                                              date.value, // Assuming `day.value` identifies the schedule
+                                              index, // Index of the time slot
+                                              "startTime", // Key to update
+                                              time ? time.toDate() : null // Convert moment object to Date
+                                            )
+                                          }
                                         />
                                         <Form.Control
                                           type="number"
@@ -1294,10 +1367,10 @@ const UpdatePriceFromList = ({
                                       </div>
 
                                       <div className=" flex justify-center items-center gap-1">
-                                        <h3 className="flex justify-center items-center w-[90px] text-[12px]">
+                                        <h3 className="flex justify-center items-center text-sm w-[70px]">
                                           End
                                         </h3>
-                                        <DatePicker
+                                        {/* <DatePicker
                                           selected={slot.endTime}
                                           onChange={(time) =>
                                             handleTimeChange(
@@ -1314,6 +1387,21 @@ const UpdatePriceFromList = ({
                                           timeCaption="End"
                                           dateFormat="h:mm aa"
                                           className="form-control modal-custom-input"
+                                        /> */}
+
+                                        <TimePicker
+                                          use12Hours
+                                          format="hh:mm A" // Hour, minute, and AM/PM
+                                          className="modal-custom-input w-[250px]"
+                                          onChange={(time) =>
+                                            handleTimeChange(
+                                              "monthly", // Adjust to "monthly" if applicable
+                                              date.value, // Assuming `day.value` identifies the schedule
+                                              index, // Index of the time slot
+                                              "endTime", // Key to update
+                                              time ? time.toDate() : null // Convert moment object to Date
+                                            )
+                                          }
                                         />
 
                                         <Form.Control

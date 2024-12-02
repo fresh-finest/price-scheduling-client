@@ -138,9 +138,13 @@ const ProductDetailsWithNumbers = ({
                     }}
                     className=" bg-blue-500 text-white flex justify-center items-center "
                   >
-                    <h2 style={{ fontSize: "13px" }}>
-                      ${parseFloat(price).toFixed(2)}
-                    </h2>
+                    {price ? (
+                      <h2 style={{ fontSize: "13px" }}>
+                        ${parseFloat(price).toFixed(2)}
+                      </h2>
+                    ) : (
+                      <h2>Loading..</h2>
+                    )}
                   </div>
 
                   <div className="flex flex-col  items-start gap-2">
