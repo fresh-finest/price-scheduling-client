@@ -50,19 +50,19 @@ const SaleDetails = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  // const { productInfo, sku1, asin } = location.state || {};
+  
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
 
     setSalesChartLoading(true);
     setError(null);
-
+    const encodedIndentifier = encodeURIComponent(identifier);
     try {
-      let url = `${BASE_URL}/sales-metrics/${view}/${identifier}`;
+      let url = `${BASE_URL}/sales-metrics/${view}/${encodedIndentifier}`;
       const params = { type: identifierType };
 
       if (startDate && endDate) {
-        url = `${BASE_URL}/sales-metrics/range/${identifier}`;
+        url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
         params.startDate = moment(startDate).format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
@@ -90,8 +90,9 @@ const SaleDetails = () => {
 
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
+    const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(`${BASE_URL}/api/report/${sku}`);
+      const response = await axios.get(`${BASE_URL}/api/report/${encodedSku}`);
       const filterStartDate = startDate ? new Date(startDate) : null;
       const filterEndDate = endDate ? new Date(endDate) : null;
 
@@ -121,8 +122,9 @@ const SaleDetails = () => {
   const fetchProductPrice = async () => {
     setLoading(true);
     setError(null);
+    const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(`https://api.priceobo.com/list/${sku}`);
+      const response = await axios.get(`https://api.priceobo.com/list/${encodedSku}`);
       const price = response?.data?.offerAmount;
 
       setProductPrice(price);
