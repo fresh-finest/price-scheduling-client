@@ -758,8 +758,8 @@ export default function HistoryView() {
                           verticalAlign: "middle",
                         }}
                       >
-                        {lengthNested[item.scheduleId] >
-                        (item.weekly || item.monthly ? 0 : 1) ? (
+                        {
+                        (item.weekly || item.monthly) ? (
                           <IoIosArrowForward
                             className={`text-base transition-all cursor-pointer duration-300 ${
                               expandedRow === item.scheduleId ? "rotate-90" : ""
