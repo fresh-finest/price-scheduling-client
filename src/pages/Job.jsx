@@ -69,6 +69,8 @@ const JobTable = () => {
     refetchOnWindowFocus: true, // Enable refetching on window focus
   });
 
+  console.log(jobData);
+
   const getStatus = (job, isUpcoming) => {
     const now = new Date();
     const nextRunAt = job.nextRunAt ? new Date(job.nextRunAt) : null;
@@ -333,7 +335,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "455px",
+                    width: "400px",
                     position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -361,6 +363,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
+                    width: "180px",
                     position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -368,6 +371,17 @@ const JobTable = () => {
                   }}
                 >
                   Schedule
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Price
                 </th>
                 <th
                   className="tableHeader"
@@ -485,6 +499,7 @@ const JobTable = () => {
                           textAlign: "start",
                           verticalAlign: "middle",
                         }}
+                        title={job.listing?.itemName || "No Title"}
                       >
                         {job.listing?.itemName || "No Title"}
                       </td>
@@ -506,6 +521,32 @@ const JobTable = () => {
                       >
                         {formatDate(job.displayRunAt)}
                         {/* {formatDate(job.nextRunAt)} */}
+                      </td>
+                      <td
+                        style={{
+                          padding: "15px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {(() => {
+                          const jobType = getJobType(job.name);
+                          if (jobType === "Single") {
+                            return `$${job.data.newPrice}`;
+                          } else if (jobType === "Single Revert") {
+                            return `$${job.data.originalPrice}`;
+                          } else if (jobType === "Weekly") {
+                            return `$${job.data.newPrice}`;
+                          } else if (jobType === "Weekly Revert") {
+                            return `$${job.data.revertPrice}`;
+                          } else if (jobType === "Monthly") {
+                            return `$${job.data.newPrice}`;
+                          } else if (jobType === "Monthly Revert") {
+                            return `$${job.data.revertPrice}`;
+                          } else {
+                            return "N/A"; // Fallback if none of the conditions match
+                          }
+                        })()}
                       </td>
                       <td
                         style={{

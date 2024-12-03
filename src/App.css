@@ -99,7 +99,22 @@ input[type="number"] {
 .ant-picker-footer {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+  /* background-color: red; */
+}
+
+.ant-datePicker-input {
+  border: 1px solid lightgray;
+}
+.ant-datePicker-input:hover {
+  border: 1px solid lightgray;
+}
+.ant-picker-date-panel-container {
+  /* background-color: red !important; */
+  /* height: 350px; */
 }
 .ant-picker-panel-layout {
-  height: 100% !important;
+  /* height: 350px; */
+}
+.ant-picker-presets {
+  height: 350px !important;
 }
