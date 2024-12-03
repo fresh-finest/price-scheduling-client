@@ -12,12 +12,12 @@ import { useQuery } from "react-query";
 
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
-
+/*
 const fetchJobData = async () => {
-  const [jobResponse, scheduleResponse, listingResponse] = await Promise.all([
+  const [jobResponse, scheduleResponse] = await Promise.all([
     axios.get(`${BASE_URL}/api/jobs`),
     axios.get(`${BASE_URL}/api/schedule`),
-    axios.get(`${BASE_URL}/fetch-all-listings`),
+  
   ]);
 
   const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
@@ -30,23 +30,56 @@ const fetchJobData = async () => {
   });
 
   const schedules = scheduleResponse.data.result;
-  const listings = listingResponse.data.listings;
+  
 
   return sortedJobs.map((job) => {
     const schedule = schedules.find((s) => s._id === job.data.scheduleId);
-    const listing = listings.find(
-      (listing) => listing.sellerSku === job.data.sku
-    );
-
+    
     return {
       ...job,
+      schedule,
       userName: schedule?.userName || "N/A",
       createdAt: schedule?.createdAt || "N/A",
-      listing,
+      imageURL:schedule?.imageURL || "N/A",
+      title:schedule?.title || "N/A",
+   
     };
   });
 };
 
+*/
+const fetchJobData = async () => {
+  const [jobResponse, scheduleResponse] = await Promise.all([
+    axios.get(`${BASE_URL}/api/jobs`),
+    axios.get(`${BASE_URL}/api/schedule`),
+  ]);
+
+  const sortedJobs = jobResponse.data.jobs.sort((a, b) => {
+    const dateA = new Date(a.nextRunAt || a.lastRunAt || 0);
+    const dateB = new Date(b.nextRunAt || b.lastRunAt || 0);
+    return dateB - dateA;
+  });
+
+  const schedules = scheduleResponse.data.result;
+  const schedulesMap = new Map(
+    schedules.map((s) => [s._id, s])
+  );
+
+  return sortedJobs.map((job) => {
+    const schedule = schedulesMap.get(job.data.scheduleId) || {};
+    return {
+      ...job,
+      schedule,
+      userName: schedule.userName || "N/A",
+      createdAt: schedule.createdAt || "N/A",
+      imageURL: schedule.imageURL || "N/A",
+      title: schedule.title || "N/A",
+    };
+  });
+};
+
+
+//https://api.priceobo.com/fetch-all-listings
 const JobTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
@@ -428,7 +461,8 @@ const JobTable = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        {job.listing?.imageUrl ? (
+                       
+                        {job?.imageURL ? (
                           <img
                             style={{
                               width: "50px",
@@ -436,13 +470,15 @@ const JobTable = () => {
                               objectFit: "contain",
                               margin: "0 auto",
                             }}
-                            src={job.listing.imageUrl}
+                            src={job.imageURL}
                             alt="Product"
                           />
                         ) : (
                           "No Image"
                         )}
+                       
                       </td>
+                      
                       <td
                         style={{
                           padding: "15px 0",
@@ -486,7 +522,7 @@ const JobTable = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        {job.listing?.itemName || "No Title"}
+                        {job?.title || "No Title"}
                       </td>
                       <td
                         style={{
@@ -514,7 +550,7 @@ const JobTable = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        {job.userName}
+                        {job.schedule?.userName}
                       </td>
                       <td
                         style={{
@@ -523,7 +559,7 @@ const JobTable = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        {formatDate(job.createdAt)}
+                        {formatDate(job.schedule.createdAt)}
                       </td>
                       <td
                         style={{

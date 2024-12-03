@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 import moment from "moment-timezone";
 
+import { useQuery, useQueryClient } from "react-query";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
@@ -18,6 +19,8 @@ import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
 import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
+
+
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -158,15 +161,15 @@ const displayWeekdays = (timeSlots) => {
 };
 
 export default function HistoryView() {
-  const [data, setData] = useState([]);
-  const [users, setUsers] = useState([]);
+  // const [data, setData] = useState([]);
+  // const [users, setUsers] = useState([]);
   const [nestedData, setNestedData] = useState({});
   const [expandedRow, setExpandedRow] = useState(null);
   // const [selectedUser, setSelectedUser] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [loadingNested, setLoadingNested] = useState(false);
-  const [error, setError] = useState(null);
+  // const [error, setError] = useState(null);
   const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
@@ -178,14 +181,13 @@ export default function HistoryView() {
   const [showMonthlyType, setShowMonthlyType] = useState(false);
   const [selectedUser, setSelectedUser] = useState("");
 
-  // console.log(showSingleType);
-  // console.log(showWeeklyType);
-  // console.log(showMonthlyType);
+  const queryClient = useQueryClient();
+
 
   const itemsPerPage = 20;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
-
+/*
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -216,33 +218,7 @@ export default function HistoryView() {
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .filter((item) => item.action === "created");
         setData(sortedData);
-        /*
-        // Fetch nested data in parallel
-        const nestedDataPromises = sortedData.map(async (item) => {
-          try {
-            const nestedUrl = `${BASE_URL}/api/history/${item.scheduleId}`;
-            const nestedResponse = await axios.get(nestedUrl);
-            return {
-              scheduleId: item.scheduleId,
-              length: nestedResponse.data.length || 0,
-            };
-          } catch {
-            return { scheduleId: item.scheduleId, length: 0 }; // Default to 0 on error
-          }
-        });
-
-        // Resolve all nested data promises
-        const nestedDataResults = await Promise.all(nestedDataPromises);
-        const nestedDataLengths = nestedDataResults.reduce(
-          (acc, { scheduleId, length }) => {
-            acc[scheduleId] = length;
-            return acc;
-          },
-          {}
-        );
-
-        setLengthNested(nestedDataLengths);
-        */
+       
       } catch (error) {
         console.error("Data fetch error:", error);
         setError(
@@ -276,6 +252,7 @@ export default function HistoryView() {
       setLoadingNested(false);
     }
   };
+  */
   /*
   const handleRowClick = (scheduleId) => {
     if (expandedRow === scheduleId) {
@@ -288,7 +265,32 @@ export default function HistoryView() {
     }
   };
 */
+ // Fetch users
+ const { data: users = [] } = useQuery("users", async () => {
+  const response = await axios.get(`${BASE_URL}/api/user`);
+  return response.data.result;
+}, {
+  staleTime: 1000 * 60 * 60 * 3, // Cache data for 3 hours
+  cacheTime: 1000 * 60 * 60 * 6, // Keep unused data in cache for 6 hours
+});
 
+// Fetch and process main data
+const { data: data = [], isLoading: loading, error } = useQuery(
+  ["history"],
+  async () => {
+    const response = await axios.get(`${BASE_URL}/api/history`);
+    const mainData = response.data.result || [];
+    
+    // Sort and filter main data
+    return mainData
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .filter((item) => item.action === "created");
+  },
+  {
+    staleTime: 1000 * 60 * 60 * 3, // Cache data for 3 hours
+    cacheTime: 1000 * 60 * 60 * 6, // Keep unused data in cache for 6 hours
+  }
+);
   const handleRowClick = async (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
