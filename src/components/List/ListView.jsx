@@ -15,11 +15,13 @@ import ProductDetailView from "./ProductDetailView";
 import noImage from "../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://192.168.0.141:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST = `https://api.priceobo.com`;
+// const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
+const BASE_URL_LIST = "http://192.168.0.141:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
@@ -30,11 +32,13 @@ import ListLoadingSkeleton from "../LoadingSkeleton/ListLoadingSkeleton";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
+  console.log("all listings response", response);
   return response.data;
 };
 
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
+  console.log("schedule response", response);
   return response.data.result;
 };
 
@@ -147,6 +151,8 @@ const ListView = () => {
     staleTime: 1000 * 60 * 30, // data is fresh for 5 minutes
     cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
+
+  console.log("products data", productData);
 
   useEffect(() => {
     const getScheduledData = async () => {

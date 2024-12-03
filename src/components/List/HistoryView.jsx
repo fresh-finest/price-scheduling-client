@@ -17,6 +17,7 @@ import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
 import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
+import { PiCheckSquareLight } from "react-icons/pi";
 
 const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL = "http://localhost:3000";
@@ -33,24 +34,24 @@ const fetchHistoryData = async (selectedUser) => {
   return data.result || [];
 };
 
-const fetchNestedLengths = async (mainData) => {
-  const nestedDataPromises = mainData.map(async (item) => {
-    try {
-      const response = await axios.get(
-        `${BASE_URL}/api/history/${item.scheduleId}`
-      );
-      return { scheduleId: item.scheduleId, length: response.data.length || 0 };
-    } catch {
-      return { scheduleId: item.scheduleId, length: 0 };
-    }
-  });
+// const fetchNestedLengths = async (mainData) => {
+//   const nestedDataPromises = mainData.map(async (item) => {
+//     try {
+//       const response = await axios.get(
+//         `${BASE_URL}/api/history/${item.scheduleId}`
+//       );
+//       return { scheduleId: item.scheduleId, length: response.data.length || 0 };
+//     } catch {
+//       return { scheduleId: item.scheduleId, length: 0 };
+//     }
+//   });
 
-  const results = await Promise.all(nestedDataPromises);
-  return results.reduce((acc, { scheduleId, length }) => {
-    acc[scheduleId] = length;
-    return acc;
-  }, {});
-};
+//   const results = await Promise.all(nestedDataPromises);
+//   return results.reduce((acc, { scheduleId, length }) => {
+//     acc[scheduleId] = length;
+//     return acc;
+//   }, {});
+// };
 
 const dayNames = [
   "Sunday",
@@ -247,7 +248,7 @@ export default function HistoryView() {
 
   // useEffect(() => {
   //   const fetchUsers = async () => {
-  //     try {
+  //     try {https://api.priceobo.com/api/history
   //       const response = await axios.get(`${BASE_URL}/api/user`);
   //       setUsers(response.data.result);
   //     } catch (err) {
@@ -882,7 +883,23 @@ export default function HistoryView() {
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                Duration
+                <div className="">
+                  Duration
+                  <div className="flex gap-4 items-center justify-center">
+                    <p className="text-xs flex gap-1 items-center">
+                      <PiCheckSquareLight className="text-green-500 text-xl" />{" "}
+                      Success{" "}
+                    </p>
+                    <p className="text-xs flex gap-1 items-center">
+                      <PiCheckSquareLight className="text-green-500 text-xl" />{" "}
+                      Success{" "}
+                    </p>
+                    <p className="text-xs flex gap-1 items-center">
+                      <PiCheckSquareLight className="text-green-500 text-xl" />{" "}
+                      Success{" "}
+                    </p>
+                  </div>
+                </div>
               </th>
               <th
                 className="tableHeader"
@@ -962,8 +979,7 @@ export default function HistoryView() {
                           verticalAlign: "middle",
                         }}
                       >
-                        {lengthNested[item?.scheduleId] >
-                        (item.weekly || item.monthly ? 0 : 1) ? (
+                        {item.weekly || item.monthly ? (
                           <IoIosArrowForward
                             className={`text-base transition-all cursor-pointer duration-300 ${
                               expandedRow === item.scheduleId ? "rotate-90" : ""

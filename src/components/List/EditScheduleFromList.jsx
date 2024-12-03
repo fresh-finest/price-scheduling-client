@@ -1,24 +1,26 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert } from "react-bootstrap";
-import DatePicker from "react-datepicker";
-import { MultiSelect } from "react-multi-select-component";
+// import DatePicker from "react-datepicker";
+import { DatePicker, TimePicker } from "antd";
+
 import "react-datepicker/dist/react-datepicker.css";
-import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
+
 import axios from "axios";
 import { useSelector } from "react-redux";
+import dayjs from "dayjs";
+
 import moment from "moment-timezone";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
-import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
+
 import { FaPlus } from "react-icons/fa";
 import { Card } from "../ui/card";
 import { IoMdClose } from "react-icons/io";
 import "./EditScheduleFromList.css";
-import { BsClipboardCheck } from "react-icons/bs";
-import { MdCheck } from "react-icons/md";
+
 import Swal from "sweetalert2";
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -152,7 +154,7 @@ const deleteSchedule = async (scheduleId) => {
 };
 const fetchPriceBySku = async (sku) => {
   try {
-    const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
+    const encodedSku = encodeURIComponent(sku);
     const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
     return response.data;
   } catch (error) {
@@ -174,27 +176,24 @@ const EditScheduleFromList = ({
   productDetailLoading,
   setProductDetailLoading,
 }) => {
-  console.log("existing schedule", existingSchedule);
-
   const [sku, setSku] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
   const [price, setPrice] = useState("");
   const [productPrice, setProductPrice] = useState("");
 
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  // const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [indefiniteEndDate, setIndefiniteEndDate] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [weekly, setWeekly] = useState(existingSchedule.weekly || false);
-  // const [daysOfWeek, setDaysOfWeek] = useState(
-  //   existingSchedule.daysOfWeek || []
-  // );
+
   const [monthly, setMonthly] = useState(existingSchedule.monthly || false);
-  // const [datesOfMonth, setDatesOfMonth] = useState(
-  //   existingSchedule.datesOfMonth || []
-  // );
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [weeklyTimeSlots, setWeeklyTimeSlots] = useState(
     existingSchedule.weeklyTimeSlots || {}
   );
@@ -210,17 +209,15 @@ const EditScheduleFromList = ({
   const [imageURL, setImageUrl] = useState("");
   const [editingItem, setEditingItem] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [showPriceInput, setShowPriceInput] = useState(false); // New state variable for controlling price input visibility
+  const [showPriceInput, setShowPriceInput] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
 
   const userName = currentUser.userName;
 
-  console.log("data:" + existingSchedule.endDate);
-
   // const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
   //   if (newTime instanceof Date && !isNaN(newTime)) {
-  //     const formattedTime = formatDateToTimeString(newTime); // Format to 'HH:mm'
+  //     const formattedTime = formatTimeToHHMM(newTime);
   //     if (scheduleType === "weekly") {
   //       setWeeklyTimeSlots((prevSlots) => {
   //         const updatedSlots = { ...prevSlots };
@@ -240,8 +237,8 @@ const EditScheduleFromList = ({
   // };
 
   const handleTimeSlotChange = (scheduleType, day, index, key, newTime) => {
-    if (newTime instanceof Date && !isNaN(newTime)) {
-      const formattedTime = formatTimeToHHMM(newTime);
+    if (newTime && dayjs.isDayjs(newTime)) {
+      const formattedTime = newTime.format("HH:mm"); // Format to HH:mm
       if (scheduleType === "weekly") {
         setWeeklyTimeSlots((prevSlots) => {
           const updatedSlots = { ...prevSlots };
@@ -256,118 +253,81 @@ const EditScheduleFromList = ({
         });
       }
     } else {
-      console.error("Invalid date object for time:", newTime);
+      console.error("Invalid time object for time:", newTime);
     }
   };
-  // Format 'Date' object to 'HH:mm' without converting to UTC
-  /*
+
   const formatTimeToHHMM = (date) => {
-    const adjustedDate = new Date(date.getTime() + 4 * 60 * 60 * 1000);
-    const hours = adjustedDate.getHours().toString().padStart(2, "0");
-    const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
-*/
-
-  // const formatTimeToHHMM = (date) => {
-  //   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  //   let offsetHours = 0; // Default to no adjustment
-  //   let adjustedDate = new Date(date.getTime());
-
-  //   // Set offset hours and adjust the date based on the detected time zone
-  //   if (timeZone.includes("America")) {
-  //     offsetHours = 4; // Add 4 hours for EDT
-  //     adjustedDate = new Date(date.getTime() + offsetHours * 60 * 60 * 1000);
-  //   } else if (timeZone === "Asia/Dhaka") {
-  //     offsetHours = 6; // Subtract 6 hours for Bangladesh (BST)
-  //     adjustedDate = new Date(date.getTime() - offsetHours * 60 * 60 * 1000);
-  //   }
-
-  //   // Format the adjusted date to HH:mm format
-  //   const hours = adjustedDate.getHours().toString().padStart(2, "0");
-  //   const minutes = adjustedDate.getMinutes().toString().padStart(2, "0");
-  //   return `${hours}:${minutes}`;
-  // };
-  const formatTimeToHHMM = (date) => {
-    // Format the date object directly to HH:mm without time zone adjustments
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
   };
 
-  // const convertTimeToUtc = (timeString) => {
-  //   const date = convertTimeStringToDate(timeString); // Convert time string to Date object
-  //   return moment(date).utc().format("HH:mm"); // Convert the Date object to UTC format (HH:mm)
-  // };
-
   useEffect(() => {
-    const encodedSku = encodeURIComponent(existingSchedule.sku); // Replace with your actual SKU value
+    const encodedSku = encodeURIComponent(existingSchedule.sku);
     fetch(`${BASE_URL}/list/${encodedSku}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Error fetching: ${response.statusText}`);
         }
-        return response.json(); // Parse the response as JSON
+        return response.json();
       })
       .then((data) => {
-        console.log(data);
         setProductPrice(data?.offerAmount);
       })
       .catch((error) => {
-        console.error("Error:", error.message); // Handle the error
+        console.error("Error:", error.message);
       });
   }, []);
 
-  // const fetchPriceBySku = async (sku) => {
-  //   try {
-  //     const encodedSku = encodeURIComponent(sku); // Encode the SKU to handle special characters
-  //     const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(
-  //       "Error fetching:",
-  //       error.response ? error.response.data : error.message
-  //     );
-  //     throw error;
-  //   }
+  // const convertTimeToLocalFormat = (timeString) => {
+  //   console.log("convert ");
+  //   const date = convertTimeStringToDate(timeString);
+  //   return moment(date).format("HH:mm");
   // };
+  const convertTimeToLocalFormat = (timeString) => {
+    if (timeString && typeof timeString === "string") {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      if (!isNaN(hours) && !isNaN(minutes)) {
+        return dayjs().hour(hours).minute(minutes).format("HH:mm");
+      }
+    }
+    return "00:00"; // Default to midnight if invalid
+  };
 
   // const convertTimeStringToDate = (timeString) => {
   //   if (typeof timeString === "string" && timeString.includes(":")) {
   //     const [hours, minutes] = timeString.split(":").map(Number);
   //     if (!isNaN(hours) && !isNaN(minutes)) {
-  //       const now = new Date();
-  //       now.setUTCHours(hours, minutes, 0, 0); // Interpret as UTC hours
-  //       return now; // Local time will be automatically adjusted
+  //       const date = new Date();
+  //       date.setHours(hours, minutes, 0, 0);
+  //       return date;
   //     }
   //   }
   //   return new Date();
   // };
-  const convertTimeToLocalFormat = (timeString) => {
-    console.log("convert ");
-    const date = convertTimeStringToDate(timeString);
-    return moment(date).format("HH:mm");
-  };
 
   const convertTimeStringToDate = (timeString) => {
     if (typeof timeString === "string" && timeString.includes(":")) {
       const [hours, minutes] = timeString.split(":").map(Number);
       if (!isNaN(hours) && !isNaN(minutes)) {
-        const date = new Date(); // Create a new Date object with the current date
-        date.setHours(hours, minutes, 0, 0); // Set the time without adjusting for time zones
-        return date;
+        return dayjs().hour(hours).minute(minutes);
       }
     }
-    return new Date(); // Return the current date and time if the input is invalid
+    return dayjs(); // Default to current time
   };
 
   useEffect(() => {
     if (show && existingSchedule) {
-      setStartDate(new Date(existingSchedule.startDate));
+      // setStartDate(new Date(existingSchedule.startDate));
+      setStartDate(dayjs(existingSchedule.startDate));
+      // setEndDate(
+      //   existingSchedule.endDate
+      //     ? new Date(existingSchedule.endDate)
+      //     : new Date()
+      // );
       setEndDate(
-        existingSchedule.endDate
-          ? new Date(existingSchedule.endDate)
-          : new Date()
+        existingSchedule.endDate ? dayjs(existingSchedule.endDate) : dayjs()
       );
       setIndefiniteEndDate(!existingSchedule.endDate);
       setStartTime(new Date());
@@ -403,7 +363,6 @@ const EditScheduleFromList = ({
       throw error;
     }
   };
-  console.log("weekly slots: " + JSON.stringify(weeklyTimeSlots));
 
   useEffect(() => {
     if (show && sku1) {
@@ -416,11 +375,7 @@ const EditScheduleFromList = ({
   const fetchProductDetailsByAsin = async (sku) => {
     try {
       const data = await fetchProductDetails(sku);
-      // const productDetails = data.payload[0].Product.Offers[0];
-      // setSku(productDetails.SellerSKU);
-      // setCurrentPrice(productDetails.BuyingPrice.ListingPrice.Amount);
 
-      // const additionalData = await fetchProductAdditionalDetails(asin);
       if (data) {
         setTitle(data?.summaries[0]?.itemName);
         setImageUrl(data?.summaries[0]?.mainImage.link);
@@ -456,52 +411,13 @@ const EditScheduleFromList = ({
     }
   };
 
-  // const handleTimeSlotChange = (scheduleType, identifier, index, key, value) => {
-  //   console.log("Handle change:"+scheduleType+value)
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => {
-  //       const newSlots = { ...prevSlots };
-  //       newSlots[identifier][index][key] = value;
-  //       return newSlots;
-  //     });
-  //   }
-  // };
-
-  // const handleAddTimeSlot = (scheduleType, identifier) => {
-  //    const currentDate = new Date();
-  //    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // 1 hour after the current time
-  //   if (scheduleType === "weekly") {
-  //     setWeeklyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   } else if (scheduleType === "monthly") {
-  //     setMonthlyTimeSlots((prevSlots) => ({
-  //       ...prevSlots,
-  //       [identifier]: [
-  //         ...(prevSlots[identifier] || []),
-  //         { startTime: new Date(), endTime: new Date(), newPrice: "" },
-  //       ],
-  //     }));
-  //   }
-  // };
-
   const handleAddTimeSlot = (scheduleType, identifier) => {
     const currentDate = new Date();
-    const hours = currentDate.getHours().toString().padStart(2, "0"); // Get hours and pad with 0 if needed
-    const minutes = currentDate.getMinutes().toString().padStart(2, "0"); // Get minutes and pad with 0 if needed
+    const hours = currentDate.getHours().toString().padStart(2, "0");
+    const minutes = currentDate.getMinutes().toString().padStart(2, "0");
 
     const formattedTime = `${hours}:${minutes}`;
-    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000); // Set endTime 1 hour after startTime
+    const endDate = new Date(currentDate.getTime() + 60 * 60 * 1000);
 
     if (scheduleType === "weekly") {
       setWeeklyTimeSlots((prevSlots) => ({
@@ -529,7 +445,7 @@ const EditScheduleFromList = ({
         updatedSlots[identifier] = updatedSlots[identifier].filter(
           (_, i) => i !== index
         );
-        // If no more time slots remain for the day, remove the day entirely
+
         if (updatedSlots[identifier].length === 0) {
           delete updatedSlots[identifier];
         }
@@ -541,7 +457,7 @@ const EditScheduleFromList = ({
         updatedSlots[identifier] = updatedSlots[identifier].filter(
           (_, i) => i !== index
         );
-        // If no more time slots remain for the date, remove the date entirely
+
         if (updatedSlots[identifier].length === 0) {
           delete updatedSlots[identifier];
         }
@@ -563,13 +479,6 @@ const EditScheduleFromList = ({
       const slots = weeklyTimeSlots[day];
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
-
-        // if (slot1.startTime >= slot1.endTime) {
-        //   setErrorMessage(
-        //     `For day ${day}, start time must be earlier than end time.`
-        //   );
-        //   return false;
-        // }
 
         for (let j = i + 1; j < slots.length; j++) {
           const slot2 = slots[j];
@@ -600,13 +509,6 @@ const EditScheduleFromList = ({
       for (let i = 0; i < slots.length; i++) {
         const slot1 = slots[i];
 
-        // if (slot1.startTime >= slot1.endTime) {
-        //   setErrorMessage(
-        //     `For date ${date}, start time must be earlier than end time.`
-        //   );
-        //   return false;
-        // }
-
         for (let j = i + 1; j < slots.length; j++) {
           const slot2 = slots[j];
           if (
@@ -634,41 +536,17 @@ const EditScheduleFromList = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      // const utcStartTime = convertTimeToUtc(startTime);
-      // const utcEndTime = convertTimeToUtc(endTime);
-      // const convertTimeToUtc = (timeString) => {
-      //   // const date = convertTimeStringToDate(timeString);
-      //   return moment(date).utc().format("HH:mm");
-      // };
-
       if (!indefiniteEndDate && endDate < startDate) {
         setErrorMessage("End Date cannot be earlier than Start Date.");
-        // setLoading(false);
+
         return;
       }
       if (!validateTimeSlots()) {
         setErrorMessage("Set correct time.");
         return;
       }
-
-      // await updateSchedule(
-      //   asin,
-      //   sku,
-      //   existingSchedule._id,
-      //   startDate,
-      //   indefiniteEndDate ? null : endDate,
-      //   price,
-      //   currentPrice,
-      //   userName,
-      //   imageURL,
-      //   weekly,
-      //   daysOfWeek.map(day=>day.value),
-      //   monthly,
-      //   datesOfMonth.map(date=>date.value),
-      //   utcStartTime,
-      //   utcEndTime
-      // );
 
       const utcWeeklySlots = {};
       const utcMonthlySlots = {};
@@ -717,14 +595,11 @@ const EditScheduleFromList = ({
         }
       }
 
-      // const updatedDaysOfWeek = daysOfWeek.filter(day => day).map(day => day.value || day);
-      // const updatedDatesOfMonth = datesOfMonth.filter(date => date).map(date => date.value || date);
-      // console.log("time and sinn "+asin+utcStartTime+utcEndTime);
       const updateData = {
         startDate,
         endDate: indefiniteEndDate ? null : endDate,
-        price: parseFloat(price), // Ensure price is a number
-        currentPrice: parseFloat(currentPrice), // Ensure currentPrice is a number
+        price: parseFloat(price),
+        currentPrice: parseFloat(currentPrice),
         userName,
         title,
         asin,
@@ -736,15 +611,12 @@ const EditScheduleFromList = ({
         monthlyTimeSlots: utcMonthlySlots,
         timeZone,
       };
-      //startTime:startTime.toTimeString().slice(0, 5),
-      //endTime:endTime.toTimeString().slice(0, 5)
+
       await axios.put(
         `${BASE_URL}/api/schedule/change/${existingSchedule._id}`,
         updateData
       );
-
-      //setSuccessMessage(`Price update scheduled successfully for SKU: ${sku}`);
-      //setShowSuccessModal(true);
+      setLoading(false);
 
       Swal.fire({
         title: `Successfully updated schedule!`,
@@ -755,6 +627,7 @@ const EditScheduleFromList = ({
       setProductDetailLoading(true);
       onClose();
     } catch (error) {
+      setLoading(false);
       Swal.fire({
         title: "Error!",
         text: `Failed to update schedule`,
@@ -762,30 +635,11 @@ const EditScheduleFromList = ({
         showConfirmButton: false,
         timer: 2000,
       });
-      // setErrorMessage(
-      //   "Error scheduling price update: " +
-      //     (error.response ? error.response.data.error : error.message)
-      // );
+
       console.error("Error scheduling price update:", error);
     }
   };
-  /*
-  const handleDelete = async () => {
-    try {
-      await deleteSchedule(existingSchedule._id);
-     
-      setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
-      setShowSuccessModal(true);
-      onClose();
-    } catch (error) {
-      setErrorMessage(
-        "Error deleting schedule: " +
-          (error.response ? error.response.data.error : error.message)
-      );
-      console.error("Error deleting schedule:", error);
-    }
-  };
-*/
+
   const handleDelete = async () => {
     Swal.fire({
       title: "Are you sure?",
@@ -797,9 +651,10 @@ const EditScheduleFromList = ({
       confirmButtonText: "Yes, delete it!",
     }).then(async (result) => {
       if (result.isConfirmed) {
+        setDeleteLoading(true);
         try {
           await deleteSchedule(existingSchedule._id);
-          // removeEvent(existingSchedule._id);
+
           setSuccessMessage(`Schedule deleted successfully for SKU: ${sku}`);
           setShowSuccessModal(true);
           Swal.fire({
@@ -810,6 +665,7 @@ const EditScheduleFromList = ({
             timer: 2000,
           });
           setProductDetailLoading(true);
+          setDeleteLoading(false);
           onClose();
         } catch (error) {
           const errorMessage = error.response
@@ -817,6 +673,7 @@ const EditScheduleFromList = ({
             : error.message;
           setErrorMessage("Error deleting schedule: " + errorMessage);
           console.error("Error deleting schedule:", error);
+          setDeleteLoading(false);
           Swal.fire({
             title: "Error!",
             text: `Failed to delete schedule: ${errorMessage}`,
@@ -838,7 +695,7 @@ const EditScheduleFromList = ({
   };
 
   const handleSetPriceClick = () => {
-    setShowPriceInput(!showPriceInput); // Show the price input field when the button is clicked
+    setShowPriceInput(!showPriceInput);
   };
 
   const handleDayChange = (value) => {
@@ -859,7 +716,6 @@ const EditScheduleFromList = ({
 
   const parseTimeString = (timeString) => {
     if (!timeString || typeof timeString !== "string") {
-      // If timeString is not valid, return a default date (current date or a new Date object)
       return new Date();
     }
 
@@ -868,7 +724,7 @@ const EditScheduleFromList = ({
     date.setHours(hours, minutes, 0, 0);
     return date;
   };
-  // Utility function to convert "HH:mm" format to a Date object
+
   const timeStringToDate = (timeString) => {
     const [hours, minutes] = timeString.split(":").map(Number);
     const date = new Date();
@@ -881,8 +737,6 @@ const EditScheduleFromList = ({
     const minutes = date.getMinutes().toString().padStart(2, "0");
     return `${hours}:${minutes}`;
   };
-
-  console.log(existingSchedule);
 
   return (
     <>
@@ -917,20 +771,14 @@ const EditScheduleFromList = ({
                       }}
                       className=" bg-blue-500 text-white flex justify-center items-center mt-1  "
                     >
-                      <h2 style={{ fontSize: "13px" }}>
-                        {/* ${parseFloat(existingSchedule?.currentPrice).toFixed(2)} */}
-                        ${parseFloat(productPrice).toFixed(2)}
-                      </h2>
+                      {productPrice ? (
+                        <h2 style={{ fontSize: "13px" }}>
+                          ${parseFloat(productPrice).toFixed(2)}
+                        </h2>
+                      ) : (
+                        <h2 style={{ fontSize: "13px" }}>Loading...</h2>
+                      )}
                     </div>
-
-                    {/* stock */}
-                    {/* <div className="  text-xs text-[#505050]">
-                    <p className="flex justify-start items-center gap-2 text-xs">
-                      {" "}
-                      <PiWarehouse style={{ fontSize: "16px" }} />
-                      {new Intl.NumberFormat().format(channelStockValue)}
-                    </p>
-                  </div> */}
 
                     {/* fba/fbm  */}
                   </div>
@@ -938,16 +786,6 @@ const EditScheduleFromList = ({
               </div>
             </div>
           </div>
-          {/* <ProductDetailsWithNumbers
-                product={product}
-                channelStockValue={channelStockValue}
-                fulfillmentChannel={fulfillmentChannel}
-                price={currentPrice}
-                asin={asin}
-                sku1={sku1}
-                fnSku={fnSku}
-                updatePriceModal={true}
-              ></ProductDetailsWithNumbers> */}
         </Modal.Header>
         <Modal.Body>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
@@ -983,13 +821,23 @@ const EditScheduleFromList = ({
                       }}
                     >
                       {/* <Form.Label>Start Date and Time</Form.Label> */}
-                      <DatePicker
+                      {/* <DatePicker
                         selected={startDate}
                         onChange={(date) => setStartDate(date)}
                         showTimeSelect
                         dateFormat="Pp"
                         className="form-control"
                         required
+                      /> */}
+                      <DatePicker
+                        className="py-[0.45rem]"
+                        showTime={{
+                          format: "hh:mm A",
+                          use12Hours: true,
+                        }}
+                        format="YYYY-MM-DD hh:mm A"
+                        value={startDate}
+                        onChange={(date) => setStartDate(date)}
                       />
                     </Form.Group>
 
@@ -1000,7 +848,7 @@ const EditScheduleFromList = ({
                       {/* <Form.Label>Start Price</Form.Label> */}
                       <Form.Control
                         type="number"
-                        className="w-full"
+                        className="w-full update-schedule-custom-input"
                         placeholder="Start Price"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
@@ -1020,13 +868,23 @@ const EditScheduleFromList = ({
                         style={{ marginBottom: "10px" }}
                       >
                         {/* <Form.Label>End Date and Time</Form.Label> */}
-                        <DatePicker
+                        {/* <DatePicker
                           selected={endDate}
                           onChange={(date) => setEndDate(date)}
                           showTimeSelect
                           dateFormat="Pp"
                           className="form-control"
                           required={!indefiniteEndDate}
+                        /> */}
+                        <DatePicker
+                          className="py-[0.45rem]"
+                          showTime={{
+                            format: "hh:mm A",
+                            use12Hours: true,
+                          }}
+                          format="YYYY-MM-DD hh:mm A"
+                          value={endDate}
+                          onChange={(date) => setEndDate(date)}
                         />
                       </Form.Group>
                     )}
@@ -1038,6 +896,7 @@ const EditScheduleFromList = ({
                         <Form.Control
                           type="number"
                           placeholder="Enter End Price"
+                          className="w-full update-schedule-custom-input"
                           value={currentPrice}
                           onChange={(e) => setCurrentPrice(e.target.value)}
                         />
@@ -1085,7 +944,7 @@ const EditScheduleFromList = ({
                           {/* Start Time and Price */}
                           <div className="flex justify-between items-center gap-2 my-1 mt-4">
                             <h3 className=" text-center w-[35px]">Start</h3>
-                            <DatePicker
+                            {/* <DatePicker
                               selected={
                                 slot.startTime
                                   ? convertTimeStringToDate(slot.startTime)
@@ -1106,7 +965,28 @@ const EditScheduleFromList = ({
                               timeCaption="Start"
                               dateFormat="h:mm aa"
                               className="form-control edit-modal-custom-input"
+                            /> */}
+
+                            <TimePicker
+                              use12Hours
+                              format="hh:mm A" // Hour, minute, and AM/PM
+                              className="form-control edit-modal-custom-input"
+                              value={
+                                slot.startTime
+                                  ? convertTimeStringToDate(slot.startTime) // Convert string to dayjs object
+                                  : dayjs() // Default to current time
+                              }
+                              onChange={(time) =>
+                                handleTimeSlotChange(
+                                  "weekly",
+                                  day.value,
+                                  index,
+                                  "startTime",
+                                  time
+                                )
+                              }
                             />
+
                             <Form.Control
                               type="number"
                               value={slot.newPrice}
@@ -1127,8 +1007,8 @@ const EditScheduleFromList = ({
 
                           {/* End Time and Revert Price */}
                           <div className="flex justify-between items-center gap-2 my-1">
-                            <h3 className=" text-center w-[60px]">End</h3>
-                            <DatePicker
+                            <h3 className=" text-center w-[80px]">End</h3>
+                            {/* <DatePicker
                               selected={
                                 slot.endTime
                                   ? convertTimeStringToDate(slot.endTime)
@@ -1149,6 +1029,26 @@ const EditScheduleFromList = ({
                               timeCaption="End"
                               dateFormat="h:mm aa"
                               className="form-control edit-modal-custom-input"
+                            /> */}
+
+                            <TimePicker
+                              use12Hours
+                              format="hh:mm A" // Hour, minute, and AM/PM
+                              className="form-control edit-modal-custom-input"
+                              value={
+                                slot.endTime
+                                  ? convertTimeStringToDate(slot.endTime) // Convert string to dayjs object
+                                  : dayjs() // Default to current time
+                              }
+                              onChange={(time) =>
+                                handleTimeSlotChange(
+                                  "weekly",
+                                  day.value,
+                                  index,
+                                  "endTime",
+                                  time
+                                )
+                              }
                             />
                             <Form.Control
                               type="number"
@@ -1217,7 +1117,7 @@ const EditScheduleFromList = ({
                               <h3 className="w-[40px] flex justify-center items-center text-[13px]">
                                 Start
                               </h3>
-                              <DatePicker
+                              {/* <DatePicker
                                 selected={
                                   slot.startTime
                                     ? convertTimeStringToDate(slot.startTime)
@@ -1238,6 +1138,26 @@ const EditScheduleFromList = ({
                                 timeCaption="Start"
                                 dateFormat="h:mm aa"
                                 className="form-control edit-modal-custom-input"
+                              /> */}
+
+                              <TimePicker
+                                use12Hours
+                                format="hh:mm A" // Hour, minute, and AM/PM
+                                className="form-control edit-modal-custom-input w-[230px]"
+                                value={
+                                  slot.startTime
+                                    ? convertTimeStringToDate(slot.startTime) // Convert string to dayjs object
+                                    : dayjs() // Default to current time
+                                }
+                                onChange={(time) =>
+                                  handleTimeSlotChange(
+                                    "monthly",
+                                    date.value,
+                                    index,
+                                    "startTime",
+                                    time
+                                  )
+                                }
                               />
                               <Form.Control
                                 type="number"
@@ -1257,10 +1177,10 @@ const EditScheduleFromList = ({
                             </div>
 
                             <div className="flex justify-center items-center gap-1">
-                              <h3 className="flex justify-center items-center  text-[13px] w-[58px]">
+                              <h3 className="flex justify-center items-center  text-[13px] w-[75px]">
                                 End
                               </h3>
-                              <DatePicker
+                              {/* <DatePicker
                                 selected={
                                   slot.endTime
                                     ? convertTimeStringToDate(slot.endTime)
@@ -1281,7 +1201,27 @@ const EditScheduleFromList = ({
                                 timeCaption="End"
                                 dateFormat="h:mm aa"
                                 className="form-control edit-modal-custom-input"
+                              /> */}
+                              <TimePicker
+                                use12Hours
+                                format="hh:mm A" // Hour, minute, and AM/PM
+                                className="form-control edit-modal-custom-input w-[230px]"
+                                value={
+                                  slot.endTime
+                                    ? convertTimeStringToDate(slot.endTime) // Convert string to dayjs object
+                                    : dayjs() // Default to current time
+                                }
+                                onChange={(time) =>
+                                  handleTimeSlotChange(
+                                    "monthly",
+                                    date.value,
+                                    index,
+                                    "endTime",
+                                    time
+                                  )
+                                }
                               />
+
                               <Form.Control
                                 type="number"
                                 value={slot.revertPrice}
@@ -1323,25 +1263,42 @@ const EditScheduleFromList = ({
             )}
 
             <div className="absolute bottom-5 right-4">
-              <Button
-                variant="danger"
-                // style={{ width: "40%" }}
-                className="px-5"
-                onClick={handleDelete}
-              >
-                Delete Schedule
-              </Button>
-              <Button
-                className="px-5"
-                style={{
-                  // width: "40%",
-                  backgroundColor: "#0B5ED7",
-                  marginLeft: "10px",
-                }}
-                type="submit"
-              >
-                Update Schedule
-              </Button>
+              {deleteLoading ? (
+                <Button variant="danger" className="px-5" disabled>
+                  Loading...
+                </Button>
+              ) : (
+                <Button
+                  variant="danger"
+                  className="px-5"
+                  onClick={handleDelete}
+                >
+                  Delete Schedule
+                </Button>
+              )}
+              {loading ? (
+                <Button
+                  className="px-5"
+                  style={{
+                    backgroundColor: "#0B5ED7",
+                    marginLeft: "10px",
+                  }}
+                  disabled
+                >
+                  Loading...
+                </Button>
+              ) : (
+                <Button
+                  className="px-5"
+                  style={{
+                    backgroundColor: "#0B5ED7",
+                    marginLeft: "10px",
+                  }}
+                  type="submit"
+                >
+                  Update Schedule
+                </Button>
+              )}
             </div>
           </Form>
         </Modal.Body>

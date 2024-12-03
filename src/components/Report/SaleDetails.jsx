@@ -17,6 +17,7 @@ import { DatePicker, Space } from "antd";
 import dayjs from "dayjs";
 import "./SaleDetails.css";
 import SaleDetailsProductDetailSkeleton from "../LoadingSkeleton/SaleDetailsProductDetailSkeleton";
+import AutomatePrice from "../Automation/AutomatePrice";
 const { RangePicker } = DatePicker;
 
 // const BASE_URL = "http://localhost:3000";
@@ -257,8 +258,6 @@ const SaleDetails = () => {
     },
   ];
 
-  console.log("schedule sales data", scheduleSalesData);
-
   return (
     <div className="">
       {productDetails ? (
@@ -342,7 +341,7 @@ const SaleDetails = () => {
       ) : (
         <SaleDetailsProductDetailSkeleton />
       )}
-      <div>
+      <div className="flex  items-center">
         <Button
           variant="outline"
           className=" my-1"
@@ -350,6 +349,10 @@ const SaleDetails = () => {
         >
           <MdOutlineArrowBackIos className="mr-1" /> Back
         </Button>
+
+        <div className="flex-1 flex justify-center">
+          <AutomatePrice></AutomatePrice>
+        </div>
       </div>
       <div className="mt-1">
         {salesChartloading ? (
