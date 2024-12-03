@@ -171,7 +171,7 @@ export default function HistoryView() {
   const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
-  const [lengthNested, setLengthNested] = useState(null);
+  const [lengthNested, setLengthNested] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [showSingleType, setShowSingleType] = useState(false);
   const [showWeeklyType, setShowWeeklyType] = useState(false);
@@ -216,7 +216,7 @@ export default function HistoryView() {
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .filter((item) => item.action === "created");
         setData(sortedData);
-
+        /*
         // Fetch nested data in parallel
         const nestedDataPromises = sortedData.map(async (item) => {
           try {
@@ -242,6 +242,7 @@ export default function HistoryView() {
         );
 
         setLengthNested(nestedDataLengths);
+        */
       } catch (error) {
         console.error("Data fetch error:", error);
         setError(
