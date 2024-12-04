@@ -8,6 +8,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
 import { FixedSizeList as List } from "react-window";
+import * as XLSX from "xlsx";
 
 import "./ListView.css";
 import ProductDetailView from "./ProductDetailView";
@@ -38,6 +39,12 @@ const fetchScheduledData = async () => {
   return response.data.result;
 };
 
+const downloadExcel = (data)=>{
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet,"Listings");
+  XLSX.writeFile(workbook, "Products.xlsx");
+}
 const ListView = () => {
   // const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(() => {
@@ -883,6 +890,21 @@ const ListView = () => {
             )}
           </InputGroup>
         </div>
+       
+          <Button style={{
+            borderRadius: "2px",
+            // marginTop: "100px",
+            backgroundColor: "#0D6EFD",
+            border: "none",
+            position: "absolute ",
+            top: "10px",
+            right: "660px",
+          }}
+            variant="primary"
+            onClick={() => downloadExcel(filteredProducts)}
+          >
+            Export Data
+          </Button>
 
         <Button
           style={{
