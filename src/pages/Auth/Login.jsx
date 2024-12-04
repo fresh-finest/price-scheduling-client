@@ -10,7 +10,6 @@ import {
   signInSuccess,
 } from "../../redux/user/userSlice";
 
-
 const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL = `http://localhost:3000`;
 const Login = () => {
@@ -38,12 +37,13 @@ const Login = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-        // credentials: 'include',  
+        // credentials: 'include',
       });
 
       const data = await res.json();
 
-      if (!res.ok || data.success === false) { // Check response status and structure
+      if (!res.ok || data.success === false) {
+        // Check response status and structure
         dispatch(signInFailure(data.message || "Login failed"));
         return;
       }
@@ -100,7 +100,7 @@ const Login = () => {
                   disabled={loading}
                   variant="success"
                   type="submit"
-                  className="w-100 mt-3"
+                  className="w-100 mt-3 bg-[#0D6EFD]"
                 >
                   {loading ? "Loading..." : "Login"}
                 </Button>

@@ -11,13 +11,14 @@ import StatusLoadingSkeleton from "@/components/LoadingSkeleton/StatusLoadingSke
 import { useQuery } from "react-query";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://192.168.0.141:3000";
 
 const fetchJobData = async () => {
   const [jobResponse, scheduleResponse, listingResponse] = await Promise.all([
     axios.get(`${BASE_URL}/api/jobs`),
     axios.get(`${BASE_URL}/api/schedule`),
-    axios.get(`${BASE_URL}/fetch-all-listings`),
+    axios.get(`https://api.priceobo.com/fetch-all-listings`),
   ]);
 
   const sortedJobs = jobResponse.data.jobs.sort((a, b) => {

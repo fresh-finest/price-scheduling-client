@@ -27,10 +27,13 @@ const fetchUsers = async () => {
 };
 
 const fetchHistoryData = async (selectedUser) => {
+  console.log("hitted");
   const mainUrl = selectedUser
     ? `${BASE_URL}/api/schedule/${selectedUser}/list`
     : `${BASE_URL}/api/history`;
   const { data } = await axios.get(mainUrl);
+
+  console.log("data", data);
   return data.result || [];
 };
 
@@ -402,7 +405,6 @@ export default function HistoryView() {
   // };
 
   const formatDateTime = (dateString, timeZone) => {
-    console.log("timeZone" + timeZone);
     const options = {
       day: "2-digit",
       month: "short",
@@ -751,8 +753,13 @@ export default function HistoryView() {
     ));
   };
 
-  if (isMainDataLoading)
+  console.log("isMainDataLoading", isMainDataLoading);
+
+  if (isMainDataLoading) {
+    console.log("isMainData Loading", isMainDataLoading);
     return <HistoryLoadingSkeleton></HistoryLoadingSkeleton>;
+  }
+
   if (isMainDataError || isUsersError)
     return <div style={{ marginTop: "100px" }}>{error}</div>;
 

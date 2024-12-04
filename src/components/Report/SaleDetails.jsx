@@ -351,7 +351,12 @@ const SaleDetails = () => {
         </Button>
 
         <div className="flex-1 flex justify-center">
-          <AutomatePrice></AutomatePrice>
+          <AutomatePrice
+            sku={sku}
+            asin={asin}
+            productDetails={productDetails}
+            productPrice={productPrice}
+          ></AutomatePrice>
         </div>
       </div>
       <div className="mt-1">
