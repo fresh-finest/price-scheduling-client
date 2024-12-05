@@ -61,9 +61,7 @@ const fetchJobData = async () => {
   });
 
   const schedules = scheduleResponse.data.result;
-  const schedulesMap = new Map(
-    schedules.map((s) => [s._id, s])
-  );
+  const schedulesMap = new Map(schedules.map((s) => [s._id, s]));
 
   return sortedJobs.map((job) => {
     const schedule = schedulesMap.get(job.data.scheduleId) || {};
@@ -77,7 +75,6 @@ const fetchJobData = async () => {
     };
   });
 };
-
 
 //https://api.priceobo.com/fetch-all-listings
 const JobTable = () => {
@@ -97,7 +94,7 @@ const JobTable = () => {
   } = useQuery("jobData", fetchJobData, {
     staleTime: 1 * 60 * 1000, // Data is fresh for 5 minutes
     cacheTime: 5 * 60 * 1000, // Data remains in cache for 10 minutes
-    refetchInterval: 1 * 60 * 1000, // Automatically refetch every 1 minutes
+    refetchInterval: 60 * 1000, // Automatically refetch every 1 minutes
     refetchIntervalInBackground: true, // Continue polling in the background
     refetchOnWindowFocus: true, // Enable refetching on window focus
   });
@@ -366,7 +363,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
-                    width: "455px",
+                    width: "400px",
                     position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -394,6 +391,7 @@ const JobTable = () => {
                 <th
                   className="tableHeader"
                   style={{
+                    width: "180px",
                     position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -401,6 +399,18 @@ const JobTable = () => {
                   }}
                 >
                   Schedule
+                </th>
+
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Price
                 </th>
                 <th
                   className="tableHeader"
@@ -461,7 +471,6 @@ const JobTable = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                       
                         {job?.imageURL ? (
                           <img
                             style={{
@@ -476,9 +485,8 @@ const JobTable = () => {
                         ) : (
                           "No Image"
                         )}
-                       
                       </td>
-                      
+
                       <td
                         style={{
                           padding: "15px 0",
@@ -543,6 +551,21 @@ const JobTable = () => {
                         {formatDate(job.displayRunAt)}
                         {/* {formatDate(job.nextRunAt)} */}
                       </td>
+
+                      <td
+                        style={{
+                          padding: "10px 0",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        $
+                        {job?.data.price !== undefined &&
+                        job?.data?.price !== null
+                          ? parseFloat(job.data.price).toFixed(2)
+                          : "loading"}
+                        
+                      </td>
                       <td
                         style={{
                           padding: "15px 0",
@@ -579,7 +602,7 @@ const JobTable = () => {
                     colSpan="8"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
-                    No Data Found
+                    Please wait ....
                   </td>
                 </tr>
               )}
