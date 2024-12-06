@@ -41,6 +41,7 @@ const Login = () => {
       });
 
       const data = await res.json();
+      console.log(data);
 
       if (!res.ok || data.success === false) {
         // Check response status and structure
@@ -98,9 +99,8 @@ const Login = () => {
 
                 <Button
                   disabled={loading}
-                  variant="success"
                   type="submit"
-                  className="w-100 mt-3 bg-[#0D6EFD]"
+                  className="w-100 mt-3 bg-[#0D6EFD] hover:bg-[#0D6EFD]"
                 >
                   {loading ? "Loading..." : "Login"}
                 </Button>

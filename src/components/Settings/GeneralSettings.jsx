@@ -10,9 +10,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import Swal from "sweetalert2";
+import { useDispatch } from "react-redux";
+import { signInSuccess, updateUserSuccess } from "@/redux/user/userSlice";
+
+const BASE_URL = "http://192.168.0.141:3000";
+// const BASE_URL = "http://localhost:3000";
 
 const GeneralSettings = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const [userName, setUserName] = useState("");
+
+  console.log("currentUser", currentUser);
+
+  const dispatch = useDispatch();
+
   const userInfo = {
     userName: currentUser.userName,
     email: currentUser.email,
@@ -20,6 +32,61 @@ const GeneralSettings = () => {
   const [selectedTimezone, setSelectedTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
+
+  const handleUserNameChange = (e) => {
+    setUserName(e.target.value);
+  };
+
+  const handleUserNameSubmit = async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      userName,
+    };
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/user/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        if (updatedUser) {
+          const updatedUserInfo = await fetch(
+            `${BASE_URL}/api/user/${currentUser._id}`
+          );
+          const upadedUserData = await updatedUserInfo.json();
+
+          dispatch(signInSuccess(upadedUserData.result[0]));
+        }
+        Swal.fire({
+          title: "Successfully Changed User Name!",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          title: "Something Went Wrong!",
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      Swal.fire({
+        title: "Something Went Wrong!",
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    }
+  };
 
   return (
     <section className="mt-3 ml-2">
@@ -40,11 +107,11 @@ const GeneralSettings = () => {
             </Avatar>
           </div>
 
-          <div>
+          {/* <div>
             <Button variant="outline" size="icon" className="px-4">
               Edit
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
       <hr className="text-gray-400 mt-2" />
@@ -67,17 +134,23 @@ const GeneralSettings = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 mr-4">
-                <form>
+                <form onSubmit={handleUserNameSubmit}>
                   <div className="flex flex-col items-start gap-2">
                     <Label htmlFor="name">Name</Label>
                     <Input
                       id="name"
                       defaultValue={userInfo.userName}
+                      onChange={handleUserNameChange}
                       className="col-span-2 h-8"
                     />
                   </div>
                   <div className="flex items-center justify-end mt-2">
-                    <Button variant="outline" size="icon" className="px-4">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="icon"
+                      className="px-4"
+                    >
                       Save
                     </Button>
                   </div>
@@ -97,7 +170,7 @@ const GeneralSettings = () => {
             <h2 className="text-normal font-normal px-2">{userInfo.email}</h2>
           </div>
 
-          <div>
+          {/* <div>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="icon" className="px-4">
@@ -122,7 +195,7 @@ const GeneralSettings = () => {
                 </form>
               </PopoverContent>
             </Popover>
-          </div>
+          </div> */}
         </div>
       </div>
       <hr className="text-gray-400 mt-2" />

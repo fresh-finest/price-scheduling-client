@@ -530,24 +530,7 @@ const JobTable = () => {
                           verticalAlign: "middle",
                         }}
                       >
-                        {(() => {
-                          const jobType = getJobType(job.name);
-                          if (jobType === "Single") {
-                            return `$${job.data.newPrice}`;
-                          } else if (jobType === "Single Revert") {
-                            return `$${job.data.originalPrice}`;
-                          } else if (jobType === "Weekly") {
-                            return `$${job.data.newPrice}`;
-                          } else if (jobType === "Weekly Revert") {
-                            return `$${job.data.revertPrice}`;
-                          } else if (jobType === "Monthly") {
-                            return `$${job.data.newPrice}`;
-                          } else if (jobType === "Monthly Revert") {
-                            return `$${job.data.revertPrice}`;
-                          } else {
-                            return "N/A"; // Fallback if none of the conditions match
-                          }
-                        })()}
+                        ${job.data.price}
                       </td>
                       <td
                         style={{

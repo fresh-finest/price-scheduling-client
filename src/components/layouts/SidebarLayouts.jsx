@@ -13,7 +13,7 @@ import priceoboLogo from "../../assets/images/priceobo-logo.png";
 import { PiChartLineUpLight } from "react-icons/pi";
 import { AiOutlineProduct } from "react-icons/ai";
 import { FaListCheck } from "react-icons/fa6";
-import Notifications from "../shared/ui/Notifications";
+import Notifications from "../Notifications/Notifications";
 
 const SidebarLayout = () => {
   const [open, setOpen] = useState(true);

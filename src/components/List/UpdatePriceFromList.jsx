@@ -27,7 +27,8 @@ const { RangePicker } = DatePicker;
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 // const BASE_URL = "https://api.priceobo.com";
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://192.168.0.141:3000";
 const fetchProductDetails = async (sku) => {
   const encodedSku = encodeURIComponent(sku);
   try {

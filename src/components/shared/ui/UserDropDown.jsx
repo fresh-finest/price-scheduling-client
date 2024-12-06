@@ -30,6 +30,7 @@ const UserDropdown = ({ open }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
+  console.log(currentUser);
   const userInfo = {
     userName: currentUser.userName,
     email: currentUser.email,
@@ -73,7 +74,7 @@ const UserDropdown = ({ open }) => {
             {/* <FaUserCircle className="mr-2 text-xl text-blue-600" /> */}
             <p className="bg-blue-600 text-white rounded-full flex justify-center items-start w-7  h-7 mr-1   ">
               <span className="text-base ">
-                {currentUser?.userName.substring(0, 1)}
+                {currentUser?.userName?.substring(0, 1)}
               </span>
             </p>
             {/* <FaUserCircle className="mr-2 text-xl text-blue-600" /> */}

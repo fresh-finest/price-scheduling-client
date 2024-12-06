@@ -19,7 +19,8 @@ import "./EditScheduleFromList.css";
 
 import Swal from "sweetalert2";
 
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://192.168.0.141:3000";
 // const BASE_URL = `https://api.priceobo.com`;
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -611,6 +612,8 @@ const EditScheduleFromList = ({
         monthlyTimeSlots: utcMonthlySlots,
         timeZone,
       };
+
+      console.log("timeZone", timeZone);
 
       await axios.put(
         `${BASE_URL}/api/schedule/change/${existingSchedule._id}`,
