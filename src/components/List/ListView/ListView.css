@@ -1,0 +1,146 @@
+.resizer {
+    width: 5px;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: col-resize;
+    background-color: transparent;
+  }
+  
+  th {
+    position: relative;
+  }
+  
+  th .resizer:hover {
+    background-color: #ccc;
+  }
+  
+  .card {
+    transition: all 0.3s ease;
+  }
+  
+  .copy-container {
+    display: inline-block;
+    position: relative;
+    background-color: #f0f4ff;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #6f7a92;
+    user-select: none;
+  }
+  
+  .copy-container:hover .copy-icon {
+    opacity: 1;
+  }
+  
+  .copy-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  .copy-icon::before {
+    content: "📋";
+    font-size: 14px;
+  }
+  
+  .bubble-text {
+    color: #44484d;
+    display: inline-block; /* Ensure it doesn't expand to full width */
+    font-family: "Arial", sans-serif; /* Ensure the font matches */
+    font-size: 12px; /* Adjust font size as needed */
+    margin-right: 10px;
+    border: 1px solid #dee2e6;
+    padding: 5px;
+  }
+  
+  .details {
+    text-align: left;
+  }
+  
+  .listCustomTable {
+    border-radius: 20px;
+    overflow: auto;
+  }
+  .listCustomTable .tableHeader {
+    background-color: #f6f6f8;
+    font-weight: normal;
+    font-size: 12px;
+    z-index: 10;
+  }
+ 
+  
+  .table {
+    border-spacing: 0 3px;
+    border-collapse: separate;
+    transition: all 0.3s ease;
+  }
+  .table tbody tr {
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    /* margin-top: 200px; */
+    margin-top: 20px;
+  }
+  .table tbody tr.selected-row {
+    background-color: #f1f1f2;
+  }
+  
+  .table tbody tr:hover {
+    background-color: #e0e0e0 !important;
+  }
+  
+  .listCustomTable tbody tr td {
+    padding: 15px 10px;
+  }
+  
+  .pagination {
+    --bs-pagination-color: black; /* Change disabled text color to black */
+    --bs-pagination-border-radius: 0; /* Remove the border-radius */
+    display: flex;
+    padding-left: 0;
+    list-style: none;
+  }
+  .pagination .page-item.active .page-link {
+    background-color: #0662bb;
+    border-color: #0662bb;
+    color: white;
+  }
+  .custom-input {
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d8d8d8;
+  }
+  .custom-input:focus {
+    outline: none !important;
+    box-shadow: none;
+    border: 1px solid #d8d8d8;
+    /* box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25); Optional: Add a shadow */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .custom-input::placeholder {
+    font-size: 14px; /* Change the placeholder text size */
+    color: #c8c8c8; /* You can also change the placeholder color */
+  }
+  
+  .updatePriceBtn svg {
+    color: white !important;
+    /* background-color: red; */
+  }
+  
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #ebedf0;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c3c6d4 !important;
+    border-radius: 5px;
+  }

@@ -27,7 +27,7 @@ import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
 import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
-import ListLoadingSkeleton from "../LoadingSkeleton/ListingLoadingSkeleton";
+import ListLoadingSkeleton from "../LoadingSkeleton/ListLoadingSkeleton";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -287,12 +287,12 @@ const ListView = () => {
       sessionStorage.setItem("channelStockValue", channelStockValue);
     }
 
-    console.log("Synced state to session storage", {
-      selectedProduct,
-      selectedListing,
-      selectedAsin,
-      selectedSku,
-    });
+    // console.log("Synced state to session storage", {
+    //   selectedProduct,
+    //   selectedListing,
+    //   selectedAsin,
+    //   selectedSku,
+    // });
   }, [
     selectedProduct,
     selectedListing,

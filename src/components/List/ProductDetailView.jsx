@@ -10,24 +10,21 @@ import EditScheduleFromList from "./EditScheduleFromList";
 import DetailedCalendarView from "../Calendar/DetailedCalendarView";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
-import {  BsFillInfoSquareFill } from "react-icons/bs";
+import { BsFillInfoSquareFill } from "react-icons/bs";
 import { FaArrowRightLong, FaRankingStar } from "react-icons/fa6";
 
 import { useNavigate } from "react-router-dom";
-import {
-  Card as ShadCdnCard,
-
-} from "@/components/ui/card";
+import { Card as ShadCdnCard } from "@/components/ui/card";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeletong";
-
+import SaleDetailsModal from "../Report/SaleDetailsModal";
 
 const BASE_URL = `https://api.priceobo.com`;
-
-// const BASE_URL ='http://localhost:3000'
+// const BASE_URL = "http://192.168.0.141:3000";
+// const BASE_URL = "http://localhost:3000";
 const dayNames = [
   "Sunday",
   "Monday",
@@ -74,38 +71,35 @@ const dateNames = [
 function addHoursToTime(timeString, hoursToAdd) {
   if (!timeString || typeof timeString !== "string") {
     console.error("Invalid timeString:", timeString);
-    return "Invalid Time"; 
+    return "Invalid Time";
   }
 
   const [hours, minutes] = timeString.split(":").map(Number);
-  const newHours = (hours + hoursToAdd) % 24; 
-  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; 
+  const newHours = (hours + hoursToAdd) % 24;
+  const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
 
-  
   const period = newHours >= 12 ? "PM" : "AM";
-  const hours12 = newHours % 12 || 12; 
+  const hours12 = newHours % 12 || 12;
   const formattedHours = hours12 < 10 ? `0${hours12}` : hours12;
 
-  return `${formattedHours}:${formattedMinutes} ${period}`; 
+  return `${formattedHours}:${formattedMinutes} ${period}`;
 }
 
 function convertToUserLocalTime(utcTimeString) {
   if (!utcTimeString || typeof utcTimeString !== "string") {
     console.error("Invalid timeString:", utcTimeString);
-    return "Invalid Time"; 
+    return "Invalid Time";
   }
 
-  
   const [hours, minutes] = utcTimeString.split(":").map(Number);
 
-  
   const now = new Date();
   const utcDate = new Date(
     Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes)
   );
 
   const options = { hour: "2-digit", minute: "2-digit", hour12: true };
-  const localTime = utcDate.toLocaleTimeString([], options); 
+  const localTime = utcDate.toLocaleTimeString([], options);
 
   return localTime;
 }
@@ -114,7 +108,7 @@ const getDayLabelFromNumber = (dayNumber) => {
   return dayNames[dayNumber] || "";
 };
 const getDateLabelFromNumber = (dateNumber) => {
-  return dateNames[dateNumber - 1] || `Day ${dateNumber}`; 
+  return dateNames[dateNumber - 1] || `Day ${dateNumber}`;
 };
 
 const displayTimeSlotsWithDayLabels = (timeSlots, isWeekly = false) => {
@@ -147,48 +141,13 @@ const ProductDetailView = ({
   productDetailLoading,
   setProductDetailLoading,
 }) => {
-  if (!product.AttributeSets) {
-    return (
-      <div
-        style={{
-       
-          paddingTop: "11px",
-          height: "93vh",
-          display: "flex",
-
-         
-        }}
-      >
-        <div
-          style={{
-            // padding: "20px",
-            width: "100%",
-            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <p className="text-2xl flex  justify-center">
-            <BsFillInfoSquareFill className="text-[#0D6EFD]" />
-          </p>
-          <h5 className="text-base">
-            Product data is not available for this ASIN.
-          </h5>
-        </div>
-      </div>
-    );
-  }
-
+ 
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editSchedule, setEditSchedule] = useState(null);
   const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
   const [currentPrice, setCurrentPrice] = useState("");
-  
 
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
@@ -202,18 +161,18 @@ const ProductDetailView = ({
   const [monthlyLength, setMonthlyLength] = useState("");
 
   const { currentUser } = useSelector((state) => state.user);
+  const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
 
-  
   const [selectedDays, setSelectedDays] = useState([]);
 
   const navigate = useNavigate();
   const handleDateSelect = (dates) => {
-    setSelectedDays(dates); 
+    setSelectedDays(dates);
   };
   const [dates, setDates] = React.useState([]);
   const userName = currentUser?.userName || "";
 
-  const formatDateTime = (dateString,timeZone) => {
+  const formatDateTime = (dateString, timeZone) => {
     const options = {
       day: "2-digit",
       month: "short",
@@ -221,7 +180,7 @@ const ProductDetailView = ({
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-      timeZone: timeZone, 
+      timeZone: timeZone,
     };
     return new Date(dateString).toLocaleString("en-US", options);
   };
@@ -243,7 +202,7 @@ const ProductDetailView = ({
       (sc) =>
         sc.status !== "deleted" &&
         sc.weekly &&
-        (sc.endDate === null || (sc.endDate && new Date(sc.endDate+1) >= now))
+        (sc.endDate === null || (sc.endDate && new Date(sc.endDate + 1) >= now))
     );
 
     if (validSchedule) {
@@ -305,6 +264,9 @@ const ProductDetailView = ({
     setEditSchedule(schedule);
     setEditScheduleModalTitle(scheduleType);
   };
+  const handleSaleDetailsModalShow = () => setSaleDetailsModalShow(true);
+  const handleSaleDetailsModalClose = () => setSaleDetailsModalShow(false);
+
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);
   };
@@ -394,11 +356,11 @@ const ProductDetailView = ({
   };
 
   const now = new Date();
-const filterNow = new Date();
-filterNow.setDate(filterNow.getDate() - 2);
-const NYnow = new Date();
-// NYnow.setDate(filterNow.getDate() - 1);
-NYnow.setHours(NYnow.getHours() - 12);
+  const filterNow = new Date();
+  filterNow.setDate(filterNow.getDate() - 2);
+  const NYnow = new Date();
+  // NYnow.setDate(filterNow.getDate() - 1);
+  NYnow.setHours(NYnow.getHours() - 12);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -489,8 +451,6 @@ NYnow.setHours(NYnow.getHours() - 12);
                 </h2>
               </div>
 
-          
-
               <ProductDetailsWithNumbers
                 product={product}
                 channelStockValue={channelStockValue}
@@ -507,11 +467,12 @@ NYnow.setHours(NYnow.getHours() - 12);
               />
               <div className=" flex justify-center items-center mt-2">
                 <button
-                  onClick={() =>
-                    navigate(`/details/${encodeURIComponent(sku1)}`, {
-                      state: { productInfo: product, price, asin, sku1 },
-                    })
-                  }
+                  // onClick={() =>
+                  //   navigate(`/details/${encodeURIComponent(sku1)}`, {
+                  //     state: { productInfo: product, price, asin, sku1 },
+                  //   })
+                  // }
+                  onClick={handleSaleDetailsModalShow}
                   className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
                 >
                   <span className="inline-block mb-1">
@@ -527,10 +488,7 @@ NYnow.setHours(NYnow.getHours() - 12);
                 <DetailedCalendarView sku1={sku1} />
               </div>
 
-    
-
               <div className="px-2 py-1 m-2 h-[40vh] overflow-y-auto absolute bottom-0  w-[98%] mx-auto">
-      
                 <Tabs defaultValue="single" className="">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="single">
@@ -545,7 +503,6 @@ NYnow.setHours(NYnow.getHours() - 12);
                   </TabsList>
                   <TabsContent value="single">
                     <>
-                    
                       {priceSchedule.filter(
                         (sc) =>
                           sc.status !== "deleted" &&
@@ -562,7 +519,8 @@ NYnow.setHours(NYnow.getHours() - 12);
                               !sc.weekly &&
                               !sc.monthly &&
                               (sc.endDate === null ||
-                                (sc.endDate && new Date(sc.endDate) >= filterNow))
+                                (sc.endDate &&
+                                  new Date(sc.endDate) >= filterNow))
                           )
                           .map((sc, index) => (
                             <ShadCdnCard
@@ -571,8 +529,8 @@ NYnow.setHours(NYnow.getHours() - 12);
                             >
                               <div key={index} className="w-full">
                                 <h3 className="flex text-[12px] justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                  {formatDateTime(sc.startDate, sc?.timeZone)} 
-                                   {/* {sc.startDate} */}
+                                  {formatDateTime(sc.startDate, sc?.timeZone)}
+                                  {/* {sc.startDate} */}
                                   {sc.price && (
                                     <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
                                       ${sc?.price?.toFixed(2)}
@@ -586,7 +544,7 @@ NYnow.setHours(NYnow.getHours() - 12);
                               {sc.endDate ? (
                                 <div className="w-full">
                                   <h3 className="flex justify-between text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                    {formatDateTime(sc.endDate,sc?.timeZone)}
+                                    {formatDateTime(sc.endDate, sc?.timeZone)}
                                     {sc.currentPrice && (
                                       <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">
                                         ${sc?.currentPrice?.toFixed(2)}
@@ -889,6 +847,14 @@ NYnow.setHours(NYnow.getHours() - 12);
           setProductDetailLoading={setProductDetailLoading}
         />
       )}
+
+      <SaleDetailsModal
+        saleDetailsModalShow={saleDetailsModalShow}
+        setSaleDetailsModalShow={setSaleDetailsModalShow}
+        handleSaleDetailsModalShow={handleSaleDetailsModalShow}
+        handleSaleDetailsModalClose={handleSaleDetailsModalClose}
+        sku={sku1}
+      ></SaleDetailsModal>
 
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>

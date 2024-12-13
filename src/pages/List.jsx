@@ -1,13 +1,13 @@
+import ListView from "@/components/List/ListView/ListView";
 import React from "react";
 
-import ListView from "../components/List/ListView";
 
 
 function List() {
   return (
     <div>
       {/* <Header/> */}
-      <ListView />
+   <ListView/>
       {/* <ListViewNewTable></ListViewNewTable> */}
     </div>
   );

@@ -21,6 +21,7 @@ import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdow
 import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
 
 
+
 // const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -182,7 +183,6 @@ export default function HistoryView() {
   const [selectedUser, setSelectedUser] = useState("");
 
   const queryClient = useQueryClient();
-
 
   const itemsPerPage = 20;
 
@@ -354,7 +354,7 @@ const { data: data = [], isLoading: loading, error } = useQuery(
   //   return new Date(dateString).toLocaleString("en-US", options);
   // };
   const formatDateTime = (dateString,timeZone) => {
-    console.log("timeZone"+timeZone)
+   
     const options = {
       day: "2-digit",
       month: "short",
@@ -493,7 +493,7 @@ const { data: data = [], isLoading: loading, error } = useQuery(
       return item.userName === selectedUser;
     });
 
-  console.log(filteredData);
+
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

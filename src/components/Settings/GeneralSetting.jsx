@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,16 +10,55 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`;
+
+import { TimeZoneContext } from "../../contexts/TimeZoneContext";
+import axios from "axios";
+import moment from "moment-timezone";
 
 const GeneralSettings = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const { timeZone, loading, fetchTimZone } = useContext(TimeZoneContext);
+ 
+  console.log(currentUser);
   const userInfo = {
     userName: currentUser.userName,
     email: currentUser.email,
   };
-  const [selectedTimezone, setSelectedTimezone] = useState(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
+
+  const [selectedTimezone, setSelectedTimezone] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [timeZoneList, setTimeZoneList] = useState([]);
+  useEffect(() => {
+    const zones = moment.tz.names();
+    setTimeZoneList(zones);
+  },[]);
+  useEffect(() => {
+    if (!loading && timeZone) {
+      setSelectedTimezone(timeZone);
+    }
+  }, [loading, timeZone]);
+  const handleTimezoneUpdate = async () => {
+    try {
+      setUpdating(true);
+      const response = await axios.put(`${BASE_URL}/api/time-zone`, {
+        timeZone: selectedTimezone,
+      });
+      if (response.status === 200 && response.data.status === "Success") {
+        fetchTimZone();
+      } else {
+        console.error("Failed to update time zone: ", response.data);
+      }
+    } catch (error) {
+      console.error(
+        "Error updating time zone",
+        error.response ? error.response.data : error.message
+      );
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   return (
     <section className="mt-3 ml-2">
@@ -131,44 +170,43 @@ const GeneralSettings = () => {
       <hr className="text-gray-400 mt-2" />
 
       <div className="flex  items-center mt-2 py-2">
-        <h2 className="text-normal font-semibold w-[30%]">Choose timezone</h2>
-
+      {currentUser.role === "primeAdmin" && (
+        <h2 className="text-normal font-semibold w-[30%]">Choose timezone</h2>  )}
+        
         <div className="flex justify-between items-center  w-full">
+        {currentUser.role === "primeAdmin" && (
           <div className="w-[30%]">
-            <TimezoneSelect
+            <select
+              className="border rounded p-2 w-full"
               value={selectedTimezone}
-              onChange={setSelectedTimezone}
-            />
+              onChange={(e) => setSelectedTimezone(e.target.value)}
+            >
+              {timeZoneList.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </select>
           </div>
+        )}
+          <div>
+            {currentUser.role === "primeAdmin" && (
+              <Button
+                className="px-16 w-[30%]"
+                variant="outline"
+                size="icon"
+                onClick={handleTimezoneUpdate}
+                disabled={updating || loading}
+              >
+                {updating ? "Updating..." : "Update Timezone"}
+              </Button>
+            )}
+          </div>
+          <h2 className="text-normal font-semibold w-[30%]">
+            {" "}
+            Current Time Zone: {loading ? "Loading..." : timeZone}
+          </h2>
         </div>
-      </div>
-      <div>
-        {/* <div className="">
-          <TimezoneSelect
-            value={selectedTimezone}
-            onChange={setSelectedTimezone}
-          />
-        </div> */}
-        {/* <h3>Output:</h3>
-        <div
-          style={{
-            backgroundColor: "#ccc",
-            padding: "20px",
-            margin: "20px auto",
-            borderRadius: "5px",
-            maxWidth: "600px",
-          }}
-        >
-          <pre
-            style={{
-              margin: "0 20px",
-              fontWeight: 500,
-              fontFamily: "monospace",
-            }}
-          >
-            {JSON.stringify(selectedTimezone, null, 2)}
-          </pre>
-        </div> */}
       </div>
     </section>
   );

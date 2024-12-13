@@ -17,9 +17,11 @@ import Report from "./components/Report/Report";
 import SaleDetails from "./components/Report/SaleDetails";
 import ReportDetails from "./components/Report/ReportDetails";
 import Settings from "./pages/Settings";
+import { TimeZoneProvider } from "./contexts/TimeZoneContext";
 
 function App() {
   return (
+    <TimeZoneProvider>
     <PriceScheduleProvider>
  
       <Router>
@@ -56,6 +58,7 @@ function App() {
       </Router>
       
     </PriceScheduleProvider>
+    </TimeZoneProvider>
   );
 }
 

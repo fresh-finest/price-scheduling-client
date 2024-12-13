@@ -92,11 +92,11 @@ const JobTable = () => {
     error,
     refetch,
   } = useQuery("jobData", fetchJobData, {
-    staleTime: 1 * 60 * 1000, // Data is fresh for 5 minutes
-    cacheTime: 5 * 60 * 1000, // Data remains in cache for 10 minutes
-    refetchInterval: 60 * 1000, // Automatically refetch every 1 minutes
-    refetchIntervalInBackground: true, // Continue polling in the background
-    refetchOnWindowFocus: true, // Enable refetching on window focus
+    staleTime: 1 * 60 * 1000, 
+    cacheTime: 5 * 60 * 1000, 
+    refetchInterval: 53 * 1000, 
+    refetchIntervalInBackground: true, 
+    refetchOnWindowFocus: true,
   });
 
   const getStatus = (job, isUpcoming) => {

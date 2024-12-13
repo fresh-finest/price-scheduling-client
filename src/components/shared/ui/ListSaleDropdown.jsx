@@ -29,7 +29,7 @@ export function ListSaleDropdown({ handleTimePeriodChange }) {
         {/* <DropdownMenuLabel className="text-start">
           Choose Sale
         </DropdownMenuLabel> */}
-        <DropdownMenuSeparator />
+        {/* <DropdownMenuSeparator /> */}
         <DropdownMenuCheckboxItem
           checked={selectedOption === "1 D"}
           onCheckedChange={() => handleSelection("1 D")}

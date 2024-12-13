@@ -9,6 +9,21 @@ import { PiWarehouse } from "react-icons/pi";
 
 const BASE_URL = `https://api.priceobo.com`;
 
+const fetchProductDetails = async (sku) => {
+  const encodedSku = encodeURIComponent(sku);
+  try {
+    const response = await axios.get(`${BASE_URL}/image/${encodedSku}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error fetching product details:",
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+};
+
+
 const ProductDetailsWithNumbers = ({
   product,
   channelStockValue,
@@ -24,7 +39,32 @@ const ProductDetailsWithNumbers = ({
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
+  const [name,setName] = useState("");
+  const [image,setImage] = useState("")
 
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        const data = await fetchProductDetails(sku1);
+        if (data) {
+          setName(data?.summaries[0]?.itemName);
+          setImage(data?.summaries[0]?.mainImage?.link);
+        } else {
+          setErrorMessage("Failed to fetch product details.");
+        }
+      } catch (error) {
+        setErrorMessage("An error occurred while fetching product details.");
+        console.error(error); // Log the error for debugging
+      }
+    };
+  
+    if (sku1) {
+      fetchDetails();
+    }
+  }, [sku1]);
+  
+  
+  
   const fetchSalePrice = async (sku) => {
     try {
       setSaleInformation(null);
@@ -96,7 +136,7 @@ const ProductDetailsWithNumbers = ({
           // src={product?.AttributeSets[0]?.SmallImage?.URL}
           src={
             product?.AttributeSets?.[0]?.SmallImage?.URL ||
-            "https://beautyrepublicfdl.com/wp-content/uploads/2020/06/placeholder-image-600x450.jpg" // Provide a fallback if the URL is not available
+            image // Provide a fallback if the URL is not available
           }
           className={`${
             updatePriceModal
@@ -111,7 +151,7 @@ const ProductDetailsWithNumbers = ({
               updatePriceModal ? "text-[16px]" : "text-[14px]"
             }  text-left font-normal`}
           >
-            {product?.AttributeSets?.[0]?.Title || product?.itemName}
+            {product?.AttributeSets?.[0]?.Title || name}
           </Card.Title>
           {updatePriceModal && (
             <>
@@ -121,7 +161,7 @@ const ProductDetailsWithNumbers = ({
                     <p>
                       <BsFillInfoSquareFill className="text-[#0D6EFD] text-xl" />
                     </p>
-                    <h2 className="text-[#0D6EFD]"> It has a sale Price</h2>
+                    <h2 className="text-[#000]"> It has a sale Price</h2>
                   </div>
                 </div>
               )}
