@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeleton";
+import SaleDetailsModal from "../Report/SaleDetailsModal";
 
 // const BASE_URL = `https://api.priceobo.com`;
 const BASE_URL = "http://192.168.0.141:3000";
@@ -191,6 +192,7 @@ const ProductDetailView = ({
   const [monthlyLength, setMonthlyLength] = useState("");
 
   const { currentUser } = useSelector((state) => state.user);
+  const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
 
   const [selectedDays, setSelectedDays] = useState([]);
 
@@ -293,6 +295,9 @@ const ProductDetailView = ({
     setEditSchedule(schedule);
     setEditScheduleModalTitle(scheduleType);
   };
+  const handleSaleDetailsModalShow = () => setSaleDetailsModalShow(true);
+  const handleSaleDetailsModalClose = () => setSaleDetailsModalShow(false);
+
   const handleShowConfirmation = () => {
     setShowConfirmationModal(true);
   };
@@ -493,11 +498,12 @@ const ProductDetailView = ({
               />
               <div className=" flex justify-center items-center mt-2">
                 <button
-                  onClick={() =>
-                    navigate(`/details/${encodeURIComponent(sku1)}`, {
-                      state: { productInfo: product, price, asin, sku1 },
-                    })
-                  }
+                  // onClick={() =>
+                  //   navigate(`/details/${encodeURIComponent(sku1)}`, {
+                  //     state: { productInfo: product, price, asin, sku1 },
+                  //   })
+                  // }
+                  onClick={handleSaleDetailsModalShow}
                   className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
                 >
                   <span className="inline-block mb-1">
@@ -872,6 +878,14 @@ const ProductDetailView = ({
           setProductDetailLoading={setProductDetailLoading}
         />
       )}
+
+      <SaleDetailsModal
+        saleDetailsModalShow={saleDetailsModalShow}
+        setSaleDetailsModalShow={setSaleDetailsModalShow}
+        handleSaleDetailsModalShow={handleSaleDetailsModalShow}
+        handleSaleDetailsModalClose={handleSaleDetailsModalClose}
+        sku={sku1}
+      ></SaleDetailsModal>
 
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>

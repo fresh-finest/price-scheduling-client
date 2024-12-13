@@ -110,9 +110,9 @@ const ListView = () => {
   ];
 
   const [selectedDay, setSelectedDay] = useState(dayOptions[0]);
-  const [selectedUnit, setSelectedUnit] = useState(unitOptions[0]);
+  const [selectedUnit, setSelectedUnit] = useState(unitOptions[1]);
   const [selectedChannelStockUnit, setSelectedChannelStockUnit] = useState(
-    unitOptions[0]
+    unitOptions[1]
   );
 
   const userName = currentUser?.userName || "";
@@ -129,6 +129,12 @@ const ListView = () => {
     try {
       setIsLoading(true);
       setIsLoadingMode(true);
+      setIsSearchMode(false);
+      setIsFbaFbmSearchMode(false);
+      setIsScheduleSearchMode(false);
+      setIsAllProductSearchMode(false);
+      setIsSaleSearchMode(false);
+      setIsChannelStockSearchMode(false);
       setError(null);
       const response = await axios.get(
         `${BASE_URL}/api/product/limit?page=${page}`
@@ -285,6 +291,12 @@ const ListView = () => {
   const fetchProductsByChannel = async (channel, page) => {
     setIsSearching(true);
     setIsFbaFbmSearchMode(true);
+    setIsSearchMode(false);
+    setIsScheduleSearchMode(false);
+    setIsAllProductSearchMode(false);
+    setIsSaleSearchMode(false);
+    setIsChannelStockSearchMode(false);
+    setIsLoadingMode(false);
     setSearchTerm("");
     try {
       console.log("channel", channel);
@@ -381,6 +393,12 @@ const ListView = () => {
     if (!value.trim()) return;
     setIsSearching(true);
     setIsSearchMode(true);
+    setIsFbaFbmSearchMode(false);
+    setIsScheduleSearchMode(false);
+    setIsAllProductSearchMode(false);
+    setIsSaleSearchMode(false);
+    setIsChannelStockSearchMode(false);
+    setIsLoadingMode(false);
     setSelectedFbaFbmOption("");
     setIsLoadingMode(false);
     setSearchTerm(value);
@@ -423,7 +441,12 @@ const ListView = () => {
 
   const fetchAllSchedule = async (page) => {
     setIsScheduleSearchMode(true);
+    setIsSearchMode(false);
+    setIsFbaFbmSearchMode(false);
     setIsAllProductSearchMode(false);
+    setIsSaleSearchMode(false);
+    setIsChannelStockSearchMode(false);
+    setIsLoadingMode(false);
     try {
       setIsSearching(true);
       const url = `${BASE_URL}/api/product/schedule?page=${page}`;
@@ -439,7 +462,13 @@ const ListView = () => {
 
   const fetchAllProducts = async (page) => {
     setIsAllProductSearchMode(true);
+    setIsSearchMode(false);
+    setIsFbaFbmSearchMode(false);
     setIsScheduleSearchMode(false);
+    setIsSaleSearchMode(false);
+    setIsChannelStockSearchMode(false);
+    setIsScheduleSearchMode(false);
+    setIsLoadingMode(false);
     try {
       setIsSearching(true);
       const url = `${BASE_URL}/api/product/limit?page=${page}`;
@@ -463,7 +492,8 @@ const ListView = () => {
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
-
+    setCurrentPage(1);
+    setSearchTerm("");
     if (newFilterScheduled) {
       fetchAllSchedule(1);
     } else {
@@ -635,6 +665,8 @@ const ListView = () => {
   };
   const handleChannelChange = (option) => {
     setSelectedFbaFbmOption(option);
+    setCurrentPage(1);
+    setSearchTerm("");
     fetchProductsByChannel(option, currentPage); // Call the API to fetch the filtered data
   };
 
@@ -642,6 +674,12 @@ const ListView = () => {
     try {
       setIsLoading(true);
       setIsSaleSearchMode(true);
+      setIsSearchMode(false);
+      setIsFbaFbmSearchMode(false);
+      setIsScheduleSearchMode(false);
+      setIsAllProductSearchMode(false);
+      setIsChannelStockSearchMode(false);
+      setIsLoadingMode(false);
       const response = await axios.get(
         `${BASE_URL}/api/product/filter/unit?days=${selectedDay.value}&condition=${selectedUnit.value}&units=${inputValue}&page=${page}`
       );
@@ -658,6 +696,12 @@ const ListView = () => {
     try {
       setIsLoading(true);
       setIsChannelStockSearchMode(true);
+      setIsSearchMode(false);
+      setIsFbaFbmSearchMode(false);
+      setIsScheduleSearchMode(false);
+      setIsAllProductSearchMode(false);
+      setIsSaleSearchMode(false);
+      setIsLoadingMode(false);
 
       const response = await axios.get(
         `${BASE_URL}/api/product/stock?condition=${selectedChannelStockUnit.value}&stock=${channelStockInputValue}&page=${page}`
@@ -672,13 +716,16 @@ const ListView = () => {
   };
 
   const handleListSalePopoverSubmit = async (event) => {
-    event.preventDefault(); // Prevents default form submission behavior
+    event.preventDefault();
+    setCurrentPage(1);
+    setSearchTerm("");
     fetchListSalesProduct(currentPage);
   };
 
   const handleChannelStockPopoverSubmit = async (event) => {
     event.preventDefault();
-
+    setCurrentPage(1);
+    setSearchTerm("");
     fetchListChannelStock(currentPage);
   };
 
