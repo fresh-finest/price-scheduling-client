@@ -351,6 +351,7 @@ const SaleDetailsModal = ({
                     className="ant-datePicker-input"
                     presets={rangePresets}
                     onChange={onRangeChange}
+                    getPopupContainer={(trigger) => trigger.parentNode}
                   />
                 </div>
               </div>
@@ -358,13 +359,7 @@ const SaleDetailsModal = ({
               <SaleDetailsProductDetailSkeleton />
             )}
             <div className="flex  items-center">
-              <Button
-                variant="outline"
-                className=" my-1"
-                onClick={() => navigate(-1)}
-              >
-                <MdOutlineArrowBackIos className="mr-1" /> Back
-              </Button>
+             
 
               <div className="flex-1 flex justify-center">
                 <AutomatePrice
