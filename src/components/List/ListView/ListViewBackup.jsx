@@ -3,59 +3,57 @@ import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-import UpdatePriceFromList from "./UpdatePriceFromList";
+import UpdatePriceFromList from "../UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
 import { FixedSizeList as List } from "react-window";
 
 import "./ListView.css";
-import ProductDetailView from "./ProductDetailView";
+import ProductDetailView from "../ProductDetailView";
 
-import noImage from "../../assets/images/noimage.png";
+import noImage from "../../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.141:3000";
+const BASE_URL = "http://192.168.0.141:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST = `https://api.priceobo.com`;
+// const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
-// const BASE_URL_LIST = "http://192.168.0.141:3000";
+const BASE_URL_LIST = "http://192.168.0.141:3000";
 
-import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
-import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
-import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
+import { ListSaleDropdown } from "../../shared/ui/ListSaleDropdown";
+import { ListFbaDropdown } from "../../shared/ui/ListFbaDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
-import ListLoadingSkeleton from "../LoadingSkeleton/ListLoadingSkeleton";
+import ListLoadingSkeleton from "../../LoadingSkeleton/ListLoadingSkeleton";
+import ListViewTable from "./ListViewTable";
+import ListViewPagination from "./ListViewPagination";
 
-const fetchProducts = async () => {
-  const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
-  console.log("all listings response", response);
-  return response.data;
-};
+// const fetchProducts = async () => {
+//   const response = await axios.get(`${BASE_URL_LIST}/api/product/limit?page=1`);
+//   console.log("response", response);
+//   return response.data;
+// };
 
 const fetchScheduledData = async () => {
   const response = await axios.get(`${BASE_URL}/api/schedule`);
-  console.log("schedule response", response);
+
   return response.data.result;
 };
 
 const ListView = () => {
-  // const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(() => {
     const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
     return storedSelectedProduct ? JSON.parse(storedSelectedProduct) : null;
   });
 
-  // const [selectedListing, setSelectedListing] = useState(null);
   const [selectedListing, setSelectedListing] = useState(() => {
     const storedSelectedListing = sessionStorage.getItem("selectedListing");
     return storedSelectedListing ? JSON.parse(storedSelectedListing) : null;
   });
 
-  // const [searchTerm, setSearchTerm] = useState("");
   const [searchTerm, setSearchTerm] = useState(
     () => sessionStorage.getItem("searchTerm") || ""
   );
@@ -65,37 +63,33 @@ const ListView = () => {
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  // const [selectedAsin, setSelectedAsin] = useState("");
+
   const [selectedAsin, setSelectedAsin] = useState(
     () => sessionStorage.getItem("selectedAsin") || ""
   );
 
-  // const [selectedSku, setSelectedSku] = useState("");
   const [selectedSku, setSelectedSku] = useState(
     () => sessionStorage.getItem("selectedSku") || ""
   );
 
-  // const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedPrice, setSelectedPrice] = useState(
     () => sessionStorage.getItem("selectedPrice") || ""
   );
 
-  // const [selectedFnSku, setSelectedFnSku] = useState("");
   const [selectedFnSku, setSelectedFnSku] = useState(
     () => sessionStorage.getItem("selectedFnSku") || ""
   );
 
-  // const [channelStockValue, setChannelStockValue] = useState("");
   const [channelStockValue, setChannelStockValue] = useState(
     () => sessionStorage.getItem("channelStockValue") || ""
   );
   const [fulfillmentChannel, setFulfillmentChannel] = useState("");
-  // const [selectedRowIndex, setSelectedRowIndex] = useState(null);
+
   const [selectedRowIndex, setSelectedRowIndex] = useState(() => {
     const storedRowIndex = sessionStorage.getItem("selectedRowIndex");
     return storedRowIndex ? parseInt(storedRowIndex, 10) : null;
   });
-  // const [filteredProducts, setFilteredProducts] = useState([]);
+
   const [filteredProducts, setFilteredProducts] = useState(() => {
     const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
     return storedFilteredProducts ? JSON.parse(storedFilteredProducts) : [];
@@ -104,26 +98,26 @@ const ListView = () => {
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [scheduledData, setScheduledData] = useState([]);
-  // const [filterScheduled, setFilterScheduled] = useState(false);
+
   const [filterScheduled, setFilterScheduled] = useState(
     () => sessionStorage.getItem("filterScheduled") === "true"
   );
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [channelStockSortOrder, setChannelStockSortOrder] = useState(null); // State for sorting order
-  const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null); // State for FBA/FBM sorting order
+  const [channelStockSortOrder, setChannelStockSortOrder] = useState(null);
+  const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null);
   const [statusSortOrder, setStatusSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [productDetailLoading, setProductDetailLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // const [currentPage, setCurrentPage] = useState(1);
   const [currentPage, setCurrentPage] = useState(() => {
     const storedCurrentPage = sessionStorage.getItem("currentPage");
     return storedCurrentPage ? parseInt(storedCurrentPage, 10) : 1;
   });
 
   const itemsPerPage = 20;
-  const itemRefs = useRef([]); // Create a ref array to hold row references
+  const itemRefs = useRef([]);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -134,25 +128,47 @@ const ListView = () => {
   };
   const handleTimePeriodChange = (timePeriod) => {
     setSelectedTimePeriod(timePeriod);
-    setShowFilterDropdown(false); // Close the dropdown after selection
+    setShowFilterDropdown(false);
   };
+
+  const fetchProducts = async () => {
+    const response = await axios.get(
+      `${BASE_URL_LIST}/api/product/limit?page=${currentPage}`
+    );
+    console.log("response", response);
+    return response.data;
+  };
+
+  // const {
+  //   data: productData,
+  //   error,
+  //   isLoading,
+  // } = useQuery("products", fetchProducts, {
+  //   onSuccess: (data) => {
+  //     if (!filterScheduled) {
+  //       setFilteredProducts(data.listings);
+  //     }
+  //   },
+  //   // staleTime: Infinity,
+  //   staleTime: 1000 * 60 * 30, // data is fresh for 5 minutes
+  //   cacheTime: 1000 * 60 * 30, // cache for 30 minutes
+  // });
 
   const {
     data: productData,
     error,
     isLoading,
-  } = useQuery("products", fetchProducts, {
+  } = useQuery(["products", currentPage], () => fetchProducts(currentPage), {
+    keepPreviousData: true, // Retains previous data during fetch
+    staleTime: 1000 * 60 * 5, // Data stays fresh for 5 minutes
     onSuccess: (data) => {
       if (!filterScheduled) {
         setFilteredProducts(data.listings);
       }
     },
-    // staleTime: Infinity,
-    staleTime: 1000 * 60 * 30, // data is fresh for 5 minutes
-    cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
 
-  console.log("products data", productData);
+  console.log("product Data ", productData);
 
   useEffect(() => {
     const getScheduledData = async () => {
@@ -171,13 +187,11 @@ const ListView = () => {
   }, [productData, filterScheduled, searchTerm]);
 
   useEffect(() => {
-    // Clear sessionStorage on page reload
     const handlePageReload = () => {
       sessionStorage.clear();
     };
     window.addEventListener("beforeunload", handlePageReload);
 
-    // Restore session data if available
     const storedSearchTerm = sessionStorage.getItem("searchTerm");
     const storedFilteredProducts = sessionStorage.getItem("filteredProducts");
 
@@ -203,11 +217,10 @@ const ListView = () => {
     if (storedSelectedAsin) setSelectedAsin(storedSelectedAsin);
 
     if (storedScrollPosition) {
-      window.scrollTo(0, parseInt(storedScrollPosition, 10)); // Scroll to the stored position
-      sessionStorage.removeItem("scrollPosition"); // Clear it once applied
+      window.scrollTo(0, parseInt(storedScrollPosition, 10));
+      sessionStorage.removeItem("scrollPosition");
     }
 
-    // Scroll to the selected row if available
     if (storedRowIndex && itemRefs.current[storedRowIndex]) {
       itemRefs.current[storedRowIndex].scrollIntoView({
         behavior: "smooth",
@@ -215,14 +228,12 @@ const ListView = () => {
       });
     }
 
-    // Cleanup event listener on component unmount
     return () => {
       window.removeEventListener("beforeunload", handlePageReload);
     };
   }, []);
 
   useEffect(() => {
-    // Restore state from session storage
     const storedSelectedProduct = sessionStorage.getItem("selectedProduct");
     const storedSelectedListing = sessionStorage.getItem("selectedListing");
     const storedSelectedAsin = sessionStorage.getItem("selectedAsin");
@@ -257,7 +268,6 @@ const ListView = () => {
   }, []);
 
   useEffect(() => {
-    // Sync state to session storage
     if (selectedProduct) {
       sessionStorage.setItem(
         "selectedProduct",
@@ -310,6 +320,10 @@ const ListView = () => {
     indexOfLastItem
   );
 
+  console.log("currentItems", currentItems);
+
+  console.log("filteredProducts", filteredProducts);
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   // const handlePageChange = (pageNumber) => {
@@ -317,6 +331,7 @@ const ListView = () => {
   //   sessionStorage.setItem("currentPage", pageNumber);
   // };
   const handlePageChange = (pageNumber) => {
+    console.log("page number", pageNumber);
     setCurrentPage(pageNumber);
 
     // Clear the previously selected product
@@ -364,39 +379,64 @@ const ListView = () => {
   };
 
   // Function to toggle sorting for FBA/FBM column based on selected option
-  const toggleFbaFbmSort = (option) => {
-    let sortedProducts;
+  // const toggleFbaFbmSort = (option) => {
+  //   let sortedProducts;
 
-    if (option === "All") {
-      sortedProducts = [...filteredProducts];
-    } else {
-      sortedProducts = [...filteredProducts].sort((a, b) => {
-        const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-        const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+  //   if (option === "All") {
+  //     sortedProducts = [...filteredProducts];
+  //   } else {
+  //     sortedProducts = [...filteredProducts].sort((a, b) => {
+  //       const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
+  //       const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
 
-        if (option === "FBA") {
-          return fulfillmentA === "FBA" ? -1 : 1;
-        } else if (option === "FBM") {
-          return fulfillmentA === "FBM" ? -1 : 1;
-        }
-      });
+  //       if (option === "FBA") {
+  //         return fulfillmentA === "FBA" ? -1 : 1;
+  //       } else if (option === "FBM") {
+  //         return fulfillmentA === "FBM" ? -1 : 1;
+  //       }
+  //     });
+  //   }
+
+  //   setFilteredProducts(sortedProducts);
+  // };
+
+  const fetchProductsByChannel = async (channel) => {
+    // setIsSearching(true); // Show loading indicator
+    try {
+      let url = `${BASE_URL}/api/product/channel`;
+
+      if (channel === "FBA") {
+        url += "/AMAZON_NA"; // Append for FBA
+      } else if (channel === "FBM") {
+        url += "/DEFAULT"; // Append for FBM
+      }
+
+      const response = await axios.get(url);
+      const products = response.data;
+
+      setFilteredProducts(products.products || []); // Update displayed products
+      sessionStorage.setItem(
+        "filteredProducts",
+        JSON.stringify(products.products || [])
+      ); // Save results in sessionStorage
+    } catch (error) {
+      console.error("Error fetching products by channel:", error.message);
+      setFilteredProducts([]); // Clear products on error
+    } finally {
+      setIsSearching(false);
     }
-
-    setFilteredProducts(sortedProducts);
   };
-  // Define priority order for status
+
   const statusPriority = {
     Active: 1,
     Inactive: 3,
     Incomplete: 2,
   };
 
-  // Function to toggle sorting for Status column
   const toggleStatusSort = () => {
     const newOrder = statusSortOrder === "asc" ? "desc" : "asc";
     setStatusSortOrder(newOrder);
 
-    // Sort displayedProducts based on Status priority
     const sortedProducts = [...filteredProducts].sort((a, b) => {
       const statusA =
         statusPriority[
@@ -419,10 +459,13 @@ const ListView = () => {
     setFilteredProducts(sortedProducts);
   };
 
+  console.log(productData);
+
   const renderPaginationButtons = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const maxPagesToShow = 3;
+    // const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const totalPages = Math.ceil(productData.totalProducts / itemsPerPage);
 
     for (let i = 1; i <= totalPages; i++) {
       if (
@@ -447,67 +490,112 @@ const ListView = () => {
     ));
   };
 
+  // const handleSearch = (e) => {
+  //   const value = e.target.value;
+  //   setSearchTerm(value); // Update search term immediately in the input
+  //   debouncedFilterProducts(value); // Apply debounced filtering
+
+  //   // Clear the previously selected product
+  //   setSelectedRowIndex(null);
+  //   // setSelectedProduct(null);
+  //   setSelectedAsin("");
+  //   setSelectedSku("");
+  //   setSelectedFnSku("");
+  //   setSelectedPrice("");
+
+  //   // Update sessionStorage
+
+  //   sessionStorage.removeItem("selectedRowIndex");
+  //   sessionStorage.removeItem("scrollPosition");
+  //   sessionStorage.removeItem("selectedProduct");
+
+  //   setCurrentPage(1);
+  //   sessionStorage.setItem("searchTerm", value);
+  // };
+
   const handleSearch = (e) => {
     const value = e.target.value;
-    setSearchTerm(value); // Update search term immediately in the input
-    debouncedFilterProducts(value); // Apply debounced filtering
+    setSearchTerm(value);
+    setFilteredProducts([]);
+    console.log("handle search value", value);
+    debouncedFilterProducts(value);
 
-    // Clear the previously selected product
     setSelectedRowIndex(null);
-    // setSelectedProduct(null);
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
 
-    // Update sessionStorage
-
+    sessionStorage.setItem("searchTerm", value);
     sessionStorage.removeItem("selectedRowIndex");
     sessionStorage.removeItem("scrollPosition");
     sessionStorage.removeItem("selectedProduct");
 
     setCurrentPage(1);
-    sessionStorage.setItem("searchTerm", value);
   };
 
-  const debouncedFilterProducts = useCallback(
-    debounce((value) => {
-      filterProducts(
-        productData?.listings || [],
-        scheduledData,
-        filterScheduled,
-        value
-      );
-      const filtered = filterProducts(
-        productData?.listings || [],
-        scheduledData,
-        filterScheduled,
-        value
-      );
+  // const debouncedFilterProducts = useCallback(
+  //   debounce((value) => {
+  //     filterProducts(
+  //       productData?.listings || [],
+  //       scheduledData,
+  //       filterScheduled,
+  //       value
+  //     );
+  //     const filtered = filterProducts(
+  //       productData?.listings || [],
+  //       scheduledData,
+  //       filterScheduled,
+  //       value
+  //     );
 
-      setFilteredProducts(filtered); // Update state
-      sessionStorage.setItem("filteredProducts", JSON.stringify(filtered)); // Save to sessionStorage
+  //     setFilteredProducts(filtered); // Update state
+  //     sessionStorage.setItem("filteredProducts", JSON.stringify(filtered)); // Save to sessionStorage
+  //   }, 300),
+  //   [productData, scheduledData, filterScheduled]
+  // );
+
+  const debouncedFilterProducts = useCallback(
+    debounce(async (value) => {
+      setIsSearching(true);
+      console.log(value);
+      try {
+        const response = await axios.get(`${BASE_URL}/api/product/${value}`);
+        const searchResults = response.data;
+
+        console.log("search result", searchResults);
+
+        setFilteredProducts(searchResults.result || []);
+        console.log(filteredProducts);
+        sessionStorage.setItem(
+          "filteredProducts",
+          JSON.stringify(searchResults.result || [])
+        );
+      } catch (error) {
+        console.error("Error fetching search results:", error.message);
+        setFilteredProducts([]);
+      } finally {
+        setIsSearching(false);
+      }
     }, 300),
-    [productData, scheduledData, filterScheduled]
+    []
   );
 
+  console.log("filtered products", filteredProducts);
   const handleClearInput = () => {
     setSearchTerm("");
     debouncedFilterProducts("");
     setCurrentPage(1);
 
-    // Clear the previously selected product
     setSelectedRowIndex(null);
-    // setSelectedProduct(null);
+
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
 
-    // Reset to the full product list
     setFilteredProducts(productData.listings);
 
-    // Update sessionStorage
     sessionStorage.removeItem("searchTerm");
 
     sessionStorage.removeItem("selectedRowIndex");
@@ -528,7 +616,7 @@ const ListView = () => {
         scheduledData,
         filterScheduled,
         value
-      ); // Immediate filtering on Enter press
+      );
     }
   };
 
@@ -554,27 +642,31 @@ const ListView = () => {
     }
 
     if (searchValue) {
-      filtered = filtered.filter(
-        (product) =>
-          product.itemName?.toLowerCase().includes(searchValue.toLowerCase()) ||
-          product.asin1?.toLowerCase().includes(searchValue.toLowerCase()) ||
-          product.sellerSku
-            ?.toLowerCase()
-            .includes(searchValue.toLowerCase()) ||
-          product.status?.toLowerCase().includes(searchValue.toLowerCase())
-      );
+      console.log("serach value", searchValue);
+      console.log("filtered", filtered);
+      // sessionStorage.setItem("filteredProducts", JSON.stringify(filtered));
+      // filtered = filtered.filter(
+      //   (product) =>
+      //     product.itemName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      //     product.asin1?.toLowerCase().includes(searchValue.toLowerCase()) ||
+      //     product.sellerSku
+      //       ?.toLowerCase()
+      //       .includes(searchValue.toLowerCase()) ||
+      //     product.status?.toLowerCase().includes(searchValue.toLowerCase())
+      // );
     }
 
-    setFilteredProducts(filtered); // Update filtered products in state
-    sessionStorage.setItem("filteredProducts", JSON.stringify(filtered)); // Update sessionStorage
-    return filtered; // Return for immediate usage
+    setFilteredProducts(filtered);
+    sessionStorage.setItem("filteredProducts", JSON.stringify(filtered));
+    return filtered;
   };
+
+  console.log(filteredProducts);
 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
 
-    // Clear the previously selected product
     setSelectedRowIndex(null);
     setSelectedProduct(null);
     setSelectedAsin("");
@@ -638,9 +730,9 @@ const ListView = () => {
   ) => {
     const scrollPosition =
       document.documentElement.scrollTop || document.body.scrollTop;
-    sessionStorage.setItem("scrollPosition", scrollPosition); // Save the scroll position
-    sessionStorage.setItem("selectedRowIndex", index); // Save the selected row index
-    sessionStorage.setItem("currentPage", currentPage); // Save the current page
+    sessionStorage.setItem("scrollPosition", scrollPosition);
+    sessionStorage.setItem("selectedRowIndex", index);
+    sessionStorage.setItem("currentPage", currentPage);
 
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
@@ -671,8 +763,6 @@ const ListView = () => {
         pendingTransshipmentQuantity
       );
 
-      // setSelectedProduct(item);
-
       sessionStorage.setItem("selectedRowIndex", JSON.stringify(index));
 
       try {
@@ -683,7 +773,6 @@ const ListView = () => {
 
         setSelectedProduct(responseOne.data.payload);
 
-        //store selected Product to session storage
         sessionStorage.setItem(
           "selectedProduct",
           JSON.stringify(responseOne.data.payload)
@@ -696,7 +785,6 @@ const ListView = () => {
     }
   };
 
-  // Fetch product details when Update Price button is clicked
   const handleUpdate = async (
     price,
     sku1,
@@ -709,7 +797,7 @@ const ListView = () => {
     index,
     e
   ) => {
-    e.stopPropagation(); // Prevent row click from being triggered
+    e.stopPropagation();
 
     if (!asin) {
       console.error("ASIN is not provided. Modal will not open.");
@@ -731,7 +819,6 @@ const ListView = () => {
         pendingTransshipmentQuantity
       );
 
-      // Fetch product details and set the selected product
       const response = await axios.get(`${BASE_URL}/details/${asin}`);
       setSelectedProduct(response.data.payload);
       const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -817,6 +904,8 @@ const ListView = () => {
   }
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
+  console.log("current items", currentItems);
+
   return (
     <>
       <UpdatePriceFromList
@@ -842,7 +931,6 @@ const ListView = () => {
               type="text"
               placeholder="Search Title/ASIN/SKU/FNSKU"
               value={searchTerm}
-              // onChange={(e) => handleSearch(e.target.value)}
               onChange={handleSearch}
               onKeyDown={handleKeyPress}
               style={{ borderRadius: "0px" }}
@@ -852,14 +940,6 @@ const ListView = () => {
               <button
                 onClick={handleClearInput}
                 className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
-                style={
-                  {
-                    // backgroundColor: "transparent",
-                    // border: "none",
-                    // fontSize: "16px",
-                    // cursor: "pointer",
-                  }
-                }
               >
                 <MdOutlineClose />
               </button>
@@ -870,7 +950,7 @@ const ListView = () => {
         <Button
           style={{
             borderRadius: "2px",
-            // marginTop: "100px",
+
             backgroundColor: "#0D6EFD",
             border: "none",
             position: "absolute ",
@@ -892,28 +972,23 @@ const ListView = () => {
               className=" rounded-md "
               style={{
                 overflowY: "auto",
-                // overflowY: "scroll",
-                // maxHeight: "calc(100vh - 20px)",
+
                 marginTop: "50px",
                 boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
                 maxHeight: "91vh",
               }}
             >
               <table
-                // hover
-                // responsive
                 style={{ width: "100%", tableLayout: "fixed" }}
                 className="listCustomTable  table "
               >
                 <thead
                   className="tableHeader"
                   style={{
-                    // backgroundColor: "#f0f0f0",
                     fontFamily: "Arial, sans-serif",
                     fontSize: "13px",
                     position: "sticky",
                     top: 0,
-                    // fontWeight: 0,
                   }}
                 >
                   <tr className="">
@@ -921,21 +996,13 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[0]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
-                        // position: "sticky", // Sticky header
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
                       <p className="flex  items-center justify-center gap-1">
                         Status
-                        {/* <ListStatusDropdown></ListStatusDropdown>
-                        <IoFunnelOutline
-                          size={15}
-                          style={{ cursor: "pointer", marginLeft: "8px" }}
-                          onClick={toggleStatusSort}
-                        /> */}
                       </p>
                       <div
                         style={{
@@ -953,8 +1020,7 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[1]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -978,8 +1044,7 @@ const ListView = () => {
                       style={{
                         width: `${columnWidths[2]}px`,
                         minWidth: "80px",
-                        // position: "relative",
-                        // whiteSpace: "nowrap",
+
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         textAlign: "center",
@@ -1003,8 +1068,7 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[3]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -1026,8 +1090,7 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[4]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -1035,13 +1098,8 @@ const ListView = () => {
                       <p className="flex  items-center justify-center gap-1">
                         FBA/FBM
                         <ListFbaDropdown
-                          toggleFbaFbmSort={toggleFbaFbmSort}
+                          onChannelChange={fetchProductsByChannel}
                         ></ListFbaDropdown>
-                        {/* <IoFunnelOutline
-                          size={15}
-                          style={{ cursor: "pointer", marginLeft: "8px" }}
-                          onClick={toggleFbaFbmSort}
-                        /> */}
                       </p>
                       <div
                         style={{
@@ -1153,356 +1211,59 @@ const ListView = () => {
                     lineHeight: "1.5",
                   }}
                 >
-                  {currentItems.map((item, index) => (
-                    // {filteredProducts.slice(0, 20).map((item, index) => (
-                    <tr
-                      key={index}
-                      ref={(el) => (itemRefs.current[index] = el)} // Store reference to each row element
-                      onClick={() =>
-                        handleProductSelect(
-                          item?.price,
-                          item.sellerSku,
-                          item.asin1,
-                          item.fnSku,
-                          index,
-                          item.fulfillmentChannel,
-                          item.quantity,
-                          item.fulfillableQuantity,
-                          item.pendingTransshipmentQuantity,
-                          item
-                        )
-                      }
-                      style={{
-                        cursor: "pointer",
-                        height: "40px",
-                        margin: "20px 0",
-                      }}
-                      className={`borderless spacer-row ${
-                        selectedRowIndex === index ? "selected-row" : ""
-                      }`}
-                    >
-                      <td
-                        className={` ${
-                          selectedRowIndex === index ? "selected-row" : ""
-                        }`}
-                        style={{
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        {item.status}
-                      </td>
-                      <td
-                        style={{
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        <img
-                          style={{
-                            height: "50px",
-                            width: "50px",
-                            margin: "0 auto",
-                            objectFit: "contain",
-                          }}
-                          src={item?.imageUrl ? item.imageUrl : noImage}
-                          alt=""
-                        />
-                      </td>
-
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        {item.itemName}
-                        <div className="details mt-[5px]">
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "stretch",
-                            }}
-                          >
-                            {item.asin1}{" "}
-                            {copiedAsinIndex === index ? (
-                              <MdCheck
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  color: "green",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            ) : (
-                              <BsClipboardCheck
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(item.asin1, "asin", index);
-                                }}
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            )}
-                          </span>{" "}
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            {item.sellerSku}{" "}
-                            {copiedSkuIndex === index ? (
-                              <MdCheck
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  color: "green",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            ) : (
-                              <BsClipboardCheck
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(item.sellerSku, "sku", index);
-                                }}
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            )}
-                          </span>{" "}
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            {item?.fnSku ? item.fnSku : "N/A"}{" "}
-                            {item?.fnSku &&
-                              (copiedfnSkuIndex === index ? (
-                                <MdCheck
-                                  style={{
-                                    marginLeft: "10px",
-                                    cursor: "pointer",
-                                    color: "green",
-                                    fontSize: "16px",
-                                  }}
-                                />
-                              ) : (
-                                <BsClipboardCheck
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCopy(item?.fnSku, "fnSku", index);
-                                  }}
-                                  style={{
-                                    marginLeft: "10px",
-                                    cursor: "pointer",
-                                    fontSize: "16px",
-                                  }}
-                                />
-                              ))}
-                          </span>
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        ${parseFloat(item?.price).toFixed(2)}
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        {item.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA"}
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          cursor: "pointer",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        <span>
-                          {item.fulfillmentChannel === "DEFAULT"
-                            ? item?.quantity != null
-                              ? item.quantity
-                              : "N/A"
-                            : item?.fulfillableQuantity != null &&
-                              item?.pendingTransshipmentQuantity != null
-                            ? item?.fulfillableQuantity +
-                              item?.pendingTransshipmentQuantity
-                            : "N/A"}
-                        </span>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          cursor: "pointer",
-                          height: "40px",
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                        }}
-                      >
-                        {item?.salesMetrics
-                          ? `${getUnitCountForTimePeriod(
-                              item.salesMetrics,
-                              selectedTimePeriod
-                            )}`
-                          : "N/A"}
-                      </td>
-                      <td
-                        style={{
-                          backgroundColor:
-                            selectedRowIndex === index ? "#F1F1F2" : "",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <Button
-                          className="updatePriceBtn"
-                          style={{
-                            padding: "8px 12px",
-                            border: "none",
-                            backgroundColor: "#0662BB",
-                            borderRadius: "3px",
-                            zIndex: 1,
-                          }}
-                          onClick={(e) =>
-                            handleUpdate(
-                              item?.price,
-                              item?.sellerSku,
-                              item?.asin1,
-                              item?.fnSku,
-                              item?.fulfillmentChannel,
-                              item?.quantity,
-                              item?.fulfillableQuantity,
-                              item?.pendingTransshipmentQuantity,
-                              index,
-                              e
-                            )
-                          }
-                          disabled={!currentUser?.permissions?.write}
-                        >
-                          <IoMdAdd />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
+                  {/* {productData.listings.map((item, index) => ( */}
+                  {/* {currentItems.map((item, index) => ( */}
+                  {filteredProducts.map((item, index) => {
+                    return (
+                      <ListViewTable
+                        key={item._id}
+                        index={index}
+                        itemRefs={itemRefs}
+                        handleProductSelect={handleProductSelect}
+                        item={item}
+                        selectedRowIndex={selectedRowIndex}
+                        noImage={noImage}
+                        handleCopy={handleCopy}
+                        copiedSkuIndex={copiedSkuIndex}
+                        copiedAsinIndex={copiedAsinIndex}
+                        copiedfnSkuIndex={copiedfnSkuIndex}
+                        handleUpdate={handleUpdate}
+                        currentUser={currentUser}
+                        selectedTimePeriod={selectedTimePeriod}
+                        getUnitCountForTimePeriod={getUnitCountForTimePeriod}
+                      ></ListViewTable>
+                    );
+                  })}
                 </tbody>
               </table>
-              <Pagination className=" flex mb-3 justify-center">
-                <Pagination.First onClick={() => handlePageChange(1)} />
-                <Pagination.Prev
-                  onClick={() =>
-                    handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
-                  }
-                />
-                {renderPaginationButtons()}
-                <Pagination.Next
-                  onClick={() =>
-                    handlePageChange(
-                      currentPage < totalPages ? currentPage + 1 : totalPages
-                    )
-                  }
-                />
-                <Pagination.Last onClick={() => handlePageChange(totalPages)} />
-              </Pagination>
+
+              <ListViewPagination
+                handlePageChange={handlePageChange}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                renderPaginationButtons={renderPaginationButtons}
+              ></ListViewPagination>
             </div>
           ) : (
             filterScheduled && (
-              <div
-                // style={{
-                //   marginTop: "20px",
-                //   height: "20vh",
-                //   color: "#888",
-                //   display: "flex",
-                //   textAlign: "center",
-                //   justifyContent: "center",
-                // }}
-
-                className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]"
-              >
+              <div className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]">
                 There is no active schedule.
               </div>
             )
           )}
         </div>
         <div
-          // className="fixed"
           style={{
             paddingLeft: "0px",
             marginTop: "20px",
             paddingRight: "0px",
             width: "32%",
-            // position: "fixed",
-            // top: "20px",
-            // right: "10px",
+
             height: "93vh ",
-            // overflowX: "auto",
           }}
         >
           {selectedProduct && selectedListing && selectedAsin ? (
-            <div
-              style={{ marginTop: "20px" }}
-              // style={{ marginTop: "20px", position: "fixed", width: "510px" }}
-            >
+            <div style={{ marginTop: "20px" }}>
               <ProductDetailView
                 key={selectedAsin}
                 product={selectedProduct}
@@ -1516,23 +1277,17 @@ const ListView = () => {
                 productDetailLoading={productDetailLoading}
                 setProductDetailLoading={setProductDetailLoading}
               />
-              {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div
               style={{
-                // marginTop: "20px",
                 paddingTop: "30px",
                 height: "93vh",
                 display: "flex",
-
-                // justifyContent: "center",
-                // alignItems: "center",
               }}
             >
               <Card
                 style={{
-                  // padding: "20px",
                   width: "100%",
                   boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
                   textAlign: "center",

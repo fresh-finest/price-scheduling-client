@@ -7,12 +7,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CiFilter } from "react-icons/ci";
 
-export function ListFbaDropdown({ toggleFbaFbmSort }) {
-  const [selectedOption, setSelectedOption] = React.useState("All");
+export function ListFbaDropdown({ selectedFbaFbmOption, onChannelChange }) {
+  // const [selectedFbaFbmOption, setSelectedFbaFbmOption] = React.useState("");
+
+  console.log("selected opton", selectedFbaFbmOption);
 
   const handleSelection = (option) => {
-    setSelectedOption(option);
-    toggleFbaFbmSort(option);
+    onChannelChange(option);
   };
 
   return (
@@ -24,19 +25,19 @@ export function ListFbaDropdown({ toggleFbaFbmSort }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuCheckboxItem
-          checked={selectedOption === "FBA"}
+          checked={selectedFbaFbmOption === "FBA"}
           onCheckedChange={() => handleSelection("FBA")}
         >
           FBA
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
-          checked={selectedOption === "FBM"}
+          checked={selectedFbaFbmOption === "FBM"}
           onCheckedChange={() => handleSelection("FBM")}
         >
           FBM
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem
-          checked={selectedOption === "All"}
+          checked={selectedFbaFbmOption === "All"}
           onCheckedChange={() => handleSelection("All")}
         >
           Show All

@@ -1,31 +1,34 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 import { useQuery } from "react-query";
 import { MdCheck, MdOutlineClose } from "react-icons/md";
 import { IoMdAdd } from "react-icons/io";
-import UpdatePriceFromList from "./UpdatePriceFromList";
+import UpdatePriceFromList from "../UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
 import { FixedSizeList as List } from "react-window";
 
 import "./ListView.css";
-import ProductDetailView from "./ProductDetailView";
+import ProductDetailView from "../ProductDetailView";
 
 import noImage from "../../assets/images/noimage.png";
 
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://192.168.0.141:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST = `https://api.priceobo.com`;
+// const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
+const BASE_URL_LIST = "http://192.168.0.141:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
-import { ListSaleDropdown } from "../shared/ui/ListSaleDropdown";
-import { ListFbaDropdown } from "../shared/ui/ListFbaDropdown";
+import { ListSaleDropdown } from "../../shared/ui/ListSaleDropdown";
+import { ListFbaDropdown } from "../../shared/ui/ListFbaDropdown";
 import { LuArrowUpDown } from "react-icons/lu";
+import ListLoadingSkeleton from "../../LoadingSkeleton/ListLoadingSkeleton";
 
 const fetchProducts = async () => {
   const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
@@ -41,11 +44,9 @@ const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedListing, setSelectedListing] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  // const [columnWidths, setColumnWidths] = useState([80, 80, 350, 80, 110]);
   const [columnWidths, setColumnWidths] = useState([
     80, 80, 350, 80, 90, 110, 90, 90,
   ]);
-
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
   const [selectedSku, setSelectedSku] = useState("");
@@ -62,13 +63,15 @@ const ListView = () => {
   const [filterScheduled, setFilterScheduled] = useState(false);
   const [selectedTimePeriod, setSelectedTimePeriod] = useState("7 D");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-  const [channelStockSortOrder, setChannelStockSortOrder] = useState(null); // State for sorting order
-  const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null); // State for FBA/FBM sorting order
+  const [channelStockSortOrder, setChannelStockSortOrder] = useState(null);
+  const [fbaFbmSortOrder, setFbaFbmSortOrder] = useState(null);
   const [statusSortOrder, setStatusSortOrder] = useState("asc");
   const [selectedStatus, setSelectedStatus] = useState("All");
+  const [productDetailLoading, setProductDetailLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-
   const itemsPerPage = 20;
+  const itemRefs = useRef([]);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -79,7 +82,7 @@ const ListView = () => {
   };
   const handleTimePeriodChange = (timePeriod) => {
     setSelectedTimePeriod(timePeriod);
-    setShowFilterDropdown(false); // Close the dropdown after selection
+    setShowFilterDropdown(false);
   };
 
   const {
@@ -92,8 +95,7 @@ const ListView = () => {
         setFilteredProducts(data.listings);
       }
     },
-    staleTime: Infinity,
-    // staleTime: 1000 * 60 * 5, // data is fresh for 5 minutes
+    staleTime: 1000 * 60 * 30, // data is fresh for 30 minutes
     cacheTime: 1000 * 60 * 30, // cache for 30 minutes
   });
 
@@ -113,7 +115,6 @@ const ListView = () => {
     getScheduledData();
   }, [productData, filterScheduled, searchTerm]);
 
-  // calculate paginated data
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredProducts.slice(
@@ -125,12 +126,17 @@ const ListView = () => {
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
+    setSelectedRowIndex(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
   };
+
   const toggleChannelStockSort = () => {
     const newOrder = channelStockSortOrder === "asc" ? "desc" : "asc";
     setChannelStockSortOrder(newOrder);
 
-    // Sort displayedProducts based on channel stock value
     const sortedProducts = [...filteredProducts].sort((a, b) => {
       const stockA =
         a.fulfillmentChannel === "DEFAULT"
@@ -143,108 +149,35 @@ const ListView = () => {
           : (b.fulfillableQuantity ?? 0) +
             (b.pendingTransshipmentQuantity ?? 0);
 
-      if (newOrder === "asc") {
-        return stockA - stockB;
-      } else {
-        return stockB - stockA;
-      }
+      return newOrder === "asc" ? stockA - stockB : stockB - stockA;
     });
 
     setFilteredProducts(sortedProducts);
   };
 
-  // Function to toggle sorting for FBA/FBM column
-  // const toggleFbaFbmSort = () => {
-  //   const newOrder = fbaFbmSortOrder === "asc" ? "desc" : "asc";
-  //   setFbaFbmSortOrder(newOrder);
-
-  //   // Sort displayedProducts based on FBA/FBM value
-  //   const sortedProducts = [...filteredProducts].sort((a, b) => {
-  //     const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-  //     const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-
-  //     if (newOrder === "asc") {
-  //       return fulfillmentA.localeCompare(fulfillmentB);
-  //     } else {
-  //       return fulfillmentB.localeCompare(fulfillmentA);
-  //     }
-  //   });
-
-  //   setFilteredProducts(sortedProducts);
-  // };
-
-  // Function to toggle sorting for FBA/FBM column based on selected option
-  const toggleFbaFbmSort = (option) => {
-    let sortedProducts;
-
-    if (option === "All") {
-      sortedProducts = [...filteredProducts];
-    } else {
-      sortedProducts = [...filteredProducts].sort((a, b) => {
-        const fulfillmentA = a.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-        const fulfillmentB = b.fulfillmentChannel === "DEFAULT" ? "FBM" : "FBA";
-
-        if (option === "FBA") {
-          return fulfillmentA === "FBA" ? -1 : 1;
-        } else if (option === "FBM") {
-          return fulfillmentA === "FBM" ? -1 : 1;
-        }
-      });
-    }
-
-    setFilteredProducts(sortedProducts);
-  };
-  // Define priority order for status
   const statusPriority = {
     Active: 1,
     Inactive: 3,
     Incomplete: 2,
   };
 
-  // Function to toggle sorting for Status column
   const toggleStatusSort = () => {
     const newOrder = statusSortOrder === "asc" ? "desc" : "asc";
     setStatusSortOrder(newOrder);
 
-    // Sort displayedProducts based on Status priority
     const sortedProducts = [...filteredProducts].sort((a, b) => {
-      const statusA =
-        statusPriority[
-          a.status.trim().toLowerCase().charAt(0).toUpperCase() +
-            a.status.slice(1)
-        ] ?? Number.MAX_VALUE;
-      const statusB =
-        statusPriority[
-          b.status.trim().toLowerCase().charAt(0).toUpperCase() +
-            b.status.slice(1)
-        ] ?? Number.MAX_VALUE;
+      const statusA = statusPriority[a.status] ?? Number.MAX_VALUE;
+      const statusB = statusPriority[b.status] ?? Number.MAX_VALUE;
 
-      if (newOrder === "asc") {
-        return statusA - statusB;
-      } else {
-        return statusB - statusA;
-      }
+      return newOrder === "asc" ? statusA - statusB : statusB - statusA;
     });
-
-    // Sort displayedProducts based on Status priority
-    // const sortedProducts = [...filteredProducts].sort((a, b) => {
-    //   const statusA = statusPriority[a.status] ?? Number.MAX_VALUE; // Fallback for unlisted statuses
-    //   const statusB = statusPriority[b.status] ?? Number.MAX_VALUE;
-
-    //   if (newOrder === "asc") {
-    //     return statusA - statusB;
-    //   } else {
-    //     return statusB - statusA;
-    //   }
-    // });
 
     setFilteredProducts(sortedProducts);
   };
 
   const renderPaginationButtons = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 3; // Adjust this for how many pages to show around the current page
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const maxPagesToShow = 3;
 
     for (let i = 1; i <= totalPages; i++) {
       if (
@@ -269,41 +202,46 @@ const ListView = () => {
     ));
   };
 
-  const debouncedFilterProducts = useCallback(
-    debounce((value) => {
-      filterProducts(
-        productData?.listings || [],
-        scheduledData,
-        filterScheduled,
-        value
-      );
-    }, 300),
-    [productData, scheduledData, filterScheduled]
-  );
   const handleSearch = (e) => {
     const value = e.target.value;
-    setSearchTerm(value); // Update search term immediately in the input
-    debouncedFilterProducts(value); // Apply debounced filtering
+    setSearchTerm(value);
+    debouncedFilterProducts(value);
+    setSelectedRowIndex(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
     setCurrentPage(1);
   };
+
+  const debouncedFilterProducts = useCallback(
+    debounce(async (value) => {
+      setIsSearching(true);
+      try {
+        const response = await axios.get(`${BASE_URL}/api/product/${value}`);
+        const searchResults = response.data;
+
+        setFilteredProducts(searchResults.listings || []);
+      } catch (error) {
+        console.error("Error fetching search results:", error.message);
+        setFilteredProducts([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300),
+    []
+  );
 
   const handleClearInput = () => {
     setSearchTerm("");
     debouncedFilterProducts("");
     setCurrentPage(1);
-  };
-
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      const value = event.target.value || "";
-      setSearchTerm(value);
-      filterProducts(
-        productData?.listings || [],
-        scheduledData,
-        filterScheduled,
-        value
-      ); // Immediate filtering on Enter press
-    }
+    setSelectedRowIndex(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
+    setFilteredProducts(productData.listings);
   };
 
   const filterProducts = (products, scheduled, onlyScheduled, searchValue) => {
@@ -312,7 +250,6 @@ const ListView = () => {
 
     if (onlyScheduled) {
       const scheduledAsins = scheduled
-
         .filter(
           (item) =>
             item.status !== "deleted" &&
@@ -321,7 +258,6 @@ const ListView = () => {
               item.endDate === null ||
               (item.endDate && new Date(item.endDate) >= now))
         )
-
         .map((item) => item.sku);
 
       filtered = products.filter((product) =>
@@ -342,18 +278,33 @@ const ListView = () => {
     }
 
     setFilteredProducts(filtered);
+    return filtered;
   };
 
   const handleToggleFilter = () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
-    filterProducts(
-      productData?.listings || [],
-      scheduledData,
-      newFilterScheduled,
-      searchTerm
-    );
+
+    setSelectedRowIndex(null);
+    setSelectedProduct(null);
+    setSelectedAsin("");
+    setSelectedSku("");
+    setSelectedFnSku("");
+    setSelectedPrice("");
+
+    if (newFilterScheduled) {
+      const filtered = filterProducts(
+        productData?.listings || [],
+        scheduledData,
+        newFilterScheduled,
+        searchTerm
+      );
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts(productData?.listings || []);
+    }
   };
+
   const handleSetChannelStockValue = (
     fulfillmentChannel,
     quantity,
@@ -381,7 +332,8 @@ const ListView = () => {
     fulfillmentChannel,
     quantity,
     fulfillableQuantity,
-    pendingTransshipmentQuantity
+    pendingTransshipmentQuantity,
+    item
   ) => {
     if (selectedRowIndex === index) {
       setSelectedRowIndex(null);
@@ -416,7 +368,6 @@ const ListView = () => {
         ]);
 
         setSelectedProduct(responseOne.data.payload);
-
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -424,7 +375,33 @@ const ListView = () => {
     }
   };
 
-  // Fetch product details when Update Price button is clicked
+  const fetchProductsByChannel = async (channel) => {
+    // setIsSearching(true); // Show loading indicator
+    try {
+      let url = `${BASE_URL}/api/product/channel`;
+
+      if (channel === "FBA") {
+        url += "/AMAZON_NA"; // Append for FBA
+      } else if (channel === "FBM") {
+        url += "/DEFAULT"; // Append for FBM
+      }
+
+      const response = await axios.get(url);
+      const products = response.data;
+
+      setFilteredProducts(products.products || []); // Update displayed products
+      sessionStorage.setItem(
+        "filteredProducts",
+        JSON.stringify(products.products || [])
+      ); // Save results in sessionStorage
+    } catch (error) {
+      console.error("Error fetching products by channel:", error.message);
+      setFilteredProducts([]); // Clear products on error
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleUpdate = async (
     price,
     sku1,
@@ -437,7 +414,7 @@ const ListView = () => {
     index,
     e
   ) => {
-    e.stopPropagation(); // Prevent row click from being triggered
+    e.stopPropagation();
 
     if (!asin) {
       console.error("ASIN is not provided. Modal will not open.");
@@ -459,7 +436,6 @@ const ListView = () => {
         pendingTransshipmentQuantity
       );
 
-      // Fetch product details and set the selected product
       const response = await axios.get(`${BASE_URL}/details/${asin}`);
       setSelectedProduct(response.data.payload);
       const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
@@ -468,6 +444,7 @@ const ListView = () => {
       console.error("Error fetching product details:", error.message);
     }
   };
+
   const handleCloseUpdateModal = () => {
     setShowUpdateModal(false);
   };
@@ -514,31 +491,23 @@ const ListView = () => {
       });
   };
 
-  if (isLoading)
-    return (
-      <div
-        style={{
-          marginTop: "100px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh",
-        }}
-      >
-        {/* <Spinner animation="border" /> Loading... */}
-        <img
-          style={{ width: "40px", marginRight: "6px" }}
-          className="animate-pulse"
-          src={priceoboIcon}
-          alt="Priceobo Icon"
-        />
-        <br />
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      const value = event.target.value || "";
+      setSearchTerm(value);
+      filterProducts(
+        productData?.listings || [],
+        scheduledData,
+        filterScheduled,
+        value
+      );
+    }
+  };
 
-        <div className="block">
-          <p className="text-xl"> Loading...</p>
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <ListLoadingSkeleton></ListLoadingSkeleton>;
+  }
+
   if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
 
   return (
@@ -552,6 +521,8 @@ const ListView = () => {
         fnSku={selectedFnSku}
         channelStockValue={channelStockValue}
         fulfillmentChannel={fulfillmentChannel}
+        productDetailLoading={productDetailLoading}
+        setProductDetailLoading={setProductDetailLoading}
       />
 
       <div>
@@ -564,7 +535,6 @@ const ListView = () => {
               type="text"
               placeholder="Search Title/ASIN/SKU/FNSKU"
               value={searchTerm}
-              // onChange={(e) => handleSearch(e.target.value)}
               onChange={handleSearch}
               onKeyDown={handleKeyPress}
               style={{ borderRadius: "0px" }}
@@ -574,14 +544,6 @@ const ListView = () => {
               <button
                 onClick={handleClearInput}
                 className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
-                style={
-                  {
-                    // backgroundColor: "transparent",
-                    // border: "none",
-                    // fontSize: "16px",
-                    // cursor: "pointer",
-                  }
-                }
               >
                 <MdOutlineClose />
               </button>
@@ -592,7 +554,7 @@ const ListView = () => {
         <Button
           style={{
             borderRadius: "2px",
-            // marginTop: "100px",
+
             backgroundColor: "#0D6EFD",
             border: "none",
             position: "absolute ",
@@ -614,28 +576,23 @@ const ListView = () => {
               className=" rounded-md "
               style={{
                 overflowY: "auto",
-                // overflowY: "scroll",
-                // maxHeight: "calc(100vh - 20px)",
+
                 marginTop: "50px",
                 boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
                 maxHeight: "91vh",
               }}
             >
               <table
-                // hover
-                // responsive
                 style={{ width: "100%", tableLayout: "fixed" }}
                 className="listCustomTable  table "
               >
                 <thead
                   className="tableHeader"
                   style={{
-                    // backgroundColor: "#f0f0f0",
                     fontFamily: "Arial, sans-serif",
                     fontSize: "13px",
                     position: "sticky",
                     top: 0,
-                    // fontWeight: 0,
                   }}
                 >
                   <tr className="">
@@ -643,21 +600,13 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[0]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
-                        // position: "sticky", // Sticky header
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
                     >
                       <p className="flex  items-center justify-center gap-1">
                         Status
-                        {/* <ListStatusDropdown></ListStatusDropdown>
-                        <IoFunnelOutline
-                          size={15}
-                          style={{ cursor: "pointer", marginLeft: "8px" }}
-                          onClick={toggleStatusSort}
-                        /> */}
                       </p>
                       <div
                         style={{
@@ -675,8 +624,7 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[1]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -700,8 +648,7 @@ const ListView = () => {
                       style={{
                         width: `${columnWidths[2]}px`,
                         minWidth: "80px",
-                        // position: "relative",
-                        // whiteSpace: "nowrap",
+
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         textAlign: "center",
@@ -725,8 +672,7 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[3]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -748,8 +694,7 @@ const ListView = () => {
                       className="tableHeader"
                       style={{
                         width: `${columnWidths[4]}px`,
-                        // minWidth: "80px",
-                        // position: "relative",
+
                         textAlign: "center",
                         borderRight: "2px solid #C3C6D4",
                       }}
@@ -757,13 +702,8 @@ const ListView = () => {
                       <p className="flex  items-center justify-center gap-1">
                         FBA/FBM
                         <ListFbaDropdown
-                          toggleFbaFbmSort={toggleFbaFbmSort}
+                          onChannelChange={fetchProductsByChannel}
                         ></ListFbaDropdown>
-                        {/* <IoFunnelOutline
-                          size={15}
-                          style={{ cursor: "pointer", marginLeft: "8px" }}
-                          onClick={toggleFbaFbmSort}
-                        /> */}
                       </p>
                       <div
                         style={{
@@ -876,9 +816,9 @@ const ListView = () => {
                   }}
                 >
                   {currentItems.map((item, index) => (
-                    // {filteredProducts.slice(0, 20).map((item, index) => (
                     <tr
                       key={index}
+                      ref={(el) => (itemRefs.current[index] = el)} // Store reference to each row element
                       onClick={() =>
                         handleProductSelect(
                           item?.price,
@@ -889,7 +829,8 @@ const ListView = () => {
                           item.fulfillmentChannel,
                           item.quantity,
                           item.fulfillableQuantity,
-                          item.pendingTransshipmentQuantity
+                          item.pendingTransshipmentQuantity,
+                          item
                         )
                       }
                       style={{
@@ -1065,7 +1006,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
-                        ${item?.price}
+                        ${parseFloat(item?.price).toFixed(2)}
                       </td>
                       <td
                         style={{
@@ -1187,43 +1128,26 @@ const ListView = () => {
             </div>
           ) : (
             filterScheduled && (
-              <div
-                // style={{
-                //   marginTop: "20px",
-                //   height: "20vh",
-                //   color: "#888",
-                //   display: "flex",
-                //   textAlign: "center",
-                //   justifyContent: "center",
-                // }}
-
-                className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]"
-              >
+              <div className="flex justify-center items-center text-[#888] h-[20vh] mt-[10%]">
                 There is no active schedule.
               </div>
             )
           )}
         </div>
         <div
-          // className="fixed"
           style={{
             paddingLeft: "0px",
             marginTop: "20px",
             paddingRight: "0px",
             width: "32%",
-            // position: "fixed",
-            // top: "20px",
-            // right: "10px",
+
             height: "93vh ",
-            // overflowX: "auto",
           }}
         >
           {selectedProduct && selectedListing && selectedAsin ? (
-            <div
-              style={{ marginTop: "20px" }}
-              // style={{ marginTop: "20px", position: "fixed", width: "510px" }}
-            >
+            <div style={{ marginTop: "20px" }}>
               <ProductDetailView
+                key={selectedAsin}
                 product={selectedProduct}
                 listing={selectedListing}
                 asin={selectedAsin}
@@ -1232,24 +1156,20 @@ const ListView = () => {
                 price={selectedPrice}
                 channelStockValue={channelStockValue}
                 fulfillmentChannel={fulfillmentChannel}
+                productDetailLoading={productDetailLoading}
+                setProductDetailLoading={setProductDetailLoading}
               />
-              {/* {selectedAsin && <CalendarView asin={selectedAsin} />} */}
             </div>
           ) : (
             <div
               style={{
-                // marginTop: "20px",
                 paddingTop: "30px",
                 height: "93vh",
                 display: "flex",
-
-                // justifyContent: "center",
-                // alignItems: "center",
               }}
             >
               <Card
                 style={{
-                  // padding: "20px",
                   width: "100%",
                   boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
                   textAlign: "center",

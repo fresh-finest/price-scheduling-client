@@ -1,7 +1,6 @@
 import React from "react";
 
-import ListView from "../components/List/ListView";
-
+import ListView from "../components/List/ListView/ListView";
 
 function List() {
   return (
