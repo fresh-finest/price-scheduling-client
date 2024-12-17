@@ -9,7 +9,7 @@ import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
 import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
-import { MdCheck, MdOutlineArrowBackIos } from "react-icons/md";
+import { MdCheck, MdOutlineArrowBackIos, MdOutlineClose } from "react-icons/md";
 import { BsClipboardCheck } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
@@ -273,8 +273,14 @@ const SaleDetailsModal = ({
         onHide={handleSaleDetailsModalClose}
         className="saleDetailsModal"
       >
-        <Modal.Header closeButton></Modal.Header>
+        {/* <Modal.Header closeButton></Modal.Header> */}
         <Modal.Body className="update-price-list-modal-body">
+          <button
+            className="px-2 py-1 hover:bg-gray-200 rounded-md transition-all duration-200 absolute right-1 top-1"
+            onClick={handleSaleDetailsModalClose}
+          >
+            <MdOutlineClose className="text-xl" />
+          </button>
           <div className="">
             {productDetails ? (
               <div className="flex max-w-[50%] px-2 py-2 rounded mt-[-8px] gap-2">
@@ -358,15 +364,7 @@ const SaleDetailsModal = ({
               <SaleDetailsProductDetailSkeleton />
             )}
             <div className="flex  items-center">
-              <Button
-                variant="outline"
-                className=" my-1"
-                onClick={() => navigate(-1)}
-              >
-                <MdOutlineArrowBackIos className="mr-1" /> Back
-              </Button>
-
-              <div className="flex-1 flex justify-center">
+              <div className="flex-1 flex justify-center mb-2">
                 <AutomatePrice
                   sku={sku}
                   asin={asin}

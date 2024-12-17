@@ -25,9 +25,11 @@ const ListSalePopover = ({
   setSelectedUnit,
   inputValue,
   setInputValue,
+  filters,
 }) => {
   const handleDaySelection = (value) => {
     const selectedOption = dayOptions.find((option) => option.value === value);
+    console.log("selected option", selectedOption);
     setSelectedDay(selectedOption);
   };
 
@@ -50,7 +52,11 @@ const ListSalePopover = ({
     <Popover className="p-0">
       <PopoverTrigger asChild>
         <button className="focus:outline-none">
-          <CiFilter className="text-base" />
+          <CiFilter
+            className={`text-base ${
+              filters?.salesCondition?.value ? "text-blue-600" : ""
+            }`}
+          />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-3 space-y-3">

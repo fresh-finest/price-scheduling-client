@@ -171,7 +171,6 @@ const UpdatePriceFromList = ({
     },
   ]);
 
-  console.log("schedules", schedules);
   const [title, setTitle] = useState("");
   const [imageURL, setImageUrl] = useState("");
   const { currentUser } = useSelector((state) => state.user);
@@ -495,7 +494,6 @@ const UpdatePriceFromList = ({
           }
         }
       } else if (timeZone === "Asia/Dhaka") {
-        console.log("timeZone from asia " + timeZone);
         if (parseInt(date) === currentDayOfMonth) {
           // If the selected day is today, check the time
           for (let slot of slots) {
