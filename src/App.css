@@ -71,3 +71,39 @@ input[type="number"] {
 .modal-backdrop {
   --bs-backdrop-bg: none;
 }
+
+.ant-picker-dropdown {
+  z-index: 1060 !important; /* Ensure it appears above Bootstrap modals */
+}
+.ant-picker-footer {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  /* background-color: red; */
+}
+
+.ant-datePicker-input {
+  border: 1px solid lightgray;
+}
+.ant-datePicker-input:hover {
+  border: 1px solid lightgray;
+}
+
+.ant-picker-presets {
+  height: 350px !important;
+}
+.form-check-input {
+  border: 1px solid lightgray !important;
+}
+.form-check-input:checked {
+  border: 1px solid #0d6efd !important;
+}
+
+.btn-close {
+  font-size: 12px !important;
+}
+.btn-close:hover {
+  background-color: #e5e7eb;
+}
+.btn-close:focus {
+  box-shadow: none;
+}

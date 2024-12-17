@@ -20,7 +20,7 @@ const ListChannelStockPopover = ({
   handleChannelStockPopoverSubmit,
 
   unitOptions,
-
+  filters,
   selectedChannelStockUnit,
   setSelectedChannelStockUnit,
   channelStockInputValue,
@@ -45,7 +45,11 @@ const ListChannelStockPopover = ({
     <Popover className="p-0">
       <PopoverTrigger asChild>
         <button className="focus:outline-none">
-          <CiFilter className="text-base" />
+          <CiFilter
+            className={`text-base ${
+              filters?.stockCondition?.value ? "text-blue-600" : ""
+            }`}
+          />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-3 space-y-3">

@@ -19,7 +19,14 @@ const ListViewTable = ({
   currentUser,
   selectedTimePeriod,
   getUnitCountForTimePeriod,
+  selectedDay,
 }) => {
+  console.log("selected day", selectedDay);
+  const getUnitsForSelectedTime = (salesMetrics, selectedDay) => {
+    const metric = salesMetrics.find((m) => m.time === selectedDay.value);
+    return metric ? metric.totalUnits : "N/A";
+  };
+
   return (
     <tr
       key={index}
@@ -262,7 +269,10 @@ const ListViewTable = ({
               selectedTimePeriod
             )}`
           : "N/A"} */}
-        {item.salesMetrics[0].totalUnits}
+        {/* {item.salesMetrics[0].totalUnits} */}
+        {item.salesMetrics
+          ? getUnitsForSelectedTime(item.salesMetrics, selectedDay)
+          : "N/A"}
       </td>
       <td
         style={{
