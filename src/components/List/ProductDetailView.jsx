@@ -22,8 +22,8 @@ import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeleton";
 import SaleDetailsModal from "../Report/SaleDetailsModal";
 
-// const BASE_URL = `https://api.priceobo.com`;
-const BASE_URL = "http://192.168.0.141:3000";
+const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://192.168.0.141:3000";
 // const BASE_URL = "http://localhost:3000";
 const dayNames = [
   "Sunday",

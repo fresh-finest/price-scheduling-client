@@ -14,14 +14,14 @@ import ProductDetailView from "../ProductDetailView";
 
 import noImage from "../../../assets/images/noimage.png";
 
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.141:3000";
+const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://192.168.0.141:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
 // const BASE_URL_LIST = `https://api.priceobo.com`;
-// const BASE_URL_LIST = "http://localhost:3000";
-const BASE_URL_LIST = "http://192.168.0.141:3000";
+const BASE_URL_LIST = "http://localhost:3000";
+// const BASE_URL_LIST = "http://192.168.0.141:3000";
 
 import { BsFillInfoSquareFill } from "react-icons/bs";
 
@@ -77,6 +77,7 @@ const ListView = () => {
 
   const [inputValue, setInputValue] = useState("");
   const [channelStockInputValue, setChannelStockInputValue] = useState("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // fbm/fbm , sale, channel stock
   const [filters, setFilters] = useState({
@@ -87,9 +88,7 @@ const ListView = () => {
 
   const itemsPerPage = 20;
   const itemRefs = useRef([]);
-
-  console.log(filteredProducts);
-
+  const isFirstRender = useRef(true);
   const { currentUser } = useSelector((state) => state.user);
 
   const dayOptions = [
@@ -157,9 +156,10 @@ const ListView = () => {
       const response = await axios.get(
         `${BASE_URL}/api/product/limit?page=${page}`
       );
-      console.log("response", response.data.data);
+
       setFilteredProducts(response.data.data);
     } catch (err) {
+      console.error(err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -172,8 +172,6 @@ const ListView = () => {
       const url = buildApiUrl(page);
 
       const response = await axios.get(url);
-
-      console.log(response.data);
 
       setFilteredProducts(response.data.metadata);
     } catch (error) {
@@ -206,8 +204,54 @@ const ListView = () => {
     []
   );
 
+  // useEffect(() => {
+  //   // Handle data fetching based on the mode
+  //   if (isSearchMode && searchTerm.trim()) {
+  //     debouncedFilterProducts(searchTerm, currentPage);
+  //   } else if (isScheduleSearchMode) {
+  //     fetchAllSchedule(currentPage);
+  //   } else if (isAllProductSearchMode) {
+  //     fetchAllProducts(currentPage);
+  //   } else if (isSaleSearchMode) {
+  //     fetchListSalesProduct(currentPage);
+  //   } else if (isChannelStockSearchMode) {
+  //     fetchListChannelStock(currentPage);
+  //   } else if (customFilterMode) {
+  //     fetchData(currentPage);
+  //   } else if (
+  //     !isSearchMode &&
+  //     !isFbaFbmSearchMode &&
+  //     !isScheduleSearchMode &&
+  //     !isAllProductSearchMode &&
+  //     !isSaleSearchMode &&
+  //     !isChannelStockSearchMode &&
+  //     !customFilterMode
+  //   ) {
+  //     fetchProducts(currentPage);
+  //   }
+  // }, [currentPage, isSearchMode]);
+
+  // useEffect(() => {
+  //   fetchProducts(1);
+  //   console.log("initial data load");
+  // }, []);
+
   useEffect(() => {
-    // Handle data fetching based on the mode
+    if (
+      filters.fulfillmentChannel ||
+      filters.salesCondition ||
+      filters.stockCondition
+    ) {
+      fetchData(1);
+    }
+  }, [filters]);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      fetchProducts(1); // Initial load
+      return;
+    }
+
     if (isSearchMode && searchTerm.trim()) {
       debouncedFilterProducts(searchTerm, currentPage);
     } else if (isScheduleSearchMode) {
@@ -219,30 +263,21 @@ const ListView = () => {
     } else if (isChannelStockSearchMode) {
       fetchListChannelStock(currentPage);
     } else if (customFilterMode) {
-      fetchData(currentPage);
-    } else if (
-      !isSearchMode &&
-      !isFbaFbmSearchMode &&
-      !isScheduleSearchMode &&
-      !isAllProductSearchMode &&
-      !isSaleSearchMode &&
-      !isChannelStockSearchMode &&
-      !customFilterMode
-    ) {
+      console.log("Custom filter mode logic hit. Fetching data...");
+      fetchData(currentPage); // Triggered when filters change
+    } else {
       fetchProducts(currentPage);
     }
-  }, [currentPage, isSearchMode]);
+  }, [
+    currentPage,
+    isSearchMode,
 
-  useEffect(() => {
-    fetchProducts(1);
-    console.log("initial data load");
-  }, []);
-
-  useEffect(() => {
-    fetchData(1);
-  }, [filters]);
-
-  console.log("filtered products", filteredProducts);
+    isScheduleSearchMode,
+    isAllProductSearchMode,
+    isSaleSearchMode,
+    isChannelStockSearchMode,
+    customFilterMode,
+  ]);
 
   const totalPages = Math.ceil(filteredProducts.totalProducts / itemsPerPage);
 
@@ -325,6 +360,11 @@ const ListView = () => {
   const handleSearch = (value, currentPage) => {
     if (!value.trim()) return;
     setIsSearching(true);
+    setFilters({
+      fulfillmentChannel: null,
+      stockCondition: null,
+      salesCondition: null,
+    });
     setIsSearchMode(true);
     setIsFbaFbmSearchMode(false);
     setIsScheduleSearchMode(false);
@@ -417,7 +457,11 @@ const ListView = () => {
   const handleToggleFilter = async () => {
     const newFilterScheduled = !filterScheduled;
     setFilterScheduled(newFilterScheduled);
-
+    setFilters({
+      fulfillmentChannel: null,
+      stockCondition: null,
+      salesCondition: null,
+    });
     setSelectedRowIndex(null);
     setSelectedProduct(null);
     setSelectedAsin("");
@@ -609,7 +653,11 @@ const ListView = () => {
       ...prev,
       fulfillmentChannel: channel,
     }));
+    console.log("FBA/FBM Search: Filters updated to", {
+      fulfillmentChannel: channel,
+    });
     setCustomFilterMode(true);
+    setSearchTerm("");
     setCurrentPage(1);
   };
 
@@ -677,6 +725,7 @@ const ListView = () => {
         },
       }));
     }
+    setSearchTerm("");
     setCustomFilterMode(true);
     setCurrentPage(1);
   };
@@ -699,6 +748,8 @@ const ListView = () => {
         },
       }));
     }
+    console.log("Channel Stock Search: Filters updated to", filters);
+    setSearchTerm("");
     setCustomFilterMode(true);
     setCurrentPage(1);
   };
@@ -720,7 +771,14 @@ const ListView = () => {
     );
   }
 
-  if (error) return <div style={{ marginTop: "100px" }}>{error.message}</div>;
+  if (error) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "100px" }}>
+        <h3 className="text-red-400">Something went wrong</h3>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -745,7 +803,7 @@ const ListView = () => {
           >
             <Form.Control
               type="text"
-              placeholder="Search Title/ASIN/SKU/FNSKU"
+              placeholder="Search Title/ASIN/SKU"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value.trim())}
               onKeyDown={handleKeyPress}
@@ -947,6 +1005,7 @@ const ListView = () => {
                     }}
                   >
                     <p className="flex  justify-center items-center gap-1">
+                      Channel Stock
                       <ListChannelStockPopover
                         handleChannelStockPopoverSubmit={
                           handleChannelStockPopoverSubmit
@@ -960,7 +1019,6 @@ const ListView = () => {
                         setChannelStockInputValue={setChannelStockInputValue}
                         filters={filters}
                       ></ListChannelStockPopover>
-                      Channel Stock
                     </p>
 
                     <div

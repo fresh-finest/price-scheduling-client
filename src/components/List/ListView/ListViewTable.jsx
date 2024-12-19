@@ -21,7 +21,6 @@ const ListViewTable = ({
   getUnitCountForTimePeriod,
   selectedDay,
 }) => {
-  console.log("selected day", selectedDay);
   const getUnitsForSelectedTime = (salesMetrics, selectedDay) => {
     const metric = salesMetrics.find((m) => m.time === selectedDay.value);
     return metric ? metric.totalUnits : "N/A";

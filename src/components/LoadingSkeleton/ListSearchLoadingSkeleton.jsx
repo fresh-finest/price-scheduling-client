@@ -28,7 +28,7 @@ const ListSearchLoadingSkeleton = ({
           >
             <Form.Control
               type="text"
-              placeholder="Search Title/ASIN/SKU/FNSKU"
+              placeholder="Search Title/ASIN/SKU"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value.trim())}
               onKeyDown={handleKeyPress}
