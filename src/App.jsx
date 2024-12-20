@@ -18,6 +18,7 @@ import Report from "./components/Report/Report";
 import SaleDetails from "./components/Report/SaleDetails";
 import ReportDetails from "./components/Report/ReportDetails";
 import UpdateSalePrice from "./components/List/UpdateSalePrice";
+import Automation from "./components/Automation/Automation";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/history" element={<History />} />
             <Route path="/sale-price" element={<UpdateSalePrice />} />
+            <Route path="/automation" element={<Automation />} />
             <Route
               path="/manage"
               element={

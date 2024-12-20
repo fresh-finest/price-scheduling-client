@@ -9,14 +9,7 @@ import {
   LabelList,
 } from "recharts";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "../ui/chart";
 
 const chartConfig = {
@@ -44,25 +37,22 @@ export default function ScheduleSalesDetailsBarChart({
     const startYear = startDate.getFullYear();
     const endYear = endDate.getFullYear();
 
-    // Format start date with the year
     const startFormat = startDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric", // Always include the year
+      year: "numeric",
       hour: "numeric",
       minute: "numeric",
     });
 
-    // Format end date with the year
     const endFormat = endDate.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-      year: "numeric", // Always include the year
+      year: "numeric",
       hour: "numeric",
       minute: "numeric",
     });
 
-    // Same day case
     if (startDate.toDateString() === endDate.toDateString()) {
       const endTime = endDate.toLocaleTimeString("en-US", {
         hour: "numeric",
@@ -71,7 +61,6 @@ export default function ScheduleSalesDetailsBarChart({
       return `${startFormat} - ${endTime}`;
     }
 
-    // Same year case but different days
     if (startYear === endYear) {
       const startWithoutYear = startDate.toLocaleDateString("en-US", {
         month: "short",
@@ -82,20 +71,17 @@ export default function ScheduleSalesDetailsBarChart({
       return `${startWithoutYear} - ${endFormat}`;
     }
 
-    // Different year case
     return `${startFormat} - ${endFormat}`;
   }
 
   const showLabels = scheduleSalesData.length <= 40;
 
-  // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const unitCount = payload[0].value;
       const price =
         payload[0].payload?.price || payload[0].payload?.averagePrice;
 
-      // Format the interval label
       const formattedInterval = formatXAxisLabel(label);
 
       return (

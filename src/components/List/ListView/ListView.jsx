@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 
 import { MdOutlineClose } from "react-icons/md";
@@ -6,7 +7,7 @@ import { MdOutlineClose } from "react-icons/md";
 import UpdatePriceFromList from "../UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { debounce } from "lodash";
+import { debounce, filter } from "lodash";
 
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import "./ListView.css";
@@ -14,16 +15,16 @@ import ProductDetailView from "../ProductDetailView";
 
 import noImage from "../../../assets/images/noimage.png";
 
-const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.141:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://192.168.0.141:3000";
 
 // const BASE_URL = `https://api.priceobo.com`;
 
 // const BASE_URL_LIST = `https://api.priceobo.com`;
-const BASE_URL_LIST = "http://localhost:3000";
-// const BASE_URL_LIST = "http://192.168.0.141:3000";
+// const BASE_URL_LIST = "http://localhost:3000";
+const BASE_URL_LIST = "http://192.168.0.141:3000";
 
-import { BsFillInfoSquareFill } from "react-icons/bs";
+import { BsDashCircle, BsFillInfoSquareFill } from "react-icons/bs";
 
 import { ListFbaDropdown } from "../../shared/ui/ListFbaDropdown";
 
@@ -33,6 +34,8 @@ import ListViewPagination from "./ListViewPagination";
 import ListSearchLoadingSkeleton from "@/components/LoadingSkeleton/ListSearchLoadingSkeleton";
 import ListSalePopover from "@/components/shared/ui/ListSalePopover";
 import ListChannelStockPopover from "@/components/shared/ui/ListChannelStockPopover";
+import Loading from "@/components/shared/ui/Loading";
+import { FadeLoader } from "react-spinners";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -48,7 +51,7 @@ const ListView = () => {
   const [isLoadingMode, setIsLoadingMode] = useState(false);
   const [customFilterMode, setCustomFilterMode] = useState(false);
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 90, 110, 90, 90,
+    70, 80, 350, 80, 90, 120, 90, 90,
   ]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
@@ -79,11 +82,15 @@ const ListView = () => {
   const [channelStockInputValue, setChannelStockInputValue] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  const [minValue, setMinValue] = useState("");
+  const [maxValue, setMaxValue] = useState("");
+
   // fbm/fbm , sale, channel stock
   const [filters, setFilters] = useState({
     fulfillmentChannel: null,
     stockCondition: null,
     salesCondition: null,
+    uid: null,
   });
 
   const itemsPerPage = 20;
@@ -106,6 +113,7 @@ const ListView = () => {
     { value: "==", label: "Equals" },
     { value: ">", label: "Greater than" },
     { value: "<", label: "Less than" },
+    { value: "between", label: "Between" },
   ];
 
   const [selectedDay, setSelectedDay] = useState(dayOptions[1]);
@@ -118,6 +126,31 @@ const ListView = () => {
     const metric = salesMetrics.find((metric) => metric.time === timePeriod);
     return metric ? metric.totalUnits : "N/A";
   };
+
+  // const buildApiUrl = (page) => {
+  //   const baseUrl = `${BASE_URL}/api/product/sale-stock`;
+
+  //   const params = new URLSearchParams({
+  //     page: page || 1,
+  //     limit: 20,
+  //   });
+
+  //   if (filters.fulfillmentChannel) {
+  //     console.log(filters.fulfillmentChannel);
+  //     params.append("fulfillmentChannel", filters.fulfillmentChannel);
+  //   }
+  //   if (filters.stockCondition) {
+  //     params.append("stockCondition", JSON.stringify(filters.stockCondition));
+  //   }
+  //   if (filters.salesCondition) {
+  //     params.append("salesCondition", JSON.stringify(filters.salesCondition));
+  //   }
+
+  //   const finalUrl = `${baseUrl}?${params.toString()}`;
+  //   console.log("Final URL:", finalUrl);
+
+  //   return finalUrl;
+  // };
 
   const buildApiUrl = (page) => {
     const baseUrl = `${BASE_URL}/api/product/sale-stock`;
@@ -136,15 +169,20 @@ const ListView = () => {
     if (filters.salesCondition) {
       params.append("salesCondition", JSON.stringify(filters.salesCondition));
     }
+    if (filters.uid) {
+      params.append("uid", filters.uid);
+    }
 
     const finalUrl = `${baseUrl}?${params.toString()}`;
+    console.log("Final URL:", finalUrl);
 
     return finalUrl;
   };
 
   const fetchProducts = async (page) => {
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
+      setIsSearching(true);
       setIsLoadingMode(true);
       setIsSearchMode(false);
       setIsFbaFbmSearchMode(false);
@@ -163,11 +201,12 @@ const ListView = () => {
       setError(err.message);
     } finally {
       setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
   const fetchData = async (page) => {
-    setIsLoading(true);
+    setIsSearching(true);
     try {
       const url = buildApiUrl(page);
 
@@ -178,7 +217,7 @@ const ListView = () => {
       console.error("Error fetching data:", error.message);
       setFilteredProducts([]);
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -204,43 +243,12 @@ const ListView = () => {
     []
   );
 
-  // useEffect(() => {
-  //   // Handle data fetching based on the mode
-  //   if (isSearchMode && searchTerm.trim()) {
-  //     debouncedFilterProducts(searchTerm, currentPage);
-  //   } else if (isScheduleSearchMode) {
-  //     fetchAllSchedule(currentPage);
-  //   } else if (isAllProductSearchMode) {
-  //     fetchAllProducts(currentPage);
-  //   } else if (isSaleSearchMode) {
-  //     fetchListSalesProduct(currentPage);
-  //   } else if (isChannelStockSearchMode) {
-  //     fetchListChannelStock(currentPage);
-  //   } else if (customFilterMode) {
-  //     fetchData(currentPage);
-  //   } else if (
-  //     !isSearchMode &&
-  //     !isFbaFbmSearchMode &&
-  //     !isScheduleSearchMode &&
-  //     !isAllProductSearchMode &&
-  //     !isSaleSearchMode &&
-  //     !isChannelStockSearchMode &&
-  //     !customFilterMode
-  //   ) {
-  //     fetchProducts(currentPage);
-  //   }
-  // }, [currentPage, isSearchMode]);
-
-  // useEffect(() => {
-  //   fetchProducts(1);
-  //   console.log("initial data load");
-  // }, []);
-
   useEffect(() => {
     if (
       filters.fulfillmentChannel ||
       filters.salesCondition ||
-      filters.stockCondition
+      filters.stockCondition ||
+      filters.uid
     ) {
       fetchData(1);
     }
@@ -248,6 +256,7 @@ const ListView = () => {
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      setIsLoading(true);
       fetchProducts(1); // Initial load
       return;
     }
@@ -257,12 +266,14 @@ const ListView = () => {
     } else if (isScheduleSearchMode) {
       fetchAllSchedule(currentPage);
     } else if (isAllProductSearchMode) {
-      fetchAllProducts(currentPage);
+      // fetchAllProducts(currentPage);
+      fetchProducts(currentPage);
     } else if (isSaleSearchMode) {
       fetchListSalesProduct(currentPage);
     } else if (isChannelStockSearchMode) {
       fetchListChannelStock(currentPage);
     } else if (customFilterMode) {
+      console.log(customFilterMode);
       console.log("Custom filter mode logic hit. Fetching data...");
       fetchData(currentPage); // Triggered when filters change
     } else {
@@ -357,52 +368,114 @@ const ListView = () => {
     ));
   };
 
-  const handleSearch = (value, currentPage) => {
-    if (!value.trim()) return;
-    setIsSearching(true);
-    setFilters({
-      fulfillmentChannel: null,
-      stockCondition: null,
-      salesCondition: null,
-    });
-    setIsSearchMode(true);
-    setIsFbaFbmSearchMode(false);
-    setIsScheduleSearchMode(false);
-    setIsAllProductSearchMode(false);
-    setIsSaleSearchMode(false);
-    setIsChannelStockSearchMode(false);
-    setIsLoadingMode(false);
-    setSelectedFbaFbmOption("");
-    setIsLoadingMode(false);
+  const handleSearch = (value) => {
+    if (!value.trim()) {
+      setFilters((prev) => {
+        const updatedFilters = { ...prev };
+        delete updatedFilters.uid;
+        return updatedFilters;
+      });
+    } else {
+      setFilters((prev) => ({
+        ...prev,
+        uid: value,
+      }));
+    }
+
+    setCustomFilterMode(true);
+    // setIsSearchMode(true);
     setSearchTerm(value);
-    setFilteredProducts([]);
-
-    debouncedFilterProducts(value, currentPage);
-
-    setSelectedRowIndex(null);
-    setSelectedAsin("");
-    setSelectedSku("");
-    setSelectedFnSku("");
-    setSelectedPrice("");
-
     setCurrentPage(1);
   };
+
+  // const handleSearch = (value, currentPage) => {
+  //   if (!value.trim()) return;
+  //   setIsSearching(true);
+  //   setFilters({
+  //     fulfillmentChannel: null,
+  //     stockCondition: null,
+  //     salesCondition: null,
+  //   });
+  //   setIsSearchMode(true);
+  //   setIsFbaFbmSearchMode(false);
+  //   setIsScheduleSearchMode(false);
+  //   setIsAllProductSearchMode(false);
+  //   setIsSaleSearchMode(false);
+  //   setIsChannelStockSearchMode(false);
+  //   setIsLoadingMode(false);
+  //   setSelectedFbaFbmOption("");
+  //   setIsLoadingMode(false);
+  //   setSearchTerm(value);
+  //   setFilteredProducts([]);
+
+  //   debouncedFilterProducts(value, currentPage);
+
+  //   setSelectedRowIndex(null);
+  //   setSelectedAsin("");
+  //   setSelectedSku("");
+  //   setSelectedFnSku("");
+  //   setSelectedPrice("");
+
+  //   setCurrentPage(1);
+  // };
+
+  // const handleClearInput = () => {
+  //   setSearchTerm("");
+  //   setIsSearchMode(false);
+
+  //   // debouncedFilterProducts("");
+  //   // setCurrentPage(1);
+
+  //   setSelectedRowIndex(null);
+
+  //   setSelectedAsin("");
+  //   setSelectedSku("");
+  //   setSelectedFnSku("");
+  //   setSelectedPrice("");
+
+  //   // fetchProducts(currentPage);
+  // };
 
   const handleClearInput = () => {
     setSearchTerm("");
     setIsSearchMode(false);
-
-    debouncedFilterProducts("");
+    setFilters((prev) => {
+      const updatedFilters = { ...prev };
+      delete updatedFilters.uid; // Remove UID from filters
+      return updatedFilters;
+    });
+    // fetchData(1);
     setCurrentPage(1);
+  };
 
-    setSelectedRowIndex(null);
-
-    setSelectedAsin("");
-    setSelectedSku("");
-    setSelectedFnSku("");
-    setSelectedPrice("");
-
-    fetchProducts(currentPage);
+  const handleClearFbaFbmSearch = () => {
+    setFilters((prev) => {
+      const updatedFilters = { ...prev };
+      delete updatedFilters.fulfillmentChannel;
+      return updatedFilters;
+    });
+    // fetchData(1);
+    setCurrentPage(1);
+  };
+  const handleClearChannelStockSearch = () => {
+    setFilters((prev) => {
+      const updatedFilters = { ...prev };
+      delete updatedFilters.stockCondition;
+      return updatedFilters;
+    });
+    setChannelStockInputValue("");
+    // fetchData(1);
+    setCurrentPage(1);
+  };
+  const handleClearSalesSearch = () => {
+    setFilters((prev) => {
+      const updatedFilters = { ...prev };
+      delete updatedFilters.salesCondition;
+      return updatedFilters;
+    });
+    // fetchData(1);
+    setInputValue("");
+    setCurrentPage(1);
   };
 
   const handleKeyPress = (event) => {
@@ -641,23 +714,25 @@ const ListView = () => {
   };
 
   const handleFbaFbmSearch = (option) => {
+    console.log(option);
     let channel = "";
 
     if (option === "FBA") {
       channel = "AMAZON_NA";
     } else if (option === "FBM") {
       channel = "DEFAULT";
+    } else if (option === "All") {
+      channel = null;
     }
 
     setFilters((prev) => ({
       ...prev,
       fulfillmentChannel: channel,
     }));
-    console.log("FBA/FBM Search: Filters updated to", {
-      fulfillmentChannel: channel,
-    });
+
     setCustomFilterMode(true);
-    setSearchTerm("");
+    setIsAllProductSearchMode(false);
+
     setCurrentPage(1);
   };
 
@@ -725,20 +800,46 @@ const ListView = () => {
         },
       }));
     }
-    setSearchTerm("");
+
     setCustomFilterMode(true);
     setCurrentPage(1);
   };
 
+  // const handleChannelStockPopoverSubmit = (event) => {
+  //   event.preventDefault();
+
+  //   if (!channelStockInputValue.trim()) {
+  //     setFilters((prev) => {
+  //       const updatedFilters = { ...prev };
+  //       delete updatedFilters.stockCondition;
+  //       return updatedFilters;
+  //     });
+  //   } else {
+  //     setFilters((prev) => ({
+  //       ...prev,
+  //       stockCondition: {
+  //         condition: selectedChannelStockUnit.value,
+  //         value: channelStockInputValue,
+  //       },
+  //     }));
+  //   }
+  //   console.log("Channel Stock Search: Filters updated to", filters);
+
+  //   setCustomFilterMode(true);
+  //   setCurrentPage(1);
+  // };
+
   const handleChannelStockPopoverSubmit = (event) => {
     event.preventDefault();
 
-    if (!channelStockInputValue.trim()) {
-      setFilters((prev) => {
-        const updatedFilters = { ...prev };
-        delete updatedFilters.stockCondition;
-        return updatedFilters;
-      });
+    if (selectedChannelStockUnit.value === "between") {
+      setFilters((prev) => ({
+        ...prev,
+        stockCondition: {
+          condition: "between",
+          value: [minValue, maxValue], // Pass the min and max values
+        },
+      }));
     } else {
       setFilters((prev) => ({
         ...prev,
@@ -748,8 +849,7 @@ const ListView = () => {
         },
       }));
     }
-    console.log("Channel Stock Search: Filters updated to", filters);
-    setSearchTerm("");
+
     setCustomFilterMode(true);
     setCurrentPage(1);
   };
@@ -758,18 +858,18 @@ const ListView = () => {
     return <ListLoadingSkeleton></ListLoadingSkeleton>;
   }
 
-  if (isSearching) {
-    return (
-      <ListSearchLoadingSkeleton
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        currentPage={currentPage}
-        handleSearch={handleSearch}
-        handleKeyPress={handleKeyPress}
-        handleClearInput={handleClearInput}
-      ></ListSearchLoadingSkeleton>
-    );
-  }
+  // if (isSearching) {
+  //   return (
+  //     <ListSearchLoadingSkeleton
+  //       searchTerm={searchTerm}
+  //       setSearchTerm={setSearchTerm}
+  //       currentPage={currentPage}
+  //       handleSearch={handleSearch}
+  //       handleKeyPress={handleKeyPress}
+  //       handleClearInput={handleClearInput}
+  //     ></ListSearchLoadingSkeleton>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -845,7 +945,6 @@ const ListView = () => {
           </span>
         </Button>
       </div>
-
       <section style={{ display: "flex", gap: "10px" }}>
         <div style={{ paddingRight: "3px", width: "70%" }}>
           <div
@@ -975,13 +1074,22 @@ const ListView = () => {
                       borderRight: "2px solid #C3C6D4",
                     }}
                   >
-                    <p className="flex  items-center justify-center gap-1">
+                    <p className="flex items-center justify-center gap-1">
+                      {filters.fulfillmentChannel && (
+                        <span>
+                          <BsDashCircle
+                            onClick={handleClearFbaFbmSearch}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        </span>
+                      )}
                       FBA/FBM
                       <ListFbaDropdown
                         selectedFbaFbmOption={filters.fulfillmentChannel}
                         onChannelChange={handleFbaFbmSearch}
-                      ></ListFbaDropdown>
+                      />
                     </p>
+
                     <div
                       style={{
                         width: "1px",
@@ -1005,6 +1113,14 @@ const ListView = () => {
                     }}
                   >
                     <p className="flex  justify-center items-center gap-1">
+                      {filters.stockCondition && (
+                        <span>
+                          <BsDashCircle
+                            onClick={handleClearChannelStockSearch}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        </span>
+                      )}
                       Channel Stock
                       <ListChannelStockPopover
                         handleChannelStockPopoverSubmit={
@@ -1018,6 +1134,10 @@ const ListView = () => {
                         channelStockInputValue={channelStockInputValue}
                         setChannelStockInputValue={setChannelStockInputValue}
                         filters={filters}
+                        minValue={minValue}
+                        maxValue={maxValue}
+                        setMinValue={setMinValue}
+                        setMaxValue={setMaxValue}
                       ></ListChannelStockPopover>
                     </p>
 
@@ -1045,6 +1165,14 @@ const ListView = () => {
                     }}
                   >
                     <p className="flex  items-center justify-center gap-1">
+                      {filters.salesCondition && (
+                        <span>
+                          <BsDashCircle
+                            onClick={handleClearSalesSearch}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        </span>
+                      )}
                       Sale
                       <ListSalePopover
                         handleListSalePopoverSubmit={
@@ -1104,7 +1232,48 @@ const ListView = () => {
                   </th>
                 </tr>
               </thead>
-              {filteredProducts?.listings?.length > 0 ? (
+              {isSearching ? (
+                <tbody>
+                  <tr>
+                    <td
+                      className="h-[83vh] text-base"
+                      colSpan="8"
+                      // style={{
+                      //   display: "flex",
+                      //   justifyContent: "center",
+                      //   alignItems: "center",
+                      //   border: "1px solid red",
+                      //   width: "100%",
+                      // }}
+
+                      style={{
+                        textAlign: "center",
+                        padding: "20px",
+                        border: "none",
+                      }}
+                    >
+                      {/* <div className="spinner mt-[30vh]"></div> */}
+                      {/* <Spinner animation="border" variant="primary" /> */}
+
+                      <div className="mt-[30vh]">
+                        <ClipLoader
+                          color="#0E6FFD"
+                          loading={true}
+                          cssOverride={{
+                            margin: "0 auto",
+                            borderWidth: "3px",
+                          }}
+                          size={40}
+                          // thickness={5}
+                          width={100}
+                          aria-label="Loading Spinner"
+                          data-testid="loader"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              ) : filteredProducts?.listings?.length > 0 ? (
                 <tbody
                   style={{
                     fontSize: "12px",
@@ -1152,7 +1321,7 @@ const ListView = () => {
               )}
             </table>
 
-            {filteredProducts?.listings?.length > 0 && (
+            {!isSearching && filteredProducts?.listings?.length > 0 && (
               <ListViewPagination
                 handlePageChange={handlePageChange}
                 currentPage={currentPage}

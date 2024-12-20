@@ -70,7 +70,6 @@ const ScheduleDetailsModal = ({
   const [editSchedule, setEditSchedule] = useState(null);
   const [editScheduleModalTitle, setEditScheduleModalTitle] = useState(null);
 
-  console.log("eventType:" + eventType);
   useEffect(() => {
     if (sku && show) {
       fetchScheduleDetails();
@@ -85,8 +84,6 @@ const ScheduleDetailsModal = ({
 
       // Filter the data according to event type and selected date
       const filteredData = filterDataByEventTypeAndDate(data);
-
-      console.log("filtered Data", filteredData);
 
       setScheduleData(filteredData);
       setLoading(false);
@@ -108,10 +105,7 @@ const ScheduleDetailsModal = ({
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
-  console.log("scheduleData", scheduleData);
-
   const filterDataByEventTypeAndDate = (data) => {
-    console.log("data", data);
     const now = new Date();
 
     let schedule = [];
@@ -144,38 +138,12 @@ const ScheduleDetailsModal = ({
     return schedule;
   };
 
-  // const filterDataByEventTypeAndDate = (data) => {
-
-  //   console.log("props data", data);
-  //   const schedule = data[0];
-
-  //   console.log("schedule", schedule);
-
-  //   if (!schedule) return null;
-
-  //   const filteredSchedule = { ...schedule };
-
-  //   console.log(filteredSchedule);
-
-  //   if (eventType === "monthly") {
-
-  //     filteredSchedule.monthlyTimeSlots = { ...schedule.monthlyTimeSlots };
-  //   }
-
-  //   if (eventType === "weekly" && weekly) {
-  //     filteredSchedule.weeklyTimeSlots = { ...schedule.weeklyTimeSlots };
-
-  //   }
-
-  //   return filteredSchedule;
-  // };
-
   const getDayLabelFromNumber = (dayNumber) => {
     return dayNames[dayNumber] || "";
   };
 
   const getDateLabelFromNumber = (dateNumber) => {
-    return dateNames[dateNumber - 1] || `Day ${dateNumber}`; // Fallback if dateNumber is out of range
+    return dateNames[dateNumber - 1] || `Day ${dateNumber}`;
   };
 
   const handleEdit = (schedule, scheduleType) => {
@@ -186,17 +154,11 @@ const ScheduleDetailsModal = ({
     setEditSchedule(null);
   };
 
-  // if (loading) {
-  //   return <p>Loading...</p>;
-  // }
-
   if (error) {
     return <p>{error}</p>;
   }
 
   const schedule = scheduleData; // After filtering
-
-  console.log("schedule from schedule details modal", schedule);
 
   function addHoursToTime(timeString, hoursToAdd) {
     if (!timeString || typeof timeString !== "string") {

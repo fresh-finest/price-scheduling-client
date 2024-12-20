@@ -9,52 +9,20 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./HistoryView.css";
 import { useSelector } from "react-redux";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
-import { useQuery, useQueryClient } from "react-query";
+import moment from "moment-timezone";
 
+import { useQuery, useQueryClient } from "react-query";
+import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { Card } from "../ui/card";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { IoIosArrowForward } from "react-icons/io";
 import { ListTypeDropdown } from "../shared/ui/ListTypeDropdown";
 import { HistoryUserFilterDropdown } from "../shared/ui/HistoryUserFilterDropdown";
 import HistoryLoadingSkeleton from "../LoadingSkeleton/HistoryLoadingSkeleton";
-import { PiCheckSquareLight } from "react-icons/pi";
+
+// const BASE_URL = "http://localhost:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = "http://localhost:3000";
-const fetchUsers = async () => {
-  const { data } = await axios.get(`${BASE_URL}/api/user`);
-  return data.result;
-};
-
-const fetchHistoryData = async (selectedUser) => {
-  console.log("hitted");
-  const mainUrl = selectedUser
-    ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-    : `${BASE_URL}/api/history`;
-  const { data } = await axios.get(mainUrl);
-
-  console.log("data", data);
-  return data.result || [];
-};
-
-// const fetchNestedLengths = async (mainData) => {
-//   const nestedDataPromises = mainData.map(async (item) => {
-//     try {
-//       const response = await axios.get(
-//         `${BASE_URL}/api/history/${item.scheduleId}`
-//       );
-//       return { scheduleId: item.scheduleId, length: response.data.length || 0 };
-//     } catch {
-//       return { scheduleId: item.scheduleId, length: 0 };
-//     }
-//   });
-
-//   const results = await Promise.all(nestedDataPromises);
-//   return results.reduce((acc, { scheduleId, length }) => {
-//     acc[scheduleId] = length;
-//     return acc;
-//   }, {});
-// };
 
 const dayNames = [
   "Sunday",
@@ -139,6 +107,18 @@ const displayTimeSlotsWithDayLabels = (
                 ? getDayLabelFromNumber(Number(key))
                 : getDateLabelFromNumber(Number(key))}
             </span>
+            {/* 
+      
+          <div className="flex flex-wrap gap-1">
+            {slots.map((slot, index) => (
+              <p key={index} className="flex-none">
+                {addHoursToTime(slot.startTime, addHours)} -{" "}
+                {addHoursToTime(slot.endTime, addHours)} New Price: {slot?.newPrice}{" "}
+                - End Price: {slot?.revertPrice}
+              </p>
+            ))}
+          </div> 
+          */}
           </div>
         ))}
       </div>
@@ -151,6 +131,8 @@ const displayWeekdays = (timeSlots) => {
     return <p>No time slots available</p>; // Handle undefined or null timeSlots
   }
 
+  // Array of weekdays to display based on your desired keys
+  // const weekdaysToDisplay = [0, 1, 2, 3, 4, 5, 6];
   const weekdaysToDisplay = Object.entries(timeSlots)
     .filter(([, slots]) => slots.length > 0) // Filter out empty slots
     .map(([day]) => Number(day)); // Convert keys back to numbers
@@ -159,6 +141,10 @@ const displayWeekdays = (timeSlots) => {
   const displayedWeekdays = weekdaysToDisplay.map((day) =>
     getDayLabelFromNumber(day)
   );
+
+  // const displayedWeekdays = weekdaysToDisplay
+  //   .filter((day) => day in timeSlots)
+  //   .map((day) => getDayLabelFromNumber(day));
 
   return (
     <Card className=" px-2 py-2 inline-block">
@@ -174,151 +160,79 @@ const displayWeekdays = (timeSlots) => {
 };
 
 export default function HistoryView() {
-  const [data, setData] = useState([]);
-
-  const [cachedData, setCachedData] = useState(null);
-
+  // const [data, setData] = useState([]);
+  // const [users, setUsers] = useState([]);
   const [nestedData, setNestedData] = useState({});
-
-  const [loading, setLoading] = useState(true);
+  const [expandedRow, setExpandedRow] = useState(null);
+  // const [selectedUser, setSelectedUser] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  // const [loading, setLoading] = useState(true);
   const [loadingNested, setLoadingNested] = useState(false);
-  const [error, setError] = useState(null);
-
+  // const [error, setError] = useState(null);
+  const [filterStartDate, setFilterStartDate] = useState(null); // Date range filter start date
+  const [filterEndDate, setFilterEndDate] = useState(null); // Date range filter end date
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
-  // const [lengthNested, setLengthNested] = useState(null);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [showSingleType, setShowSingleType] = useState(false);
-  // const [showWeeklyType, setShowWeeklyType] = useState(false);
-  // const [showMonthlyType, setShowMonthlyType] = useState(false);
-  // const [selectedUser, setSelectedUser] = useState("");
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStartDate, setFilterStartDate] = useState(null);
-  const [filterEndDate, setFilterEndDate] = useState(null);
+  const [lengthNested, setLengthNested] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [showSingleType, setShowSingleType] = useState(false);
   const [showWeeklyType, setShowWeeklyType] = useState(false);
   const [showMonthlyType, setShowMonthlyType] = useState(false);
-  const [expandedRow, setExpandedRow] = useState(null);
   const [selectedUser, setSelectedUser] = useState("");
+
   const queryClient = useQueryClient();
 
   const itemsPerPage = 20;
 
   const baseUrl = useSelector((state) => state.baseUrl.baseUrl);
+  /*
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/user`);
+        setUsers(response.data.result);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    };
 
-  // Fetch users
-  // const {
-  //   data: users,
-  //   isLoading: isUsersLoading,
-  //   isError: isUsersError,
-  // } = useQuery("users", fetchUsers);
-  const {
-    data: users = [],
-    isLoading: isUsersLoading,
-    isError: isUsersError,
-  } = useQuery("users", fetchUsers, {
-    staleTime: Infinity, // Cache users data indefinitely
-    cacheTime: Infinity, // Prevent refetching
-  });
+    fetchUsers();
+  }, []);
 
-  // Fetch main data
-  const {
-    data: mainData = [],
-    isLoading: isMainDataLoading,
-    isError: isMainDataError,
-  } = useQuery(["historyData", selectedUser], () =>
-    fetchHistoryData(selectedUser)
-  );
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch the main data
+        const mainUrl = selectedUser
+          ? `${BASE_URL}/api/schedule/${selectedUser}/list`
+          : `${BASE_URL}/api/history`;
 
-  // Fetch nested data
-  const nestedDataQuery = useQuery(
-    ["nestedData", expandedRow],
-    () => fetchNestedData(expandedRow),
-    {
-      enabled: !!expandedRow, // Fetch only when expandedRow exists
-    }
-  );
+        const mainResponse = await axios.get(mainUrl);
+        const mainData = mainResponse.data.result || [];
 
-  const { data: lengthNested = {}, isLoading: isNestedLoading } = useQuery(
-    ["nestedLengths", mainData],
-    () => fetchNestedLengths(mainData),
-    {
-      enabled: mainData.length > 0,
-    }
-  );
+        // Sort and filter main data
+        const sortedData = mainData
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .filter((item) => item.action === "created");
+        setData(sortedData);
+       
+      } catch (error) {
+        console.error("Data fetch error:", error);
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "An error occurred while fetching data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     try {https://api.priceobo.com/api/history
-  //       const response = await axios.get(`${BASE_URL}/api/user`);
-  //       setUsers(response.data.result);
-  //     } catch (err) {
-  //       console.error("Error fetching users:", err);
-  //     }
-  //   };
+    loadData();
+  }, []); // Add selectedUser as a dependency if the data should refresh when it changes
 
-  //   fetchUsers();
-  // }, []);
-
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     setLoading(true);
-  //     try {
-  //       // Fetch the main data
-  //       const mainUrl = selectedUser
-  //         ? `${BASE_URL}/api/schedule/${selectedUser}/list`
-  //         : `${BASE_URL}/api/history`;
-
-  //       const mainResponse = await axios.get(mainUrl);
-  //       const mainData = mainResponse.data.result || [];
-
-  //       // Sort and filter main data
-  //       const sortedData = mainData
-  //         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  //         .filter((item) => item.action === "created");
-  //       setData(sortedData);
-
-  //       // Fetch nested data in parallel
-  //       const nestedDataPromises = sortedData.map(async (item) => {
-  //         try {
-  //           const nestedUrl = `${BASE_URL}/api/history/${item.scheduleId}`;
-  //           const nestedResponse = await axios.get(nestedUrl);
-  //           return {
-  //             scheduleId: item.scheduleId,
-  //             length: nestedResponse.data.length || 0,
-  //           };
-  //         } catch {
-  //           return { scheduleId: item.scheduleId, length: 0 }; // Default to 0 on error
-  //         }
-  //       });
-
-  //       // Resolve all nested data promises
-  //       const nestedDataResults = await Promise.all(nestedDataPromises);
-  //       const nestedDataLengths = nestedDataResults.reduce(
-  //         (acc, { scheduleId, length }) => {
-  //           acc[scheduleId] = length;
-  //           return acc;
-  //         },
-  //         {}
-  //       );
-
-  //       setLengthNested(nestedDataLengths);
-  //     } catch (error) {
-  //       console.error("Data fetch error:", error);
-  //       setError(
-  //         error.response?.data?.message ||
-  //           error.message ||
-  //           "An error occurred while fetching data."
-  //       );
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadData();
-  // }, []); // Add selectedUser as a dependency if the data should refresh when it changes
+  console.log("nested length" + JSON.stringify(lengthNested));
 
   const fetchNestedData = async (scheduleId) => {
     setLoadingNested(true);
@@ -336,7 +250,53 @@ export default function HistoryView() {
       setLoadingNested(false);
     }
   };
+  */
+  /*
+  const handleRowClick = (scheduleId) => {
+    if (expandedRow === scheduleId) {
+      setExpandedRow(null); // Collapse the row if it's already expanded
+    } else {
+      setExpandedRow(scheduleId);
+      if (!nestedData[scheduleId]) {
+        fetchNestedData(scheduleId);
+      }
+    }
+  };
+*/
+  // Fetch users
+  const { data: users = [] } = useQuery(
+    "users",
+    async () => {
+      const response = await axios.get(`${BASE_URL}/api/user`);
+      return response.data.result;
+    },
+    {
+      staleTime: 1000 * 60 * 60 * 3, // Cache data for 3 hours
+      cacheTime: 1000 * 60 * 60 * 6, // Keep unused data in cache for 6 hours
+    }
+  );
 
+  // Fetch and process main data
+  const {
+    data: data = [],
+    isLoading: loading,
+    error,
+  } = useQuery(
+    ["history"],
+    async () => {
+      const response = await axios.get(`${BASE_URL}/api/history`);
+      const mainData = response.data.result || [];
+
+      // Sort and filter main data
+      return mainData
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .filter((item) => item.action === "created");
+    },
+    {
+      staleTime: 1000 * 60 * 60 * 3, // Cache data for 3 hours
+      cacheTime: 1000 * 60 * 60 * 6, // Keep unused data in cache for 6 hours
+    }
+  );
   const handleRowClick = async (scheduleId) => {
     if (expandedRow === scheduleId) {
       setExpandedRow(null); // Collapse the row if it's already expanded
@@ -378,12 +338,8 @@ export default function HistoryView() {
     setSearchTerm("");
   };
 
-  // const handleUserChange = (e) => {
-  //   setSelectedUser(e.target.value);
-  // };
-  const handleUserChange = (user) => {
-    setSelectedUser(user);
-    setCurrentPage(1); // Reset to the first page after user change
+  const handleUserChange = (e) => {
+    setSelectedUser(e.target.value);
   };
 
   const handleFilterDateChange = (dates) => {
@@ -391,7 +347,7 @@ export default function HistoryView() {
     setFilterStartDate(start);
     setFilterEndDate(end);
   };
-  // const formatDateTime = (dateString) => {
+  // const formatDateTime = (dateString,timeZone) => {
   //   const options = {
   //     day: "2-digit",
   //     month: "short",
@@ -399,11 +355,10 @@ export default function HistoryView() {
   //     hour: "numeric",
   //     minute: "numeric",
   //     hour12: true,
-  //     timeZone: "America/New_York",
+  //     timeZone: timeZone
   //   };
   //   return new Date(dateString).toLocaleString("en-US", options);
   // };
-
   const formatDateTime = (dateString, timeZone) => {
     const options = {
       day: "2-digit",
@@ -469,211 +424,27 @@ export default function HistoryView() {
       .join(", ");
   };
 
-  // const filteredData = data
-  //   .filter((item) => {
-  //     const displayData = getDisplayData(item);
-  //     // Filter by search term
-  //     return (
-  //       displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
-  //     );
-  //   })
-  //   .filter((item) => {
-  //     const displayData = getDisplayData(item);
-  //     const itemStartDate = displayData.startDate
-  //       ? new Date(displayData.startDate)
-  //       : null;
-  //     const itemEndDate = displayData.endDate
-  //       ? new Date(displayData.endDate)
-  //       : null;
-
-  //     // Date range filter
-  //     if (filterStartDate && filterEndDate) {
-  //       const adjustedEndDate = new Date(filterEndDate);
-  //       adjustedEndDate.setHours(23, 59, 59, 999);
-  //       return (
-  //         (itemStartDate &&
-  //           itemStartDate >= filterStartDate &&
-  //           itemStartDate <= adjustedEndDate) ||
-  //         (itemEndDate &&
-  //           itemEndDate >= filterStartDate &&
-  //           itemEndDate <= adjustedEndDate)
-  //       );
-  //     } else if (filterStartDate) {
-  //       return (
-  //         (itemStartDate && itemStartDate >= filterStartDate) ||
-  //         (itemEndDate && itemEndDate >= filterStartDate)
-  //       );
-  //     } else if (filterEndDate) {
-  //       const adjustedEndDate = new Date(filterEndDate);
-  //       adjustedEndDate.setHours(23, 59, 59, 999);
-  //       return (
-  //         (itemStartDate && itemStartDate <= adjustedEndDate) ||
-  //         (itemEndDate && itemEndDate <= adjustedEndDate)
-  //       );
-  //     }
-  //     return true;
-  //   })
-  //   .filter((item) => {
-  //     const displayData = getDisplayData(item);
-
-  //     // Type filter logic
-  //     const isSingleTypeMatch =
-  //       showSingleType &&
-  //       displayData.weekly === false &&
-  //       displayData.monthly === false;
-  //     const isWeeklyTypeMatch = showWeeklyType && displayData.weekly === true;
-  //     const isMonthlyTypeMatch =
-  //       showMonthlyType && displayData.monthly === true;
-
-  //     // If all are unchecked, show all types
-  //     if (!showSingleType && !showWeeklyType && !showMonthlyType) {
-  //       return true;
-  //     }
-
-  //     return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
-  //   })
-  //   .filter((item) => {
-  //     // User filter logic
-  //     if (selectedUser === "") {
-  //       return true; // Show all users if "All Users" is selected
-  //     }
-  //     return item.userName === selectedUser;
-  //   });
-  // const filteredData = mainData
-  //   .filter((item) => {
-  //     const displayData = item;
-  //     return (
-  //       displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
-  //     );
-  //   })
-  //   .filter((item) => {
-  //     const itemStartDate = item.startDate ? new Date(item.startDate) : null;
-  //     const itemEndDate = item.endDate ? new Date(item.endDate) : null;
-
-  //     if (filterStartDate && filterEndDate) {
-  //       const adjustedEndDate = new Date(filterEndDate);
-  //       adjustedEndDate.setHours(23, 59, 59, 999);
-  //       return (
-  //         (itemStartDate &&
-  //           itemStartDate >= filterStartDate &&
-  //           itemStartDate <= adjustedEndDate) ||
-  //         (itemEndDate &&
-  //           itemEndDate >= filterStartDate &&
-  //           itemEndDate <= adjustedEndDate)
-  //       );
-  //     } else if (filterStartDate) {
-  //       return (
-  //         (itemStartDate && itemStartDate >= filterStartDate) ||
-  //         (itemEndDate && itemEndDate >= filterStartDate)
-  //       );
-  //     } else if (filterEndDate) {
-  //       const adjustedEndDate = new Date(filterEndDate);
-  //       adjustedEndDate.setHours(23, 59, 59, 999);
-  //       return (
-  //         (itemStartDate && itemStartDate <= adjustedEndDate) ||
-  //         (itemEndDate && itemEndDate <= adjustedEndDate)
-  //       );
-  //     }
-  //     return true;
-  //   })
-  //   .filter((item) => {
-  //     const displayData = item;
-
-  //     const isSingleTypeMatch =
-  //       showSingleType &&
-  //       displayData.weekly === false &&
-  //       displayData.monthly === false;
-  //     const isWeeklyTypeMatch = showWeeklyType && displayData.weekly === true;
-  //     const isMonthlyTypeMatch =
-  //       showMonthlyType && displayData.monthly === true;
-
-  //     if (!showSingleType && !showWeeklyType && !showMonthlyType) {
-  //       return true;
-  //     }
-
-  //     return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
-  //   })
-  //   .filter((item) => {
-  //     if (!selectedUser) return true;
-  //     return item.userName === selectedUser;
-  //   });
-
-  // Filtering logic
-  // const filteredData = mainData
-  //   .filter((item) => {
-  //     return (
-  //       item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       item.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
-  //     );
-  //   })
-  //   .filter((item) => {
-  //     const itemStartDate = item.startDate ? new Date(item.startDate) : null;
-  //     const itemEndDate = item.endDate ? new Date(item.endDate) : null;
-
-  //     if (filterStartDate && filterEndDate) {
-  //       const adjustedEndDate = new Date(filterEndDate);
-  //       adjustedEndDate.setHours(23, 59, 59, 999);
-  //       return (
-  //         (itemStartDate &&
-  //           itemStartDate >= filterStartDate &&
-  //           itemStartDate <= adjustedEndDate) ||
-  //         (itemEndDate &&
-  //           itemEndDate >= filterStartDate &&
-  //           itemEndDate <= adjustedEndDate)
-  //       );
-  //     } else if (filterStartDate) {
-  //       return (
-  //         (itemStartDate && itemStartDate >= filterStartDate) ||
-  //         (itemEndDate && itemEndDate >= filterStartDate)
-  //       );
-  //     } else if (filterEndDate) {
-  //       const adjustedEndDate = new Date(filterEndDate);
-  //       adjustedEndDate.setHours(23, 59, 59, 999);
-  //       return (
-  //         (itemStartDate && itemStartDate <= adjustedEndDate) ||
-  //         (itemEndDate && itemEndDate <= adjustedEndDate)
-  //       );
-  //     }
-  //     return true;
-  //   })
-  //   .filter((item) => {
-  //     const isSingleTypeMatch = showSingleType && !item.weekly && !item.monthly;
-  //     const isWeeklyTypeMatch = showWeeklyType && item.weekly;
-  //     const isMonthlyTypeMatch = showMonthlyType && item.monthly;
-
-  //     if (!showSingleType && !showWeeklyType && !showMonthlyType) {
-  //       return true;
-  //     }
-
-  //     return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
-  //   })
-  //   .filter((item) => (selectedUser ? item.userName === selectedUser : true));
-
-  // Filtering logic
-  const filteredData = mainData
+  const filteredData = data
     .filter((item) => {
-      return item.action === "created"; // Show only "created" actions
-    })
-    .filter((item) => {
+      const displayData = getDisplayData(item);
+      // Filter by search term
       return (
-        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.asin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        displayData.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.userName?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     })
     .filter((item) => {
-      const itemStartDate = item.startDate ? new Date(item.startDate) : null;
-      const itemEndDate = item.endDate ? new Date(item.endDate) : null;
+      const displayData = getDisplayData(item);
+      const itemStartDate = displayData.startDate
+        ? new Date(displayData.startDate)
+        : null;
+      const itemEndDate = displayData.endDate
+        ? new Date(displayData.endDate)
+        : null;
 
+      // Date range filter
       if (filterStartDate && filterEndDate) {
         const adjustedEndDate = new Date(filterEndDate);
         adjustedEndDate.setHours(23, 59, 59, 999);
@@ -701,25 +472,36 @@ export default function HistoryView() {
       return true;
     })
     .filter((item) => {
-      const isSingleTypeMatch = showSingleType && !item.weekly && !item.monthly;
-      const isWeeklyTypeMatch = showWeeklyType && item.weekly;
-      const isMonthlyTypeMatch = showMonthlyType && item.monthly;
+      const displayData = getDisplayData(item);
 
+      // Type filter logic
+      const isSingleTypeMatch =
+        showSingleType &&
+        displayData.weekly === false &&
+        displayData.monthly === false;
+      const isWeeklyTypeMatch = showWeeklyType && displayData.weekly === true;
+      const isMonthlyTypeMatch =
+        showMonthlyType && displayData.monthly === true;
+
+      // If all are unchecked, show all types
       if (!showSingleType && !showWeeklyType && !showMonthlyType) {
         return true;
       }
 
       return isSingleTypeMatch || isWeeklyTypeMatch || isMonthlyTypeMatch;
     })
-    .filter((item) => (selectedUser ? item.userName === selectedUser : true));
-
-  // console.log(filteredData);
+    .filter((item) => {
+      // User filter logic
+      if (selectedUser === "") {
+        return true; // Show all users if "All Users" is selected
+      }
+      return item.userName === selectedUser;
+    });
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  // const totalPages = Math.ceil(data.length / itemsPerPage);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(data.length / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -753,15 +535,8 @@ export default function HistoryView() {
     ));
   };
 
-  console.log("isMainDataLoading", isMainDataLoading);
-
-  if (isMainDataLoading) {
-    console.log("isMainData Loading", isMainDataLoading);
-    return <HistoryLoadingSkeleton></HistoryLoadingSkeleton>;
-  }
-
-  if (isMainDataError || isUsersError)
-    return <div style={{ marginTop: "100px" }}>{error}</div>;
+  if (loading) return <HistoryLoadingSkeleton></HistoryLoadingSkeleton>;
+  if (error) return <div style={{ marginTop: "100px" }}>{error}</div>;
 
   return (
     <div>
@@ -784,7 +559,22 @@ export default function HistoryView() {
             </button>
           )}
         </InputGroup>
-
+        {/* <div className="absolute top-[7px] right-[25%]">
+          <Form.Control
+            as="select"
+            value={selectedUser}
+            onChange={handleUserChange}
+            style={{ borderRadius: "4px" }}
+            className="custom-input"
+          >
+            <option value="">All Users</option>
+            {users.map((user) => (
+              <option key={user._id} value={user.userName}>
+                Price Updated By {user.userName}
+              </option>
+            ))}
+          </Form.Control>
+        </div> */}
         <div className="absolute top-[11px] right-[15.5%]">
           <DatePicker
             className="custom-date-input"
@@ -810,6 +600,8 @@ export default function HistoryView() {
         }}
       >
         <table
+          // hover
+          // responsive
           style={{
             tableLayout: "fixed",
           }}
@@ -828,7 +620,7 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "20px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
@@ -838,7 +630,7 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "60px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
@@ -850,7 +642,7 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "255px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
@@ -862,7 +654,7 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "60px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
@@ -884,35 +676,19 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "200px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                <div className="">
-                  Duration
-                  <div className="flex gap-4 items-center justify-center">
-                    <p className="text-xs flex gap-1 items-center">
-                      <PiCheckSquareLight className="text-green-500 text-xl" />{" "}
-                      Success{" "}
-                    </p>
-                    <p className="text-xs flex gap-1 items-center">
-                      <PiCheckSquareLight className="text-green-500 text-xl" />{" "}
-                      Success{" "}
-                    </p>
-                    <p className="text-xs flex gap-1 items-center">
-                      <PiCheckSquareLight className="text-green-500 text-xl" />{" "}
-                      Success{" "}
-                    </p>
-                  </div>
-                </div>
+                Duration
               </th>
               <th
                 className="tableHeader"
                 style={{
                   width: "90px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
@@ -929,7 +705,7 @@ export default function HistoryView() {
                 className="tableHeader"
                 style={{
                   width: "60px",
-                  position: "sticky",
+                  position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                 }}
@@ -966,16 +742,17 @@ export default function HistoryView() {
                     <tr
                       key={index}
                       className={`${
-                        lengthNested[item?.scheduleId] > 1
+                        lengthNested[item.scheduleId] > 1
                           ? "cursor-pointer"
                           : ""
                       }`}
                       style={{
                         height: "50px",
-
+                        // cursor: "pointer",
                         margin: "20px 0",
                       }}
                       onClick={() => handleRowClick(item.scheduleId)}
+                      // className="borderless spacer-row"
                     >
                       {/* arrow sign */}
                       <td
@@ -993,6 +770,11 @@ export default function HistoryView() {
                             }`}
                           />
                         ) : null}
+
+                        {/* {lengthNested[item.scheduleId] > 1 &&
+                        expandedRow === item.scheduleId ? (
+                          <IoIosArrowForward className="text-base" />
+                        ) : null} */}
                       </td>
                       {/* image  */}
                       <td
@@ -1121,7 +903,8 @@ export default function HistoryView() {
                           textOverflow: "ellipsis",
                           textAlign: "center",
                           verticalAlign: "middle",
-
+                          // cursor: "pointer",
+                          // height: "40px",
                           width: "50px",
                         }}
                       >
@@ -1141,7 +924,10 @@ export default function HistoryView() {
                                 <div className="w-full flex gap-2">
                                   <h3 className="flex text-[12px] gap-2 justify-between items-center bg-[#F5F5F5] rounded px-2 py-1">
                                     {displayData?.startDate
-                                      ? formatDateTime(displayData.startDate)
+                                      ? formatDateTime(
+                                          displayData.startDate,
+                                          displayData?.timeZone
+                                        )
                                       : "N/A"}
                                     {displayData.price && (
                                       <span className="bg-blue-500 text-[12px] text-white p-1 rounded-sm">
@@ -1156,7 +942,10 @@ export default function HistoryView() {
                                   {displayData.endDate ? (
                                     <div className="w-full">
                                       <h3 className="flex justify-between gap-2 text-[12px] items-center bg-[#F5F5F5] rounded px-2 py-1">
-                                        {formatDateTime(displayData.endDate)}
+                                        {formatDateTime(
+                                          displayData.endDate,
+                                          displayData?.timeZone
+                                        )}
                                         {displayData.currentPrice && (
                                           <span className="bg-red-700  text-[12px] text-white p-1 rounded-sm">
                                             $
@@ -1499,7 +1288,10 @@ export default function HistoryView() {
                                                             ? formatDateTime(
                                                                 nestedItem
                                                                   .previousState
-                                                                  .startDate
+                                                                  .startDate,
+                                                                nestedItem
+                                                                  ?.previousState
+                                                                  ?.timeZone
                                                               )
                                                             : "N/A"}
                                                           {nestedItem
@@ -1523,7 +1315,10 @@ export default function HistoryView() {
                                                             {formatDateTime(
                                                               nestedItem
                                                                 .previousState
-                                                                .endDate
+                                                                .endDate,
+                                                              nestedItem
+                                                                ?.previousState
+                                                                ?.timeZone
                                                             )}
                                                             {nestedItem
                                                               .previousState
@@ -1930,11 +1725,15 @@ export default function HistoryView() {
                                                         ? formatDateTime(
                                                             nestedItem
                                                               .updatedState
-                                                              .startDate
+                                                              .startDate,
+                                                            nestedItem
+                                                              ?.previousState
+                                                              ?.timeZone
                                                           )
                                                         : nestedItem?.startDate
                                                         ? formatDateTime(
-                                                            nestedItem.startDate
+                                                            nestedItem.startDate,
+                                                            nestedItem?.timeZone
                                                           )
                                                         : "N/A"}
                                                       {nestedItem?.updatedState
@@ -1968,7 +1767,10 @@ export default function HistoryView() {
                                                         {formatDateTime(
                                                           nestedItem
                                                             .updatedState
-                                                            .endDate
+                                                            .endDate,
+                                                          nestedItem
+                                                            ?.updatedState
+                                                            ?.timeZone
                                                         )}
                                                         {nestedItem
                                                           ?.updatedState
@@ -1984,7 +1786,8 @@ export default function HistoryView() {
                                                     ) : nestedItem?.endDate ? (
                                                       <h3 className="flex items-center justify-between text-[12px] gap-2 bg-[#F5F5F5] rounded px-2 py-1">
                                                         {formatDateTime(
-                                                          nestedItem.endDate
+                                                          nestedItem.endDate,
+                                                          nestedItem.timeZone
                                                         )}
                                                         {nestedItem?.currentPrice && (
                                                           <span className="bg-red-700 text-[12px] text-white p-1 rounded-sm">

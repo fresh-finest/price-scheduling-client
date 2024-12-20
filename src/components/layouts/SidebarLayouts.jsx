@@ -3,8 +3,7 @@ import { BsArrowLeftShort } from "react-icons/bs";
 import { RiArrowLeftSLine } from "react-icons/ri";
 import { FaChartLine, FaListUl, FaRegCalendarAlt } from "react-icons/fa";
 import { GoGear, GoHistory } from "react-icons/go";
-import { MdOutlineManageAccounts } from "react-icons/md";
-import { HiOutlineDocumentReport } from "react-icons/hi";
+
 import { Link, NavLink, Outlet } from "react-router-dom";
 import AccountDropdown from "../shared/ui/AccountDropdown";
 import UserDropdown from "../shared/ui/UserDropDown";
@@ -14,13 +13,14 @@ import { PiChartLineUpLight } from "react-icons/pi";
 import { AiOutlineProduct } from "react-icons/ai";
 import { FaListCheck } from "react-icons/fa6";
 import Notifications from "../Notifications/Notifications";
-
+import { Cog } from "lucide-react";
 const SidebarLayout = () => {
   const [open, setOpen] = useState(true);
 
   const Menus = [
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
     { title: "Products", icon: <AiOutlineProduct />, path: "/list" },
+    { title: "Automation", icon: <Cog />, path: "/automation" },
     // { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Report", icon: <PiChartLineUpLight />, path: "/report" },
