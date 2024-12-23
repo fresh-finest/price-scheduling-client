@@ -25,10 +25,10 @@ const ListChannelStockPopover = ({
   setSelectedChannelStockUnit,
   channelStockInputValue,
   setChannelStockInputValue,
-  minValue,
-  setMinValue,
-  maxValue,
-  setMaxValue,
+  ChannelStockBetweenMinValue,
+  setChannelStockBetweenMinValue,
+  ChannelStockBetweenMaxValue,
+  setChannelStockBetweenMaxValue,
 }) => {
   // const handleUnitSelection = (value) => {
   //   const selectedOption = unitOptions.find((option) => option.value === value);
@@ -40,8 +40,8 @@ const ListChannelStockPopover = ({
 
     // Clear inputs when switching to/from "Between"
     if (value !== "between") {
-      setMinValue("");
-      setMaxValue("");
+      setChannelStockBetweenMinValue("");
+      setChannelStockBetweenMaxValue("");
       setChannelStockInputValue("");
     }
   };
@@ -88,15 +88,15 @@ const ListChannelStockPopover = ({
             <div className="flex gap-2">
               <Input
                 placeholder="Min"
-                value={minValue}
+                value={ChannelStockBetweenMinValue}
                 type="number"
-                onChange={(e) => setMinValue(e.target.value)}
+                onChange={(e) => setChannelStockBetweenMinValue(e.target.value)}
               />
               <Input
                 placeholder="Max"
-                value={maxValue}
+                value={ChannelStockBetweenMaxValue}
                 type="number"
-                onChange={(e) => setMaxValue(e.target.value)}
+                onChange={(e) => setChannelStockBetweenMaxValue(e.target.value)}
                 onKeyDown={handleKeyDown}
               />
             </div>

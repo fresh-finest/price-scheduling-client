@@ -36,6 +36,7 @@ import ListSalePopover from "@/components/shared/ui/ListSalePopover";
 import ListChannelStockPopover from "@/components/shared/ui/ListChannelStockPopover";
 import Loading from "@/components/shared/ui/Loading";
 import { FadeLoader } from "react-spinners";
+import { IoClose } from "react-icons/io5";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -82,10 +83,13 @@ const ListView = () => {
   const [channelStockInputValue, setChannelStockInputValue] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const [minValue, setMinValue] = useState("");
-  const [maxValue, setMaxValue] = useState("");
+  const [ChannelStockBetweenMinValue, setChannelStockBetweenMinValue] =
+    useState("");
+  const [saleBetweenMinValue, setSaleBetweenMinValue] = useState("");
+  const [ChannelStockBetweenMaxValue, setChannelStockBetweenMaxValue] =
+    useState("");
+  const [saleBetweenMaxValue, setSaleBetweenMaxValue] = useState("");
 
-  // fbm/fbm , sale, channel stock
   const [filters, setFilters] = useState({
     fulfillmentChannel: null,
     stockCondition: null,
@@ -97,6 +101,7 @@ const ListView = () => {
   const itemRefs = useRef([]);
   const isFirstRender = useRef(true);
   const { currentUser } = useSelector((state) => state.user);
+  const isFilterActive = Object.values(filters).some((value) => value !== null);
 
   const dayOptions = [
     { value: "1 D", label: "Yesterday" },
@@ -111,15 +116,18 @@ const ListView = () => {
 
   const unitOptions = [
     { value: "==", label: "Equals" },
+    { value: "!=", label: "Does not equal" },
     { value: ">", label: "Greater than" },
+    { value: ">=", label: "Greater than or equal to" },
     { value: "<", label: "Less than" },
+    { value: "<=", label: "Less than or equal to" },
     { value: "between", label: "Between" },
   ];
 
   const [selectedDay, setSelectedDay] = useState(dayOptions[1]);
-  const [selectedUnit, setSelectedUnit] = useState(unitOptions[1]);
+  const [selectedUnit, setSelectedUnit] = useState(unitOptions[2]);
   const [selectedChannelStockUnit, setSelectedChannelStockUnit] = useState(
-    unitOptions[1]
+    unitOptions[2]
   );
 
   const getUnitCountForTimePeriod = (salesMetrics, timePeriod) => {
@@ -127,33 +135,10 @@ const ListView = () => {
     return metric ? metric.totalUnits : "N/A";
   };
 
-  // const buildApiUrl = (page) => {
-  //   const baseUrl = `${BASE_URL}/api/product/sale-stock`;
-
-  //   const params = new URLSearchParams({
-  //     page: page || 1,
-  //     limit: 20,
-  //   });
-
-  //   if (filters.fulfillmentChannel) {
-  //     console.log(filters.fulfillmentChannel);
-  //     params.append("fulfillmentChannel", filters.fulfillmentChannel);
-  //   }
-  //   if (filters.stockCondition) {
-  //     params.append("stockCondition", JSON.stringify(filters.stockCondition));
-  //   }
-  //   if (filters.salesCondition) {
-  //     params.append("salesCondition", JSON.stringify(filters.salesCondition));
-  //   }
-
-  //   const finalUrl = `${baseUrl}?${params.toString()}`;
-  //   console.log("Final URL:", finalUrl);
-
-  //   return finalUrl;
-  // };
-
   const buildApiUrl = (page) => {
     const baseUrl = `${BASE_URL}/api/product/sale-stock`;
+
+    console.log("Filters:", filters);
 
     const params = new URLSearchParams({
       page: page || 1,
@@ -210,6 +195,7 @@ const ListView = () => {
     try {
       const url = buildApiUrl(page);
 
+      console.log(decodeURIComponent(url));
       const response = await axios.get(url);
 
       setFilteredProducts(response.data.metadata);
@@ -257,7 +243,7 @@ const ListView = () => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       setIsLoading(true);
-      fetchProducts(1); // Initial load
+      fetchProducts(1);
       return;
     }
 
@@ -266,7 +252,6 @@ const ListView = () => {
     } else if (isScheduleSearchMode) {
       fetchAllSchedule(currentPage);
     } else if (isAllProductSearchMode) {
-      // fetchAllProducts(currentPage);
       fetchProducts(currentPage);
     } else if (isSaleSearchMode) {
       fetchListSalesProduct(currentPage);
@@ -275,7 +260,7 @@ const ListView = () => {
     } else if (customFilterMode) {
       console.log(customFilterMode);
       console.log("Custom filter mode logic hit. Fetching data...");
-      fetchData(currentPage); // Triggered when filters change
+      fetchData(currentPage);
     } else {
       fetchProducts(currentPage);
     }
@@ -302,42 +287,6 @@ const ListView = () => {
     setSelectedFnSku("");
     setSelectedPrice("");
   };
-
-  // const fetchProductsByChannel = async (channel, page) => {
-  //   setIsSearching(true);
-  //   setIsFbaFbmSearchMode(true);
-  //   setIsSearchMode(false);
-  //   setIsScheduleSearchMode(false);
-  //   setIsAllProductSearchMode(false);
-  //   setIsSaleSearchMode(false);
-  //   setIsChannelStockSearchMode(false);
-  //   setIsLoadingMode(false);
-  //   setSearchTerm("");
-  //   try {
-  //     let url = `${BASE_URL}/api/product/channel`;
-
-  //     if (channel === "FBA") {
-  //       url += "/AMAZON_NA";
-  //     } else if (channel === "FBM") {
-  //       url += "/DEFAULT";
-  //     } else if (channel === "All") {
-  //       url = `${BASE_URL}/api/product/limit`;
-  //     }
-
-  //     url += `?page=${page}`;
-
-  //     const response = await axios.get(url);
-  //     const products = response.data;
-
-  //     setFilteredProducts(products.data);
-  //     setIsSearching(false);
-  //   } catch (error) {
-  //     console.error("Error fetching products by channel:", error.message);
-  //     setFilteredProducts([]);
-  //   } finally {
-  //     setIsSearching(false);
-  //   }
-  // };
 
   const renderPaginationButtons = () => {
     const pageNumbers = [];
@@ -383,58 +332,10 @@ const ListView = () => {
     }
 
     setCustomFilterMode(true);
-    // setIsSearchMode(true);
+
     setSearchTerm(value);
     setCurrentPage(1);
   };
-
-  // const handleSearch = (value, currentPage) => {
-  //   if (!value.trim()) return;
-  //   setIsSearching(true);
-  //   setFilters({
-  //     fulfillmentChannel: null,
-  //     stockCondition: null,
-  //     salesCondition: null,
-  //   });
-  //   setIsSearchMode(true);
-  //   setIsFbaFbmSearchMode(false);
-  //   setIsScheduleSearchMode(false);
-  //   setIsAllProductSearchMode(false);
-  //   setIsSaleSearchMode(false);
-  //   setIsChannelStockSearchMode(false);
-  //   setIsLoadingMode(false);
-  //   setSelectedFbaFbmOption("");
-  //   setIsLoadingMode(false);
-  //   setSearchTerm(value);
-  //   setFilteredProducts([]);
-
-  //   debouncedFilterProducts(value, currentPage);
-
-  //   setSelectedRowIndex(null);
-  //   setSelectedAsin("");
-  //   setSelectedSku("");
-  //   setSelectedFnSku("");
-  //   setSelectedPrice("");
-
-  //   setCurrentPage(1);
-  // };
-
-  // const handleClearInput = () => {
-  //   setSearchTerm("");
-  //   setIsSearchMode(false);
-
-  //   // debouncedFilterProducts("");
-  //   // setCurrentPage(1);
-
-  //   setSelectedRowIndex(null);
-
-  //   setSelectedAsin("");
-  //   setSelectedSku("");
-  //   setSelectedFnSku("");
-  //   setSelectedPrice("");
-
-  //   // fetchProducts(currentPage);
-  // };
 
   const handleClearInput = () => {
     setSearchTerm("");
@@ -475,6 +376,8 @@ const ListView = () => {
     });
     // fetchData(1);
     setInputValue("");
+    setSaleBetweenMinValue("");
+    setSaleBetweenMaxValue("");
     setCurrentPage(1);
   };
 
@@ -784,71 +687,107 @@ const ListView = () => {
   const handleListSalePopoverSubmit = (event) => {
     event.preventDefault();
 
-    if (!inputValue.trim()) {
-      setFilters((prev) => {
-        const updatedFilters = { ...prev };
-        delete updatedFilters.salesCondition;
-        return updatedFilters;
-      });
+    let salesCondition = {};
+
+    if (selectedUnit.value === "between") {
+      const minValue = Number(saleBetweenMinValue);
+      const maxValue = Number(saleBetweenMaxValue);
+
+      salesCondition = {
+        time: selectedDay.value,
+        condition: "between",
+        value: [minValue, maxValue],
+      };
+    } else if (selectedUnit.value === ">=") {
+      const salesValue = Number(inputValue);
+
+      salesCondition = {
+        time: selectedDay.value,
+        condition: ">=", // Greater than or equal to condition
+        value: salesValue,
+      };
+    } else if (selectedUnit.value === "<=") {
+      const salesValue = Number(inputValue);
+
+      salesCondition = {
+        time: selectedDay.value,
+        condition: "<=", // Less than or equal to condition
+        value: salesValue,
+      };
+    } else if (selectedUnit.value === "!=") {
+      const salesValue = Number(inputValue);
+
+      salesCondition = {
+        time: selectedDay.value,
+        condition: "!=",
+        value: salesValue,
+      };
     } else {
-      setFilters((prev) => ({
-        ...prev,
-        salesCondition: {
-          time: selectedDay.value,
-          condition: selectedUnit.value,
-          value: inputValue,
-        },
-      }));
+      const salesValue = Number(inputValue);
+
+      salesCondition = {
+        time: selectedDay.value,
+        condition: selectedUnit.value,
+        value: salesValue,
+      };
     }
+
+    setFilters((prev) => ({
+      ...prev,
+      salesCondition,
+    }));
 
     setCustomFilterMode(true);
     setCurrentPage(1);
   };
 
-  // const handleChannelStockPopoverSubmit = (event) => {
-  //   event.preventDefault();
-
-  //   if (!channelStockInputValue.trim()) {
-  //     setFilters((prev) => {
-  //       const updatedFilters = { ...prev };
-  //       delete updatedFilters.stockCondition;
-  //       return updatedFilters;
-  //     });
-  //   } else {
-  //     setFilters((prev) => ({
-  //       ...prev,
-  //       stockCondition: {
-  //         condition: selectedChannelStockUnit.value,
-  //         value: channelStockInputValue,
-  //       },
-  //     }));
-  //   }
-  //   console.log("Channel Stock Search: Filters updated to", filters);
-
-  //   setCustomFilterMode(true);
-  //   setCurrentPage(1);
-  // };
-
   const handleChannelStockPopoverSubmit = (event) => {
     event.preventDefault();
 
+    let stockCondition = {};
+
     if (selectedChannelStockUnit.value === "between") {
-      setFilters((prev) => ({
-        ...prev,
-        stockCondition: {
-          condition: "between",
-          value: [minValue, maxValue], // Pass the min and max values
-        },
-      }));
+      const minValue = Number(ChannelStockBetweenMinValue);
+      const maxValue = Number(ChannelStockBetweenMaxValue);
+
+      stockCondition = {
+        condition: "between",
+        value: [minValue, maxValue],
+      };
+    } else if (selectedChannelStockUnit.value === ">=") {
+      const stockValue = Number(channelStockInputValue);
+
+      stockCondition = {
+        condition: ">=",
+        value: stockValue,
+      };
+    } else if (selectedChannelStockUnit.value === "<=") {
+      const stockValue = Number(channelStockInputValue);
+
+      stockCondition = {
+        condition: "<=",
+        value: stockValue,
+      };
+    } else if (selectedChannelStockUnit.value === "!=") {
+      const stockValue = Number(channelStockInputValue);
+
+      stockCondition = {
+        condition: "!=",
+        value: stockValue,
+      };
     } else {
-      setFilters((prev) => ({
-        ...prev,
-        stockCondition: {
-          condition: selectedChannelStockUnit.value,
-          value: channelStockInputValue,
-        },
-      }));
+      const stockValue = Number(channelStockInputValue);
+
+      stockCondition = {
+        condition: selectedChannelStockUnit.value,
+        value: stockValue,
+      };
     }
+
+    setFilters((prev) => ({
+      ...prev,
+      stockCondition,
+    }));
 
     setCustomFilterMode(true);
     setCurrentPage(1);
@@ -857,19 +796,6 @@ const ListView = () => {
   if (isLoading) {
     return <ListLoadingSkeleton></ListLoadingSkeleton>;
   }
-
-  // if (isSearching) {
-  //   return (
-  //     <ListSearchLoadingSkeleton
-  //       searchTerm={searchTerm}
-  //       setSearchTerm={setSearchTerm}
-  //       currentPage={currentPage}
-  //       handleSearch={handleSearch}
-  //       handleKeyPress={handleKeyPress}
-  //       handleClearInput={handleClearInput}
-  //     ></ListSearchLoadingSkeleton>
-  //   );
-  // }
 
   if (error) {
     return (
@@ -945,6 +871,37 @@ const ListView = () => {
           </span>
         </Button>
       </div>
+
+      {isFilterActive && (
+        <div className="absolute top-4 right-[35%]">
+          <button
+            onClick={() => {
+              setFilters({
+                fulfillmentChannel: null,
+                stockCondition: null,
+                salesCondition: null,
+                uid: null,
+              });
+              setSearchTerm("");
+              setInputValue("");
+              setChannelStockInputValue("");
+              setSaleBetweenMinValue("");
+              setSaleBetweenMaxValue("");
+              setChannelStockBetweenMinValue("");
+              setChannelStockBetweenMaxValue("");
+              setCurrentPage(1);
+              setCustomFilterMode(false);
+              fetchProducts(1);
+            }}
+            className="  rounded-full  bg-gray-400 px-3 text-white py-1 flex justify-start gap-1"
+          >
+            <span className="text-sm"> Clear All</span>{" "}
+            <span className="text-base hover:text-gray-800 transition-all duration-300">
+              <IoClose className="" />
+            </span>
+          </button>
+        </div>
+      )}
       <section style={{ display: "flex", gap: "10px" }}>
         <div style={{ paddingRight: "3px", width: "70%" }}>
           <div
@@ -1134,10 +1091,18 @@ const ListView = () => {
                         channelStockInputValue={channelStockInputValue}
                         setChannelStockInputValue={setChannelStockInputValue}
                         filters={filters}
-                        minValue={minValue}
-                        maxValue={maxValue}
-                        setMinValue={setMinValue}
-                        setMaxValue={setMaxValue}
+                        ChannelStockBetweenMinValue={
+                          ChannelStockBetweenMinValue
+                        }
+                        ChannelStockBetweenMaxValue={
+                          ChannelStockBetweenMaxValue
+                        }
+                        setChannelStockBetweenMinValue={
+                          setChannelStockBetweenMinValue
+                        }
+                        setChannelStockBetweenMaxValue={
+                          setChannelStockBetweenMaxValue
+                        }
                       ></ListChannelStockPopover>
                     </p>
 
@@ -1187,6 +1152,10 @@ const ListView = () => {
                         setSelectedUnit={setSelectedUnit}
                         inputValue={inputValue}
                         setInputValue={setInputValue}
+                        saleBetweenMinValue={saleBetweenMinValue}
+                        setSaleBetweenMinValue={setSaleBetweenMinValue}
+                        saleBetweenMaxValue={saleBetweenMaxValue}
+                        setSaleBetweenMaxValue={setSaleBetweenMaxValue}
                       ></ListSalePopover>
                     </p>
                     <div
