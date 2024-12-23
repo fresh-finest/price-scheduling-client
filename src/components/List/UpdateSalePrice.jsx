@@ -2,20 +2,21 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Button } from "react-bootstrap";
-import DatePicker from "react-datepicker";
 import Swal from "sweetalert2";
+import { DatePicker } from "antd";
 
-// const BASE_URL = "http://192.168.0.152:3000";
+import dayjs from "dayjs";
+// const BASE_URL = "http://192.168.0.141:3000";
 const BASE_URL = "https://api.priceobo.com";
-// const BASE_URL = "http://localhost:3000";
+
 
 function UpdateSalePrice({ sku1, onClose, saleInformation }) {
   const [sku, setSku] = useState("");
   const [value, setValue] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -24,8 +25,10 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
     }
     if (saleInformation) {
       setValue(saleInformation.value_with_tax);
-      setStartDate(new Date(saleInformation.start_at));
-      setEndDate(new Date(saleInformation.end_at));
+      // setStartDate(new Date(saleInformation.start_at));
+      // setEndDate(new Date(saleInformation.end_at));
+      setStartDate(dayjs(saleInformation.start_at));
+      setEndDate(dayjs(saleInformation.end_at));
     }
   }, [sku1, saleInformation]);
 
@@ -36,12 +39,12 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
       newErrors.value = "Price is required.";
     }
 
-    if (!startDate || isNaN(startDate.getTime())) {
-      newErrors.startDate = "Start date is required.";
+    if (!startDate || !startDate.isValid()) {
+      newErrors.startDate = "Start date is required and must be valid.";
     }
 
-    if (!endDate || isNaN(endDate.getTime())) {
-      newErrors.endDate = "End date is required.";
+    if (!endDate || !endDate.isValid()) {
+      newErrors.endDate = "End date is required and must be valid.";
     }
 
     setErrors(newErrors);
@@ -57,8 +60,8 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
     const payload = {
       sku,
       value: parseFloat(value),
-      startDate,
-      endDate,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
     };
 
     try {
@@ -74,6 +77,7 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
       });
       onClose();
     } catch (error) {
+      console.log("error", error);
       setMessage(
         `Error: ${error.response?.data?.message || "Something went wrong."}`
       );
@@ -103,6 +107,8 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
       setErrors((prevErrors) => ({ ...prevErrors, endDate: null }));
     }
   };
+
+  const dateFormat = "DD/MM/YYYY";
 
   return (
     <>
@@ -149,9 +155,17 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
             </div>
             <div className="w-full">
               <div className="flex flex-col">
-                <DatePicker
+                {/* <DatePicker
                   selected={startDate}
                   onChange={handleStartDateChange}
+                  className="form-control update-custom-input"
+                  required
+                /> */}
+
+                <DatePicker
+                  value={startDate} // Bind to state
+                  onChange={(date) => handleStartDateChange(date)} // Update state
+                  format={dateFormat} // Display format
                   className="form-control update-custom-input"
                   required
                 />
@@ -168,12 +182,21 @@ function UpdateSalePrice({ sku1, onClose, saleInformation }) {
             </div>
             <div className="w-full">
               <div className="flex flex-col">
-                <DatePicker
+                {/* <DatePicker
                   selected={endDate}
                   onChange={handleEndDateChange}
                   className="form-control update-custom-input"
                   required
+                /> */}
+
+                <DatePicker
+                  value={endDate}
+                  onChange={(date) => handleEndDateChange(date)}
+                  format={dateFormat}
+                  className="form-control update-custom-input"
+                  required
                 />
+
                 {errors.endDate && (
                   <span className="text-red-400">{errors.endDate}</span>
                 )}

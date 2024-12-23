@@ -47,6 +47,7 @@ export const PriceScheduleProvider = ({ children }) => {
 
         // Single Events
         if (!weekly && !monthly) {
+         
           dailyEvents.push({
             image: imageURL,
             title: `SKU: ${sku} - $${price || currentPrice}`,
@@ -107,6 +108,7 @@ export const PriceScheduleProvider = ({ children }) => {
                       weekly: true,
                     });
                   }
+                 
                 }
               });
             });

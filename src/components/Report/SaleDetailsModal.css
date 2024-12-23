@@ -1,7 +1,6 @@
 .saleDetailsModal .modal-header {
-    border-bottom: none;
-  }
-
+  border: 0;
+}
   /* .saleDetailsModal .modal-header button {
     position: absolute;
     right: 30px;

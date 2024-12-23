@@ -57,6 +57,7 @@ const CalendarView = ({ sku1 }) => {
 
     try {
       const encodedSku = encodeURIComponent(sku1);
+      console.log("encodedSku :"+encodedSku);
       const response = await axios.get(`${BASE_URL}/api/schedule/${encodedSku}`);
       const schedules = response.data.result;
       const events = [];

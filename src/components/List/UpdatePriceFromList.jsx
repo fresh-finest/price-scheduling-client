@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
-import DatePicker from "react-datepicker";
+// import DatePicker from "react-datepicker";
 import { MultiSelect } from "react-multi-select-component";
 import "react-datepicker/dist/react-datepicker.css";
 import { PriceScheduleContext } from "../../contexts/PriceScheduleContext";
@@ -8,7 +8,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import moment from "moment-timezone";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
-
+import { DatePicker, TimePicker } from "antd";
 import { daysOptions, datesOptions } from "../../utils/staticValue";
 
 import "./UpdatePriceFromList.css";
@@ -78,6 +78,7 @@ const fetchExistingSchedules = async (sku) => {
     throw error;
   }
 };
+
 
 const saveScheduleAndQueueJobs = async (
   userName,
@@ -1147,7 +1148,7 @@ const validateTimeSlots = () => {
                                   controlId={`formStartDate-${index}`}
                                 >
                                   {/* <Form.Label>Start Date and Time</Form.Label> */}
-                                  <DatePicker
+                                  {/* <DatePicker
                                     selected={schedule.startDate}
                                     onChange={(date) =>
                                       handleScheduleChange(
@@ -1161,6 +1162,22 @@ const validateTimeSlots = () => {
                                     className="form-control"
                                     required
                                     disabled={loading}
+                                  /> */}
+
+                                  <DatePicker
+                                    className="py-[0.45rem]"
+                                    showTime={{
+                                      format: "hh:mm A", 
+                                      use12Hours: true, 
+                                    }}
+                                    format="YYYY-MM-DD hh:mm A"         
+                                    onChange={(value) =>
+                                      handleScheduleChange(
+                                        index,
+                                        "startDate",
+                                        value ? value.toDate() : null
+                                      )
+                                    }
                                   />
                                 </Form.Group>
 
@@ -1197,19 +1214,20 @@ const validateTimeSlots = () => {
                                     controlId={`formEndDate-${index}`}
                                   >
                                     <DatePicker
-                                      selected={schedule.endDate}
-                                      onChange={(date) =>
+                                      className="py-[0.45rem] "
+                                      showTime={{
+                                        format: "hh:mm A", // Hour, minute, and AM/PM
+                                        use12Hours: true, // Enables 12-hour format with AM/PM
+                                      }}
+                                      format="YYYY-MM-DD hh:mm A" // Combined date and time format
+                                  
+                                      onChange={(value) =>
                                         handleScheduleChange(
                                           index,
                                           "endDate",
-                                          date
+                                          value ? value.toDate() : null
                                         )
                                       }
-                                      showTimeSelect
-                                      dateFormat="Pp"
-                                      className="form-control"
-                                      required={!schedule.indefiniteEndDate}
-                                      disabled={loading}
                                     />
                                   </Form.Group>
                                 )}
@@ -1326,7 +1344,7 @@ const validateTimeSlots = () => {
                                   <h3 className="flex justify-center items-center w-[90px] text-sm ">
                                     Start
                                   </h3>
-                                  <DatePicker
+                                  {/* <DatePicker
                                     selected={slot.startTime}
                                     onChange={(time) =>
                                       handleTimeChange(
@@ -1343,6 +1361,21 @@ const validateTimeSlots = () => {
                                     timeCaption="Start"
                                     dateFormat="h:mm aa"
                                     className="form-control modal-custom-input "
+                                  /> */}
+
+                                  <TimePicker
+                                    use12Hours
+                                    format="hh:mm A" // Hour, minute, and AM/PM
+                                    className="modal-custom-input w-[160px]"
+                                    onChange={(time) =>
+                                      handleTimeChange(
+                                        "weekly", // Adjust to "monthly" if applicable
+                                        day.value, // Assuming `day.value` identifies the schedule
+                                        index, // Index of the time slot
+                                        "startTime", // Key to update
+                                        time ? time.toDate() : null // Convert moment object to Date
+                                      )
+                                    }
                                   />
                                   <Form.Control
                                     type="number"
@@ -1367,7 +1400,7 @@ const validateTimeSlots = () => {
                                   <h3 className="flex justify-center items-center w-[90px] text-sm">
                                     End
                                   </h3>
-                                  <DatePicker
+                                  {/* <DatePicker
                                     selected={slot.endTime}
                                     onChange={(time) =>
                                       handleTimeChange(
@@ -1384,6 +1417,20 @@ const validateTimeSlots = () => {
                                     timeCaption="End"
                                     dateFormat="h:mm aa"
                                     className="form-control modal-custom-input"
+                                  /> */}
+                                  <TimePicker
+                                    use12Hours
+                                    format="hh:mm A" // Hour, minute, and AM/PM
+                                    className="modal-custom-input w-[160px]"
+                                    onChange={(time) =>
+                                      handleTimeChange(
+                                        "weekly", // Adjust to "monthly" if applicable
+                                        day.value, // Assuming `day.value` identifies the schedule
+                                        index, // Index of the time slot
+                                        "endTime", // Key to update
+                                        time ? time.toDate() : null // Convert moment object to Date
+                                      )
+                                    }
                                   />
 
                                   <Form.Control
@@ -1462,7 +1509,7 @@ const validateTimeSlots = () => {
                                         <h3 className="flex justify-center items-center w-[90px] text-[12px] ">
                                           Start
                                         </h3>
-                                        <DatePicker
+                                        {/* <DatePicker
                                           selected={slot.startTime}
                                           onChange={(time) =>
                                             handleTimeChange(
@@ -1479,7 +1526,22 @@ const validateTimeSlots = () => {
                                           timeCaption="Start"
                                           dateFormat="h:mm aa"
                                           className="form-control modal-custom-input "
+                                        /> */}
+                                        <TimePicker
+                                          use12Hours
+                                          format="hh:mm A" // Hour, minute, and AM/PM
+                                          className="modal-custom-input w-[250px]"
+                                          onChange={(time) =>
+                                            handleTimeChange(
+                                              "monthly", // Adjust to "monthly" if applicable
+                                              date.value, // Assuming `day.value` identifies the schedule
+                                              index, // Index of the time slot
+                                              "startTime", // Key to update
+                                              time ? time.toDate() : null // Convert moment object to Date
+                                            )
+                                          }
                                         />
+
                                         <Form.Control
                                           type="number"
                                           placeholder="Start Price"
@@ -1506,7 +1568,7 @@ const validateTimeSlots = () => {
                                         <h3 className="flex justify-center items-center w-[90px] text-[12px]">
                                           End
                                         </h3>
-                                        <DatePicker
+                                        {/* <DatePicker
                                           selected={slot.endTime}
                                           onChange={(time) =>
                                             handleTimeChange(
@@ -1523,6 +1585,21 @@ const validateTimeSlots = () => {
                                           timeCaption="End"
                                           dateFormat="h:mm aa"
                                           className="form-control modal-custom-input"
+                                        /> */}
+
+                                        <TimePicker
+                                          use12Hours
+                                          format="hh:mm A" // Hour, minute, and AM/PM
+                                          className="modal-custom-input w-[250px]"
+                                          onChange={(time) =>
+                                            handleTimeChange(
+                                              "monthly", // Adjust to "monthly" if applicable
+                                              date.value, // Assuming `day.value` identifies the schedule
+                                              index, // Index of the time slot
+                                              "endTime", // Key to update
+                                              time ? time.toDate() : null // Convert moment object to Date
+                                            )
+                                          }
                                         />
 
                                         <Form.Control

@@ -177,11 +177,12 @@ const CalendarView = () => {
 
   // console.log("selected date", selectedDate);
   const EventWithImage = ({ event }) => {
-    console.log("event", event);
+  
     return (
       <div
         className="event-container"
         style={{ display: "flex", alignItems: "center" }}
+        
       >
         {event.image && (
           <img

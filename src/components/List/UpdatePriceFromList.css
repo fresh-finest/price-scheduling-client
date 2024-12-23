@@ -32,31 +32,22 @@
 }
 .modal-custom-input {
   padding: 2px;
-  font-size: 12px;
+  font-size: 14.4px;
   text-align: left;
   border-radius: 0;
   border: 1px solid #d8d8d8;
 }
 .modal-custom-input::placeholder {
-  font-size: 12px;
+  font-size: 13px;
   color: #c8c8c8;
 }
 
 .modal-custom-input:focus {
   outline: none !important;
   box-shadow: none;
-  border: 1px solid #d8d8d8;
-  /* border: 1px solid #d8d8d8; */
-  /* box-shadow: 0 0 0 0.2rem rgba(255, 0, 0, 0.25); Optional: Add a shadow */
-  /* box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); */
 }
-.update-custom-input {
-  /* padding: 2px;
-  font-size: 12px;
-  text-align: left;
-  border-radius: 0; */
-  /* border: 1px solid #d8d8d8; */
-}
+
+
 .update-custom-input::placeholder {
   color: #c8c8c8;
 }

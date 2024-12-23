@@ -25,10 +25,25 @@ const ListChannelStockPopover = ({
   setSelectedChannelStockUnit,
   channelStockInputValue,
   setChannelStockInputValue,
+  ChannelStockBetweenMinValue,
+  setChannelStockBetweenMinValue,
+  ChannelStockBetweenMaxValue,
+  setChannelStockBetweenMaxValue,
 }) => {
+  // const handleUnitSelection = (value) => {
+  //   const selectedOption = unitOptions.find((option) => option.value === value);
+  //   setSelectedChannelStockUnit(selectedOption);
+  // };
   const handleUnitSelection = (value) => {
     const selectedOption = unitOptions.find((option) => option.value === value);
     setSelectedChannelStockUnit(selectedOption);
+
+    // Clear inputs when switching to/from "Between"
+    if (value !== "between") {
+      setChannelStockBetweenMinValue("");
+      setChannelStockBetweenMaxValue("");
+      setChannelStockInputValue("");
+    }
   };
 
   const handleInputChange = (event) => {
@@ -69,17 +84,31 @@ const ListChannelStockPopover = ({
             </SelectContent>
           </Select>
 
-          <Input
-            placeholder="Filter"
-            value={channelStockInputValue}
-            type="number"
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
-
-          {/* <Button type="submit" className="w-full">
-            Apply
-          </Button> */}
+          {selectedChannelStockUnit.value === "between" ? (
+            <div className="flex gap-2">
+              <Input
+                placeholder="Min"
+                value={ChannelStockBetweenMinValue}
+                type="number"
+                onChange={(e) => setChannelStockBetweenMinValue(e.target.value)}
+              />
+              <Input
+                placeholder="Max"
+                value={ChannelStockBetweenMaxValue}
+                type="number"
+                onChange={(e) => setChannelStockBetweenMaxValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          ) : (
+            <Input
+              placeholder="Filter"
+              value={channelStockInputValue}
+              type="number"
+              onChange={(e) => setChannelStockInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+          )}
         </form>
       </PopoverContent>
     </Popover>

@@ -5,11 +5,16 @@ import React, { useContext, useEffect, useState } from "react";
 import TimezoneSelect from "react-timezone-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Swal from "sweetalert2";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+
+import { useDispatch } from "react-redux";
+import { signInSuccess, updateUserSuccess } from "@/redux/user/userSlice";
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -19,14 +24,69 @@ import moment from "moment-timezone";
 
 const GeneralSettings = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const [userName, setUserName] = useState("");
   const { timeZone, loading, fetchTimZone } = useContext(TimeZoneContext);
- 
+  
+  const dispatch = useDispatch();
+
   console.log(currentUser);
   const userInfo = {
     userName: currentUser.userName,
     email: currentUser.email,
   };
 
+  const handleUserNameChange = (e) => {
+    setUserName(e.target.value);
+  };
+
+  const handleUserNameSubmit=async(e)=>{
+    e.preventDefault();
+    
+    const payload ={
+      userName,
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/user/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+      if (response.ok) {
+        const updatedUser = await response.json();
+        if (updatedUser) {
+          const updatedUserInfo = await fetch(
+            `${BASE_URL}/api/user/${currentUser._id}`
+          );
+          const upadedUserData = await updatedUserInfo.json();
+
+          dispatch(signInSuccess(upadedUserData.result[0]));
+        }
+        Swal.fire({
+          title: "Successfully Changed User Name!",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      } else {
+        Swal.fire({
+          title: "Something Went Wrong!",
+          icon: "error",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Something Went Wrong!",
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    }
+  }
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const [updating, setUpdating] = useState(false);
   const [timeZoneList, setTimeZoneList] = useState([]);
@@ -79,11 +139,7 @@ const GeneralSettings = () => {
             </Avatar>
           </div>
 
-          <div>
-            <Button variant="outline" size="icon" className="px-4">
-              Edit
-            </Button>
-          </div>
+        
         </div>
       </div>
       <hr className="text-gray-400 mt-2" />
@@ -106,17 +162,23 @@ const GeneralSettings = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 mr-4">
-                <form>
+              <form onSubmit={handleUserNameSubmit}>
                   <div className="flex flex-col items-start gap-2">
                     <Label htmlFor="name">Name</Label>
                     <Input
                       id="name"
                       defaultValue={userInfo.userName}
+                      onChange={handleUserNameChange}
                       className="col-span-2 h-8"
                     />
                   </div>
                   <div className="flex items-center justify-end mt-2">
-                    <Button variant="outline" size="icon" className="px-4">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      size="icon"
+                      className="px-4"
+                    >
                       Save
                     </Button>
                   </div>
@@ -138,11 +200,7 @@ const GeneralSettings = () => {
 
           <div>
             <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="px-4">
-                  Edit
-                </Button>
-              </PopoverTrigger>
+            
               <PopoverContent className="w-80 mr-4">
                 <form>
                   <div className="flex flex-col items-start gap-2">

@@ -50,7 +50,7 @@ const SaleDetails = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
 
@@ -124,7 +124,9 @@ const SaleDetails = () => {
     setError(null);
     const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(`https://api.priceobo.com/list/${encodedSku}`);
+      const response = await axios.get(
+        `https://api.priceobo.com/list/${encodedSku}`
+      );
       const price = response?.data?.offerAmount;
 
       setProductPrice(price);
@@ -255,8 +257,6 @@ const SaleDetails = () => {
     },
   ];
 
-  console.log("schedule sales data", scheduleSalesData);
-
   return (
     <div className="">
       {productDetails ? (
@@ -340,7 +340,7 @@ const SaleDetails = () => {
       ) : (
         <SaleDetailsProductDetailSkeleton />
       )}
-      <div>
+      <div className="flex  items-center">
         <Button
           variant="outline"
           className=" my-1"
@@ -348,6 +348,15 @@ const SaleDetails = () => {
         >
           <MdOutlineArrowBackIos className="mr-1" /> Back
         </Button>
+
+        <div className="flex-1 flex justify-center">
+          <AutomatePrice
+            sku={sku}
+            asin={asin}
+            productDetails={productDetails}
+            productPrice={productPrice}
+          ></AutomatePrice>
+        </div>
       </div>
       <div className="mt-1">
         {salesChartloading ? (

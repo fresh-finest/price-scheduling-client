@@ -19,6 +19,7 @@ import ReportDetails from "./components/Report/ReportDetails";
 import Settings from "./pages/Settings";
 import { TimeZoneProvider } from "./contexts/TimeZoneContext";
 
+
 function App() {
   return (
     <TimeZoneProvider>
@@ -38,6 +39,7 @@ function App() {
           <Route path="details/:sku" element={<SaleDetails/>}/>
           <Route path="report/:sku" element={<ReportDetails/>}/>
           <Route path="/settings" element={<Settings/>}/>
+       
           <Route path="/report" element={<Report/>}/>
             <Route path="/status" element={<Job/>}/>
             <Route path="/list" element={<List />} />

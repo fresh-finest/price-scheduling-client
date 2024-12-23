@@ -26,6 +26,10 @@ const ListSalePopover = ({
   inputValue,
   setInputValue,
   filters,
+  saleBetweenMinValue,
+  setSaleBetweenMinValue,
+  saleBetweenMaxValue,
+  setSaleBetweenMaxValue,
 }) => {
   const handleDaySelection = (value) => {
     const selectedOption = dayOptions.find((option) => option.value === value);
@@ -33,9 +37,20 @@ const ListSalePopover = ({
     setSelectedDay(selectedOption);
   };
 
+  // const handleUnitSelection = (value) => {
+  //   const selectedOption = unitOptions.find((option) => option.value === value);
+  //   setSelectedUnit(selectedOption);
+  // };
+
   const handleUnitSelection = (value) => {
     const selectedOption = unitOptions.find((option) => option.value === value);
     setSelectedUnit(selectedOption);
+
+    if (value !== "between") {
+      setSaleBetweenMinValue("");
+      setSaleBetweenMaxValue("");
+      setInputValue("");
+    }
   };
 
   const handleInputChange = (event) => {
@@ -91,17 +106,31 @@ const ListSalePopover = ({
             </SelectContent>
           </Select>
 
-          <Input
-            placeholder="Filter"
-            value={inputValue}
-            type="number"
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-          />
-
-          {/* <Button type="submit" className="w-full">
-            Apply
-          </Button> */}
+          {selectedUnit.value === "between" ? (
+            <div className="flex gap-2">
+              <Input
+                placeholder="Min"
+                value={saleBetweenMinValue}
+                type="number"
+                onChange={(e) => setSaleBetweenMinValue(e.target.value)}
+              />
+              <Input
+                placeholder="Max"
+                value={saleBetweenMaxValue}
+                type="number"
+                onChange={(e) => setSaleBetweenMaxValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+          ) : (
+            <Input
+              placeholder="Filter"
+              value={inputValue}
+              type="number"
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+          )}
         </form>
       </PopoverContent>
     </Popover>

@@ -7,7 +7,7 @@
 } */
 
 /* Add custom hover effect for week and day views */
-.rbc-time-view .rbc-time-slot:hover,
+/* .rbc-time-view .rbc-time-slot:hover,
 .rbc-time-view .rbc-day-slot:hover,
 .rbc-time-view .rbc-event:hover,
 .rbc-time-view .rbc-day-bg:hover {
@@ -16,13 +16,14 @@
     123,
     255,
     0.3
-  ); /* Adjust the color and opacity as needed */
+  ); 
   transition: background-color 0.3s ease;
-}
+} */
 
 .rbc-calendar {
   /* font-family: 'Arial, sans-serif'; */
   border: none;
+  
 }
 
 /* .rbc-selected {
@@ -40,6 +41,7 @@
   font-weight: 500;
   font-size: 14px;
   color: #70757a;
+  border: 1px solid white;
   /* border-bottom: 1px solid white !important; */
   /* border-bottom: 1px solid green; */
   border-bottom: none !important;
@@ -47,6 +49,7 @@
 
 .rbc-day-bg {
   border-bottom: 1px solid #e6e6e6;
+  
 }
 .rbc-today {
   background-color: white !important;
@@ -57,6 +60,7 @@
   font-weight: 500;
   font-size: 14px;
   text-align: center;
+  border: 1px solid white;
 }
 
 .rbc-event {
@@ -68,6 +72,7 @@
   margin-bottom: 2px;
   padding-left: 6px;
   font-size: 13px;
+  
 }
 
 .rbc-today {
@@ -80,6 +85,7 @@
   background-color: #1a73e8 !important;
   color: white;
   font-weight: 500;
+  
 }
 
 .rbc-month-row {
