@@ -28,6 +28,7 @@ import AutomatePrice from "../Automation/AutomatePrice";
 const { RangePicker } = DatePicker;
 
 const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://localhost:3000";
 
 const SaleDetailsModal = ({
   saleDetailsModalShow,
@@ -74,7 +75,7 @@ const SaleDetailsModal = ({
 
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
-        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.startDate = moment(startDate).add(1,"days").format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
       }
