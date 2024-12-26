@@ -885,6 +885,7 @@ const ProductDetailView = ({
         handleSaleDetailsModalShow={handleSaleDetailsModalShow}
         handleSaleDetailsModalClose={handleSaleDetailsModalClose}
         sku={sku1}
+        product={product}
       ></SaleDetailsModal>
 
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>

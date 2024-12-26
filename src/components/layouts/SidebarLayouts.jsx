@@ -31,6 +31,7 @@ const SidebarLayout = () => {
     //   path: "/manage",
     // },
     { title: "History", icon: <GoHistory />, path: "/history" },
+    // { title: "Dashboard", icon: <Cog />, path: "/dashboard" },
   ];
 
   return (

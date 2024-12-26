@@ -15,7 +15,6 @@ const PriceVsCount = ({
   identifierType,
   scheduleSalesData,
 }) => {
-  console.log(salesData);
   const totalUnitCount = salesData.reduce(
     (sum, data) => sum + data.unitCount,
     0

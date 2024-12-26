@@ -15,7 +15,7 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineClose,
 } from "react-icons/md";
-import { BsClipboardCheck } from "react-icons/bs";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
 import ScheduleVsCount from "./ScheduleVsCount";
@@ -28,10 +28,11 @@ import AutomatePrice from "../Automation/AutomatePrice";
 const { RangePicker } = DatePicker;
 
 const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL_LOCAL = "http://192.168.0.109:3000";
 
 const SaleDetailsModal = ({
   saleDetailsModalShow,
-
+  product,
   handleSaleDetailsModalClose,
   handleSaleDetailsModalShow,
   sku,
@@ -56,12 +57,31 @@ const SaleDetailsModal = ({
   const [productPrice, setProductPrice] = useState("");
   const [productDetails, setProductDetails] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [hasAutomation, setHasAutomation] = useState(false);
   const identifier = identifierType === "sku" ? sku : asin;
 
   const location = useLocation();
   const navigate = useNavigate();
 
+  const fetchAutomationStatus = async (sku) => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL_LOCAL}/api/active-auto-job/${sku}/sku`
+      );
+
+      if (response?.data && response?.data?.job) {
+        setHasAutomation(true);
+      } else {
+        setHasAutomation(false);
+      }
+    } catch (error) {
+      console.error("Error fetching automation status: ", error);
+      console.log("automation error", error);
+      setHasAutomation(false);
+    }
+  };
+
+  console.log("has automation", hasAutomation);
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
 
@@ -164,6 +184,7 @@ const SaleDetailsModal = ({
     if (sku) {
       fetchProductPrice();
       fetchProductDetails();
+      fetchAutomationStatus(sku);
     }
   }, [sku]); // Dependency array ensures effect runs only when SKU changes
 
@@ -374,12 +395,21 @@ const SaleDetailsModal = ({
                 <MdArrowBackIos className="text-xs" /> Back
               </Button>
               <div className="flex-1 flex justify-center mb-2">
-                <AutomatePrice
-                  sku={sku}
-                  asin={asin}
-                  productDetails={productDetails}
-                  productPrice={productPrice}
-                ></AutomatePrice>
+                {hasAutomation ? (
+                  <span className="flex justify-center items-center gap-1">
+                    {" "}
+                    <BsFillInfoSquareFill className="text-[#0D6EFD] text-xl" />
+                    Automation is running!
+                  </span>
+                ) : (
+                  <AutomatePrice
+                    sku={sku}
+                    asin={asin}
+                    productDetails={productDetails}
+                    product={product}
+                    productPrice={productPrice}
+                  ></AutomatePrice>
+                )}
               </div>
             </div>
             <div className="mt-1">
