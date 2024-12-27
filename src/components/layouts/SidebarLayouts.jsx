@@ -14,14 +14,14 @@ import { PiChartLineUpLight } from "react-icons/pi";
 import { AiOutlineProduct } from "react-icons/ai";
 import { FaListCheck } from "react-icons/fa6";
 import Notifications from "../shared/ui/Notifications";
-
+import { Cog } from "lucide-react";
 const SidebarLayout = () => {
   const [open, setOpen] = useState(true);
 
   const Menus = [
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
     { title: "Products", icon: <AiOutlineProduct />, path: "/list" },
-    // { title: "List", icon: <FaListUl />, path: "/list" },
+    { title: "Automation", icon: <Cog />, path: "/automation" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
     // {
