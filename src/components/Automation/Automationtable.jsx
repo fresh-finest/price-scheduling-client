@@ -20,11 +20,10 @@ const Automationtable = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `${BASE_URL}/api/active-auto-job/rule`
-        );
+        const response = await axios.get(`${BASE_URL}/api/automation/rules`);
         const data = response.data;
 
+        console.log("data", data);
         setAutomationData(data.rules);
         setLoading(false);
       } catch (err) {
@@ -81,7 +80,43 @@ const Automationtable = () => {
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                Rule
+                Rule ID
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  // width: "130px",
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Rule Name
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  // width: "130px",
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Category
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  // width: "130px",
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                User Name
               </th>
 
               <th
@@ -118,7 +153,43 @@ const Automationtable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {data}
+                      {data.ruleId}
+                    </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        height: "40px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {data.ruleName}
+                    </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        height: "40px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {data.category}
+                    </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        height: "40px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {data.userName}
                     </td>
 
                     <td
