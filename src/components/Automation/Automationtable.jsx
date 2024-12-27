@@ -1,22 +1,31 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { formatDate } from "@/utils/formatDate";
+import { IoMdAdd } from "react-icons/io";
+import { Button } from "react-bootstrap";
+import AutomationDetailModal from "./AutomationDetailModal";
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.109:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://192.168.0.109:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 const Automationtable = () => {
   const [automationData, setAutomationData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [automationDetailModalShow, setAutomationDetailModalShow] =
+    useState(false);
+
+  console.log("automationData", automationData);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/active-auto-job`);
+        const response = await axios.get(
+          `${BASE_URL}/api/active-auto-job/rule`
+        );
         const data = response.data;
-        console.log(data);
-        setAutomationData(data.result);
+
+        setAutomationData(data.rules);
         setLoading(false);
       } catch (err) {
         setError("Failed to fetch data");
@@ -27,15 +36,25 @@ const Automationtable = () => {
     fetchData();
   }, []);
   console.log(automationData);
+
+  const handleAutomationDetailModalShow = () => {
+    setAutomationDetailModalShow(true);
+  };
+
+  const handleAutomationDetailModalClose = () => {
+    setAutomationDetailModalShow(false);
+  };
+
   return (
     <div>
       <section
-        style={{
-          maxHeight: "91vh",
-          overflowY: "auto",
-          marginTop: "50px",
-          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-        }}
+
+      // style={{
+      //   maxHeight: "91vh",
+      //   overflowY: "auto",
+      //   marginTop: "50px",
+      //   boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+      // }}
       >
         <table
           style={{
@@ -55,83 +74,26 @@ const Automationtable = () => {
               <th
                 className="tableHeader"
                 style={{
-                  width: "100px",
+                  // width: "130px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                Image
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "180px",
-                  position: "sticky",
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                SKU
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  width: "400px",
-                  position: "sticky",
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Title
+                Rule
               </th>
 
               <th
                 className="tableHeader"
                 style={{
-                  width: "180px",
-                  position: "sticky",
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Automation Category
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  position: "sticky",
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Price Range
-              </th>
-              <th
-                className="tableHeader"
-                style={{
-                  position: "sticky",
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                Automate by User Name
-              </th>
-              <th
-                className="tableHeader"
-                style={{
+                  // width: "px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
                 }}
               >
-                Created At
+                View Data
               </th>
             </tr>
           </thead>
@@ -148,29 +110,6 @@ const Automationtable = () => {
                   <tr key={index}>
                     <td
                       style={{
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {data.imageUrl ? (
-                        <img
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            objectFit: "contain",
-                            margin: "0 auto",
-                          }}
-                          src={data.imageUrl}
-                          alt="Product"
-                        />
-                      ) : (
-                        "No Image"
-                      )}
-                    </td>
-
-                    <td
-                      style={{
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -179,7 +118,7 @@ const Automationtable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {data.sku}
+                      {data}
                     </td>
 
                     <td
@@ -188,48 +127,20 @@ const Automationtable = () => {
                         textAlign: "center",
                         verticalAlign: "middle",
                       }}
-                      title={data.title}
                     >
-                      {data.title
-                        ? data.title.split(" ").slice(0, 10).join(" ") +
-                          (data.title.split(" ").length > 10 ? "..." : "")
-                        : "No Title"}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {data.category || "Not Applicable"}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      ${data.minPrice} - ${data.maxPrice}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {data.userName}
-                    </td>
-                    <td
-                      style={{
-                        padding: "15px 0",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {formatDate(data.createdAt)}
+                      <Button
+                        onClick={handleAutomationDetailModalShow}
+                        className="text-xs"
+                        style={{
+                          padding: "8px 12px",
+                          border: "none",
+                          backgroundColor: "#0662BB",
+                          borderRadius: "3px",
+                          zIndex: 1,
+                        }}
+                      >
+                        View
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -237,7 +148,7 @@ const Automationtable = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="2"
                   style={{ textAlign: "center", padding: "20px" }}
                 >
                   No Data Found
@@ -247,6 +158,11 @@ const Automationtable = () => {
           </tbody>
         </table>
       </section>
+
+      <AutomationDetailModal
+        automationDetailModalShow={automationDetailModalShow}
+        handleAutomationDetailModalClose={handleAutomationDetailModalClose}
+      ></AutomationDetailModal>
     </div>
   );
 };

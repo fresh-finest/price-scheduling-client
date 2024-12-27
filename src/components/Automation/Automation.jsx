@@ -12,6 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import CreateRuleForm from "./CreateRule/CreateRuleForm";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
 
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = "http://192.168.0.109:3000";
@@ -48,6 +51,9 @@ const Automation = () => {
 
   return (
     <section>
+      <div className="mt-5">
+        <CreateRuleForm></CreateRuleForm>
+      </div>
       <div>
         <Automationtable></Automationtable>
       </div>

@@ -46,6 +46,7 @@ const SidebarLayout = () => {
         <div className="flex flex-1 ">
           {/* Sidebar */}
           <div
+            // className={`bg-[#0662BB]  h-screen p-4 relative ${
             className={`bg-[#FBFBFB] h-screen p-4 relative ${
               open ? "w-52" : "w-20"
             } duration-300  shadow flex flex-col sticky top-0 z-50`}
@@ -89,43 +90,6 @@ const SidebarLayout = () => {
                 />
               </div>
             )}
-
-            {/* <Link to="/" className="inline-flex py-2">
-              <img
-                className={` cursor-pointer block float-left mr-3 w-[30px]   object-cover text-[#2C86F2]`}
-                style={{ minWidth: "36px", minHeight: "30px" }}
-                src={priceoboIcon}
-                alt="priceobo_logo"
-              />
-
-              <span
-                className={`text-2xl font-semibold text-black flex-1 duration-200 ${
-                  !open && "hidden"
-                }`}
-              >
-                priceobo
-              </span>
-            </Link> */}
-
-            {/* icon with text: works fine */}
-
-            {/* <Link to="/" className="inline-flex py-2">
-              <img
-                className={` cursor-pointer block float-left mr-3 w-[30px]   object-cover text-[#2C86F2]`}
-                style={{ minWidth: "36px", minHeight: "30px" }}
-                src={priceoboIcon}
-                alt="priceobo_logo"
-              />
-
-              <span
-                className={`text-3xl font-normal text-black flex-1 duration-200 ${
-                  !open && "hidden"
-                }`}
-                style={{ fontFamily: "'Poppins', sans-serif" }}
-              >
-                priceobo
-              </span>
-            </Link> */}
 
             {/* Sidebar menu */}
             <ul className="flex-grow">
