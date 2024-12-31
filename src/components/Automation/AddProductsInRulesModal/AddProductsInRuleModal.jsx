@@ -1,32 +1,25 @@
 import { Button, Modal } from "react-bootstrap";
-import { Button as ShadCdnButton } from "@/components/ui/button";
-import "./AutomationSelectProductModal.css";
+import "./AddProductsInRuleModal.css";
 import { MdOutlineClose } from "react-icons/md";
 import { Checkbox, Input } from "antd";
 import { IoIosSearch } from "react-icons/io";
-
+import { ClipLoader } from "react-spinners";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { ClipLoader } from "react-spinners";
+import { Button as ShadCdnButton } from "@/components/ui/button";
 
 const BASE_URL = "http://192.168.0.109:3000";
 // const BASE_URL = `https://api.priceobo.com`;
 
-const AutomationSelectProductModal = ({
-  selectProductModalOpen,
-  handleSelectProductModalClose,
-  searchedProducts,
-  setSearchedProducts,
-  searchingError,
-  setSearchingError,
-  selectedProducts,
-  setSelectedProducts,
-  handleAddSelectedProducts,
+const AddProductsInRuleModal = ({
+  addProductsInRuleModalOpen,
+  handleAddProductsInRuleModalClose,
 }) => {
-  // States
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchedProducts, setSearchedProducts] = useState([]);
+  const [searchingError, setSearchingError] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
-  console.log("selectedProducts", selectedProducts);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +58,13 @@ const AutomationSelectProductModal = ({
     }, 300);
   };
 
+  const handleAddSelectedProducts = (products) => {
+    selectedProducts(products);
+    handleAddProductsInRuleModalClose();
+    setSelectedProducts([]);
+    setSearchedProducts("");
+  };
+
   const handleAddButtonClick = () => {
     handleAddSelectedProducts(selectedProducts);
   };
@@ -94,14 +94,12 @@ const AutomationSelectProductModal = ({
     };
   }, []);
 
-  console.log("selectedProducts", selectedProducts);
-
   return (
     <div>
       <Modal
-        show={selectProductModalOpen}
-        onHide={handleSelectProductModalClose}
-        dialogClassName="automation-selectProduct-modal"
+        show={addProductsInRuleModalOpen}
+        onHide={handleAddProductsInRuleModalClose}
+        dialogClassName="add-products-rule-modal"
       >
         <Modal.Body>
           <div>
@@ -109,7 +107,7 @@ const AutomationSelectProductModal = ({
           </div>
           <button
             className="px-2 py-1 hover:bg-gray-200 rounded-md transition-all duration-200 absolute right-1 top-1"
-            onClick={handleSelectProductModalClose}
+            onClick={handleAddProductsInRuleModalClose}
           >
             <MdOutlineClose className="text-xl" />
           </button>
@@ -209,7 +207,7 @@ const AutomationSelectProductModal = ({
             </div>
             <div className="flex gap-2">
               <ShadCdnButton
-                onClick={handleSelectProductModalClose}
+                onClick={handleAddProductsInRuleModalClose}
                 variant="outline"
                 className="text-sm flex items-center gap-1 mt-2"
                 style={{
@@ -242,4 +240,4 @@ const AutomationSelectProductModal = ({
   );
 };
 
-export default AutomationSelectProductModal;
+export default AddProductsInRuleModal;

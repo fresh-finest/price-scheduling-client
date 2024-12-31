@@ -48,6 +48,7 @@ const CreateRuleForm = () => {
     reset();
     setRuleFormOpen(false);
     setTimeType("");
+    setUnitType("");
     setFinalSelectedProducts([]);
   };
   const handleRuleFormOpen = () => {
@@ -322,13 +323,12 @@ const CreateRuleForm = () => {
                           ? "amount value is required"
                           : "percentage value is required"
                       }`,
-                      min: {
-                        value: 1,
-                        message: "Value must be greater than 0",
-                      },
+                      validate: (value) =>
+                        value > 0 || "Value must be greater than 0",
                     })}
                     className="update-custom-input"
                     type="number"
+                    step="0.01"
                     placeholder={
                       unitType === "amount" ? "Amount" : "Percentage"
                     }
@@ -356,7 +356,7 @@ const CreateRuleForm = () => {
               </Button>
             </div>
 
-            <div className="mt-2">
+            <div className="my-2">
               {finalSelectedProducts.map((product, index) => (
                 <div key={index} className="">
                   <div className="flex justify-between gap-2 space-y-2 items-center">
@@ -380,7 +380,7 @@ const CreateRuleForm = () => {
               ))}
             </div>
 
-            <div className="mt-2 absolute bottom-4 right-4">
+            <div className="mt-2 flex justify-end">
               <Button
                 className="text-sm flex items-center gap-1 "
                 style={{

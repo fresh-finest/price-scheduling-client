@@ -394,7 +394,7 @@ const SaleDetailsModal = ({
                 {" "}
                 <MdArrowBackIos className="text-xs" /> Back
               </Button>
-              {/* <div className="flex-1 flex justify-center mb-2">
+              <div className="flex-1 flex justify-center mb-2">
                 {hasAutomation ? (
                   <span className="flex justify-center items-center gap-1">
                     {" "}
@@ -410,7 +410,7 @@ const SaleDetailsModal = ({
                     productPrice={productPrice}
                   ></AutomatePrice>
                 )}
-              </div> */}
+              </div>
             </div>
             <div className="mt-1">
               {salesChartloading ? (

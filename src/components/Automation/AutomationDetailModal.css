@@ -1,10 +1,10 @@
 .automation-detail-modal {
   /* position: relative; */
 
-  max-width: 85vw;
+  max-width: 60vw;
 }
 .automation-detail-modal .modal-content {
-  height: 92vh; /*modal height */
+  height: 70vh; /*modal height */
   overflow-y: auto;
 }
 .automation-detail-modal .modal-header {
