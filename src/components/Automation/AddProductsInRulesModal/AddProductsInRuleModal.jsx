@@ -68,13 +68,32 @@ const AddProductsInRuleModal = ({
   };
 
   const handleAddButtonClick = async () => {
+    const invalidProducts = displayedProducts.filter(
+      (product) =>
+        !product.maxPrice ||
+        isNaN(parseFloat(product.maxPrice)) ||
+        !product.minPrice ||
+        isNaN(parseFloat(product.minPrice)) ||
+        parseFloat(product.minPrice) > parseFloat(product.maxPrice)
+    );
+
+    if (invalidProducts.length > 0) {
+      Swal.fire({
+        title: "Validation Error!",
+        text: "Please provide valid Max Price and Min Price for all products. Min Price cannot be greater than Max Price.",
+        icon: "error",
+        showConfirmButton: true,
+      });
+      return;
+    }
+
     const requestBody = {
       products: displayedProducts.map((product) => ({
         sku: product.sellerSku,
         title: product.itemName,
         imageUrl: product.imageUrl,
-        maxPrice: parseFloat(product.maxPrice) || 0,
-        minPrice: parseFloat(product.minPrice) || 0,
+        maxPrice: parseFloat(product.maxPrice) || product.price,
+        minPrice: parseFloat(product.minPrice) || product.price,
       })),
       hitAutoPricing: true,
     };
