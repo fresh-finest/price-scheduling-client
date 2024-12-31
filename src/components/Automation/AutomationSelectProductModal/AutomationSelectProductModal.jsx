@@ -125,7 +125,7 @@ const AutomationSelectProductModal = ({
           </div>
 
           {loading && (
-            <p className="mt-4 text-center ">
+            <p className="mt-4 text-center">
               {" "}
               <ClipLoader
                 color="#0E6FFD"
@@ -147,56 +147,58 @@ const AutomationSelectProductModal = ({
             <p className="mt-2 text-red-500 text-center">{searchingError}</p>
           )}
 
-          <div className="mt-4 h-[45vh] overflow-y-auto">
-            {searchedProducts.length > 0 ? (
-              <div className="space-y-3">
-                {searchedProducts.map((product, index) => (
-                  <div key={index}>
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        onChange={(e) =>
-                          handleCheckboxChange(product, e.target.checked)
-                        }
-                        checked={selectedProducts.some(
-                          (selectedProduct) =>
-                            selectedProduct.sellerSku === product.sellerSku
-                        )}
-                      ></Checkbox>
-                      <img
-                        src={product.imageUrl}
-                        className="w-[30px] h-[40px] object-cover"
-                        alt="product_image"
-                      />
-                      <div className="space-y-1">
-                        <h3 title={product.itemName}>
-                          {product.itemName.split(" ").length > 10
-                            ? product.itemName
-                                .split(" ")
-                                .slice(0, 10)
-                                .join(" ") + "..."
-                            : product.itemName}
-                        </h3>
+          {!loading && (
+            <div className="mt-4 h-[45vh] overflow-y-auto">
+              {searchedProducts.length > 0 ? (
+                <div className="space-y-3">
+                  {searchedProducts.map((product, index) => (
+                    <div key={index}>
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          onChange={(e) =>
+                            handleCheckboxChange(product, e.target.checked)
+                          }
+                          checked={selectedProducts.some(
+                            (selectedProduct) =>
+                              selectedProduct.sellerSku === product.sellerSku
+                          )}
+                        ></Checkbox>
+                        <img
+                          src={product.imageUrl}
+                          className="w-[30px] h-[40px] object-cover"
+                          alt="product_image"
+                        />
+                        <div className="space-y-1">
+                          <h3 title={product.itemName}>
+                            {product.itemName.split(" ").length > 10
+                              ? product.itemName
+                                  .split(" ")
+                                  .slice(0, 10)
+                                  .join(" ") + "..."
+                              : product.itemName}
+                          </h3>
 
-                        <div className="flex gap-2">
-                          <span className="px-2 py-1 border text-xs">
-                            {product.asin1}
-                          </span>
-                          <span className="px-2 py-1 border text-xs">
-                            {product.sellerSku}
-                          </span>
+                          <div className="flex gap-2">
+                            <span className="px-2 py-1 border text-xs">
+                              {product.asin1}
+                            </span>
+                            <span className="px-2 py-1 border text-xs">
+                              {product.sellerSku}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              !loading &&
-              !searchingError && (
-                <p className="mt-2 text-center">No products found.</p>
-              )
-            )}
-          </div>
+                  ))}
+                </div>
+              ) : (
+                !loading &&
+                !searchingError && (
+                  <p className="mt-2 text-center">No products found.</p>
+                )
+              )}
+            </div>
+          )}
         </Modal.Body>
         <div className="  bg-white shadow-sm px-3 py-2 border-t-[1px] ">
           <section className="flex items-center justify-between">

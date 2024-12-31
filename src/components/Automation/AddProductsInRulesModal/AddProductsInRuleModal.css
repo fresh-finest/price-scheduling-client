@@ -1,0 +1,21 @@
+.add-products-rule-modal {
+    /* position: relative; */
+  
+    max-width: 65vw;
+  }
+  .add-products-rule-modal .modal-body {
+    z-index: 1050 !important;
+  }
+  
+  .add-products-rule-modal .modal-content {
+    height: 72vh; /*modal height */
+    overflow-y: auto;
+  }
+  .add-products-rule-modal .modal-header {
+    border: 0;
+  }
+  .add-products-rule-modal .modal-header button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }

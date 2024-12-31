@@ -1,69 +1,201 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import "./AutomatePrice.css";
 import Swal from "sweetalert2";
+import { useSelector } from "react-redux";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import axios from "axios";
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.141:3000";
+// const BASE_URL = "http://192.168.0.109:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
-
-const AutomatePrice = ({ sku }) => {
+const AutomatePrice = ({ sku, productDetails, product }) => {
   const [showModal, setShowModal] = useState(false);
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [minPriceInput, setMinPriceInput] = useState(null);
   const [validateErrors, setValidateErrors] = useState(null);
+  const [isDaySelected, setIsDaySelected] = useState(false);
+  const [isHourSelected, setIsHourSelected] = useState(false);
+  const [isAmountSelected, setIsAmountSelected] = useState(false);
+  const [isPercentageSelected, setIsPercentageSelected] = useState(false);
+  const [scheduleType, setScheduleType] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [automationRules, setAutomationRules] = useState([]);
+  const [error, setError] = useState("");
+  const [selectedRule, setSelectedRule] = useState("");
+  const [dayInput, setDayInput] = useState("");
+  const [hourInput, setHourInput] = useState("");
+  const [amountInput, setAmountInput] = useState("");
+  const [percentageInput, setPercentageInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const { currentUser } = useSelector((state) => state.user);
 
   const handleCloseModal = () => {
     setShowModal(false);
     setMaxPriceInput(null);
     setMinPriceInput(null);
     setValidateErrors(null);
+    setStartDate(null);
+    setEndDate(null);
+    setIsDaySelected(false);
+    setIsHourSelected(false);
+    setIsAmountSelected(false);
+    setIsPercentageSelected(false);
+    setScheduleType("");
+    setDayInput("");
+    setHourInput("");
+    setAmountInput("");
+    setPercentageInput("");
+    setSelectedRule("");
   };
+
+  const handleRuleChange = (value) => {
+    setSelectedRule(value);
+  };
+
+  const fetchData = async () => {
+    // setLoading(true);
+    try {
+      const response = await axios.get(`${BASE_URL}/api/automation/rules`);
+      console.log("automation rules", response.data.rules);
+      if (response.data) {
+        setLoading(false);
+        setAutomationRules(response.data.rules);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError(error.message);
+      // setLoading(false);
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showModal) {
+      fetchData();
+    }
+  }, [showModal]);
+
+  const productName = productDetails?.summaries[0]?.itemName;
+  const productImage = productDetails?.summaries[0]?.mainImage?.link;
+
+  const formattedStartDate = startDate?.format("YYYY-MM-DD");
+  const formattedEndDate = endDate?.format("YYYY-MM-DD");
 
   const handleShowModal = () => {
     setShowModal(true);
   };
 
   const handleMaxPriceChange = (e) => {
-    const maxPrice = parseFloat(e.target.value);
-    setMaxPriceInput(maxPrice);
-    setValidateErrors(null);
+    const value = parseFloat(e.target.value);
+
+    setMaxPriceInput(value);
+
+    validateMaxPriceInput(value, minPriceInput);
   };
+
   const handleMinPriceChange = (e) => {
-    const minPrice = parseFloat(e.target.value);
-    setMinPriceInput(minPrice);
+    const value = parseFloat(e.target.value);
+
+    setMinPriceInput(value);
+
+    // Validate Min Price dynamically
+    validateMinPriceInput(value, maxPriceInput);
+  };
+
+  const validateMaxPriceInput = (maxPriceValue, minPriceValue) => {
+    if (!maxPriceValue || parseFloat(maxPriceValue) <= 0) {
+      setValidateErrors("Max price must be greater than 0.");
+      return false;
+    }
+
+    if (
+      minPriceValue &&
+      parseFloat(maxPriceValue) < parseFloat(minPriceValue)
+    ) {
+      setValidateErrors("Max price must be greater than Min price.");
+      return false;
+    }
+
+    setValidateErrors(null); // Clear errors if valid
+    return true;
+  };
+
+  const validateMinPriceInput = (minPriceValue, maxPriceValue) => {
+    if (!minPriceValue || parseFloat(minPriceValue) <= 0) {
+      setValidateErrors("Min price must be greater than 0.");
+      return false;
+    }
+
+    if (
+      maxPriceValue &&
+      parseFloat(minPriceValue) > parseFloat(maxPriceValue)
+    ) {
+      setValidateErrors("Min price must be less than Max price.");
+      return false;
+    }
+
     setValidateErrors(null);
+    return true;
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-    if (!maxPriceInput || !minPriceInput) {
-      setValidateErrors("Please fill in both max and min prices.");
+    if (validateErrors) {
       return;
     }
 
-    if (parseFloat(minPriceInput) >= parseFloat(maxPriceInput)) {
-      setValidateErrors("Min price should be less than max price.");
-      return;
-    }
+    const isValidMaxPrice = validateMaxPriceInput(maxPriceInput, minPriceInput);
+    const isValidMinPrice = validateMinPriceInput(minPriceInput, maxPriceInput);
+
+    if (!isValidMaxPrice || !isValidMinPrice) return;
+
+    console.log("selected rule", selectedRule);
+    // if (!selectedRule) {
+    //   setValidateErrors("Please Select an Automation Rule.");
+    //   return;
+    // }
 
     const payload = {
-      sku,
+      products: [
+        {
+          sku: sku,
+          title: productName,
+          imageUrl: productImage,
 
-      maxPrice: parseFloat(maxPriceInput.toFixed(2)),
-      minPrice: parseFloat(minPriceInput.toFixed(2)),
+          maxPrice: parseFloat(maxPriceInput.toFixed(2)),
+          minPrice: parseFloat(minPriceInput.toFixed(2)),
+        },
+      ],
+      hitAutoPricing: true,
     };
 
+    console.log("payload", payload);
+
     try {
-      const response = await fetch(`${BASE_URL}/auto-pricing`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      setLoading(true);
+      const response = await fetch(
+        `${BASE_URL}/api/automation/rules/${selectedRule}/products`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (response.ok) {
         Swal.fire({
@@ -74,6 +206,7 @@ const AutomatePrice = ({ sku }) => {
         });
         setMaxPriceInput(null);
         setMinPriceInput(null);
+        setLoading(false);
         handleCloseModal();
       } else {
         const errorData = await response.json();
@@ -83,6 +216,7 @@ const AutomatePrice = ({ sku }) => {
           showConfirmButton: false,
           timer: 2000,
         });
+        setLoading(false);
       }
     } catch (error) {
       alert(`Error: ${error.message}`);
@@ -114,26 +248,45 @@ const AutomatePrice = ({ sku }) => {
               disabled
               placeholder="SKU"
             />
-            <Form.Control
-              type="number"
-              className="update-custom-input"
-              defaultValue={maxPriceInput}
-              onChange={handleMaxPriceChange}
-              placeholder="Max Price"
-              step="0.01"
-              required
-            />
-            <Form.Control
-              type="text"
-              className="update-custom-input"
-              defaultValue={minPriceInput}
-              onChange={handleMinPriceChange}
-              placeholder="Min Price"
-              step="0.01"
-              required
-            />
+            <div className="">
+              <Select onValueChange={handleRuleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an Automation Rule" />
+                </SelectTrigger>
+                <SelectContent>
+                  {automationRules.map((rule, index) => (
+                    <SelectItem key={index} value={rule.ruleId}>
+                      {rule.ruleName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-between gap-2">
+              <Form.Control
+                type="number"
+                className="update-custom-input"
+                defaultValue={maxPriceInput}
+                onChange={handleMaxPriceChange}
+                placeholder="Max Price"
+                step="0.01"
+                required
+              />
+              <Form.Control
+                type="text"
+                className="update-custom-input"
+                defaultValue={minPriceInput}
+                onChange={handleMinPriceChange}
+                placeholder="Min Price"
+                step="0.01"
+                required
+              />
+            </div>
+
             {validateErrors && (
-              <p className="text-red-500 text-sm">{validateErrors}</p>
+              <p className="text-red-500 text-sm text-center">
+                {validateErrors}
+              </p>
             )}
 
             <Button
@@ -144,9 +297,10 @@ const AutomatePrice = ({ sku }) => {
                 justifyContent: "center",
                 alignItems: "center",
               }}
+              disabled={loading}
               type="submit"
             >
-              Update Schedule
+              {loading ? "Loading.." : "Automate"}
             </Button>
           </Form>
         </Modal.Body>

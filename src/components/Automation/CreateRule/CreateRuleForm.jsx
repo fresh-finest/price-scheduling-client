@@ -17,6 +17,7 @@ import AutomationSelectProductModal from "../AutomationSelectProductModal/Automa
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useSelector } from "react-redux";
+import { IoCloseOutline } from "react-icons/io5";
 // const BASE_URL = "http://192.168.0.109:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -48,6 +49,7 @@ const CreateRuleForm = () => {
     reset();
     setRuleFormOpen(false);
     setTimeType("");
+    setUnitType("");
     setFinalSelectedProducts([]);
   };
   const handleRuleFormOpen = () => {
@@ -61,11 +63,31 @@ const CreateRuleForm = () => {
     setSearchedProducts("");
     setSelectedProducts([]);
   };
+
   const handleAddSelectedProducts = (products) => {
-    setFinalSelectedProducts(products);
+    setFinalSelectedProducts((prevProducts) => {
+      const mergedProducts = [...prevProducts]; // Clone existing products
+
+      // Add only unique products to avoid duplicates
+      products.forEach((product) => {
+        if (!mergedProducts.some((p) => p.sellerSku === product.sellerSku)) {
+          mergedProducts.push(product);
+        }
+      });
+
+      return mergedProducts;
+    });
+
     setSelectProductModalOpen(false);
     setSelectedProducts([]);
     setSearchedProducts("");
+  };
+
+  const handleRemoveProduct = (sku) => {
+    const updatedProducts = finalSelectedProducts.filter(
+      (product) => product.sellerSku !== sku
+    );
+    setFinalSelectedProducts(updatedProducts); // Update the state
   };
 
   console.log("final selected products", finalSelectedProducts);
@@ -97,19 +119,6 @@ const CreateRuleForm = () => {
     const percentageValue =
       unitType === "percentage" ? parsedUnitValue / 100 : null;
     const amountValue = unitType === "amount" ? parsedUnitValue : null;
-
-    // const payload = {
-    //   rule: {
-    //     ruleName,
-    //     category: ruleType,
-    //     percentage: unitType === "percentage" ? parseFloat(unitValue) : null,
-    //     amount: unitType === "amount" ? parseFloat(unitValue) : null,
-    //     interval,
-    //     userName: "Admin",
-    //   },
-    //   products,
-    //   hitAutoPricing: true,
-    // };
 
     const payload = {
       rule: {
@@ -154,6 +163,8 @@ const CreateRuleForm = () => {
       setLoading(false);
     }
   };
+
+  console.log("final selected products", finalSelectedProducts);
 
   return (
     <div className="mb-2">
@@ -322,13 +333,12 @@ const CreateRuleForm = () => {
                           ? "amount value is required"
                           : "percentage value is required"
                       }`,
-                      min: {
-                        value: 1,
-                        message: "Value must be greater than 0",
-                      },
+                      validate: (value) =>
+                        value > 0 || "Value must be greater than 0",
                     })}
                     className="update-custom-input"
                     type="number"
+                    step="0.01"
                     placeholder={
                       unitType === "amount" ? "Amount" : "Percentage"
                     }
@@ -356,31 +366,58 @@ const CreateRuleForm = () => {
               </Button>
             </div>
 
-            <div className="mt-2">
+            <div className="my-2">
               {finalSelectedProducts.map((product, index) => (
-                <div key={index} className="">
-                  <div className="flex justify-between gap-2 space-y-2 items-center">
-                    <h3>{product.sellerSku}</h3>
-                    <Form.Control
-                      id={`maxPrice-${product.sellerSku}`}
-                      type="number"
-                      step="0.01"
-                      className="w-[20%] update-custom-input"
-                      placeholder="Max Price"
-                    ></Form.Control>
-                    <Form.Control
-                      id={`minPrice-${product.sellerSku}`}
-                      className="w-[20%] update-custom-input"
-                      type="number"
-                      step="0.01"
-                      placeholder="Min Price"
-                    ></Form.Control>
-                  </div>
+                <div
+                  key={index}
+                  className="flex items-center gap-4 py-2 border-b  border-gray-200"
+                >
+                  <img
+                    src={product.imageUrl}
+                    className="w-[40px] h-[50px] object-cover rounded"
+                    alt="product image"
+                  />
+
+                  <h4 className="w-[20%] text-sm font-medium truncate">
+                    {product.itemName.split(" ").length > 5
+                      ? product.itemName.split(" ").slice(0, 5).join(" ") +
+                        "..."
+                      : product.itemName}
+                  </h4>
+
+                  <span className="px-2 text-xs text-white py-1 rounded-sm bg-[#3B82F6]">
+                    ${product.price}
+                  </span>
+
+                  <h3 className="w-[15%] text-sm text-gray-700">
+                    {product.sellerSku}
+                  </h3>
+
+                  <Form.Control
+                    id={`maxPrice-${product.sellerSku}`}
+                    type="number"
+                    step="0.01"
+                    className="w-[15%] px-2 py-1  update-custom-input"
+                    placeholder="Max Price"
+                  />
+
+                  <Form.Control
+                    id={`minPrice-${product.sellerSku}`}
+                    type="number"
+                    step="0.01"
+                    className="w-[15%] px-2 py-1 update-custom-input"
+                    placeholder="Min Price"
+                  />
+
+                  <IoCloseOutline
+                    onClick={() => handleRemoveProduct(product.sellerSku)}
+                    className="text-xl cursor-pointer text-gray-500 hover:text-gray-600"
+                  />
                 </div>
               ))}
             </div>
 
-            <div className="mt-2 absolute bottom-4 right-4">
+            <div className="mt-2 flex justify-end">
               <Button
                 className="text-sm flex items-center gap-1 "
                 style={{

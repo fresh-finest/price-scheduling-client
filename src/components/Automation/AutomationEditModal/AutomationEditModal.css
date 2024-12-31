@@ -1,0 +1,21 @@
+.automation-edit-modal {
+    /* position: relative; */
+  
+    max-width: 35vw;
+  }
+  .automation-edit-modal .modal-body {
+    z-index: 1050 !important;
+  }
+  
+  .automation-edit-modal .modal-content {
+    height: 55vh; /*modal height */
+    overflow-y: auto;
+  }
+  .automation-edit-modal .modal-header {
+    border: 0;
+  }
+  .automation-edit-modal .modal-header button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }

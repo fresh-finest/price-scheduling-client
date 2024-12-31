@@ -6,7 +6,6 @@ import { FaRankingStar } from "react-icons/fa6";
 import { MdCheck } from "react-icons/md";
 import { PiWarehouse } from "react-icons/pi";
 
-
 const BASE_URL = `https://api.priceobo.com`;
 
 const fetchProductDetails = async (sku) => {
@@ -23,7 +22,6 @@ const fetchProductDetails = async (sku) => {
   }
 };
 
-
 const ProductDetailsWithNumbers = ({
   product,
   channelStockValue,
@@ -39,8 +37,8 @@ const ProductDetailsWithNumbers = ({
   const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
   const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
-  const [name,setName] = useState("");
-  const [image,setImage] = useState("")
+  const [name, setName] = useState("");
+  const [image, setImage] = useState("");
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -57,14 +55,12 @@ const ProductDetailsWithNumbers = ({
         console.error(error); // Log the error for debugging
       }
     };
-  
+
     if (sku1) {
       fetchDetails();
     }
   }, [sku1]);
-  
-  
-  
+
   const fetchSalePrice = async (sku) => {
     try {
       setSaleInformation(null);
@@ -135,8 +131,7 @@ const ProductDetailsWithNumbers = ({
           variant="top"
           // src={product?.AttributeSets[0]?.SmallImage?.URL}
           src={
-            product?.AttributeSets?.[0]?.SmallImage?.URL ||
-            image // Provide a fallback if the URL is not available
+            product?.AttributeSets?.[0]?.SmallImage?.URL || image // Provide a fallback if the URL is not available
           }
           className={`${
             updatePriceModal
@@ -333,17 +328,32 @@ const ProductDetailsWithNumbers = ({
               className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
               style={{
                 cursor: "pointer",
-                // display: "inline-flex",
-                // alignItems: "stretch",
+               
+                transition: "color 0.3s ease", 
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e8f8f5")} 
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffff")}
             >
-              {asin}{" "}
+              <a
+                href={`https://www.amazon.com/dp/${asin}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  textDecoration: "none",
+                  color: "#505050",
+                  transition: "color 0.3s ease"
+                }}
+              
+              >
+                {asin}
+              </a>
               {copiedAsinIndex ? (
                 <MdCheck
                   style={{
                     marginLeft: "10px",
                     cursor: "pointer",
                     color: "green",
+                  
                   }}
                 />
               ) : (
