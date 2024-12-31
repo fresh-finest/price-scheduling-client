@@ -307,7 +307,7 @@ const Automationtable = () => {
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                View Data
+                Products
               </th>
               <th
                 className="tableHeader"
@@ -471,18 +471,19 @@ const Automationtable = () => {
                           <PenLine size={20} className="text-white" />
                         </button>
 
-                        <Button
+                        <button
                           // onClick={() =>
                           //   handleDeleteAutomation(ruleData.ruleId, data.sku)
                           // }
                           onClick={() => handleDeleteRule(data.ruleId)}
-                          variant="danger"
+                          // variant="danger"
+
                           size="md"
-                          className="rounded-sm"
+                          className="rounded-sm px-2 py-1  bg-white ml-1"
                           disabled={data.mute || deleteLoading}
                         >
-                          <FiTrash />
-                        </Button>
+                          <FiTrash size={20} className="text-red-400" />
+                        </button>
                       </div>
                     </td>
                   </tr>

@@ -7,19 +7,22 @@ import { ClipLoader } from "react-spinners";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Button as ShadCdnButton } from "@/components/ui/button";
+import Swal from "sweetalert2";
 
 const BASE_URL = "http://192.168.0.109:3000";
 // const BASE_URL = `https://api.priceobo.com`;
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
-  handleAddProductsInRuleModalClose,
+  setAddProductsInRuleModalOpen,
+  ruleId,
 }) => {
   const [searchedProducts, setSearchedProducts] = useState([]);
   const [searchingError, setSearchingError] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
-
+  const [displayedProducts, setDisplayedProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [addProductLoading, setAddProductsLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +48,12 @@ const AddProductsInRuleModal = ({
       setLoading(false);
     }
   };
+  const handleAddProductsInRuleModalClose = () => {
+    setAddProductsInRuleModalOpen(false);
+    setSelectedProducts([]);
+    setDisplayedProducts([]);
+    setSearchedProducts([]);
+  };
 
   const handleSearch = (value) => {
     setSearchQuery(value);
@@ -58,33 +67,142 @@ const AddProductsInRuleModal = ({
     }, 300);
   };
 
-  const handleAddSelectedProducts = (products) => {
-    selectedProducts(products);
-    handleAddProductsInRuleModalClose();
-    setSelectedProducts([]);
-    setSearchedProducts("");
-  };
+  const handleAddButtonClick = async () => {
+    const requestBody = {
+      products: displayedProducts.map((product) => ({
+        sku: product.sellerSku,
+        title: product.itemName,
+        imageUrl: product.imageUrl,
+        maxPrice: parseFloat(product.maxPrice) || 0,
+        minPrice: parseFloat(product.minPrice) || 0,
+      })),
+      hitAutoPricing: true,
+    };
 
-  const handleAddButtonClick = () => {
-    handleAddSelectedProducts(selectedProducts);
+    console.log("Payload:", requestBody);
+
+    try {
+      setAddProductsLoading(true);
+      const response = await axios.post(
+        `${BASE_URL}/api/automation/rules/${ruleId}/products`,
+        requestBody,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("API Response:", response.data);
+
+      Swal.fire({
+        title: "Products added successfully!",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+      setAddProductsLoading(false);
+      handleAddProductsInRuleModalClose();
+    } catch (error) {
+      console.error("API Error:", error);
+      setAddProductsLoading(false);
+      Swal.fire({
+        title: "Something Went Wrong!",
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } finally {
+      setAddProductsLoading(false);
+    }
   };
 
   const handleCheckboxChange = (product, checked) => {
-    console.log("product", product);
-    console.log("checked", checked);
     if (checked) {
-      setSelectedProducts((prevSelectedProducts) => [
-        ...prevSelectedProducts,
-        product,
-      ]);
+      const newProduct = {
+        ...product,
+        maxPrice: "",
+        minPrice: "",
+      };
+      setSelectedProducts((prev) => [...prev, newProduct]);
+      setDisplayedProducts((prev) => [...prev, newProduct]);
     } else {
-      setSelectedProducts((prevSelectedProducts) =>
-        prevSelectedProducts.filter(
-          (item) => item.sellerSku !== product.sellerSku
-        )
+      setSelectedProducts((prev) =>
+        prev.filter((item) => item.sellerSku !== product.sellerSku)
+      );
+      setDisplayedProducts((prev) =>
+        prev.filter((item) => item.sellerSku !== product.sellerSku)
       );
     }
   };
+  const handleInputChange = (sku, field, value) => {
+    setDisplayedProducts((prev) =>
+      prev.map((item) =>
+        item.sellerSku === sku ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const renderSelectedProducts = () => (
+    <div
+      className={`p-3 ${
+        displayedProducts.length ? "border border-gray-300" : ""
+      } h-[45vh] overflow-y-auto`}
+    >
+      {displayedProducts.map((product) => (
+        <div
+          key={product.sellerSku}
+          className="flex items-center gap-4 p-2 border-b"
+        >
+          <img
+            src={product.imageUrl}
+            className="w-[40px] h-[40px] object-cover rounded"
+            alt="product_image"
+          />
+
+          <div className="flex-grow">
+            <h3 className="text-sm font-medium truncate max-w-[200px]">
+              {product.itemName}
+            </h3>
+            <p className="text-xs text-gray-500">{product.sellerSku}</p>
+          </div>
+
+          <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
+            ${product.price || "0.00"}
+          </span>
+
+          <Input
+            placeholder="Max Price"
+            value={product.maxPrice}
+            onChange={(e) =>
+              handleInputChange(product.sellerSku, "maxPrice", e.target.value)
+            }
+            className="w-[90px]"
+          />
+
+          <Input
+            placeholder="Min Price"
+            value={product.minPrice}
+            onChange={(e) =>
+              handleInputChange(product.sellerSku, "minPrice", e.target.value)
+            }
+            className="w-[90px]"
+          />
+
+          <button
+            onClick={() =>
+              setDisplayedProducts((prev) =>
+                prev.filter((item) => item.sellerSku !== product.sellerSku)
+              )
+            }
+            className="text-gray-500 hover:text-gray-600"
+          >
+            &#x2715;
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 
   useEffect(() => {
     return () => {
@@ -146,55 +264,38 @@ const AddProductsInRuleModal = ({
           )}
 
           {!loading && (
-            <div className="mt-4 h-[45vh] overflow-y-auto">
-              {searchedProducts.length > 0 ? (
-                <div className="space-y-3">
-                  {searchedProducts.map((product, index) => (
-                    <div key={index}>
-                      <div className="flex items-center gap-3">
+            <div className="mt-4 flex gap-4">
+              <div
+                className={`${
+                  searchedProducts.length ? "w-[55%] border" : "w-full"
+                }  h-[45vh] overflow-y-auto  p-2`}
+              >
+                {searchedProducts.length > 0 ? (
+                  <div className="space-y-3">
+                    {searchedProducts.map((product, index) => (
+                      <div key={index} className="flex items-center gap-3">
                         <Checkbox
                           onChange={(e) =>
                             handleCheckboxChange(product, e.target.checked)
                           }
                           checked={selectedProducts.some(
-                            (selectedProduct) =>
-                              selectedProduct.sellerSku === product.sellerSku
+                            (p) => p.sellerSku === product.sellerSku
                           )}
-                        ></Checkbox>
+                        />
                         <img
                           src={product.imageUrl}
                           className="w-[30px] h-[40px] object-cover"
                           alt="product_image"
                         />
-                        <div className="space-y-1">
-                          <h3 title={product.itemName}>
-                            {product.itemName.split(" ").length > 10
-                              ? product.itemName
-                                  .split(" ")
-                                  .slice(0, 10)
-                                  .join(" ") + "..."
-                              : product.itemName}
-                          </h3>
-
-                          <div className="flex gap-2">
-                            <span className="px-2 py-1 border text-xs">
-                              {product.asin1}
-                            </span>
-                            <span className="px-2 py-1 border text-xs">
-                              {product.sellerSku}
-                            </span>
-                          </div>
-                        </div>
+                        <h3 className="text-sm">{product.itemName}</h3>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                !loading &&
-                !searchingError && (
+                    ))}
+                  </div>
+                ) : (
                   <p className="mt-2 text-center">No products found.</p>
-                )
-              )}
+                )}
+              </div>
+              {renderSelectedProducts()}
             </div>
           )}
         </Modal.Body>
@@ -202,7 +303,7 @@ const AddProductsInRuleModal = ({
           <section className="flex items-center justify-between">
             <div>
               <h3 className="text-md font-medium">
-                {selectedProducts.length} Products Selected
+                {displayedProducts.length} Products Selected
               </h3>{" "}
             </div>
             <div className="flex gap-2">
@@ -228,9 +329,9 @@ const AddProductsInRuleModal = ({
                   backgroundColor: "#0662BB",
                   borderRadius: "3px",
                 }}
-                disabled={selectedProducts.length === 0}
+                disabled={selectedProducts.length === 0 || addProductLoading}
               >
-                Add
+                {addProductLoading ? "Loading..." : "Add"}
               </Button>
             </div>
           </section>

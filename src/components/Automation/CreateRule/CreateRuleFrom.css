@@ -1,7 +1,7 @@
 .create-rule-modal {
   /* position: relative; */
 
-  max-width: 35vw;
+  max-width: 45vw;
 }
 .create-rule-modal .modal-body {
   z-index: 1050 !important;
@@ -11,7 +11,7 @@
   z-index: 1051 !important; /* Higher than Bootstrap modal */
 }
 .create-rule-modal .modal-content {
-  height: 55vh; /*modal height */
+  height: 57vh; /*modal height */
   overflow-y: auto;
 }
 .create-rule-modal .modal-header {

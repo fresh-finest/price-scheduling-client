@@ -32,10 +32,6 @@ const AutomationDetailModal = ({
   const [addProductsInRuleModalOpen, setAddProductsInRuleModalOpen] =
     useState(false);
 
-  const handleAddProductsInRuleModalClose = () => {
-    setAddProductsInRuleModalOpen(false);
-  };
-
   const handleAddProductsInRuleModalOpen = () => {
     setAddProductsInRuleModalOpen(true);
   };
@@ -341,18 +337,7 @@ const AutomationDetailModal = ({
                       >
                         {data.sku}
                       </td>
-                      {/* <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        ${parseFloat(data.maxPrice).toFixed(2)}
-                      </td> */}
+
                       <td
                         style={{
                           whiteSpace: "nowrap",
@@ -374,18 +359,6 @@ const AutomationDetailModal = ({
                           `$${parseFloat(data.maxPrice).toFixed(2)}`
                         )}
                       </td>
-                      {/* <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        ${parseFloat(data.minPrice).toFixed(2)}
-                      </td> */}
 
                       <td
                         style={{
@@ -408,31 +381,6 @@ const AutomationDetailModal = ({
                           `$${parseFloat(data.minPrice).toFixed(2)}`
                         )}
                       </td>
-                      {/* <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <div className="flex justify-center items-center">
-                          <button className="bg-[#0662BB] py-1 px-2 rounded-md mr-1">
-                            <PenLine size={20} className="text-white" />
-                          </button>
-                          <Button
-                            onClick={() =>
-                              handleDeleteAutomation(ruleData.ruleId, data.sku)
-                            }
-                            variant="danger"
-                            size="md "
-                          >
-                            <FiTrash />
-                          </Button>
-                        </div>
-                      </td> */}
 
                       <td
                         style={{
@@ -490,8 +438,9 @@ const AutomationDetailModal = ({
       </Modal>
 
       <AddProductsInRuleModal
-        handleAddProductsInRuleModalClose={handleAddProductsInRuleModalClose}
         addProductsInRuleModalOpen={addProductsInRuleModalOpen}
+        setAddProductsInRuleModalOpen={setAddProductsInRuleModalOpen}
+        ruleId={ruleId}
       ></AddProductsInRuleModal>
     </div>
   );
