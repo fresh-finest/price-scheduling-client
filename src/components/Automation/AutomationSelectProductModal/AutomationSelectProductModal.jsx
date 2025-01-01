@@ -8,9 +8,10 @@ import { IoIosSearch } from "react-icons/io";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { ClipLoader } from "react-spinners";
+// import { BASE_URL } from "@/utils/baseUrl";
 
-// const BASE_URL = "http://192.168.0.109:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`
+
 
 const AutomationSelectProductModal = ({
   selectProductModalOpen,
@@ -26,7 +27,7 @@ const AutomationSelectProductModal = ({
   // States
   const [searchQuery, setSearchQuery] = useState("");
 
-  console.log("selectedProducts", selectedProducts);
+  // console.log("selectedProducts", selectedProducts);
 
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +43,7 @@ const AutomationSelectProductModal = ({
     setSearchingError("");
     try {
       const response = await axios.get(`${BASE_URL}/api/product/${query}`);
-      console.log(response.data.data.listings);
+
       setSearchedProducts(response.data.data.listings);
       setLoading(false);
     } catch (err) {
@@ -70,8 +71,6 @@ const AutomationSelectProductModal = ({
   };
 
   const handleCheckboxChange = (product, checked) => {
-    console.log("product", product);
-    console.log("checked", checked);
     if (checked) {
       setSelectedProducts((prevSelectedProducts) => [
         ...prevSelectedProducts,
@@ -86,6 +85,60 @@ const AutomationSelectProductModal = ({
     }
   };
 
+  const renderSelectedProducts = () => (
+    <div
+      className={`p-3 ${
+        selectedProducts.length ? "border border-gray-300" : ""
+      } h-[45vh] overflow-y-auto`}
+    >
+      {selectedProducts.map((product) => (
+        <div
+          key={product.sellerSku}
+          className="flex items-center gap-4 p-2 border-b"
+        >
+          <img
+            src={product.imageUrl}
+            className="w-[40px] h-[40px] object-cover rounded"
+            alt="product_image"
+          />
+
+          <div className="flex-grow">
+            <h3 className="text-sm font-medium truncate max-w-[300px]">
+              {product.itemName}
+            </h3>
+            <div className="flex gap-1">
+              <p className="text-xs border px-2 py-1 rounded-xs">
+                {product.sellerSku}
+              </p>
+              <p className="text-xs border px-2 py-1 rounded-xs">
+                {product.asin1}
+              </p>
+            </div>
+          </div>
+
+          <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
+            ${product.price || "0.00"}
+          </span>
+
+          <button
+            onClick={() => {
+              // setDisplayedProducts((prev) =>
+              //   prev.filter((item) => item.sellerSku !== product.sellerSku)
+              // );
+
+              setSelectedProducts((prev) =>
+                prev.filter((item) => item.sellerSku !== product.sellerSku)
+              );
+            }}
+            className="text-gray-500 hover:text-gray-600"
+          >
+            &#x2715;
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
   useEffect(() => {
     return () => {
       if (debounceTimer.current) {
@@ -93,8 +146,6 @@ const AutomationSelectProductModal = ({
       }
     };
   }, []);
-
-  console.log("selectedProducts", selectedProducts);
 
   return (
     <div>
@@ -147,7 +198,7 @@ const AutomationSelectProductModal = ({
             <p className="mt-2 text-red-500 text-center">{searchingError}</p>
           )}
 
-          {!loading && (
+          {/* {!loading && (
             <div className="mt-4 h-[45vh] overflow-y-auto">
               {searchedProducts.length > 0 ? (
                 <div className="space-y-3">
@@ -197,6 +248,59 @@ const AutomationSelectProductModal = ({
                   <p className="mt-2 text-center">No products found.</p>
                 )
               )}
+            </div>
+          )} */}
+
+          {!loading && (
+            <div className="mt-4 flex gap-4">
+              <div
+                className={`${
+                  searchedProducts.length ? "w-[55%] border" : "w-full"
+                }  h-[45vh] overflow-y-auto  p-2`}
+              >
+                {searchedProducts.length > 0 ? (
+                  <div className="space-y-3">
+                    {searchedProducts.map((product, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Checkbox
+                          onChange={(e) =>
+                            handleCheckboxChange(product, e.target.checked)
+                          }
+                          checked={selectedProducts.some(
+                            (p) => p.sellerSku === product.sellerSku
+                          )}
+                        />
+                        <img
+                          src={product.imageUrl}
+                          className="w-[30px] h-[40px] object-cover"
+                          alt="product_image"
+                        />
+                        {/* <h3 className="text-sm">{product.itemName}</h3> */}
+                        <div className="flex-grow">
+                          <h3 className="text-sm font-medium truncate max-w-[400px]">
+                            {product.itemName.length > 50
+                              ? `${product.itemName.substring(0, 100)}...`
+                              : product.itemName}
+                          </h3>
+
+                          {/* Display ASIN and SKU */}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs border px-2 py-1 rounded-xs">
+                              {product.asin1}
+                            </span>
+                            <span className="text-xs border px-2 py-1 rounded-xs">
+                              {product.sellerSku}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-center">No products found.</p>
+                )}
+              </div>
+              {renderSelectedProducts()}
             </div>
           )}
         </Modal.Body>

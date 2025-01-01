@@ -8,10 +8,11 @@ import { PenLine } from "lucide-react";
 import { FiTrash } from "react-icons/fi";
 import AutomationEditModal from "./AutomationEditModal/AutomationEditModal";
 import Swal from "sweetalert2";
+import { Switch } from "antd";
+import { set } from "lodash";
+// import { BASE_URL } from "@/utils/baseUrl";
 
-// const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.109:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`
 
 const Automationtable = () => {
   const [automationData, setAutomationData] = useState([]);
@@ -26,6 +27,9 @@ const Automationtable = () => {
   const [productData, setProductData] = useState([]);
   const [automationDetailData, setAutomationDetailData] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [enableDisableLoadingStates, setEnableDisableLoadingStates] = useState(
+    {}
+  );
 
   const fetchData = async () => {
     try {
@@ -82,89 +86,104 @@ const Automationtable = () => {
     }
   };
 
-  const handleMuteAutomation = async (ruleId) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to mute this automation rule?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, mute it!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await axios.post(
-            `${BASE_URL}/api/automation/rules/${ruleId}/mute`,
-            {}
-          );
+  const handleSwitchChange = async (checked, ruleId) => {
+    if (checked) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to enable this automation rule?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, enable it!",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setEnableDisableLoadingStates((prev) => ({
+            ...prev,
+            [ruleId]: true,
+          }));
+          try {
+            const response = await axios.post(
+              `${BASE_URL}/api/automation/rules/${ruleId}/resume`,
+              {}
+            );
+            Swal.fire({
+              title: "Enabled!",
+              text: "Automation rule has been enabled.",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
 
-          console.log("Mute response:", response.data);
+            setEnableDisableLoadingStates((prev) => ({
+              ...prev,
+              [ruleId]: false,
+            }));
+          } catch (error) {
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to enable the automation rule. Please try again.",
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
 
-          Swal.fire({
-            title: "Muted!",
-            text: "Automation rule has been muted.",
-            icon: "success",
-            showConfirmButton: false,
-            timer: 2000,
-          });
-
-          fetchData();
-        } catch (error) {
-          console.error("Error muting automation rule:", error);
-
-          Swal.fire({
-            title: "Error!",
-            text: "Failed to mute the automation rule. Please try again.",
-            icon: "error",
-            showConfirmButton: false,
-            timer: 2000,
-          });
+            setEnableDisableLoadingStates((prev) => ({
+              ...prev,
+              [ruleId]: false,
+            }));
+          }
         }
-      }
-    });
-  };
-  const handleResumeAutomation = async (ruleId) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to resume this automation rule?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, resume it!",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const response = await axios.post(
-            `${BASE_URL}/api/automation/rules/${ruleId}/resume`,
-            {}
-          );
-
-          console.log("Mute response:", response.data);
-
-          Swal.fire({
-            title: "Resumed!",
-            text: "Automation rule has been resumed.",
-            icon: "success",
-            showConfirmButton: false,
-            timer: 2000,
-          });
-
-          fetchData();
-        } catch (error) {
-          console.error("Error resuming automation rule:", error);
-
-          Swal.fire({
-            title: "Error!",
-            text: "Failed to resume the automation rule. Please try again.",
-            icon: "error",
-            showConfirmButton: false,
-            timer: 2000,
-          });
+      });
+    } else {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to disable this automation rule?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, disable it!",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setEnableDisableLoadingStates((prev) => ({
+            ...prev,
+            [ruleId]: true,
+          }));
+          try {
+            const response = await axios.post(
+              `${BASE_URL}/api/automation/rules/${ruleId}/mute`,
+              {}
+            );
+            Swal.fire({
+              title: "Muted!",
+              text: "Automation rule has been disabled.",
+              icon: "success",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            fetchData();
+            setEnableDisableLoadingStates((prev) => ({
+              ...prev,
+              [ruleId]: false,
+            }));
+          } catch (error) {
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to disabled the automation rule. Please try again.",
+              icon: "error",
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            setEnableDisableLoadingStates((prev) => ({
+              ...prev,
+              [ruleId]: false,
+            }));
+          }
         }
-      }
-    });
+      });
+    }
   };
 
   const handleDeleteRule = async (ruleId) => {
@@ -212,15 +231,7 @@ const Automationtable = () => {
 
   return (
     <div>
-      <section
-
-      // style={{
-      //   maxHeight: "91vh",
-      //   overflowY: "auto",
-      //   marginTop: "50px",
-      //   boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-      // }}
-      >
+      <section>
         <table
           style={{
             tableLayout: "fixed",
@@ -239,19 +250,17 @@ const Automationtable = () => {
               <th
                 className="tableHeader"
                 style={{
-                  // width: "130px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                Mute/Resume
+                Enable/Disable
               </th>
               <th
                 className="tableHeader"
                 style={{
-                  // width: "130px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -263,7 +272,6 @@ const Automationtable = () => {
               <th
                 className="tableHeader"
                 style={{
-                  // width: "130px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -275,7 +283,6 @@ const Automationtable = () => {
               <th
                 className="tableHeader"
                 style={{
-                  // width: "130px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -287,7 +294,6 @@ const Automationtable = () => {
               <th
                 className="tableHeader"
                 style={{
-                  // width: "130px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -300,19 +306,17 @@ const Automationtable = () => {
               <th
                 className="tableHeader"
                 style={{
-                  // width: "px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                View Data
+                Products
               </th>
               <th
                 className="tableHeader"
                 style={{
-                  // width: "px",
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -343,36 +347,16 @@ const Automationtable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {!data.mute && (
-                        <Button
-                          onClick={() => handleMuteAutomation(data.ruleId)}
-                          className="text-xs"
-                          style={{
-                            padding: "8px 12px",
-                            border: "none",
-                            backgroundColor: "#0662BB",
-                            borderRadius: "3px",
-                            zIndex: 1,
-                          }}
-                        >
-                          Mute
-                        </Button>
-                      )}
-                      {data.mute && (
-                        <Button
-                          onClick={() => handleResumeAutomation(data.ruleId)}
-                          className="text-xs"
-                          style={{
-                            padding: "8px 12px",
-                            border: "none",
-                            backgroundColor: "#0662BB",
-                            borderRadius: "3px",
-                            zIndex: 1,
-                          }}
-                        >
-                          Resume
-                        </Button>
-                      )}
+                      <Switch
+                        size="small"
+                        checked={!data.mute}
+                        loading={
+                          enableDisableLoadingStates[data.ruleId] || false
+                        }
+                        onChange={(checked) =>
+                          handleSwitchChange(checked, data.ruleId)
+                        }
+                      />
                     </td>
                     <td
                       style={{
@@ -491,7 +475,7 @@ const Automationtable = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="7"
                   style={{ textAlign: "center", padding: "20px" }}
                 >
                   No Data Found

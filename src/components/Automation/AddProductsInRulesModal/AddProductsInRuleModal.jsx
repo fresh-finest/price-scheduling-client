@@ -8,9 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Button as ShadCdnButton } from "@/components/ui/button";
 import Swal from "sweetalert2";
-
-// const BASE_URL = "http://192.168.0.109:3000";
-const BASE_URL = `https://api.priceobo.com`;
+// import { BASE_URL } from "@/utils/baseUrl";
+const BASE_URL = `https://api.priceobo.com`
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
@@ -35,6 +34,7 @@ const AddProductsInRuleModal = ({
       return;
     }
     setLoading(true);
+    setSearchedProducts([]);
     setSearchingError("");
     try {
       const response = await axios.get(`${BASE_URL}/api/product/${query}`);
@@ -183,7 +183,14 @@ const AddProductsInRuleModal = ({
             <h3 className="text-sm font-medium truncate max-w-[200px]">
               {product.itemName}
             </h3>
-            <p className="text-xs text-gray-500">{product.sellerSku}</p>
+            <div className="flex gap-1">
+              <p className="text-xs border px-2 py-1 rounded-xs">
+                {product.sellerSku}
+              </p>
+              <p className="text-xs border px-2 py-1 rounded-xs">
+                {product.asin1}
+              </p>
+            </div>
           </div>
 
           <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
@@ -209,11 +216,15 @@ const AddProductsInRuleModal = ({
           />
 
           <button
-            onClick={() =>
+            onClick={() => {
               setDisplayedProducts((prev) =>
                 prev.filter((item) => item.sellerSku !== product.sellerSku)
-              )
-            }
+              );
+
+              setSelectedProducts((prev) =>
+                prev.filter((item) => item.sellerSku !== product.sellerSku)
+              );
+            }}
             className="text-gray-500 hover:text-gray-600"
           >
             &#x2715;
@@ -230,6 +241,8 @@ const AddProductsInRuleModal = ({
       }
     };
   }, []);
+
+  console.log("searched products", searchedProducts);
 
   return (
     <div>
@@ -306,7 +319,24 @@ const AddProductsInRuleModal = ({
                           className="w-[30px] h-[40px] object-cover"
                           alt="product_image"
                         />
-                        <h3 className="text-sm">{product.itemName}</h3>
+                        {/* <h3 className="text-sm">{product.itemName}</h3> */}
+                        <div className="flex-grow">
+                          <h3 className="text-sm font-medium truncate max-w-[400px]">
+                            {product.itemName.length > 50
+                              ? `${product.itemName.substring(0, 100)}...`
+                              : product.itemName}
+                          </h3>
+
+                          {/* Display ASIN and SKU */}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs border px-2 py-1 rounded-xs">
+                              {product.asin1}
+                            </span>
+                            <span className="text-xs border px-2 py-1 rounded-xs">
+                              {product.sellerSku}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
