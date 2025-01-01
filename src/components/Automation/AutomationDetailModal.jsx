@@ -9,9 +9,7 @@ import Swal from "sweetalert2";
 import { PenLine } from "lucide-react";
 import { IoMdAdd } from "react-icons/io";
 import AddProductsInRuleModal from "./AddProductsInRulesModal/AddProductsInRuleModal";
-
-const BASE_URL = "http://192.168.0.109:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+import { BASE_URL } from "@/utils/baseUrl";
 
 const AutomationDetailModal = ({
   automationDetailModalShow,

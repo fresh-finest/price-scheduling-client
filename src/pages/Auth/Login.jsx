@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import "./Login.css";
 import priceoboLogo from "../../assets/images/priceobo-logo.png";
@@ -26,6 +26,12 @@ const Login = () => {
     });
   };
 
+  useEffect(() => {
+    console.log("Redux State on Mount:", loading); // Debug Redux State
+    dispatch(signInFailure(null)); // Reset errors and loading
+  }, []);
+
+  console.log("loading", loading);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {

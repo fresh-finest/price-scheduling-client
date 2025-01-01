@@ -15,10 +15,7 @@ import {
 import CreateRuleForm from "./CreateRule/CreateRuleForm";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.109:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+import { BASE_URL } from "@/utils/baseUrl";
 
 const Automation = () => {
   const [chartData, setChartData] = useState([]);

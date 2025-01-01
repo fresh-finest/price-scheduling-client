@@ -12,9 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Swal from "sweetalert2";
-
-const BASE_URL = "http://192.168.0.109:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+import { BASE_URL } from "@/utils/baseUrl";
 
 const AutomationEditModal = ({
   automationEditModalShow,

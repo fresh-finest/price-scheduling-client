@@ -18,8 +18,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useSelector } from "react-redux";
 import { IoCloseOutline } from "react-icons/io5";
-const BASE_URL = "http://192.168.0.109:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+import { BASE_URL } from "@/utils/baseUrl";
 
 const CreateRuleForm = () => {
   const {
@@ -90,30 +89,29 @@ const CreateRuleForm = () => {
     setFinalSelectedProducts(updatedProducts); // Update the state
   };
 
-  console.log("final selected products", finalSelectedProducts);
+  // console.log("final selected products", finalSelectedProducts);
 
   const onSubmit = async (data) => {
     const { ruleName, ruleType, timeType, timeValue, unitType, unitValue } =
       data;
-    // const parsedUnitValue = parseFloat(unitValue);
 
-    // const interval = `${timeValue} ${timeType}`;
     const interval = `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
 
-    const products = finalSelectedProducts.map((product) => {
+    const products = finalSelectedProducts.map((product, index) => {
       return {
         sku: product.sellerSku,
         title: product.itemName,
         imageUrl: product.imageUrl,
-        maxPrice: parseFloat(
-          document.getElementById(`maxPrice-${product.sellerSku}`).value
-        ),
-        minPrice: parseFloat(
-          document.getElementById(`minPrice-${product.sellerSku}`).value
-        ),
+        // maxPrice: parseFloat(
+        //   document.getElementById(`maxPrice-${product.sellerSku}`).value
+        // ),
+        // minPrice: parseFloat(
+        //   document.getElementById(`minPrice-${product.sellerSku}`).value
+        // ),
+        maxPrice: data.products[index]?.maxPrice, // Fetch maxPrice from data
+        minPrice: data.products[index]?.minPrice, // Fetch minPrice from data
       };
     });
-    setLoading(true);
 
     const parsedUnitValue = parseFloat(unitValue);
     const percentageValue =
@@ -133,9 +131,10 @@ const CreateRuleForm = () => {
       hitAutoPricing: true,
     };
 
-    console.log("Payload:", payload);
+    console.log("Payload create rule form:", payload);
 
     try {
+      setLoading(true);
       const response = await axios.post(
         `${BASE_URL}/api/automation/rules-with-products`,
         payload
@@ -164,7 +163,7 @@ const CreateRuleForm = () => {
     }
   };
 
-  console.log("final selected products", finalSelectedProducts);
+  // console.log("final selected products", finalSelectedProducts);
 
   return (
     <div className="mb-2">
@@ -267,7 +266,7 @@ const CreateRuleForm = () => {
               )}
 
               {timeType && (
-                <div className="w-full">
+                <div className="w-full ">
                   <Form.Control
                     {...register("timeValue", {
                       required: `${
@@ -325,7 +324,7 @@ const CreateRuleForm = () => {
               )}
 
               {unitType && (
-                <div className="w-full">
+                <div className="w-full ">
                   <Form.Control
                     {...register("unitValue", {
                       required: `${
@@ -393,21 +392,65 @@ const CreateRuleForm = () => {
                     {product.sellerSku}
                   </h3>
 
-                  <Form.Control
+                  {/* <Form.Control
                     id={`maxPrice-${product.sellerSku}`}
                     type="number"
                     step="0.01"
                     className="w-[15%] px-2 py-1  update-custom-input"
                     placeholder="Max Price"
-                  />
+                  /> */}
+                  <div className="flex flex-col w-[20%]">
+                    <Form.Control
+                      {...register(`products.${index}.maxPrice`, {
+                        required: "Max Price is required",
+                        valueAsNumber: true,
+                        validate: (value) =>
+                          value > 0 || "Max Price must be greater than 0",
+                      })}
+                      type="number"
+                      step="0.01"
+                      className="w-full px-2 py-1 update-custom-input"
+                      placeholder="Max Price"
+                    />
+                    {errors.products?.[index]?.maxPrice && (
+                      <p className="text-red-500 text-sm">
+                        {errors.products[index].maxPrice.message}
+                      </p>
+                    )}
+                  </div>
 
-                  <Form.Control
+                  {/* <Form.Control
                     id={`minPrice-${product.sellerSku}`}
                     type="number"
                     step="0.01"
                     className="w-[15%] px-2 py-1 update-custom-input"
                     placeholder="Min Price"
-                  />
+                  /> */}
+
+                  <div className="flex flex-col w-[20%]">
+                    <Form.Control
+                      {...register(`products.${index}.minPrice`, {
+                        required: "Min Price is required",
+                        valueAsNumber: true,
+                        validate: {
+                          positive: (value) =>
+                            value > 0 || "Min Price must be greater than 0",
+                          lessThanMax: (value) =>
+                            value <= watch(`products.${index}.maxPrice`) ||
+                            "Min Price must be less than Max Price",
+                        },
+                      })}
+                      type="number"
+                      step="0.01"
+                      className=" px-2 py-1 update-custom-input"
+                      placeholder="Min Price"
+                    />
+                    {errors.products?.[index]?.minPrice && (
+                      <p className="text-red-500 text-sm">
+                        {errors.products[index].minPrice.message}
+                      </p>
+                    )}
+                  </div>
 
                   <IoCloseOutline
                     onClick={() => handleRemoveProduct(product.sellerSku)}

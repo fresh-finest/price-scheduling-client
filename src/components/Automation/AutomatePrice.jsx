@@ -12,10 +12,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import axios from "axios";
-
-// const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.109:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+import { BASE_URL } from "@/utils/baseUrl";
 
 const AutomatePrice = ({ sku, productDetails, product }) => {
   const [showModal, setShowModal] = useState(false);

@@ -1,14 +1,14 @@
 .automation-selectProduct-modal {
   /* position: relative; */
 
-  max-width: 45vw;
+  max-width: 65vw;
 }
 .automation-selectProduct-modal .modal-body {
   z-index: 1050 !important;
 }
 
 .automation-selectProduct-modal .modal-content {
-  height: 70vh; /*modal height */
+  height: 72vh; /*modal height */
   overflow-y: auto;
 }
 .automation-selectProduct-modal .modal-header {
