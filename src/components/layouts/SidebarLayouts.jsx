@@ -23,7 +23,7 @@ const SidebarLayout = () => {
     { title: "Automation", icon: <Cog />, path: "/automation" },
     // { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
-    // { title: "Report", icon: <PiChartLineUpLight />, path: "/report" },
+    { title: "Report", icon: <PiChartLineUpLight />, path: "/report" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
     // {
     //   title: "Manage User",
