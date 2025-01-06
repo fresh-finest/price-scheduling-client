@@ -7,8 +7,7 @@ import GeneralSetting from "./GeneralSetting";
 import SecuritySettting from "./SecuritySettting";
 import BillingSettings from "./BillingSetting";
 import NotificationSetting from "./NotificationSetting";
-
-
+import Tags from "./Tags/Tags";
 
 const SettingsView = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -65,22 +64,28 @@ const SettingsView = () => {
         >
           Notifications
         </Button>
+        <Button
+          variant={activeTab === "tags" ? "outline" : "ghost"}
+          onClick={() => setActiveTab("tags")}
+        >
+          Tags
+        </Button>
       </div>
 
       {/* Tab Content */}
       {activeTab === "general" && (
         <div className="mt-2">
-          <GeneralSetting/>
+          <GeneralSetting />
         </div>
       )}
       {activeTab === "security" && (
         <div className="mt-2">
-          <SecuritySettting/>
-          </div>
+          <SecuritySettting />
+        </div>
       )}
       {activeTab === "billing" && (
         <div className="mt-2">
-          <BillingSettings/>
+          <BillingSettings />
         </div>
       )}
       {activeTab === "notification" && (
@@ -92,6 +97,12 @@ const SettingsView = () => {
       {activeTab === "manageUser" && (
         <div className="mt-2">
           <ManageUserByAdmin />
+        </div>
+      )}
+
+      {activeTab === "tags" && (
+        <div className="mt-2">
+          <Tags></Tags>
         </div>
       )}
     </section>

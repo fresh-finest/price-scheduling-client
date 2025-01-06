@@ -1,130 +1,130 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-
-const BASE_URL = "http://localhost:3000";
+// React component for Sales Comparison
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Table, Form, Button, Spinner } from 'react-bootstrap';
 
 const SaleReport = () => {
-  const [skuData, setSkuData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [currentIntervalUnits, setCurrentIntervalUnits] = useState([]);
-  const [previousIntervalUnits, setPreviousIntervalUnits] = useState([]);
+  const [products, setProducts] = useState([]); // To store product list
+  const [salesData, setSalesData] = useState({}); // To store sales comparison data as an object by SKU
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [loading, setLoading] = useState(false); // Loading state for sales data
 
+  // Fetch products on component mount
   useEffect(() => {
-    // Set default date range to the last 30 days
-    const now = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(now.getDate() - 30);
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/favourite/limit?page=1&limit=20');
+        setProducts(response.data.data.listings);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-    setStartDate(thirtyDaysAgo.toISOString().split("T")[0]);
-    setEndDate(now.toISOString().split("T")[0]);
+    fetchProducts();
   }, []);
 
-  useEffect(() => {
-    if (startDate && endDate) {
-      fetchSkuData();
-    }
-  }, [startDate, endDate]);
-
-  const fetchSkuData = async () => {
+  // Handle fetching sales comparison data
+  const fetchSalesComparison = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}/api/product/limit`, {
-        params: { page: 1, limit: 20 },
+      const skuArray = products.map(product => product.sellerSku);
+      const response = await axios.get('http://localhost:3000/api/product/sale', {
+        params: {
+          startDate: startDate || getDefaultStartDate(),
+          endDate: endDate || getDefaultEndDate(),
+          skus: skuArray.join(','),
+        },
       });
-      const { listings } = response.data.data;
 
-      setSkuData(listings);
-
-      // Extract SKUs from listings and fetch sales comparison data
-      const skuList = listings.map((item) => item.sellerSku);
-      fetchSalesComparison(skuList);
+      // Map sales data by SKU for easier access
+      const salesMap = {};
+      response.data.data.forEach(sale => {
+        salesMap[sale.sku] = sale;
+      });
+      setSalesData(salesMap);
     } catch (error) {
-      console.error("Error fetching SKU data:", error);
+      console.error('Error fetching sales comparison:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchSalesComparison = async (skuList) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/api/product/sale`, {
-        params: {
-          startDate,
-          endDate,
-          skus: skuList.join(","),
-        },
-      });
-
-      const salesData = response.data.data;
-      console.log("Sales data:", salesData);
-      setSkuData((prevData) =>
-        prevData.map((item) => {
-          const matchingSalesData = salesData.find(
-            (sales) => sales.sku === item.sellerSku
-          );
-          return {
-            ...item,
-            currentIntervalUnits: matchingSalesData?.currentIntervalUnits || 0,
-            previousIntervalUnits: matchingSalesData?.previousIntervalUnits || 0,
-          };
-        })
-      );
-    } catch (error) {
-      console.error("Error fetching sales comparison data:", error);
-    }
+  // Get default start date (30 days ago)
+  const getDefaultStartDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    return date.toISOString().split('T')[0];
   };
- console.log("skudata",skuData)
+
+  // Get default end date (today)
+  const getDefaultEndDate = () => {
+    const date = new Date();
+    return date.toISOString().split('T')[0];
+  };
+
+  // Render table
   return (
     <div className="container">
       <h2>Sales Comparison</h2>
-      <div>
-        <label>Start Date:</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <label>End Date:</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-      </div>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>SKU</th>
-              <th>Title</th>
-              <th>Previous Interval Units</th>
-              <th>Current Interval Units</th>
-            </tr>
-          </thead>
-          <tbody>
-            {skuData.map((item) => (
-              <tr key={item.sellerSku}>
+
+      {/* Date selection form */}
+      <Form className="mb-4">
+        <Form.Group controlId="startDate">
+          <Form.Label>Start Date</Form.Label>
+          <Form.Control
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </Form.Group>
+
+        <Form.Group controlId="endDate">
+          <Form.Label>End Date</Form.Label>
+          <Form.Control
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </Form.Group>
+
+        <Button variant="primary" onClick={fetchSalesComparison} className="mt-3">
+          Fetch Sales Data
+        </Button>
+      </Form>
+
+      {/* Sales comparison table */}
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>SKU</th>
+            <th>Title</th>
+            <th>Current Interval Units</th>
+            <th>Previous Interval Units</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product) => {
+            const sale = salesData[product.sellerSku] || {};
+            return (
+              <tr key={product.sellerSku}>
                 <td>
                   <img
-                    src={item.imageUrl}
-                    alt={item.itemName}
-                    style={{ width: "50px", height: "50px" }}
+                    src={product.imageUrl || 'https://via.placeholder.com/50'}
+                    alt={product.itemName || 'No Image'}
+                    width={50}
                   />
                 </td>
-                <td>{item.sellerSku}</td>
-                <td>{item.itemName}</td>
-                <td>{item.previousIntervalUnits || 0}</td>
-                <td>{item.currentIntervalUnits || 0}</td>
+                <td>{product.sellerSku}</td>
+                <td>{product.itemName || 'Unknown Product'}</td>
+                <td>{loading ? <Spinner animation="border" size="sm" /> : sale.currentIntervalUnits || 0}</td>
+                <td>{loading ? <Spinner animation="border" size="sm" /> : sale.previousIntervalUnits || 0}</td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            );
+          })}
+        </tbody>
+      </Table>
     </div>
   );
 };
