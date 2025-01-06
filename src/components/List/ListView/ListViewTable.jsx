@@ -21,11 +21,12 @@ const ListViewTable = ({
   getUnitCountForTimePeriod,
   selectedDay,
 }) => {
-  console.log("selected day", selectedDay);
   const getUnitsForSelectedTime = (salesMetrics, selectedDay) => {
     const metric = salesMetrics.find((m) => m.time === selectedDay.value);
     return metric ? metric.totalUnits : "N/A";
   };
+
+  console.log("item", item);
 
   return (
     <tr
@@ -64,7 +65,9 @@ const ListViewTable = ({
           backgroundColor: selectedRowIndex === index ? "#F1F1F2" : "",
         }}
       >
-        {item.status}
+        {/* {item.status} */}
+
+        <div>{item.status}</div>
       </td>
       <td
         style={{
@@ -240,6 +243,46 @@ const ListViewTable = ({
           backgroundColor: selectedRowIndex === index ? "#F1F1F2" : "",
         }}
       >
+        {item.tags && item.tags.length > 0 ? (
+          <div
+            style={{
+              display: "flex",
+              gap: "5px",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            {item.tags.map((tag, tagIndex) => (
+              <span
+                className="text-xs rounded-full"
+                key={tagIndex}
+                style={{
+                  padding: "2px 6px",
+                  backgroundColor: tag?.colorCode,
+
+                  color: "white",
+                }}
+              >
+                {tag?.tag}
+              </span>
+            ))}
+          </div>
+        ) : (
+          " "
+        )}
+      </td>
+      <td
+        style={{
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          cursor: "pointer",
+          height: "40px",
+          textAlign: "center",
+          verticalAlign: "middle",
+          backgroundColor: selectedRowIndex === index ? "#F1F1F2" : "",
+        }}
+      >
         <span>
           {item.fulfillmentChannel === "DEFAULT"
             ? item?.quantity != null
@@ -263,13 +306,6 @@ const ListViewTable = ({
           backgroundColor: selectedRowIndex === index ? "#F1F1F2" : "",
         }}
       >
-        {/* {item?.salesMetrics
-          ? `${getUnitCountForTimePeriod(
-              item.salesMetrics,
-              selectedTimePeriod
-            )}`
-          : "N/A"} */}
-        {/* {item.salesMetrics[0].totalUnits} */}
         {item.salesMetrics
           ? getUnitsForSelectedTime(item.salesMetrics, selectedDay)
           : "N/A"}

@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Card, Table, Button, Modal } from "react-bootstrap";
-
+import { Card, Table, Button, Modal, ButtonGroup } from "react-bootstrap";
+import { Button as ShadCdnButton } from "@/components/ui/button";
 import { PenLine } from "lucide-react";
-import { HiOutlineArrowNarrowRight } from "react-icons/hi";
+import { HiOutlineArrowNarrowRight, HiOutlinePlus } from "react-icons/hi";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -21,6 +21,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductDetailsWithNumbers from "../shared/ProductDetailsWithNumbers";
 import ProductDetailLoadingSkeleton from "../LoadingSkeleton/ProductDetailLoadingSkeletong";
 import SaleDetailsModal from "../Report/SaleDetailsModal";
+import { IoPricetagOutline } from "react-icons/io5";
+import AddTagPopover from "../shared/ui/AddTagPopover";
+import { FaPlus } from "react-icons/fa";
+import ProductDetailViewTags from "./ProductDetailViewTags";
 
 const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL = "http://192.168.0.141:3000";
@@ -140,8 +144,9 @@ const ProductDetailView = ({
   fulfillmentChannel,
   productDetailLoading,
   setProductDetailLoading,
+  tags,
 }) => {
- 
+  console.log("selected product tags", tags);
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -463,15 +468,29 @@ const ProductDetailView = ({
               ></ProductDetailsWithNumbers>
 
               <hr
-                style={{ width: "90%", margin: "0 auto", marginTop: "10px" }}
+                style={{ width: "95%", margin: "0 auto", marginTop: "10px" }}
               />
-              <div className=" flex justify-center items-center mt-2">
+
+              <div className="flex justify-start gap-1  items-center px-2 pt-2">
+                <h2 className="text-sm font-semibold">Tags: </h2>
+
+                <ProductDetailViewTags
+                  sku={sku1}
+                  tags={tags}
+                ></ProductDetailViewTags>
+
+                <AddTagPopover
+                  selectedProductTags={tags}
+                  sku={sku1}
+                ></AddTagPopover>
+              </div>
+
+              <hr
+                style={{ width: "95%", margin: "0 auto", marginTop: "10px" }}
+              />
+              <div className=" flex justify-center gap-2 items-center mt-2">
+                {/* <AddTagPopover sku={sku1}></AddTagPopover> */}
                 <button
-                  // onClick={() =>
-                  //   navigate(`/details/${encodeURIComponent(sku1)}`, {
-                  //     state: { productInfo: product, price, asin, sku1 },
-                  //   })
-                  // }
                   onClick={handleSaleDetailsModalShow}
                   className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
                 >

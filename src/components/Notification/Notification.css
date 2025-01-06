@@ -1,0 +1,8 @@
+.offcanvas-backdrop {
+  background: none !important;
+}
+.offcanvas-end {
+  box-shadow: 0px 4px 28px 12px rgba(0, 0, 0, 0.15) !important;
+  border: none !important;
+  width: 30vw !important;
+}

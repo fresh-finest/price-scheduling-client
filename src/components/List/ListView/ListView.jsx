@@ -36,6 +36,7 @@ import ListChannelStockPopover from "../../../components/shared/ui/ListChannelSt
 import Loading from "@/components/shared/ui/Loading";
 import { FadeLoader } from "react-spinners";
 import { IoClose } from "react-icons/io5";
+import ListTagsDropdown from "@/components/shared/ui/ListTagsDropdown";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -137,8 +138,6 @@ const ListView = () => {
   const buildApiUrl = (page) => {
     const baseUrl = `${BASE_URL}/api/product/sale-stock`;
 
-    console.log("Filters:", filters);
-
     const params = new URLSearchParams({
       page: page || 1,
       limit: 50,
@@ -158,7 +157,6 @@ const ListView = () => {
     }
 
     const finalUrl = `${baseUrl}?${params.toString()}`;
-    console.log("Final URL:", finalUrl);
 
     return finalUrl;
   };
@@ -194,7 +192,6 @@ const ListView = () => {
     try {
       const url = buildApiUrl(page);
 
-      console.log(decodeURIComponent(url));
       const response = await axios.get(url);
 
       setFilteredProducts(response.data.metadata);
@@ -257,8 +254,6 @@ const ListView = () => {
     } else if (isChannelStockSearchMode) {
       fetchListChannelStock(currentPage);
     } else if (customFilterMode) {
-      console.log(customFilterMode);
-      console.log("Custom filter mode logic hit. Fetching data...");
       fetchData(currentPage);
     } else {
       fetchProducts(currentPage);
@@ -517,7 +512,11 @@ const ListView = () => {
           axios.get(`${BASE_URL}/product/${asin}`),
         ]);
 
-        setSelectedProduct(responseOne.data.payload);
+        // setSelectedProduct(responseOne.data.payload);
+        setSelectedProduct({
+          ...responseOne.data.payload,
+          tags: item.tags,
+        });
         setSelectedListing(responseTwo.data);
       } catch (error) {
         console.error("Error fetching product details:", error.message);
@@ -616,7 +615,6 @@ const ListView = () => {
   };
 
   const handleFbaFbmSearch = (option) => {
-    console.log(option);
     let channel = "";
 
     if (option === "FBA") {
@@ -804,6 +802,8 @@ const ListView = () => {
       </div>
     );
   }
+
+  console.log("filtered products", filteredProducts);
 
   return (
     <>
@@ -1044,6 +1044,40 @@ const ListView = () => {
                         selectedFbaFbmOption={filters.fulfillmentChannel}
                         onChannelChange={handleFbaFbmSearch}
                       />
+                    </p>
+
+                    <div
+                      style={{
+                        width: "1px",
+                        height: "100%",
+                        position: "absolute",
+                        right: "0",
+                        top: "0",
+                        cursor: "col-resize",
+                      }}
+                      onMouseDown={(e) => handleResize(4, e)}
+                    />
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: `${columnWidths[4]}px`,
+
+                      textAlign: "center",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    <p className="flex items-center justify-center gap-1">
+                      {/* {filters.fulfillmentChannel && (
+                        <span>
+                          <BsDashCircle
+                            onClick={handleClearFbaFbmSearch}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        </span>
+                      )} */}
+                      Tags
+                      <ListTagsDropdown></ListTagsDropdown>
                     </p>
 
                     <div
@@ -1323,6 +1357,7 @@ const ListView = () => {
                 fulfillmentChannel={fulfillmentChannel}
                 productDetailLoading={productDetailLoading}
                 setProductDetailLoading={setProductDetailLoading}
+                tags={selectedProduct?.tags}
               />
             </div>
           ) : (

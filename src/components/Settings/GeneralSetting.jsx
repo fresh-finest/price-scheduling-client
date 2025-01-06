@@ -18,15 +18,15 @@ import { signInSuccess, updateUserSuccess } from "@/redux/user/userSlice";
 // const BASE_URL = "http://localhost:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
-import { TimeZoneContext } from "../../contexts/TimeZoneContext";
 import axios from "axios";
 import moment from "moment-timezone";
+import { TimeZoneContext } from "@/contexts/TimeZoneContext";
 
 const GeneralSettings = () => {
   const { currentUser } = useSelector((state) => state.user);
   const [userName, setUserName] = useState("");
   const { timeZone, loading, fetchTimZone } = useContext(TimeZoneContext);
-  
+
   const dispatch = useDispatch();
 
   console.log(currentUser);
@@ -39,12 +39,12 @@ const GeneralSettings = () => {
     setUserName(e.target.value);
   };
 
-  const handleUserNameSubmit=async(e)=>{
+  const handleUserNameSubmit = async (e) => {
     e.preventDefault();
-    
-    const payload ={
+
+    const payload = {
       userName,
-    }
+    };
 
     try {
       const response = await fetch(`${BASE_URL}/api/user/${currentUser._id}`, {
@@ -53,7 +53,7 @@ const GeneralSettings = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-      })
+      });
       if (response.ok) {
         const updatedUser = await response.json();
         if (updatedUser) {
@@ -86,14 +86,14 @@ const GeneralSettings = () => {
         timer: 2000,
       });
     }
-  }
+  };
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const [updating, setUpdating] = useState(false);
   const [timeZoneList, setTimeZoneList] = useState([]);
   useEffect(() => {
     const zones = moment.tz.names();
     setTimeZoneList(zones);
-  },[]);
+  }, []);
   useEffect(() => {
     if (!loading && timeZone) {
       setSelectedTimezone(timeZone);
@@ -138,8 +138,6 @@ const GeneralSettings = () => {
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </div>
-
-        
         </div>
       </div>
       <hr className="text-gray-400 mt-2" />
@@ -162,7 +160,7 @@ const GeneralSettings = () => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 mr-4">
-              <form onSubmit={handleUserNameSubmit}>
+                <form onSubmit={handleUserNameSubmit}>
                   <div className="flex flex-col items-start gap-2">
                     <Label htmlFor="name">Name</Label>
                     <Input
@@ -200,7 +198,6 @@ const GeneralSettings = () => {
 
           <div>
             <Popover>
-            
               <PopoverContent className="w-80 mr-4">
                 <form>
                   <div className="flex flex-col items-start gap-2">
@@ -228,25 +225,26 @@ const GeneralSettings = () => {
       <hr className="text-gray-400 mt-2" />
 
       <div className="flex  items-center mt-2 py-2">
-      {currentUser.role === "primeAdmin" && (
-        <h2 className="text-normal font-semibold w-[30%]">Choose timezone</h2>  )}
-        
-        <div className="flex justify-between items-center  w-full">
         {currentUser.role === "primeAdmin" && (
-          <div className="w-[30%]">
-            <select
-              className="border rounded p-2 w-full"
-              value={selectedTimezone}
-              onChange={(e) => setSelectedTimezone(e.target.value)}
-            >
-              {timeZoneList.map((zone) => (
-                <option key={zone} value={zone}>
-                  {zone}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h2 className="text-normal font-semibold w-[30%]">Choose timezone</h2>
         )}
+
+        <div className="flex justify-between items-center  w-full">
+          {currentUser.role === "primeAdmin" && (
+            <div className="w-[30%]">
+              <select
+                className="border rounded p-2 w-full"
+                value={selectedTimezone}
+                onChange={(e) => setSelectedTimezone(e.target.value)}
+              >
+                {timeZoneList.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             {currentUser.role === "primeAdmin" && (
               <Button
