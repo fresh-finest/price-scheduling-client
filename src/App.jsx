@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import { TimeZoneProvider } from "./contexts/TimeZoneContext";
 import Automation from "./components/Automation/Automation";
 import SaleReport from "./components/Report/SaleReport";
+import Account from "./pages/Account";
 
 
 function App() {
@@ -38,10 +39,11 @@ function App() {
               </PrivateRoute>
             }
           >
+          <Route path="/account" element={<Account/>} />
           <Route path="details/:sku" element={<SaleDetails/>}/>
           <Route path="report/:sku" element={<ReportDetails/>}/>
           <Route path="/settings" element={<Settings/>}/>
-       
+         
           <Route path="/report" element={<Report/>}/>
           <Route path="/automation" element={<Automation/>}/>
             <Route path="/status" element={<Job/>}/>
