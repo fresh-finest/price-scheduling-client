@@ -8,12 +8,16 @@ import { useState, useEffect } from "react";
 import { CiFilter } from "react-icons/ci";
 import axios from "axios";
 
-const BASE_URL = "http://192.168.0.102:3000";
-
-const ListTagsDropdown = () => {
+// const BASE_URL = "http://192.168.0.102:3000";
+const BASE_URL = `https://api.priceobo.com`;
+const ListTagsDropdown = ({
+  selectedTags,
+  setSelectedTags,
+  handleTagSelection,
+  selectAllTags,
+  setSelectAllTags,
+}) => {
   const [tags, setTags] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
 
   const fetchTags = async () => {
     try {
@@ -24,18 +28,32 @@ const ListTagsDropdown = () => {
     }
   };
 
-  const handleTagSelection = (tagName) => {
-    setSelectedTags((prevSelected) =>
-      prevSelected.includes(tagName)
-        ? prevSelected.filter((tag) => tag !== tagName)
-        : [...prevSelected, tagName]
-    );
-    setSelectAll(false);
-  };
+  // const handleSelectAll = (checked) => {
+  //   setSelectAllTags(checked);
+  //   setSelectedTags([]);
+  // };
 
+  // const handleSelectAll = (checked) => {
+  //   setSelectAllTags(checked);
+
+  //   if (checked) {
+  //     const allTagNames = tags.map((tag) => tag.tagName);
+  //     setSelectedTags(allTagNames);
+  //   } else {
+  //     setSelectedTags([]);
+  //   }
+  // };
   const handleSelectAll = (checked) => {
-    setSelectAll(checked);
-    setSelectedTags([]);
+    setSelectAllTags(checked);
+
+    if (checked) {
+      const allTagNames = tags.map((tag) => tag.tagName);
+      setSelectedTags(allTagNames);
+      handleTagSelection(allTagNames);
+    } else {
+      setSelectedTags([]);
+      handleTagSelection([]);
+    }
   };
 
   useEffect(() => {
@@ -67,7 +85,7 @@ const ListTagsDropdown = () => {
         ))}
 
         <DropdownMenuCheckboxItem
-          checked={selectAll}
+          checked={selectAllTags}
           onCheckedChange={handleSelectAll}
         >
           Show All

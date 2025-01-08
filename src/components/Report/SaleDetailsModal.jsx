@@ -15,7 +15,7 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineClose,
 } from "react-icons/md";
-import { BsClipboardCheck,BsFillInfoSquareFill} from "react-icons/bs";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
 import ScheduleVsCount from "./ScheduleVsCount";
@@ -81,7 +81,6 @@ const SaleDetailsModal = ({
     }
   };
 
-  console.log("has automation", hasAutomation);
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
 

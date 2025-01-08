@@ -27,8 +27,7 @@ import { FaPlus } from "react-icons/fa";
 import ProductDetailViewTags from "./ProductDetailViewTags";
 
 const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = "http://192.168.0.141:3000";
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://192.168.0.102:3000";
 const dayNames = [
   "Sunday",
   "Monday",
@@ -144,9 +143,10 @@ const ProductDetailView = ({
   fulfillmentChannel,
   productDetailLoading,
   setProductDetailLoading,
-  tags,
+
+  tagsUpdated,
+  setTagsUpdated,
 }) => {
-  console.log("selected product tags", tags);
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -159,11 +159,7 @@ const ProductDetailView = ({
   const [copiedfnSkuIndex, setCopiedfnSkuIndex] = useState(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [singleLength, setSingleLength] = useState("");
-  const [weeklyLength, setWeeklyLength] = useState("");
-  const [monthlyLength, setMonthlyLength] = useState("");
+  const [tags, setTags] = useState([]);
 
   const { currentUser } = useSelector((state) => state.user);
   const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
@@ -264,6 +260,28 @@ const ProductDetailView = ({
       controller.abort();
     };
   }, [sku1, productDetailLoading]);
+
+  const fetchTags = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/product/tag/${sku1}`);
+      if (response.status === 200) {
+        const fetchedTags = response.data.result.tags;
+        setTags(fetchedTags);
+      }
+    } catch (error) {
+      console.error("Error fetching tags:", error.message);
+      setError("Failed to load tags.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  console.log("tags", tags);
+
+  useEffect(() => {
+    fetchTags();
+    setTagsUpdated(false);
+  }, [sku1, tagsUpdated]);
 
   const handleEdit = (schedule, scheduleType) => {
     setEditSchedule(schedule);
@@ -477,11 +495,15 @@ const ProductDetailView = ({
                 <ProductDetailViewTags
                   sku={sku1}
                   tags={tags}
+                  tagsUpdated={tagsUpdated}
+                  setTagsUpdated={setTagsUpdated}
                 ></ProductDetailViewTags>
 
                 <AddTagPopover
                   selectedProductTags={tags}
                   sku={sku1}
+                  tagsUpdated={tagsUpdated}
+                  setTagsUpdated={setTagsUpdated}
                 ></AddTagPopover>
               </div>
 
@@ -507,7 +529,7 @@ const ProductDetailView = ({
                 <DetailedCalendarView sku1={sku1} />
               </div>
 
-              <div className="px-2 py-1 m-2 h-[40vh] overflow-y-auto absolute bottom-0  w-[98%] mx-auto">
+              <div className="px-2 py-1 m-2 h-[35vh] overflow-y-auto absolute bottom-0  w-[98%] mx-auto">
                 <Tabs defaultValue="single" className="">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="single">

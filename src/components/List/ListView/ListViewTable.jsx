@@ -26,8 +26,6 @@ const ListViewTable = ({
     return metric ? metric.totalUnits : "N/A";
   };
 
-  console.log("item", item);
-
   return (
     <tr
       key={index}
@@ -252,7 +250,7 @@ const ListViewTable = ({
               flexWrap: "wrap",
             }}
           >
-            {item.tags.map((tag, tagIndex) => (
+            {item?.tags?.slice(0, 2)?.map((tag, tagIndex) => (
               <span
                 className="text-xs rounded-full"
                 key={tagIndex}

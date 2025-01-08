@@ -10,12 +10,18 @@ import { FaPlus } from "react-icons/fa";
 import axios from "axios";
 import Swal from "sweetalert2";
 
-const BASE_URL = "http://192.168.0.102:3000";
+// const BASE_URL = "http://192.168.0.102:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
-const AddTagPopover = ({ sku, selectedProductTags }) => {
+const AddTagPopover = ({
+  sku,
+  selectedProductTags,
+
+  setTagsUpdated,
+}) => {
   console.log("selected product tags", selectedProductTags);
   const [tags, setTags] = useState([]);
-  const [productTags, setProductTags] = useState(selectedProductTags || []);
+  const [productTags, setProductTags] = useState([]);
 
   console.log("tags", tags);
 
@@ -33,9 +39,8 @@ const AddTagPopover = ({ sku, selectedProductTags }) => {
     console.log("tag", tag);
 
     try {
-      // Create updated tags array including existing and new tag
       const updatedTags = [
-        ...productTags,
+        ...selectedProductTags,
         { tag: tag.tagName, colorCode: tag.colorCode },
       ];
 
@@ -43,10 +48,14 @@ const AddTagPopover = ({ sku, selectedProductTags }) => {
         tags: updatedTags,
       };
 
+      console.log("payloaddddddddd", payload);
+
       await axios.put(`${BASE_URL}/api/product/tag/${sku}`, payload);
 
       // Update local state with new tags
       setProductTags(updatedTags);
+
+      setTagsUpdated(true);
 
       Swal.fire({
         title: "Added!",
@@ -57,6 +66,7 @@ const AddTagPopover = ({ sku, selectedProductTags }) => {
       });
     } catch (error) {
       console.error("Failed to update tag:", error);
+      setTagsUpdated(true);
       Swal.fire({
         title: "Error!",
         text: `Failed to add tags: ${error.message}`,
