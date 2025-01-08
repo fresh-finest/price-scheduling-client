@@ -86,10 +86,6 @@ const Tags = () => {
     }
   };
 
-  console.log("color default value", token.colorPrimary);
-
-  console.log("tags data fetch", tagsDataFetch);
-
   return (
     <section className="mt-3 ml-2">
       <div>

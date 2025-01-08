@@ -16,12 +16,12 @@ import ProductDetailView from "../ProductDetailView";
 import noImage from "../../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.141:3000";
+// const BASE_URL = "http://192.168.0.102:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
 // const BASE_URL_LIST = "http://localhost:3000";
-// const BASE_URL_LIST = "http://192.168.0.141:3000";
+// const BASE_URL_LIST = "http://192.168.0.102:3000";
 
 import { BsDashCircle, BsFillInfoSquareFill } from "react-icons/bs";
 import { ListSaleDropdown } from "../../shared/ui/ListSaleDropdown";
@@ -36,7 +36,7 @@ import ListChannelStockPopover from "../../../components/shared/ui/ListChannelSt
 import Loading from "@/components/shared/ui/Loading";
 import { FadeLoader } from "react-spinners";
 import { IoClose } from "react-icons/io5";
-import ListTagsDropdown from "../../shared/ui/AddTagPopover";
+import ListTagsDropdown from "../../shared/ui/ListTagsDropDown";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -89,19 +89,33 @@ const ListView = () => {
   const [ChannelStockBetweenMaxValue, setChannelStockBetweenMaxValue] =
     useState("");
   const [saleBetweenMaxValue, setSaleBetweenMaxValue] = useState("");
+  const [tagsUpdated, setTagsUpdated] = useState(false);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectAllTags, setSelectAllTags] = useState(false);
 
   const [filters, setFilters] = useState({
     fulfillmentChannel: null,
     stockCondition: null,
     salesCondition: null,
     uid: null,
+    tags: [],
   });
 
   const itemsPerPage = 20;
   const itemRefs = useRef([]);
   const isFirstRender = useRef(true);
   const { currentUser } = useSelector((state) => state.user);
-  const isFilterActive = Object.values(filters).some((value) => value !== null);
+
+  // const isFilterActive = Object.values(filters).some((value) => value !== null);
+  const isFilterActive = Object.values(filters).some(
+    (value) =>
+      value !== null &&
+      value !== undefined &&
+      !(Array.isArray(value) && value.length === 0)
+  );
+
+  console.log("isFilterActive", isFilterActive);
+  console.log("filters", filters);
 
   const dayOptions = [
     { value: "1 D", label: "Yesterday" },
@@ -156,7 +170,19 @@ const ListView = () => {
       params.append("uid", filters.uid);
     }
 
+    // if (filters.tags && filters.tags.length > 0) {
+    //   const tagNames = filters.tags.join(",");
+    //   params.append("tags", tagNames);
+    // }
+
+    if (filters.tags && filters.tags.length > 0) {
+      const tagNames = filters.tags.join(",");
+      params.append("tags", tagNames);
+    }
+
     const finalUrl = `${baseUrl}?${params.toString()}`;
+
+    console.log("final url", finalUrl);
 
     return finalUrl;
   };
@@ -230,11 +256,13 @@ const ListView = () => {
       filters.fulfillmentChannel ||
       filters.salesCondition ||
       filters.stockCondition ||
-      filters.uid
+      filters.uid ||
+      filters?.tags?.length > 0
     ) {
       fetchData(1);
     }
   }, [filters]);
+
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -269,6 +297,44 @@ const ListView = () => {
     customFilterMode,
   ]);
 
+  useEffect(() => {
+    const handleTagsUpdate = async () => {
+      if (tagsUpdated) {
+        try {
+          if (customFilterMode) {
+            fetchData(currentPage);
+          } else {
+            fetchProducts(currentPage);
+          }
+
+          if (selectedAsin) {
+            const [responseOne, responseTwo] = await Promise.all([
+              axios.get(`${BASE_URL}/details/${selectedAsin}`),
+              axios.get(`${BASE_URL}/product/${selectedAsin}`),
+            ]);
+
+            setSelectedProduct({
+              ...responseOne.data.payload,
+              tags: responseOne.data.payload.tags,
+            });
+            setSelectedListing(responseTwo.data);
+          }
+        } catch (error) {
+          console.error(
+            "Error refetching data after tags update:",
+            error.message
+          );
+        } finally {
+          // Reset the state
+          setTagsUpdated(false);
+        }
+      }
+    };
+
+    handleTagsUpdate();
+    setTagsUpdated(false);
+  }, [tagsUpdated]);
+
   const totalPages = Math.ceil(filteredProducts.totalProducts / itemsPerPage);
 
   const handlePageChange = (pageNumber) => {
@@ -280,6 +346,44 @@ const ListView = () => {
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
+  };
+
+  // const handleTagSelection = (tagName) => {
+  //   setSelectedTags((prevSelected) => {
+  //     const updatedTags = prevSelected.includes(tagName)
+  //       ? prevSelected.filter((tag) => tag !== tagName)
+  //       : [...prevSelected, tagName];
+
+  //     setFilters((prev) => ({
+  //       ...prev,
+  //       tags: updatedTags,
+  //     }));
+
+  //     return updatedTags;
+  //   });
+
+  //   setSelectAllTags(false);
+  // };
+
+  const handleTagSelection = (tagNames) => {
+    let updatedTags = [];
+
+    if (Array.isArray(tagNames)) {
+      updatedTags = tagNames;
+    } else {
+      updatedTags = selectedTags.includes(tagNames)
+        ? selectedTags.filter((tag) => tag !== tagNames)
+        : [...selectedTags, tagNames];
+    }
+
+    setSelectedTags(updatedTags);
+
+    setFilters((prev) => ({
+      ...prev,
+      tags: updatedTags,
+    }));
+    setCustomFilterMode(true);
+    setCurrentPage(1);
   };
 
   const renderPaginationButtons = () => {
@@ -352,6 +456,15 @@ const ListView = () => {
     // fetchData(1);
     setCurrentPage(1);
   };
+  const handleClearTagsSearch = () => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      tags: [],
+    }));
+    setSelectedTags([]);
+    setSelectAllTags(false);
+  };
+
   const handleClearChannelStockSearch = () => {
     setFilters((prev) => {
       const updatedFilters = { ...prev };
@@ -803,8 +916,6 @@ const ListView = () => {
     );
   }
 
-  console.log("filtered products", filteredProducts);
-
   return (
     <>
       <UpdatePriceFromList
@@ -880,7 +991,11 @@ const ListView = () => {
                 stockCondition: null,
                 salesCondition: null,
                 uid: null,
+                tags: [],
               });
+              setSelectedTags([]);
+              setSelectAllTags(false);
+
               setSearchTerm("");
               setInputValue("");
               setChannelStockInputValue("");
@@ -1068,16 +1183,23 @@ const ListView = () => {
                     }}
                   >
                     <p className="flex items-center justify-center gap-1">
-                      {/* {filters.fulfillmentChannel && (
+                      {filters?.tags?.length > 0 && (
                         <span>
                           <BsDashCircle
-                            onClick={handleClearFbaFbmSearch}
+                            onClick={handleClearTagsSearch}
                             className="cursor-pointer text-sm text-red-400"
                           />
                         </span>
-                      )} */}
+                      )}
                       Tags
-                     
+                      <ListTagsDropdown
+                        selectedTags={selectedTags}
+                        setSelectedTags={setSelectedTags}
+                        selectAllTags={selectAllTags}
+                        setSelectAllTags={setSelectAllTags}
+                        handleTagSelection={handleTagSelection}
+                        // setSelectedTags={handleTagSelection}
+                      ></ListTagsDropdown>
                     </p>
 
                     <div
@@ -1358,6 +1480,8 @@ const ListView = () => {
                 productDetailLoading={productDetailLoading}
                 setProductDetailLoading={setProductDetailLoading}
                 tags={selectedProduct?.tags}
+                tagsUpdated={tagsUpdated}
+                setTagsUpdated={setTagsUpdated}
               />
             </div>
           ) : (
