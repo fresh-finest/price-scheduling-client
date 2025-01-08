@@ -27,7 +27,7 @@ import { FaPlus } from "react-icons/fa";
 import ProductDetailViewTags from "./ProductDetailViewTags";
 
 const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = "http://192.168.0.102:3000";
+// const BASE_URL = "http://localhost:3000";
 const dayNames = [
   "Sunday",
   "Monday",
@@ -262,8 +262,9 @@ const ProductDetailView = ({
   }, [sku1, productDetailLoading]);
 
   const fetchTags = async () => {
+    const encodedSku = encodeURIComponent(sku1);
     try {
-      const response = await axios.get(`${BASE_URL}/api/product/tag/${sku1}`);
+      const response = await axios.get(`${BASE_URL}/api/product/tag/${encodedSku}`);
       if (response.status === 200) {
         const fetchedTags = response.data.result.tags;
         setTags(fetchedTags);

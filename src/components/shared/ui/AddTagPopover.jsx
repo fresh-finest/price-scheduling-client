@@ -48,9 +48,9 @@ const AddTagPopover = ({
         tags: updatedTags,
       };
 
-      console.log("payloaddddddddd", payload);
-
-      await axios.put(`${BASE_URL}/api/product/tag/${sku}`, payload);
+      const encodedSku = encodeURIComponent(sku);
+ 
+      await axios.put(`${BASE_URL}/api/product/tag/${encodedSku}`, payload);
 
       // Update local state with new tags
       setProductTags(updatedTags);

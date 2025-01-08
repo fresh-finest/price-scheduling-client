@@ -38,7 +38,6 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
   const [percentageInput, setPercentageInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { currentUser } = useSelector((state) => state.user);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -87,11 +86,11 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
     }
   }, [showModal]);
 
+
   const productName = productDetails?.summaries[0]?.itemName;
   const productImage = productDetails?.summaries[0]?.mainImage?.link;
 
-  const formattedStartDate = startDate?.format("YYYY-MM-DD");
-  const formattedEndDate = endDate?.format("YYYY-MM-DD");
+
 
   const handleShowModal = () => {
     setShowModal(true);

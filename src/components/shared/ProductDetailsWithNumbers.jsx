@@ -7,7 +7,7 @@ import { MdCheck } from "react-icons/md";
 import { PiWarehouse } from "react-icons/pi";
 
 const BASE_URL = `https://api.priceobo.com`;
-
+// const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (sku) => {
   const encodedSku = encodeURIComponent(sku);
   try {

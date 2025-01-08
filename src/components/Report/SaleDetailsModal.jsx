@@ -156,7 +156,7 @@ const SaleDetailsModal = ({
     const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.get(
-        `https://api.priceobo.com/list/${encodedSku}`
+        `${BASE_URL}/list/${encodedSku}`
       );
       const price = response?.data?.offerAmount;
 
