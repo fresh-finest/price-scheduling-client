@@ -8,7 +8,8 @@ import { ColorPicker, Divider, Row, Col } from "antd";
 import { cyan, green, red, generate, presetPalettes } from "@ant-design/colors";
 import { theme } from "antd";
 
-const BASE_URL = "http://192.168.0.102:3000";
+// const BASE_URL = "http://192.168.0.102:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 const genPresets = (presets = presetPalettes) =>
   Object.entries(presets).map(([label, colors]) => ({

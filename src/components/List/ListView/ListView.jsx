@@ -1183,7 +1183,7 @@ const ListView = () => {
                     }}
                   >
                     <p className="flex items-center justify-center gap-1">
-                      {filters.tags.length > 0 && (
+                      {filters?.tags?.length > 0 && (
                         <span>
                           <BsDashCircle
                             onClick={handleClearTagsSearch}

@@ -6,8 +6,10 @@ const BASE_URL = `https://api.priceobo.com`;
 
 const ProductDetailViewTags = ({ tags, sku, setTagsUpdated }) => {
   const handleCancelTag = async (tag) => {
+    const encodedSku = encodeURIComponent(sku);
+
     try {
-      const url = `${BASE_URL}/api/product/tag/${sku}/cancel`;
+      const url = `${BASE_URL}/api/product/tag/${encodedSku}/cancel`;
 
       const response = await axios.put(url, {
         tag: tag.tag,
