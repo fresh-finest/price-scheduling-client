@@ -1,0 +1,13 @@
+/* CSS for the tooltip content */
+.custom-tooltip .ant-tooltip-inner {
+  background-color: white !important;
+  color: black !important;
+  padding: 15px;
+  width: 700px !important;
+  max-width: 700px !important;
+  white-space: normal !important;
+}
+
+.custom-tooltip .ant-tooltip-arrow {
+  display: none;
+}
