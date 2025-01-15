@@ -15,6 +15,8 @@ import withReactContent from "sweetalert2-react-content";
 import * as XLSX from "xlsx";
 import "./ExistingTags.css";
 
+import skuImage from "../../../assets/images/skus.png";
+
 // const BASE_URL = "http://192.168.0.102:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -98,7 +100,7 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
                     column.
                   </p>
                   <img
-                    src="https://mcusercontent.com/e006191206c6952a765463cfb/images/0f69dc40-1826-00b3-c827-3cfae98a1e8f.png"
+                    src={skuImage}
                     alt="Information Screenshot"
                     style={{
                       maxWidth: "100%",

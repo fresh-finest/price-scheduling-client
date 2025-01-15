@@ -16,27 +16,27 @@ import ProductDetailView from "../ProductDetailView";
 import noImage from "../../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.102:3000";
+const BASE_URL = "http://192.168.0.102:3000";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 // const BASE_URL_LIST = "http://localhost:3000";
 const BASE_URL_LIST = "http://192.168.0.102:3000";
 
 import { BsDashCircle, BsFillInfoSquareFill } from "react-icons/bs";
-import { ListSaleDropdown } from "../../shared/ui/ListSaleDropdown";
+
 import { ListFbaDropdown } from "../../shared/ui/ListFbaDropdown";
-import { LuArrowUpDown } from "react-icons/lu";
+
 import ListLoadingSkeleton from "../../LoadingSkeleton/ListLoadingSkeleton";
 import ListViewTable from "./ListViewTable";
 import ListViewPagination from "./ListViewPagination";
-import ListSearchLoadingSkeleton from "../../LoadingSkeleton/ListSearchLoadingSkeleton";
+
 import ListSalePopover from "../../../components/shared/ui/ListSalePopover";
 import ListChannelStockPopover from "../../../components/shared/ui/ListChannelStockPopever";
-import Loading from "@/components/shared/ui/Loading";
-import { FadeLoader } from "react-spinners";
+
 import { IoClose } from "react-icons/io5";
 import ListTagsDropdown from "@/components/shared/ui/ListTagsDropdown";
+import ActionsDropdown from "../Actions/ActionsDropdown";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -106,7 +106,6 @@ const ListView = () => {
   const isFirstRender = useRef(true);
   const { currentUser } = useSelector((state) => state.user);
 
-  // const isFilterActive = Object.values(filters).some((value) => value !== null);
   const isFilterActive = Object.values(filters).some(
     (value) =>
       value !== null &&
@@ -170,11 +169,6 @@ const ListView = () => {
       params.append("uid", filters.uid);
     }
 
-    // if (filters.tags && filters.tags.length > 0) {
-    //   const tagNames = filters.tags.join(",");
-    //   params.append("tags", tagNames);
-    // }
-
     if (filters.tags && filters.tags.length > 0) {
       const tagNames = filters.tags.join(",");
       params.append("tags", tagNames);
@@ -189,7 +183,6 @@ const ListView = () => {
 
   const fetchProducts = async (page) => {
     try {
-      // setIsLoading(true);
       setIsSearching(true);
       setIsLoadingMode(true);
       setIsSearchMode(false);
@@ -212,6 +205,8 @@ const ListView = () => {
       setIsSearching(false);
     }
   };
+
+  console.log("filtered products", filteredProducts);
 
   const fetchData = async (page) => {
     setIsSearching(true);
@@ -341,29 +336,12 @@ const ListView = () => {
     setCurrentPage(pageNumber);
 
     setSelectedRowIndex(null);
-    // setSelectedProduct(null);
+
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
   };
-
-  // const handleTagSelection = (tagName) => {
-  //   setSelectedTags((prevSelected) => {
-  //     const updatedTags = prevSelected.includes(tagName)
-  //       ? prevSelected.filter((tag) => tag !== tagName)
-  //       : [...prevSelected, tagName];
-
-  //     setFilters((prev) => ({
-  //       ...prev,
-  //       tags: updatedTags,
-  //     }));
-
-  //     return updatedTags;
-  //   });
-
-  //   setSelectAllTags(false);
-  // };
 
   const handleTagSelection = (tagNames) => {
     let updatedTags = [];
@@ -440,10 +418,10 @@ const ListView = () => {
     setIsSearchMode(false);
     setFilters((prev) => {
       const updatedFilters = { ...prev };
-      delete updatedFilters.uid; // Remove UID from filters
+      delete updatedFilters.uid;
       return updatedFilters;
     });
-    // fetchData(1);
+
     setCurrentPage(1);
   };
 
@@ -453,7 +431,7 @@ const ListView = () => {
       delete updatedFilters.fulfillmentChannel;
       return updatedFilters;
     });
-    // fetchData(1);
+
     setCurrentPage(1);
   };
   const handleClearTagsSearch = () => {
@@ -472,7 +450,7 @@ const ListView = () => {
       return updatedFilters;
     });
     setChannelStockInputValue("");
-    // fetchData(1);
+
     setCurrentPage(1);
   };
   const handleClearSalesSearch = () => {
@@ -481,7 +459,7 @@ const ListView = () => {
       delete updatedFilters.salesCondition;
       return updatedFilters;
     });
-    // fetchData(1);
+
     setInputValue("");
     setSaleBetweenMinValue("");
     setSaleBetweenMaxValue("");
@@ -625,7 +603,6 @@ const ListView = () => {
           axios.get(`${BASE_URL}/product/${asin}`),
         ]);
 
-        // setSelectedProduct(responseOne.data.payload);
         setSelectedProduct({
           ...responseOne.data.payload,
           tags: item.tags,
@@ -813,7 +790,7 @@ const ListView = () => {
 
       salesCondition = {
         time: selectedDay.value,
-        condition: ">=", // Greater than or equal to condition
+        condition: ">=",
         value: salesValue,
       };
     } else if (selectedUnit.value === "<=") {
@@ -821,7 +798,7 @@ const ListView = () => {
 
       salesCondition = {
         time: selectedDay.value,
-        condition: "<=", // Less than or equal to condition
+        condition: "<=",
         value: salesValue,
       };
     } else if (selectedUnit.value === "!=") {
@@ -964,6 +941,12 @@ const ListView = () => {
           </InputGroup>
         </div>
 
+        <div className=" absolute top-[10px] right-[650px]">
+          <ActionsDropdown
+            filteredProducts={filteredProducts}
+          ></ActionsDropdown>
+        </div>
+
         <Button
           style={{
             borderRadius: "2px",
@@ -983,7 +966,7 @@ const ListView = () => {
       </div>
 
       {isFilterActive && (
-        <div className="absolute top-4 right-[35%]">
+        <div className="absolute top-4 right-[42%]">
           <button
             onClick={() => {
               setFilters({
@@ -1362,23 +1345,12 @@ const ListView = () => {
                     <td
                       className="h-[83vh] text-base"
                       colSpan="8"
-                      // style={{
-                      //   display: "flex",
-                      //   justifyContent: "center",
-                      //   alignItems: "center",
-                      //   border: "1px solid red",
-                      //   width: "100%",
-                      // }}
-
                       style={{
                         textAlign: "center",
                         padding: "20px",
                         border: "none",
                       }}
                     >
-                      {/* <div className="spinner mt-[30vh]"></div> */}
-                      {/* <Spinner animation="border" variant="primary" /> */}
-
                       <div className="mt-[30vh]">
                         <ClipLoader
                           color="#0E6FFD"
@@ -1388,7 +1360,6 @@ const ListView = () => {
                             borderWidth: "3px",
                           }}
                           size={40}
-                          // thickness={5}
                           width={100}
                           aria-label="Loading Spinner"
                           data-testid="loader"

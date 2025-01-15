@@ -1,8 +1,8 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 import { IoIosCloseCircleOutline, IoMdClose } from "react-icons/io";
-// const BASE_URL = "http://192.168.0.102:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://192.168.0.102:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 const ProductDetailViewTags = ({ tags, sku, setTagsUpdated }) => {
   const handleCancelTag = async (tag) => {

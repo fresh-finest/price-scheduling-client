@@ -26,8 +26,8 @@ import AddTagPopover from "../shared/ui/AddTagPopover";
 import { FaPlus } from "react-icons/fa";
 import ProductDetailViewTags from "./ProductDetailViewTags";
 
-const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = "http://192.168.0.102:3000";
+// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://192.168.0.102:3000";
 const dayNames = [
   "Sunday",
   "Monday",
