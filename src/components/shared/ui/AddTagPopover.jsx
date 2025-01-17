@@ -10,7 +10,7 @@ import { FaPlus } from "react-icons/fa";
 import axios from "axios";
 import Swal from "sweetalert2";
 
-// const BASE_URL = "http://192.168.0.102:3000";
+
 const BASE_URL = `https://api.priceobo.com`;
 
 const AddTagPopover = ({
@@ -47,9 +47,8 @@ const AddTagPopover = ({
       const payload = {
         tags: updatedTags,
       };
-
       const encodedSku = encodeURIComponent(sku);
- 
+
       await axios.put(`${BASE_URL}/api/product/tag/${encodedSku}`, payload);
 
       // Update local state with new tags

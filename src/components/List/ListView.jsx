@@ -19,7 +19,6 @@ import noImage from "../../assets/images/noimage.png";
 
 const BASE_URL = `https://api.priceobo.com`;
 
-const BASE_URL_LIST = `https://api.priceobo.com`;
 // const BASE_URL_LIST = "http://localhost:3000";
 
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
@@ -30,7 +29,7 @@ import { LuArrowUpDown } from "react-icons/lu";
 import ListLoadingSkeleton from "../LoadingSkeleton/ListLoadingSkeleton";
 
 const fetchProducts = async () => {
-  const response = await axios.get(`${BASE_URL_LIST}/fetch-all-listings`);
+  const response = await axios.get(`${BASE_URL}/fetch-all-listings`);
   return response.data;
 };
 

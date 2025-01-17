@@ -12,15 +12,17 @@ import {
   SelectValue,
 } from "../ui/select";
 import axios from "axios";
+import { Checkbox } from "antd";
 
 // const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "http://192.168.0.109:3000";
+
 const BASE_URL = `https://api.priceobo.com`;
 
 const AutomatePrice = ({ sku, productDetails, product }) => {
   const [showModal, setShowModal] = useState(false);
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [minPriceInput, setMinPriceInput] = useState(null);
+  const [saleChecked, setSaleChecked] = useState(false);
   const [validateErrors, setValidateErrors] = useState(null);
   const [isDaySelected, setIsDaySelected] = useState(false);
   const [isHourSelected, setIsHourSelected] = useState(false);
@@ -38,6 +40,7 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
   const [percentageInput, setPercentageInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { currentUser } = useSelector((state) => state.user);
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -56,6 +59,7 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
     setAmountInput("");
     setPercentageInput("");
     setSelectedRule("");
+    setSaleChecked(false);
   };
 
   const handleRuleChange = (value) => {
@@ -86,14 +90,18 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
     }
   }, [showModal]);
 
-
   const productName = productDetails?.summaries[0]?.itemName;
   const productImage = productDetails?.summaries[0]?.mainImage?.link;
 
-
+  const formattedStartDate = startDate?.format("YYYY-MM-DD");
+  const formattedEndDate = endDate?.format("YYYY-MM-DD");
 
   const handleShowModal = () => {
     setShowModal(true);
+  };
+
+  const handleSaleCheckboxChange = (e) => {
+    setSaleChecked(e.target.checked);
   };
 
   const handleMaxPriceChange = (e) => {
@@ -176,6 +184,7 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
 
           maxPrice: parseFloat(maxPriceInput.toFixed(2)),
           minPrice: parseFloat(minPriceInput.toFixed(2)),
+          sale: saleChecked,
         },
       ],
       hitAutoPricing: true,
@@ -222,6 +231,8 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
     }
   };
 
+  console.log(saleChecked);
+
   return (
     <>
       <div className="ml-[-7%]">
@@ -247,6 +258,7 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
               disabled
               placeholder="SKU"
             />
+
             <div className="">
               <Select onValueChange={handleRuleChange}>
                 <SelectTrigger>
@@ -261,7 +273,8 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex justify-between gap-2">
+
+            <div className="flex items-center justify-between gap-1">
               <Form.Control
                 type="number"
                 className="update-custom-input"
@@ -280,6 +293,9 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
                 step="0.01"
                 required
               />
+              <div>
+                <Checkbox onChange={handleSaleCheckboxChange}>Sale Price</Checkbox>
+              </div>
             </div>
 
             {validateErrors && (

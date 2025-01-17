@@ -12,6 +12,7 @@ import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import priceoboLogo from "../../assets/images/priceobo-logo.png";
 import { PiChartLineUpLight } from "react-icons/pi";
 import { AiOutlineProduct } from "react-icons/ai";
+import { LuGroup } from "react-icons/lu";
 import { FaListCheck } from "react-icons/fa6";
 import Notifications from "../shared/ui/Notifications";
 import { Cog } from "lucide-react";
@@ -20,7 +21,8 @@ const SidebarLayout = () => {
 
   const Menus = [
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
-    { title: "Products", icon: <AiOutlineProduct />, path: "/list" },
+    { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
+    // { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },

@@ -12,28 +12,30 @@ import { FixedSizeList as List } from "react-window";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import "./ListView.css";
 import ProductDetailView from "../ProductDetailView";
+import { Button as ShadcdnBtn } from "@/components/ui/button";
 
 import noImage from "../../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
 
-
 const BASE_URL = `https://api.priceobo.com`;
 
 import { BsDashCircle, BsFillInfoSquareFill } from "react-icons/bs";
-import { ListSaleDropdown } from "../../shared/ui/ListSaleDropdown";
+
 import { ListFbaDropdown } from "../../shared/ui/ListFbaDropdown";
-import { LuArrowUpDown } from "react-icons/lu";
+
 import ListLoadingSkeleton from "../../LoadingSkeleton/ListLoadingSkeleton";
 import ListViewTable from "./ListViewTable";
 import ListViewPagination from "./ListViewPagination";
-import ListSearchLoadingSkeleton from "../../LoadingSkeleton/ListSearchLoadingSkeleton";
+
 import ListSalePopover from "../../../components/shared/ui/ListSalePopover";
 import ListChannelStockPopover from "../../../components/shared/ui/ListChannelStockPopever";
-import Loading from "@/components/shared/ui/Loading";
-import { FadeLoader } from "react-spinners";
+
 import { IoClose } from "react-icons/io5";
 import ListTagsDropdown from "../../shared/ui/ListTagsDropDown";
+import ActionsDropdown from "../Actions/ActionsDropdown";
+import Swal from "sweetalert2";
+import { FaSync } from "react-icons/fa";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -49,7 +51,7 @@ const ListView = () => {
   const [isLoadingMode, setIsLoadingMode] = useState(false);
   const [customFilterMode, setCustomFilterMode] = useState(false);
   const [columnWidths, setColumnWidths] = useState([
-    70, 80, 350, 80, 90, 120, 90, 90,
+    70, 70, 80, 350, 80, 90, 90, 120, 70, 90,
   ]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
@@ -89,6 +91,7 @@ const ListView = () => {
   const [tagsUpdated, setTagsUpdated] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectAllTags, setSelectAllTags] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [filters, setFilters] = useState({
     fulfillmentChannel: null,
@@ -103,7 +106,6 @@ const ListView = () => {
   const isFirstRender = useRef(true);
   const { currentUser } = useSelector((state) => state.user);
 
-  // const isFilterActive = Object.values(filters).some((value) => value !== null);
   const isFilterActive = Object.values(filters).some(
     (value) =>
       value !== null &&
@@ -167,11 +169,6 @@ const ListView = () => {
       params.append("uid", filters.uid);
     }
 
-    // if (filters.tags && filters.tags.length > 0) {
-    //   const tagNames = filters.tags.join(",");
-    //   params.append("tags", tagNames);
-    // }
-
     if (filters.tags && filters.tags.length > 0) {
       const tagNames = filters.tags.join(",");
       params.append("tags", tagNames);
@@ -186,7 +183,6 @@ const ListView = () => {
 
   const fetchProducts = async (page) => {
     try {
-      // setIsLoading(true);
       setIsSearching(true);
       setIsLoadingMode(true);
       setIsSearchMode(false);
@@ -209,6 +205,8 @@ const ListView = () => {
       setIsSearching(false);
     }
   };
+
+  console.log("filtered products", filteredProducts);
 
   const fetchData = async (page) => {
     setIsSearching(true);
@@ -338,29 +336,12 @@ const ListView = () => {
     setCurrentPage(pageNumber);
 
     setSelectedRowIndex(null);
-    // setSelectedProduct(null);
+
     setSelectedAsin("");
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
   };
-
-  // const handleTagSelection = (tagName) => {
-  //   setSelectedTags((prevSelected) => {
-  //     const updatedTags = prevSelected.includes(tagName)
-  //       ? prevSelected.filter((tag) => tag !== tagName)
-  //       : [...prevSelected, tagName];
-
-  //     setFilters((prev) => ({
-  //       ...prev,
-  //       tags: updatedTags,
-  //     }));
-
-  //     return updatedTags;
-  //   });
-
-  //   setSelectAllTags(false);
-  // };
 
   const handleTagSelection = (tagNames) => {
     let updatedTags = [];
@@ -437,10 +418,10 @@ const ListView = () => {
     setIsSearchMode(false);
     setFilters((prev) => {
       const updatedFilters = { ...prev };
-      delete updatedFilters.uid; // Remove UID from filters
+      delete updatedFilters.uid;
       return updatedFilters;
     });
-    // fetchData(1);
+
     setCurrentPage(1);
   };
 
@@ -450,7 +431,7 @@ const ListView = () => {
       delete updatedFilters.fulfillmentChannel;
       return updatedFilters;
     });
-    // fetchData(1);
+
     setCurrentPage(1);
   };
   const handleClearTagsSearch = () => {
@@ -469,7 +450,7 @@ const ListView = () => {
       return updatedFilters;
     });
     setChannelStockInputValue("");
-    // fetchData(1);
+
     setCurrentPage(1);
   };
   const handleClearSalesSearch = () => {
@@ -478,7 +459,7 @@ const ListView = () => {
       delete updatedFilters.salesCondition;
       return updatedFilters;
     });
-    // fetchData(1);
+
     setInputValue("");
     setSaleBetweenMinValue("");
     setSaleBetweenMaxValue("");
@@ -531,6 +512,42 @@ const ListView = () => {
       setFilteredProducts([]);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleProductSync = async () => {
+    try {
+      setIsSyncing(true);
+      const response = await axios.get(`${BASE_URL}/api/sync`);
+      const { success, message } = response.data;
+      if (success) {
+        // Swal.fire({
+        //   title: "Success!",
+        //   text: message,
+        //   icon: "success",
+        //   showConfirmButton: false,
+        //   timer: 2000,
+        // });
+        fetchProducts(1);
+      } else {
+        // Swal.fire({
+        //   title: "Error!",
+        //   text: "Failed to sync products.",
+        //   icon: "error",
+        //   showConfirmButton: false,
+        //   timer: 2000,
+        // });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: "Something went wrong!",
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -622,7 +639,6 @@ const ListView = () => {
           axios.get(`${BASE_URL}/product/${asin}`),
         ]);
 
-        // setSelectedProduct(responseOne.data.payload);
         setSelectedProduct({
           ...responseOne.data.payload,
           tags: item.tags,
@@ -810,7 +826,7 @@ const ListView = () => {
 
       salesCondition = {
         time: selectedDay.value,
-        condition: ">=", // Greater than or equal to condition
+        condition: ">=",
         value: salesValue,
       };
     } else if (selectedUnit.value === "<=") {
@@ -818,7 +834,7 @@ const ListView = () => {
 
       salesCondition = {
         time: selectedDay.value,
-        condition: "<=", // Less than or equal to condition
+        condition: "<=",
         value: salesValue,
       };
     } else if (selectedUnit.value === "!=") {
@@ -961,6 +977,13 @@ const ListView = () => {
           </InputGroup>
         </div>
 
+        <div className=" absolute top-[10px] right-[650px]">
+          <ActionsDropdown
+            filteredProducts={filteredProducts}
+            handleProductSync={handleProductSync}
+          ></ActionsDropdown>
+        </div>
+
         <Button
           style={{
             borderRadius: "2px",
@@ -977,10 +1000,23 @@ const ListView = () => {
             {filterScheduled ? "Show All" : "Scheduled"}
           </span>
         </Button>
+
+        {isSyncing && (
+          <button
+            className=" border-[0.5px] border-blue-500 px-3 py-1 text-blue-500"
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "410px",
+            }}
+          >
+            <span style={{ fontSize: "14px" }}> Syncing...</span>
+          </button>
+        )}
       </div>
 
       {isFilterActive && (
-        <div className="absolute top-4 right-[35%]">
+        <div className="absolute top-4 right-[42%]">
           <button
             onClick={() => {
               setFilters({
@@ -1049,7 +1085,7 @@ const ListView = () => {
                     }}
                   >
                     <p className="flex  items-center justify-center gap-1">
-                      Status
+                      Favourite
                     </p>
                     <div
                       style={{
@@ -1072,7 +1108,9 @@ const ListView = () => {
                       borderRight: "2px solid #C3C6D4",
                     }}
                   >
-                    Image
+                    <p className="flex  items-center justify-center gap-1">
+                      Status
+                    </p>
                     <div
                       style={{
                         width: "5px",
@@ -1085,11 +1123,33 @@ const ListView = () => {
                       onMouseDown={(e) => handleResize(1, e)}
                     />
                   </th>
-
                   <th
                     className="tableHeader"
                     style={{
                       width: `${columnWidths[2]}px`,
+
+                      textAlign: "center",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Image
+                    <div
+                      style={{
+                        width: "5px",
+                        height: "100%",
+                        position: "absolute",
+                        right: "0",
+                        top: "0",
+                        cursor: "col-resize",
+                      }}
+                      onMouseDown={(e) => handleResize(2, e)}
+                    />
+                  </th>
+
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: `${columnWidths[3]}px`,
                       minWidth: "80px",
 
                       overflow: "hidden",
@@ -1108,13 +1168,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(2, e)}
+                      onMouseDown={(e) => handleResize(3, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[3]}px`,
+                      width: `${columnWidths[4]}px`,
 
                       textAlign: "center",
                       borderRight: "2px solid #C3C6D4",
@@ -1130,13 +1190,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(3, e)}
+                      onMouseDown={(e) => handleResize(4, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[4]}px`,
+                      width: `${columnWidths[5]}px`,
 
                       textAlign: "center",
                       borderRight: "2px solid #C3C6D4",
@@ -1167,13 +1227,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(4, e)}
+                      onMouseDown={(e) => handleResize(5, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[4]}px`,
+                      width: `${columnWidths[6]}px`,
 
                       textAlign: "center",
                       borderRight: "2px solid #C3C6D4",
@@ -1208,13 +1268,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(4, e)}
+                      onMouseDown={(e) => handleResize(6, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[5]}px`,
+                      width: `${columnWidths[7]}px`,
                       minWidth: "80px",
                       position: "relative",
                       textAlign: "center",
@@ -1268,13 +1328,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(5, e)}
+                      onMouseDown={(e) => handleResize(7, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[6]}px`,
+                      width: `${columnWidths[8]}px`,
                       minWidth: "80px",
                       position: "relative",
                       textAlign: "center",
@@ -1326,13 +1386,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(6, e)}
+                      onMouseDown={(e) => handleResize(8, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[7]}px`,
+                      width: `${columnWidths[9]}px`,
                       minWidth: "80px",
                       position: "relative",
                       textAlign: "center",
@@ -1348,7 +1408,7 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(7, e)}
+                      onMouseDown={(e) => handleResize(9, e)}
                     />
                   </th>
                 </tr>

@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Form } from "react-bootstrap";
-import { FiSave, FiTrash } from "react-icons/fi";
+import { FiSave, FiTrash, FiUpload } from "react-icons/fi";
 import { PenLine } from "lucide-react";
 import Swal from "sweetalert2";
 import { ColorPicker, Divider, Row, Col } from "antd";
 import { cyan, green, red, generate, presetPalettes } from "@ant-design/colors";
 import { theme } from "antd";
+import { Tooltip } from "antd";
+import { BsFillInfoSquareFill } from "react-icons/bs";
 
-// const BASE_URL = "http://192.168.0.102:3000";
+import withReactContent from "sweetalert2-react-content";
+
+import * as XLSX from "xlsx";
+import "./ExistingTags.css";
+
+import skuImage from "../../../assets/images/skus.png";
+
 const BASE_URL = `https://api.priceobo.com`;
 
 const genPresets = (presets = presetPalettes) =>
@@ -26,6 +34,8 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
     tagName: "",
     colorCode: "",
   });
+  const [file, setFile] = useState(null);
+  const MySwal = withReactContent(Swal);
 
   const presets = genPresets({
     primary: generate(token.colorPrimary),
@@ -70,6 +80,263 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
     setEditingRow(index);
     setEditValues({ tagName: tag.tagName, colorCode: tag.colorCode });
   };
+
+  const handleUploadClick = (tag) => {
+    MySwal.fire({
+      title: "Upload File",
+      html: (
+        <div>
+          <p className="flex justify-center items-center gap-1">
+            <Tooltip
+              placement="bottom"
+              title={
+                <div>
+                  <p className="text-lg">
+                    Supported formats: <strong>.xlsx, .xls, .csv</strong>
+                  </p>
+                  <p className="text-base">
+                    Please ensure the file contains valid SKUs in the first
+                    column.
+                  </p>
+                  <img
+                    src={skuImage}
+                    alt="Information Screenshot"
+                    style={{
+                      maxWidth: "100%",
+                      border: "1px solid #ccc",
+                      marginTop: "10px",
+                    }}
+                  />
+                </div>
+              }
+              overlayClassName="custom-tooltip"
+            >
+              <BsFillInfoSquareFill className="text-[#0D6EFD] hover:cursor-pointer" />
+            </Tooltip>
+            Upload a file for the tag: <strong>{tag.tagName}</strong>
+          </p>
+        </div>
+      ),
+      input: "file",
+      inputAttributes: {
+        accept: ".xlsx, .xls, .csv",
+      },
+      showCancelButton: true,
+      confirmButtonText: "Upload",
+      preConfirm: () => {
+        const input = Swal.getInput();
+        return (
+          input.files[0] || Swal.showValidationMessage("Please select a file!")
+        );
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const file = result.value;
+        const reader = new FileReader();
+
+        reader.onload = async (event) => {
+          try {
+            const fileName = file.name.toLowerCase();
+            let skus = [];
+
+            if (fileName.endsWith(".csv")) {
+              const csvBuffer = event.target.result;
+              const decoder = new TextDecoder("utf-8"); // Default to UTF-8
+              let csvContent = decoder.decode(csvBuffer);
+
+              // Try different encodings if UTF-8 fails
+              if (!csvContent || csvContent.includes("�")) {
+                const fallbackDecoder = new TextDecoder("iso-8859-1"); // Common encoding for Macintosh/MS-DOS
+                csvContent = fallbackDecoder.decode(csvBuffer);
+              }
+
+              const rows = csvContent
+                .split("\n")
+                .map((line) => line.split(","));
+              skus = rows.map((row) => row[0].trim()).filter(Boolean);
+            } else {
+              const data = new Uint8Array(event.target.result);
+              const workbook = XLSX.read(data, { type: "array" });
+              const firstSheetName = workbook.SheetNames[0];
+              const worksheet = workbook.Sheets[firstSheetName];
+              const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+              skus = rows.map((row) => row[0]).filter(Boolean);
+            }
+
+            if (skus.length === 0) {
+              MySwal.fire({
+                title: "Error!",
+                text: "No SKUs found in the file.",
+                icon: "error",
+              });
+              return;
+            }
+
+            const promises = skus.map((sku) => {
+              const encodedSku = encodeURIComponent(sku); // Encode the SKU
+              const url = `${BASE_URL}/api/product/tag/${encodedSku}`; // Use encoded SKU in the URL
+              const payload = {
+                tags: [
+                  {
+                    tag: tag.tagName,
+                    colorCode: tag.colorCode,
+                  },
+                ],
+              };
+
+              return axios.put(url, payload);
+            });
+
+            await Promise.all(promises);
+
+            MySwal.fire({
+              title: "Success!",
+              text: `Tags updated for ${skus.length} SKUs.`,
+              icon: "success",
+            });
+          } catch (error) {
+            console.error("Error processing file or updating tags:", error);
+            MySwal.fire({
+              title: "Error!",
+              text: "Failed to process file or update tags.",
+              icon: "error",
+            });
+          }
+        };
+
+        if (file.name.toLowerCase().endsWith(".csv")) {
+          reader.readAsArrayBuffer(file); // Read CSV as ArrayBuffer for encoding detection
+        } else {
+          reader.readAsArrayBuffer(file); // Read Excel as ArrayBuffer
+        }
+      }
+    });
+  };
+
+  // const handleUploadClick = (tag) => {
+  //   MySwal.fire({
+  //     title: "Upload File",
+  //     html: (
+  //       <div>
+  //         <p className="flex justify-center items-center gap-1">
+  //           <Tooltip
+  //             placement="bottom"
+  //             title={
+  //               <div>
+  //                 <p className="text-lg">
+  //                   Supported formats: <strong>.xlsx, .xls, .csv</strong>
+  //                 </p>
+  //                 <p className="text-base">
+  //                   Please ensure the file contains valid SKUs in the first
+  //                   column.
+  //                 </p>
+  //                 <img
+  //                   src="https://mcusercontent.com/e006191206c6952a765463cfb/images/0f69dc40-1826-00b3-c827-3cfae98a1e8f.png"
+  //                   alt="Information Screenshot"
+  //                   style={{
+  //                     maxWidth: "100%",
+  //                     border: "1px solid #ccc",
+  //                     marginTop: "10px",
+  //                   }}
+  //                 />
+  //               </div>
+  //             }
+  //             overlayClassName="custom-tooltip"
+  //           >
+  //             <BsFillInfoSquareFill className="text-[#0D6EFD] hover:cursor-pointer" />
+  //           </Tooltip>
+  //           Upload a file for the tag: <strong>{tag.tagName}</strong>
+  //         </p>
+  //       </div>
+  //     ),
+  //     input: "file",
+  //     inputAttributes: {
+  //       accept: ".xlsx, .xls, .csv",
+  //     },
+  //     showCancelButton: true,
+  //     confirmButtonText: "Upload",
+  //     preConfirm: () => {
+  //       const input = Swal.getInput();
+  //       return (
+  //         input.files[0] || Swal.showValidationMessage("Please select a file!")
+  //       );
+  //     },
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       const file = result.value;
+  //       const reader = new FileReader();
+
+  //       reader.onload = async (event) => {
+  //         try {
+  //           const fileName = file.name.toLowerCase();
+  //           let skus = [];
+
+  //           if (fileName.endsWith(".csv")) {
+  //             const csvContent = event.target.result;
+  //             const rows = csvContent
+  //               .split("\n")
+  //               .map((line) => line.split(","));
+  //             skus = rows.map((row) => row[0].trim()).filter(Boolean);
+  //           } else {
+  //             const data = new Uint8Array(event.target.result);
+  //             const workbook = XLSX.read(data, { type: "array" });
+  //             const firstSheetName = workbook.SheetNames[0];
+  //             const worksheet = workbook.Sheets[firstSheetName];
+  //             const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  //             skus = rows.map((row) => row[0]).filter(Boolean);
+  //           }
+
+  //           if (skus.length === 0) {
+  //             MySwal.fire({
+  //               title: "Error!",
+  //               text: "No SKUs found in the file.",
+  //               icon: "error",
+  //             });
+  //             return;
+  //           }
+
+  //           const promises = skus.map((sku) => {
+  //             const encodedSku = encodeURIComponent(sku); // Encode the SKU
+  //             const url = `${BASE_URL}/api/product/tag/${encodedSku}`; // Use encoded SKU in the URL
+  //             const payload = {
+  //               tags: [
+  //                 {
+  //                   tag: tag.tagName,
+  //                   colorCode: tag.colorCode,
+  //                 },
+  //               ],
+  //             };
+
+  //             return axios.put(url, payload);
+  //           });
+
+  //           await Promise.all(promises);
+
+  //           MySwal.fire({
+  //             title: "Success!",
+  //             text: `Tags updated for ${skus.length} SKUs.`,
+  //             icon: "success",
+  //           });
+  //         } catch (error) {
+  //           console.error("Error processing file or updating tags:", error);
+  //           MySwal.fire({
+  //             title: "Error!",
+  //             text: "Failed to process file or update tags.",
+  //             icon: "error",
+  //           });
+  //         }
+  //       };
+
+  //       if (file.name.toLowerCase().endsWith(".csv")) {
+  //         reader.readAsText(file);
+  //       } else {
+  //         reader.readAsArrayBuffer(file);
+  //       }
+  //     }
+  //   });
+  // };
 
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
@@ -219,17 +486,6 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
                   }}
                 >
                   {editingRow === index ? (
-                    // <ColorPicker
-                    //   value={editValues.colorCode}
-                    //   onChange={(color) =>
-                    //     setEditValues({
-                    //       ...editValues,
-                    //       colorCode: color.toHexString(),
-                    //     })
-                    //   }
-                    //   showText={(color) => <span>{color.toHexString()}</span>}
-                    // />
-
                     <ColorPicker
                       value={editValues.colorCode}
                       presets={presets}
@@ -254,9 +510,7 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
                         borderRadius: "50%",
                       }}
                       className="shadow-sm mx-auto"
-                    >
-                      {/* {tag.colorCode.toUpperCase()} Displays the color code */}
-                    </span>
+                    ></span>
                   )}
                 </td>
                 <td>
@@ -284,6 +538,18 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
                     >
                       <FiTrash />
                     </Button>
+
+                    <div className="flex justify-end ">
+                      {/* Upload Button */}
+                      <label htmlFor="file-upload">
+                        <button
+                          onClick={() => handleUploadClick(tag)}
+                          className="ml-2 flex justify-center gap-1  items-center px-2 py-1 border text-sm rounded-sm"
+                        >
+                          <FiUpload size={12} /> Upload (.xlsx, .xls, .csv)
+                        </button>
+                      </label>
+                    </div>
                   </div>
                 </td>
               </tr>

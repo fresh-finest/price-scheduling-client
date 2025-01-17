@@ -18,7 +18,9 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { useSelector } from "react-redux";
 import { IoCloseOutline } from "react-icons/io5";
-// const BASE_URL = "http://192.168.0.109:3000";
+import { Checkbox } from "antd";
+
+
 const BASE_URL = `https://api.priceobo.com`;
 
 const CreateRuleForm = () => {
@@ -43,6 +45,7 @@ const CreateRuleForm = () => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [finalSelectedProducts, setFinalSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saleChecked, setSaleChecked] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
 
   const handleRuleFormClose = () => {
@@ -51,6 +54,7 @@ const CreateRuleForm = () => {
     setTimeType("");
     setUnitType("");
     setFinalSelectedProducts([]);
+    setSaleChecked(false);
   };
   const handleRuleFormOpen = () => {
     setRuleFormOpen(true);
@@ -90,6 +94,10 @@ const CreateRuleForm = () => {
     setFinalSelectedProducts(updatedProducts); // Update the state
   };
 
+  const handleSaleCheckboxChange = (e) => {
+    setSaleChecked(e.target.checked);
+  };
+
   console.log("final selected products", finalSelectedProducts);
 
   const onSubmit = async (data) => {
@@ -111,6 +119,7 @@ const CreateRuleForm = () => {
         minPrice: parseFloat(
           document.getElementById(`minPrice-${product.sellerSku}`).value
         ),
+        sale: saleChecked,
       };
     });
     setLoading(true);
@@ -409,9 +418,16 @@ const CreateRuleForm = () => {
                     placeholder="Min Price"
                   />
 
+                  <Checkbox
+                    className="w-[15%]"
+                    onChange={handleSaleCheckboxChange}
+                  >
+                    On Sale
+                  </Checkbox>
+
                   <IoCloseOutline
                     onClick={() => handleRemoveProduct(product.sellerSku)}
-                    className="text-xl cursor-pointer text-gray-500 hover:text-gray-600"
+                    className="text-2xl cursor-pointer text-gray-500 hover:text-gray-600"
                   />
                 </div>
               ))}
