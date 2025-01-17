@@ -21,7 +21,7 @@ import AssginTagsModal from "./AssginTagsModal";
 // const BASE_URL = "http://192.168.0.102:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
-const ActionsDropdown = ({ filteredProducts }) => {
+const ActionsDropdown = ({ filteredProducts, handleProductSync }) => {
   console.log("filteredProducts", filteredProducts);
   const [loading, setLoading] = useState(false);
   const [exportThisPageLoading, setExportThisPageLoading] = useState(false);
@@ -278,7 +278,9 @@ const ActionsDropdown = ({ filteredProducts }) => {
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
-            <DropdownMenuItem>Product Sync</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleProductSync}>
+              Product Sync
+            </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Export</DropdownMenuSubTrigger>
               <DropdownMenuPortal>

@@ -3,15 +3,15 @@ import { Button, Form, Modal } from "react-bootstrap";
 import "./AutomationDetailModal.css";
 import { MdOutlineClose } from "react-icons/md";
 import axios from "axios";
-import { Tooltip } from "antd";
+import { Checkbox, Tooltip } from "antd";
 import { FiSave, FiTrash } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { PenLine } from "lucide-react";
 import { IoMdAdd } from "react-icons/io";
 import AddProductsInRuleModal from "./AddProductsInRulesModal/AddProductsInRuleModal";
 
-// const BASE_URL = "http://192.168.0.109:3000";
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = "http://192.168.0.102:3000";
+// const BASE_URL = `https://api.priceobo.com`;
 
 const AutomationDetailModal = ({
   automationDetailModalShow,
@@ -130,12 +130,18 @@ const AutomationDetailModal = ({
     setEditValues({
       maxPrice: data.maxPrice,
       minPrice: data.minPrice,
+      sale: data.sale,
     });
   };
 
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
   };
+  const handleCheckboxChange = (e) => {
+    setEditValues({ ...editValues, sale: e.target.checked });
+  };
+
+  console.log("edit values", editValues);
 
   const handleSave = async (index, sku) => {
     try {
@@ -144,6 +150,7 @@ const AutomationDetailModal = ({
         {
           maxPrice: parseFloat(editValues.maxPrice),
           minPrice: parseFloat(editValues.minPrice),
+          sale: editValues.sale,
         }
       );
       console.log("Save response:", response.data);
@@ -166,6 +173,8 @@ const AutomationDetailModal = ({
       });
     }
   };
+
+  console.log("product data", productData);
 
   return (
     <div>
@@ -269,6 +278,18 @@ const AutomationDetailModal = ({
                   }}
                 >
                   Min Price
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    width: "130px",
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  On Change
                 </th>
                 <th
                   className="tableHeader"
@@ -381,6 +402,31 @@ const AutomationDetailModal = ({
                           `$${parseFloat(data.minPrice).toFixed(2)}`
                         )}
                       </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {/* {data.sale ? "Sale Price" : "Your Price"} */}
+
+                        {editingRow === index ? (
+                          <Checkbox
+                            checked={editValues.sale}
+                            onChange={handleCheckboxChange}
+                          >
+                            On Sale
+                          </Checkbox>
+                        ) : data.sale ? (
+                          "Sale Price"
+                        ) : (
+                          "Your Price"
+                        )}
+                      </td>
 
                       <td
                         style={{
@@ -425,7 +471,7 @@ const AutomationDetailModal = ({
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No Data Found

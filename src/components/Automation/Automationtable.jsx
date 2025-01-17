@@ -12,7 +12,7 @@ import { Switch } from "antd";
 import { set } from "lodash";
 // import { BASE_URL } from "@/utils/baseUrl";
 
-const BASE_URL = `https://api.priceobo.com`
+const BASE_URL = `https://api.priceobo.com`;
 
 const Automationtable = () => {
   const [automationData, setAutomationData] = useState([]);
@@ -463,7 +463,7 @@ const Automationtable = () => {
                           variant="danger"
                           size="md"
                           className="rounded-sm"
-                          disabled={data.mute || deleteLoading}
+                          disabled={deleteLoading}
                         >
                           <FiTrash />
                         </Button>

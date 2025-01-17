@@ -12,6 +12,7 @@ import { FixedSizeList as List } from "react-window";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import "./ListView.css";
 import ProductDetailView from "../ProductDetailView";
+import { Button as ShadcdnBtn } from "@/components/ui/button";
 
 import noImage from "../../../assets/images/noimage.png";
 
@@ -37,6 +38,8 @@ import ListChannelStockPopover from "../../../components/shared/ui/ListChannelSt
 import { IoClose } from "react-icons/io5";
 import ListTagsDropdown from "@/components/shared/ui/ListTagsDropdown";
 import ActionsDropdown from "../Actions/ActionsDropdown";
+import Swal from "sweetalert2";
+import { FaSync } from "react-icons/fa";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -92,6 +95,7 @@ const ListView = () => {
   const [tagsUpdated, setTagsUpdated] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectAllTags, setSelectAllTags] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [filters, setFilters] = useState({
     fulfillmentChannel: null,
@@ -512,6 +516,42 @@ const ListView = () => {
       setFilteredProducts([]);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleProductSync = async () => {
+    try {
+      setIsSyncing(true);
+      const response = await axios.get(`${BASE_URL}/api/sync`);
+      const { success, message } = response.data;
+      if (success) {
+        // Swal.fire({
+        //   title: "Success!",
+        //   text: message,
+        //   icon: "success",
+        //   showConfirmButton: false,
+        //   timer: 2000,
+        // });
+        fetchProducts(1);
+      } else {
+        // Swal.fire({
+        //   title: "Error!",
+        //   text: "Failed to sync products.",
+        //   icon: "error",
+        //   showConfirmButton: false,
+        //   timer: 2000,
+        // });
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: "Something went wrong!",
+        icon: "error",
+        showConfirmButton: false,
+        timer: 2000,
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -944,6 +984,7 @@ const ListView = () => {
         <div className=" absolute top-[10px] right-[650px]">
           <ActionsDropdown
             filteredProducts={filteredProducts}
+            handleProductSync={handleProductSync}
           ></ActionsDropdown>
         </div>
 
@@ -963,6 +1004,19 @@ const ListView = () => {
             {filterScheduled ? "Show All" : "Scheduled"}
           </span>
         </Button>
+
+        {isSyncing && (
+          <button
+            className=" border-[0.5px] border-blue-500 px-3 py-1 text-blue-500"
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "410px",
+            }}
+          >
+            <span style={{ fontSize: "14px" }}> Syncing...</span>
+          </button>
+        )}
       </div>
 
       {isFilterActive && (

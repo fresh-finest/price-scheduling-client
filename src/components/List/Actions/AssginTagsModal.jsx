@@ -9,14 +9,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { IoIosCloseCircleOutline } from "react-icons/io";
-
+import withReactContent from "sweetalert2-react-content";
 import { UploadOutlined } from "@ant-design/icons";
 import { Button as antDesignButton, message, Tooltip, Upload } from "antd";
 import { FiUpload } from "react-icons/fi";
 import { BsFillInfoSquareFill } from "react-icons/bs";
+import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 
 import skuImage from "../../../assets/images/skus.png";
+import axios from "axios";
 
 const BASE_URL = "http://192.168.0.102:3000";
 
@@ -30,7 +32,7 @@ const AssginTagsModal = ({
   const [fileList, setFileList] = useState([]);
   const [uploadDisabled, setUploadDisabled] = useState(false);
 
-  console.log("uploaded file", uploadedFile);
+  const MySwal = withReactContent(Swal);
 
   const fetchTags = async () => {
     try {
@@ -101,12 +103,11 @@ const AssginTagsModal = ({
 
         if (fileName.endsWith(".csv")) {
           const csvBuffer = event.target.result;
-          const decoder = new TextDecoder("utf-8"); // Default to UTF-8
+          const decoder = new TextDecoder("utf-8");
           let csvContent = decoder.decode(csvBuffer);
 
-          // Fallback encoding if UTF-8 fails
           if (!csvContent || csvContent.includes("�")) {
-            const fallbackDecoder = new TextDecoder("iso-8859-1"); // Common encoding for Macintosh/MS-DOS
+            const fallbackDecoder = new TextDecoder("iso-8859-1");
             csvContent = fallbackDecoder.decode(csvBuffer);
           }
 
@@ -123,11 +124,15 @@ const AssginTagsModal = ({
         }
 
         if (skus.length === 0) {
-          message.error("No SKUs found in the file.");
+          MySwal.fire({
+            title: "Error!",
+            text: "No SKUs found in the file.",
+            icon: "error",
+          });
           return;
         }
 
-        // Prepare API payload
+        // Prepare API payload and send requests
         const promises = skus.map((sku) => {
           const encodedSku = encodeURIComponent(sku);
           const url = `${BASE_URL}/api/product/tag/${encodedSku}`;
@@ -141,31 +146,38 @@ const AssginTagsModal = ({
           console.log("urlll", url);
           console.log("payload", payload);
 
-          return fetch(url, {
-            method: "PUT",
+          return axios.put(url, payload, {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload),
           });
         });
 
         await Promise.all(promises);
 
-        message.success(`Tags assigned to  SKUs successfully.`);
-        setSelectedTags([]); // Clear selected tags
-        setUploadedFile(null); // Clear uploaded file
-        setFileList([]); // Clear file list in UI
+        MySwal.fire({
+          title: "Success!",
+          text: `Tags assigned to SKUs successfully.`,
+          icon: "success",
+        });
+        setSelectedTags([]);
+        setUploadedFile(null);
+        setFileList([]);
       } catch (error) {
         console.error("Error processing file or updating tags:", error);
-        message.error("Failed to process file or update tags.");
+
+        MySwal.fire({
+          title: "Error!",
+          text: "Failed to process file or update tags.",
+          icon: "error",
+        });
       }
     };
 
     if (uploadedFile.name.toLowerCase().endsWith(".csv")) {
-      reader.readAsArrayBuffer(uploadedFile); // Read CSV as ArrayBuffer
+      reader.readAsArrayBuffer(uploadedFile);
     } else {
-      reader.readAsArrayBuffer(uploadedFile); // Read Excel as ArrayBuffer
+      reader.readAsArrayBuffer(uploadedFile);
     }
   };
 

@@ -10,8 +10,7 @@ import axios from "axios";
 import { ClipLoader } from "react-spinners";
 // import { BASE_URL } from "@/utils/baseUrl";
 
-const BASE_URL = `https://api.priceobo.com`
-
+const BASE_URL = `https://api.priceobo.com`;
 
 const AutomationSelectProductModal = ({
   selectProductModalOpen,
@@ -198,59 +197,6 @@ const AutomationSelectProductModal = ({
             <p className="mt-2 text-red-500 text-center">{searchingError}</p>
           )}
 
-          {/* {!loading && (
-            <div className="mt-4 h-[45vh] overflow-y-auto">
-              {searchedProducts.length > 0 ? (
-                <div className="space-y-3">
-                  {searchedProducts.map((product, index) => (
-                    <div key={index}>
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          onChange={(e) =>
-                            handleCheckboxChange(product, e.target.checked)
-                          }
-                          checked={selectedProducts.some(
-                            (selectedProduct) =>
-                              selectedProduct.sellerSku === product.sellerSku
-                          )}
-                        ></Checkbox>
-                        <img
-                          src={product.imageUrl}
-                          className="w-[30px] h-[40px] object-cover"
-                          alt="product_image"
-                        />
-                        <div className="space-y-1">
-                          <h3 title={product.itemName}>
-                            {product.itemName.split(" ").length > 10
-                              ? product.itemName
-                                  .split(" ")
-                                  .slice(0, 10)
-                                  .join(" ") + "..."
-                              : product.itemName}
-                          </h3>
-
-                          <div className="flex gap-2">
-                            <span className="px-2 py-1 border text-xs">
-                              {product.asin1}
-                            </span>
-                            <span className="px-2 py-1 border text-xs">
-                              {product.sellerSku}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                !loading &&
-                !searchingError && (
-                  <p className="mt-2 text-center">No products found.</p>
-                )
-              )}
-            </div>
-          )} */}
-
           {!loading && (
             <div className="mt-4 flex gap-4">
               <div
@@ -275,6 +221,10 @@ const AutomationSelectProductModal = ({
                           className="w-[30px] h-[40px] object-cover"
                           alt="product_image"
                         />
+
+                        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                          ${product.price || "0.00"}
+                        </span>
                         {/* <h3 className="text-sm">{product.itemName}</h3> */}
                         <div className="flex-grow">
                           <h3 className="text-sm font-medium truncate max-w-[400px]">
