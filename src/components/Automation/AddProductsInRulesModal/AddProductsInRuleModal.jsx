@@ -9,7 +9,8 @@ import axios from "axios";
 import { Button as ShadCdnButton } from "@/components/ui/button";
 import Swal from "sweetalert2";
 // import { BASE_URL } from "@/utils/baseUrl";
-const BASE_URL = `https://api.priceobo.com`
+// const BASE_URL = "http://192.168.0.102:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
@@ -22,6 +23,7 @@ const AddProductsInRuleModal = ({
   const [displayedProducts, setDisplayedProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addProductLoading, setAddProductsLoading] = useState(false);
+  const [saleChecked, setSaleChecked] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -94,6 +96,7 @@ const AddProductsInRuleModal = ({
         imageUrl: product.imageUrl,
         maxPrice: parseFloat(product.maxPrice) || product.price,
         minPrice: parseFloat(product.minPrice) || product.price,
+        sale: saleChecked,
       })),
       hitAutoPricing: true,
     };
@@ -162,9 +165,13 @@ const AddProductsInRuleModal = ({
     );
   };
 
+  const handleSaleCheckboxChange = (e) => {
+    setSaleChecked(e.target.checked);
+  };
+
   const renderSelectedProducts = () => (
     <div
-      className={`p-3 ${
+      className={`px-1 py-3 ${
         displayedProducts.length ? "border border-gray-300" : ""
       } h-[45vh] overflow-y-auto`}
     >
@@ -203,7 +210,7 @@ const AddProductsInRuleModal = ({
             onChange={(e) =>
               handleInputChange(product.sellerSku, "maxPrice", e.target.value)
             }
-            className="w-[90px]"
+            className="w-[30%]"
           />
 
           <Input
@@ -212,8 +219,12 @@ const AddProductsInRuleModal = ({
             onChange={(e) =>
               handleInputChange(product.sellerSku, "minPrice", e.target.value)
             }
-            className="w-[90px]"
+            className="w-[30%]"
           />
+
+          <Checkbox className="w-[50%]" onChange={handleSaleCheckboxChange}>
+            On Sale
+          </Checkbox>
 
           <button
             onClick={() => {
