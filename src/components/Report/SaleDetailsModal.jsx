@@ -94,7 +94,7 @@ const SaleDetailsModal = ({
 
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
-        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.startDate = moment(startDate).add(1,'day').format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
       }
