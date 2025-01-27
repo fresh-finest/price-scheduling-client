@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Modal, Button, Form } from "react-bootstrap";
 import readXlsxFile from "read-excel-file";
+import { addSku, bulkmapSku, createProduct, deleteProduct, fetchProduct, fetchProductBySku, fetchSingleProduct, updateSingleProduct, updateSku } from "@/api/product";
 
-// const BASE_URL = `http://localhost:3000`;
-const BASE_URL = `https://api.priceobo.com`;
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -16,6 +15,9 @@ function Products() {
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [newSku, setNewSku] = useState({ sku: "", uom: "" });
   const [excelData, setExcelData] = useState([]);
+  const [isBulkModalOpen, setBulkModalOpen] = useState(false); // Bulk mapping modal state
+  const [bulkData, setBulkData] = useState([]); // Data from the Excel file
+  const [isLoading, setIsLoading] = useState(false);
   const [editProduct, setEditProduct] = useState({
     name: "",
     title: "",
@@ -34,16 +36,16 @@ function Products() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/group`);
+        // const response = await axios.get(`${BASE_URL}/api/group`);
+        const response = await fetchProduct();
         const groupProducts = response.data.result;
 
         const productsWithDetails = await Promise.all(
           groupProducts.map(async (product) => {
             const skuDetails = await Promise.all(
               product.skus.map(async (sku) => {
-                const skuResponse = await axios.get(
-                  `${BASE_URL}/api/group/sku/${sku.sku}`
-                );
+                console.log(sku);
+                const skuResponse = await fetchProductBySku(sku.sku);
                 return {
                   ...skuResponse.data.data,
                   uom: sku.uom,
@@ -96,7 +98,8 @@ function Products() {
 
   const handleCreateProduct = async () => {
     try {
-      const response = await axios.post(`${BASE_URL}/api/group`, newProduct);
+      // const response = await axios.post(`${BASE_URL}/api/group`, newProduct);
+      const response = await createProduct(newProduct);
       if (response.status === 200 || response.status === 201) {
         alert("Product created successfully!");
         setModalOpen(false);
@@ -120,9 +123,11 @@ function Products() {
   // Handle SKU addition
   const handleAddSku = async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/group/${selectedProductId}`
-      );
+      // const response = await axios.get(
+      //   `${BASE_URL}/api/group/${selectedProductId}`
+      // );
+
+      const response = await fetchSingleProduct(selectedProductId);
       const existingSkus = response.data.result.skus || [];
       const updatedSkus = [
         ...existingSkus,
@@ -130,9 +135,11 @@ function Products() {
         ...(newSku.sku && newSku.uom ? [newSku] : []),
       ];
 
-      await axios.put(`${BASE_URL}/api/group/${selectedProductId}`, {
-        skus: updatedSkus,
-      });
+      // await axios.put(`${BASE_URL}/api/group/${selectedProductId}`, {
+      //   skus: updatedSkus,
+      // });
+
+      await addSku(selectedProductId,updatedSkus);
       alert("SKUs added successfully!");
       setSkuModalOpen(false);
       setExcelData([]);
@@ -170,7 +177,9 @@ function Products() {
   
       const body = { sku: newSku.sku, newSku: newSku.newSku, uom: newSku.uom };
   
-      await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
+      console.log(body);
+      // await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
+      await updateSku(selectedProductId,body);
       alert("SKU replaced successfully!");
       window.location.reload();
       // Close modal and refresh product list
@@ -193,7 +202,8 @@ function Products() {
 
       const body = { sku: newSku.sku };
 
-      await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
+      // await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
+      await updateSku(selectedProductId,body);
       alert("SKU canceled successfully!");
       setIsModal(false);
 
@@ -211,15 +221,17 @@ function Products() {
   // Handle editing a product
   const handleEditProduct = async () => {
     try {
-      await axios.put(
-        `${BASE_URL}/api/group/${selectedProductId}`,
-        editProduct
-      );
+      // await axios.put(
+      //   `${BASE_URL}/api/group/${selectedProductId}`,
+      //   editProduct
+      // );
+      await updateSingleProduct(selectedProductId,editProduct);
       alert("Product updated successfully!");
       setEditModalOpen(false);
 
       // Refresh products
-      const fetchProducts = await axios.get(`${BASE_URL}/api/group`);
+      // const fetchProducts = await axios.get(`${BASE_URL}/api/group`);
+      const fetchProducts = await fetchProduct();
       setProducts(fetchProducts.data.result);
       window.location.reload();
     } catch (error) {
@@ -236,12 +248,15 @@ function Products() {
       if (!confirmDelete) return;
 
       // Send DELETE request to the server
-      await axios.delete(`${BASE_URL}/api/group/${selectedProductId}`);
+      // await axios.delete(`${BASE_URL}/api/group/${selectedProductId}`);
+      await deleteProduct(selectedProductId);
+
       alert("Product deleted successfully!");
       setEditModalOpen(false);
 
       // Refresh the product list after deletion
-      const fetchProducts = await axios.get(`${BASE_URL}/api/group`);
+      // const fetchProducts = await axios.get(`${BASE_URL}/api/group`);
+      const fetchProducts = await fetchProduct();
       setProducts(fetchProducts.data.result);
       window.location.reload();
     } catch (error) {
@@ -250,19 +265,60 @@ function Products() {
     }
   };
 
+   // Handle Excel upload for bulk SKU mapping
+   const handleExcelUploadForBulkMapping = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      readXlsxFile(file).then((rows) => {
+        const data = rows.slice(1).map(([name, sku, uom]) => ({ name, sku, uom })); // Skip header row
+        setBulkData(data);
+      });
+    }
+  };
+
+  // Handle bulk SKU mapping
+  const handleBulkSkuMapping = async () => {
+    try {
+      if (!bulkData.length) {
+        alert("No data found in the uploaded file. Please upload a valid Excel file.");
+        return;
+      }
+
+      setIsLoading(true); // Show loading state
+      // await axios.put("/api/group", bulkData); 
+      await bulkmapSku(bulkData);
+      alert("Bulk SKU mapping completed successfully!");
+      setBulkModalOpen(false);
+      setBulkData([]);
+      setIsLoading(false);
+
+      // Refresh the product list after mapping
+      const response = await fetchProduct();
+      setProducts(response.data.result);
+      window.location.reload();
+
+    } catch (error) {
+      console.error("Error during bulk SKU mapping:", error);
+      alert("Failed to map SKUs. Please try again later.");
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="mt-5 ml-5">
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          // justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "20px",
         }}
       >
        
-        <Button variant="primary" onClick={() => setModalOpen(true)}>
+        <Button style={{marginRight:"20px"}} variant="primary" onClick={() => setModalOpen(true)}>
           Create Product
+        </Button>
+        <Button variant="success" onClick={() => setBulkModalOpen(true)}>
+          Bulk Map SKUs
         </Button>
       </div>
 
@@ -484,6 +540,33 @@ function Products() {
           </Button>
           <Button variant="primary" onClick={handleReplaceSku}>
             Replace SKU
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+        {/* Bulk Mapping Modal */}
+        <Modal show={isBulkModalOpen} onHide={() => setBulkModalOpen(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Bulk Map SKUs</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Upload Excel File</Form.Label>
+              <Form.Control
+                type="file"
+                accept=".xlsx"
+                onChange={handleExcelUploadForBulkMapping}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setBulkModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleBulkSkuMapping} disabled={isLoading}>
+            {isLoading ? "Processing..." : "Submit"}
           </Button>
         </Modal.Footer>
       </Modal>
