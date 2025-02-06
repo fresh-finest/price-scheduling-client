@@ -191,6 +191,8 @@ const AutomationEditModal = ({
                   <SelectItem value="random">Random</SelectItem>
                   <SelectItem value="increasing">Increase</SelectItem>
                   <SelectItem value="decreasing">Decrease</SelectItem>
+                  <SelectItem value="increasingRepeat">Increasing Repeat</SelectItem>
+                  <SelectItem value="decreasingRepeat">Decreasing Repeat</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
