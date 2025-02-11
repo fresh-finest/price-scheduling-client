@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/select";
 import Swal from "sweetalert2";
 
-// const BASE_URL = "http://192.168.0.109:3000";
+
 const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://localhost:3000`;
 
 const AutomationEditModal = ({
   automationEditModalShow,
@@ -35,6 +36,7 @@ const AutomationEditModal = ({
   const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
 
+  console.log("auto",automationDetailData);
   const fetchData = async () => {
     setAutomationDetailLoading(true);
     try {
@@ -189,10 +191,10 @@ const AutomationEditModal = ({
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="random">Random</SelectItem>
-                  <SelectItem value="increasing">Increase</SelectItem>
-                  <SelectItem value="decreasing">Decrease</SelectItem>
-                  <SelectItem value="increasingRepeat">Increasing Repeat</SelectItem>
-                  <SelectItem value="decreasingRepeat">Decreasing Repeat</SelectItem>
+                  <SelectItem value="increasing">Increasing and Stop</SelectItem>
+                  <SelectItem value="decreasing">Decreasing and Stop</SelectItem>
+                  <SelectItem value="increasingRepeat">Increasing and Repeat</SelectItem>
+                  <SelectItem value="decreasingRepeat">Decreasing and Repeat</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

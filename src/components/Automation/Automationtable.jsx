@@ -382,19 +382,19 @@ const Automationtable = () => {
                     >
                       {data.ruleName}
                       <p>
-                        <span style={{ marginRight: "0px", backgroundColor: "#0662BB", color: "white", padding: "2px 5px", borderRadius: "3px" }}>
+                        <span style={{ marginRight: "0px", backgroundColor: "#0661bba3", color: "white", padding: "2px 5px", borderRadius: "3px" }}>
                           {data.interval}
                         </span>
                         <span
                           style={{ marginLeft: "5px", marginRight: "0px", backgroundColor
-                          : "#0662BB", color: "white", padding: "2px 5px", borderRadius: "3px" }}
+                          : "#0661bba3", color: "white", padding: "2px 5px", borderRadius: "3px" }}
                         >
                           {data.amount
                             ? `$${data.amount}`
                             : `${data.percentage * 100}%`}
                         </span>
                        
-                        {/* <span style={{ marginLeft: "5px" , backgroundColor: "#0662BB", color: "white", padding: "2px 5px", borderRadius: "3px" }}>
+                        {/* <span style={{ marginLeft: "5px" , backgroundColor: "#0662B1", color: "white", padding: "2px 5px", borderRadius: "3px" }}>
                           {data.category.charAt(0).toUpperCase() +
                             data.category.slice(1).toLowerCase()}
                         </span> */}
