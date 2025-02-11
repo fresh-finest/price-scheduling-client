@@ -234,10 +234,10 @@ const CreateRuleForm = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="random">Random</SelectItem>
-                    <SelectItem value="increasing">Increase</SelectItem>
-                    <SelectItem value="decreasing">Decrease</SelectItem>
-                    <SelectItem value="increasingRepeat">Increasing Repeat</SelectItem>
-                    <SelectItem value="decreasingRepeat">Decreasing Repeat</SelectItem>
+                    <SelectItem value="increasing">Increasing and Stop</SelectItem>
+                    <SelectItem value="decreasing">Decreasing and Stop</SelectItem>
+                    <SelectItem value="increasingRepeat">Increasing and Repeat</SelectItem>
+                    <SelectItem value="decreasingRepeat">Decreasing and Repeat</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
