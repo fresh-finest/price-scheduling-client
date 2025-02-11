@@ -12,6 +12,7 @@ import AddProductsInRuleModal from "./AddProductsInRulesModal/AddProductsInRuleM
 
 
 const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://localhost:3000`;
 
 const AutomationDetailModal = ({
   automationDetailModalShow,
@@ -24,6 +25,7 @@ const AutomationDetailModal = ({
   ruleId,
   productData,
   setProductData,
+  automationDetailData
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +39,7 @@ const AutomationDetailModal = ({
   };
   // const [editingRow, setEditingRow] = useState(null);
   // const [editValues, setEditValues] = useState({});
-
+console.log("details",ruleData.mute);
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -441,15 +443,21 @@ const AutomationDetailModal = ({
                         <div className="flex justify-center items-center">
                           {editingRow === index ? (
                             <button
-                              className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 "
+                              // className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 "
+                              className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+
                               onClick={() => handleSave(index, data.sku)}
+                              disabled={ruleData.mute}
                             >
                               <FiSave size={20} />
                             </button>
                           ) : (
                             <button
-                              className="bg-[#0662BB] py-1 px-2 rounded-md mr-1"
+                              // className="bg-[#0662BB] py-1 px-2 rounded-md mr-1"
+                              className="bg-[#0662BB] py-1 px-2 rounded-md mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+
                               onClick={() => handleEditClick(index, data)}
+                              disabled={ruleData.mute}
                             >
                               <PenLine size={20} className="text-white" />
                             </button>

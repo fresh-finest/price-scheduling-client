@@ -12,7 +12,7 @@ import { Switch } from "antd";
 import { set } from "lodash";
 // import { BASE_URL } from "@/utils/baseUrl";
 
-const BASE_URL = `https://api.priceobo.com`
+const BASE_URL = `https://api.priceobo.com`;
 
 const Automationtable = () => {
   const [automationData, setAutomationData] = useState([]);
@@ -289,20 +289,8 @@ const Automationtable = () => {
                   borderRight: "2px solid #C3C6D4",
                 }}
               >
-                Category
+                Rule Type
               </th>
-              <th
-                className="tableHeader"
-                style={{
-                  position: "sticky",
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                User Name
-              </th>
-
               <th
                 className="tableHeader"
                 style={{
@@ -314,6 +302,18 @@ const Automationtable = () => {
               >
                 Products
               </th>
+
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+               Actions
+              </th>
               <th
                 className="tableHeader"
                 style={{
@@ -322,7 +322,7 @@ const Automationtable = () => {
                   verticalAlign: "middle",
                 }}
               >
-                Actions
+                Created By
               </th>
             </tr>
           </thead>
@@ -381,6 +381,24 @@ const Automationtable = () => {
                       }}
                     >
                       {data.ruleName}
+                      <p>
+                        <span style={{ marginRight: "0px", backgroundColor: "#0662BB", color: "white", padding: "2px 5px", borderRadius: "3px" }}>
+                          {data.interval}
+                        </span>
+                        <span
+                          style={{ marginLeft: "5px", marginRight: "0px", backgroundColor
+                          : "#0662BB", color: "white", padding: "2px 5px", borderRadius: "3px" }}
+                        >
+                          {data.amount
+                            ? `$${data.amount}`
+                            : `${data.percentage * 100}%`}
+                        </span>
+                       
+                        {/* <span style={{ marginLeft: "5px" , backgroundColor: "#0662BB", color: "white", padding: "2px 5px", borderRadius: "3px" }}>
+                          {data.category.charAt(0).toUpperCase() +
+                            data.category.slice(1).toLowerCase()}
+                        </span> */}
+                      </p>
                     </td>
                     <td
                       style={{
@@ -392,22 +410,10 @@ const Automationtable = () => {
                         verticalAlign: "middle",
                       }}
                     >
-                      {data.category}
+                       {data.category.charAt(0).toUpperCase() +
+                        data.category.slice(1).toLowerCase()}
                     </td>
-                    <td
-                      style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        height: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {data.userName}
-
-                      <p>{formatDate(data.createdAt)}</p>
-                    </td>
+             
 
                     <td
                       style={{
@@ -463,11 +469,25 @@ const Automationtable = () => {
                           variant="danger"
                           size="md"
                           className="rounded-sm"
-                          disabled={data.mute || deleteLoading}
+                          // disabled={data.mute || deleteLoading}
                         >
                           <FiTrash />
                         </Button>
                       </div>
+                    </td>
+                    <td
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        height: "40px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {data.userName}
+
+                      <p>{formatDate(data.createdAt)}</p>
                     </td>
                   </tr>
                 );
@@ -496,6 +516,7 @@ const Automationtable = () => {
         ruleId={ruleId}
         productData={productData}
         setProductData={setProductData}
+        automationDetailData={automationDetailData}
       ></AutomationDetailModal>
 
       <AutomationEditModal
