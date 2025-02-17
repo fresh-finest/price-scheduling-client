@@ -22,6 +22,7 @@ import { Checkbox } from "antd";
 
 
 const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://localhost:3000`;
 
 
 const CreateRuleForm = () => {
@@ -238,6 +239,8 @@ const CreateRuleForm = () => {
                     <SelectItem value="decreasing">Decreasing and Stop</SelectItem>
                     <SelectItem value="increasingRepeat">Increasing and Repeat</SelectItem>
                     <SelectItem value="decreasingRepeat">Decreasing and Repeat</SelectItem>
+                    <SelectItem value="increasing-cycling">Increasing Cycle</SelectItem>
+                    <SelectItem value= "decreasing-cycling">Decreasing Cycle</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

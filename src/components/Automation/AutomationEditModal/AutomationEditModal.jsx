@@ -14,8 +14,8 @@ import {
 import Swal from "sweetalert2";
 
 
-const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = `http://localhost:3000`;
+// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `http://localhost:3000`;
 
 const AutomationEditModal = ({
   automationEditModalShow,
@@ -195,6 +195,8 @@ const AutomationEditModal = ({
                   <SelectItem value="decreasing">Decreasing and Stop</SelectItem>
                   <SelectItem value="increasingRepeat">Increasing and Repeat</SelectItem>
                   <SelectItem value="decreasingRepeat">Decreasing and Repeat</SelectItem>
+                  <SelectItem value="increasing-cycling">Increasing Cycle</SelectItem>
+                  <SelectItem value= "decreasing-cycling">Decreasing Cycle</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
