@@ -3,13 +3,24 @@ import { Button, Form, Modal } from "react-bootstrap";
 import "./AutomationDetailModal.css";
 import { MdOutlineClose } from "react-icons/md";
 import axios from "axios";
+import { DateTime } from "luxon";
 import { Checkbox, Tooltip } from "antd";
 import { FiSave, FiTrash } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { PenLine } from "lucide-react";
 import { IoMdAdd } from "react-icons/io";
+import { MdDataExploration } from "react-icons/md";
+import { RxCross1 } from "react-icons/rx";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from "recharts";
 import AddProductsInRuleModal from "./AddProductsInRulesModal/AddProductsInRuleModal";
-
 
 const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL = `http://localhost:3000`;
@@ -25,21 +36,47 @@ const AutomationDetailModal = ({
   ruleId,
   productData,
   setProductData,
-  automationDetailData
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [ruleData, setRuleData] = useState("");
+  const [singleProduct, setSingleProduct] = useState("");
   const [addProductsInRuleModalOpen, setAddProductsInRuleModalOpen] =
     useState(false);
+  const [graphData, setGraphData] = useState([]);
+  const [graphModalShow, setGraphModalShow] = useState(false);
 
   const handleAddProductsInRuleModalOpen = () => {
     setAddProductsInRuleModalOpen(true);
   };
   // const [editingRow, setEditingRow] = useState(null);
   // const [editValues, setEditValues] = useState({});
-console.log("details",ruleData.mute);
+
+  const fetchGraphData = async (sku) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/auto-report/${sku}`);
+
+      const formattedData = response.data.result.map((item) => ({
+        // executionDateTime: new Date(item.executionDateTime).toLocaleString(),
+        executionDateTime: DateTime.fromISO(item.executionDateTime, {
+          zone: "utc",
+        })
+          .setZone("America/New_York")
+          .toFormat("MM/dd/yyyy hh:mm a"),
+        // price: `$${parseFloat(item.randomPrice).toFixed(2)}`,
+        price: item.randomPrice,
+        unit: item.unitCount,
+      }));
+      setGraphData(formattedData);
+      setGraphModalShow(true);
+
+      await fetchActiveProduct(sku);
+    } catch (error) {
+      console.error("Error fetching graph data:", error);
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -60,20 +97,32 @@ console.log("details",ruleData.mute);
     }
   };
 
+  const fetchActiveProduct = async (sku) => {
+    setLoading(true);
+    try {
+      const resposne = await axios.get(
+        `${BASE_URL}/api/automation/active/${sku}`
+      );
+      setSingleProduct(resposne.data.job);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (automationDetailModalShow) {
       fetchData();
     }
   }, [automationDetailModalShow]);
-
+  console.log(("single product", singleProduct));
   const deleteAutomation = async (ruleId, sku) => {
     try {
       const response = await axios.delete(
         `${BASE_URL}/api/automation/products/${ruleId}/${sku}/delete`
       );
-      console.log("delete response", response.data);
-      console.log("rule id", ruleId);
-      console.log("sku", sku);
+
       return response.data;
     } catch (error) {
       console.error(
@@ -143,8 +192,6 @@ console.log("details",ruleData.mute);
     setEditValues({ ...editValues, sale: e.target.checked });
   };
 
-  console.log("edit values", editValues);
-
   const handleSave = async (index, sku) => {
     try {
       const response = await axios.put(
@@ -155,7 +202,7 @@ console.log("details",ruleData.mute);
           sale: editValues.sale,
         }
       );
-      console.log("Save response:", response.data);
+
       Swal.fire({
         title: "Updated!",
         text: "Product has been updated.",
@@ -175,8 +222,6 @@ console.log("details",ruleData.mute);
       });
     }
   };
-
-  console.log("product data", productData);
 
   return (
     <div>
@@ -205,6 +250,47 @@ console.log("details",ruleData.mute);
           >
             <IoMdAdd className="text-[21px]" /> Add Product
           </Button>
+          <div>
+            <h4 className="text-center mb-2 ">{ruleData.ruleName}</h4>
+            <p className="text-center ">
+              <span
+                style={{
+                  marginRight: "0px",
+                  backgroundColor: "#0661bba3",
+                  color: "white",
+                  padding: "2px 5px",
+                  borderRadius: "3px",
+                }}
+              >
+                {ruleData.category}
+              </span>{" "}
+              <span
+                style={{
+                  marginRight: "0px",
+                  backgroundColor: "#0661bba3",
+                  color: "white",
+                  padding: "2px 5px",
+                  borderRadius: "3px",
+                }}
+              >
+                {ruleData.interval}
+              </span>{" "}
+              <span
+                style={{
+                  marginLeft: "5px",
+                  marginRight: "0px",
+                  backgroundColor: "#0661bba3",
+                  color: "white",
+                  padding: "2px 5px",
+                  borderRadius: "3px",
+                }}
+              >
+                {ruleData.amount
+                  ? `$${ruleData.amount}`
+                  : `${ruleData.percentage * 100}%`}
+              </span>
+            </p>
+          </div>
           <table
             style={{
               tableLayout: "fixed",
@@ -445,7 +531,6 @@ console.log("details",ruleData.mute);
                             <button
                               // className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 "
                               className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-
                               onClick={() => handleSave(index, data.sku)}
                               disabled={ruleData.mute}
                             >
@@ -455,7 +540,6 @@ console.log("details",ruleData.mute);
                             <button
                               // className="bg-[#0662BB] py-1 px-2 rounded-md mr-1"
                               className="bg-[#0662BB] py-1 px-2 rounded-md mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-
                               onClick={() => handleEditClick(index, data)}
                               disabled={ruleData.mute}
                             >
@@ -471,8 +555,17 @@ console.log("details",ruleData.mute);
                           >
                             <FiTrash />
                           </Button>
+                          <Button
+                            // className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ marginLeft: "5px" }}
+                            variant="info"
+                            onClick={() => fetchGraphData(data.sku)}
+                          >
+                            <MdDataExploration />
+                          </Button>
                         </div>
                       </td>
+                      <td></td>
                     </tr>
                   );
                 })
@@ -496,6 +589,84 @@ console.log("details",ruleData.mute);
         setAddProductsInRuleModalOpen={setAddProductsInRuleModalOpen}
         ruleId={ruleId}
       ></AddProductsInRuleModal>
+
+      <Modal
+        show={graphModalShow}
+        onHide={() => setGraphModalShow(false)}
+        dialogClassName="automation-detail-modal"
+      >
+        <Modal.Body>
+          <Button onClick={() => setGraphModalShow(false)} className="mt-2 bg-white" style={{border:"none", flex:1, display:"flex", justifyContent:"flex-end"}}>
+          <RxCross1 style={{backgroundColor:"white", color:"black"}} />
+          </Button>
+          <div style={{ marginLeft: "100px", marginBottom: "10px" }}>
+           <div style={{ flex: 1, display: "flex",}}>
+           <img
+              src={singleProduct.imageUrl}
+              style={{ height: "40px" }}
+              alt=""
+            />
+            <p style={{marginLeft:"20px", marginTop:"10px"}}>{singleProduct.sku}</p>
+           </div>
+           <p>{singleProduct?.title}</p>
+            {/* <p >
+              {singleProduct?.title
+                ? singleProduct.title.slice(0, 170) +
+                  (singleProduct.title.length > 170 ? "..." : "")
+                : "N/A"}
+            </p> */}
+          </div>
+          <h4 className="text-center mb-2">Price & Unit Count vs Execution Time</h4>
+          <ResponsiveContainer marginLeft="10px" width="100%" height={300}>
+            <LineChart data={graphData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="executionDateTime"
+                angle={-50}
+                textAnchor="end"
+                tick={{ fontSize: 12 }}
+                height={100}
+              />
+              <YAxis
+                yAxisId="left"
+                label={{
+                  value: "Price ($)",
+                  angle: -90,
+                  position: "insideLeft",
+                }}
+                tickFormatter={(tick) => `$${tick.toFixed(2)}`}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                label={{ value: "Unit", angle: -90, position: "insideRight" }}
+              />
+              <RechartsTooltip
+                formatter={(value, name) => {
+                  return name === "price"
+                    ? [`$${parseFloat(value).toFixed(2)}`, "Price"]
+                    : [value, "Unit"];
+                }}
+              />
+
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="price"
+                stroke="#d41a23"
+                strokeWidth={2}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="unit"
+                stroke="#1a73e8"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };

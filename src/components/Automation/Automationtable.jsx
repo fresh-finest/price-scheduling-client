@@ -516,7 +516,7 @@ const Automationtable = () => {
         ruleId={ruleId}
         productData={productData}
         setProductData={setProductData}
-        automationDetailData={automationDetailData}
+        
       ></AutomationDetailModal>
 
       <AutomationEditModal
