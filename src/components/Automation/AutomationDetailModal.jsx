@@ -277,7 +277,6 @@ const AutomationDetailModal = ({
               </span>{" "}
               <span
                 style={{
-                 
                   marginRight: "0px",
                   backgroundColor: "#0661bba3",
                   color: "white",
@@ -594,21 +593,41 @@ const AutomationDetailModal = ({
         show={graphModalShow}
         onHide={() => setGraphModalShow(false)}
         dialogClassName="automation-detail-modal"
+        style={{ marginLeft: "200px" }}
       >
         <Modal.Body>
-          <Button onClick={() => setGraphModalShow(false)} className="mt-2 bg-white" style={{border:"none", flex:1, display:"flex", justifyContent:"flex-end"}}>
-          <RxCross1 style={{backgroundColor:"white", color:"black"}} />
-          </Button>
-          <div style={{ marginLeft: "100px", marginBottom: "10px" }}>
-           <div style={{ flex: 1, display: "flex",}}>
-           <img
-              src={singleProduct.imageUrl}
-              style={{ height: "40px" }}
-              alt=""
-            />
-            <p style={{marginLeft:"20px", marginTop:"10px"}}>{singleProduct.sku}</p>
-           </div>
-           <p>{singleProduct?.title}</p>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              onClick={() => setGraphModalShow(false)}
+              className="mt-2 bg-white"
+              style={{
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                padding: "5px",
+              }}
+            >
+              <RxCross1
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  fontSize: "20px",
+                }}
+              />
+            </Button>
+          </div>
+          <div style={{ marginLeft: "20px", marginBottom: "10px" }}>
+            <div style={{ flex: 1, display: "flex" }}>
+              <img
+                src={singleProduct.imageUrl}
+                style={{ height: "40px" }}
+                alt=""
+              />
+              <p style={{ marginLeft: "20px", marginTop: "10px" }}>
+                {singleProduct.sku}
+              </p>
+            </div>
+            <p>{singleProduct?.title}</p>
             {/* <p >
               {singleProduct?.title
                 ? singleProduct.title.slice(0, 170) +
@@ -616,8 +635,10 @@ const AutomationDetailModal = ({
                 : "N/A"}
             </p> */}
           </div>
-          <h4 className="text-center mb-2">Price & Unit Count vs Execution Time</h4>
-          <ResponsiveContainer marginLeft="10px" width="100%" height={300}>
+          <h4 className="text-center mb-2">
+            Price & Unit Count vs Execution Time
+          </h4>
+          <ResponsiveContainer marginLeft="10px" width="100%" height={320}>
             <LineChart data={graphData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
@@ -630,7 +651,7 @@ const AutomationDetailModal = ({
               <YAxis
                 yAxisId="left"
                 label={{
-                  value: "Price ($)",
+                  value: "Price",
                   angle: -90,
                   position: "insideLeft",
                 }}
