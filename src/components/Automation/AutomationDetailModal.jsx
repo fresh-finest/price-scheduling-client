@@ -277,7 +277,7 @@ const AutomationDetailModal = ({
               </span>{" "}
               <span
                 style={{
-                  marginLeft: "5px",
+                 
                   marginRight: "0px",
                   backgroundColor: "#0661bba3",
                   color: "white",
