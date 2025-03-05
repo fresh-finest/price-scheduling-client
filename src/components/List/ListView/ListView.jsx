@@ -17,6 +17,7 @@ import { Button as ShadcdnBtn } from "@/components/ui/button";
 import noImage from "../../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://192.168.0.26:3000";
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -952,9 +953,9 @@ const ListView = () => {
           >
             <Form.Control
               type="text"
-              placeholder="Search Title/ASIN/SKU"
+              placeholder="Search Title/ASIN/SKU/Title"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value.trim())}
+              onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyPress}
               style={{ borderRadius: "0px" }}
               className="custom-input"
