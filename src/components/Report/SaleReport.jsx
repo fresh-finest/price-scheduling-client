@@ -1,130 +1,329 @@
-// React component for Sales Comparison
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Table, Form, Button, Spinner } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { FaRegStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
+import { DatePicker, Space } from "antd";
+import { Table, Spinner, Row, Col } from "react-bootstrap";
+import { FaArrowUp } from "react-icons/fa";
+import { FaArrowDownLong } from "react-icons/fa6";
+import SaleReportPagination from "./SaleReportPagination";
+import "antd/dist/reset.css"; // Ant Design styles
+import moment from "moment";
+
+const { RangePicker } = DatePicker;
+const BASE_URL = "http://localhost:3000";
 
 const SaleReport = () => {
-  const [products, setProducts] = useState([]); // To store product list
-  const [salesData, setSalesData] = useState({}); // To store sales comparison data as an object by SKU
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [loading, setLoading] = useState(false); // Loading state for sales data
-
-  // Fetch products on component mount
+  const [products, setProducts] = useState([]);
+  const [currentDateRange, setCurrentDateRange] = useState([]);
+  const [previousDateRange, setPreviousDateRange] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1); // Current page
+  const [totalPages, setTotalPages] = useState(1); // Total pages
+  const [isFavorite, setIsFavorite] = useState(false);
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/favourite/limit?page=1&limit=20');
-        setProducts(response.data.data.listings);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      }
-    };
-
     fetchProducts();
-  }, []);
+  }, [page, currentDateRange, previousDateRange]); // Recalculate when dates or page changes
 
-  // Handle fetching sales comparison data
-  const fetchSalesComparison = async () => {
+  const fetchProducts = async () => {
     setLoading(true);
     try {
-      const skuArray = products.map(product => product.sellerSku);
-      const response = await axios.get('http://localhost:3000/api/product/sale', {
+      const response = await axios.get(`${BASE_URL}/api/favourite/report`, {
         params: {
-          startDate: startDate || getDefaultStartDate(),
-          endDate: endDate || getDefaultEndDate(),
-          skus: skuArray.join(','),
+          page,
+          limit: 20, // Limit results to 20 per page
         },
       });
-
-      // Map sales data by SKU for easier access
-      const salesMap = {};
-      response.data.data.forEach(sale => {
-        salesMap[sale.sku] = sale;
-      });
-      setSalesData(salesMap);
+      const listings = response.data.data.listings;
+      setProducts(listings);
+      setTotalPages(response.data.data.totalPages || 1);
     } catch (error) {
-      console.error('Error fetching sales comparison:', error);
+      console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Get default start date (30 days ago)
-  const getDefaultStartDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+  const filterMetricsForInterval = (
+    salesMetrics,
+    intervalStart,
+    intervalEnd
+  ) => {
+    const start = new Date(intervalStart).getTime();
+    const end = new Date(intervalEnd).getTime();
+
+    return salesMetrics.filter((metric) => {
+      const intervalParts = metric.interval.split("--");
+      const metricStart = new Date(intervalParts[0]).getTime();
+      const metricEnd = new Date(intervalParts[1]).getTime();
+      return metricStart >= start && metricEnd <= end;
+    });
   };
 
-  // Get default end date (today)
-  const getDefaultEndDate = () => {
-    const date = new Date();
-    return date.toISOString().split('T')[0];
+  const calculateUnits = (salesMetrics) => {
+    return salesMetrics.reduce(
+      (total, metric) => total + (metric.units || 0),
+      0
+    );
   };
 
-  // Render table
+  const calculatePercentageChange = (current, previous) => {
+    if (previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    if (current === 0) {
+      return previous > 0 ? -100 : 0;
+    }
+
+    return current > previous
+      ? (((current - previous) / current) * 100).toFixed(2)
+      : (((current - previous) / previous) * 100).toFixed(2);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
+    console.log("Toggling favorite status for SKU:", sku);
+    try {
+      // Update favorite status in the backend
+      await axios.put(`${BASE_URL}/api/favourite/${sku}`, {
+        isFavourite: !currentFavoriteStatus,
+      });
+
+      // Optimistically update the UI
+      setProducts((prevProducts) =>
+        prevProducts.map((product, i) =>
+          i === index
+            ? { ...product, isFavourite: !currentFavoriteStatus }
+            : product
+        )
+      );
+    } catch (error) {
+      console.error("Error updating favorite status:", error.message);
+    }
+  };
+  const tableContainerStyle = {
+    maxHeight: "1000px", // Adjust height as needed
+    overflowY: "auto", // Enable vertical scrolling
+    position: "relative",
+  };
+
+  const stickyHeaderStyle = {
+    position: "sticky",
+    top: "0",
+    background: "white",
+    zIndex: "100",
+    boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
+  };
+
+  const boxStyle = (backgroundColor) => ({
+    backgroundColor,
+    color: "white",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "150px",
+    borderRadius: "8px",
+    fontSize: "24px",
+  });
+  const circleStyle = (backgroundColor) => ({
+    backgroundColor,
+    color: "white",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "200px",
+    width: "200px",
+    borderRadius: "50%",
+    fontSize: "24px",
+    margin: "0 auto", // Center the circle horizontally
+  });
   return (
-    <div className="container">
-      <h2>Sales Comparison</h2>
+    <div className="container mt-5">
+      {loading ? (
+        <Spinner animation="border" />
+      ) : (
+        <>
+        <div style={tableContainerStyle}>
+          <Table striped bordered hover>
+            <thead style={stickyHeaderStyle}>
+              <tr>
+                <th>Favourite</th>
+                <th>Image</th>
+                <th>SKU</th>
+                <th>Title</th>
+                <th>
+                  Current Interval Units
+                  <div>
+                    <Space direction="vertical" size={12}>
+                      <RangePicker
+                        value={
+                          currentDateRange.length === 2
+                            ? [
+                                moment(currentDateRange[0], "YYYY-MM-DD"),
+                                moment(currentDateRange[1], "YYYY-MM-DD"),
+                              ]
+                            : null
+                        }
+                        onChange={(dates) => {
+                          if (dates && dates.length === 2) {
+                            const formattedStart =
+                              dates[0].format("YYYY-MM-DD");
+                            const formattedEnd = dates[1].format("YYYY-MM-DD");
 
-      {/* Date selection form */}
-      <Form className="mb-4">
-        <Form.Group controlId="startDate">
-          <Form.Label>Start Date</Form.Label>
-          <Form.Control
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </Form.Group>
+                            console.log(
+                              "Selected Current Date Range:",
+                              formattedStart,
+                              formattedEnd
+                            ); // Debugging log
 
-        <Form.Group controlId="endDate">
-          <Form.Label>End Date</Form.Label>
-          <Form.Control
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </Form.Group>
-
-        <Button variant="primary" onClick={fetchSalesComparison} className="mt-3">
-          Fetch Sales Data
-        </Button>
-      </Form>
-
-      {/* Sales comparison table */}
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>SKU</th>
-            <th>Title</th>
-            <th>Current Interval Units</th>
-            <th>Previous Interval Units</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => {
-            const sale = salesData[product.sellerSku] || {};
-            return (
-              <tr key={product.sellerSku}>
-                <td>
-                  <img
-                    src={product.imageUrl || 'https://via.placeholder.com/50'}
-                    alt={product.itemName || 'No Image'}
-                    width={50}
-                  />
-                </td>
-                <td>{product.sellerSku}</td>
-                <td>{product.itemName || 'Unknown Product'}</td>
-                <td>{loading ? <Spinner animation="border" size="sm" /> : sale.currentIntervalUnits || 0}</td>
-                <td>{loading ? <Spinner animation="border" size="sm" /> : sale.previousIntervalUnits || 0}</td>
+                            setCurrentDateRange([formattedStart, formattedEnd]);
+                          } else {
+                            setCurrentDateRange([]);
+                          }
+                        }}
+                        format="YYYY-MM-DD"
+                      />
+                    </Space>
+                  </div>
+                </th>
+                <th>
+                  Previous Interval Units
+                  <div>
+                    <Space direction="vertical" size={12}>
+                      <RangePicker
+                        value={
+                          previousDateRange.length === 2
+                            ? [
+                                moment(previousDateRange[0]),
+                                moment(previousDateRange[1]),
+                              ]
+                            : null
+                        }
+                        onChange={(dates) =>
+                          setPreviousDateRange(
+                            dates
+                              ? [dates[0].toISOString(), dates[1].toISOString()]
+                              : []
+                          )
+                        }
+                        format="YYYY-MM-DD"
+                      />
+                    </Space>
+                  </div>
+                </th>
+                <th>Change (%)</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+            </thead>
+            <tbody>
+              {products.map((product, index) => {
+                const currentMetrics =
+                  currentDateRange.length === 2
+                    ? filterMetricsForInterval(
+                        product.salesMetrics || [],
+                        currentDateRange[0],
+                        currentDateRange[1]
+                      )
+                    : [];
+
+                const previousMetrics =
+                  previousDateRange.length === 2
+                    ? filterMetricsForInterval(
+                        product.salesMetrics || [],
+                        previousDateRange[0],
+                        previousDateRange[1]
+                      )
+                    : [];
+
+                const currentUnits = calculateUnits(currentMetrics);
+                const previousUnits = calculateUnits(previousMetrics);
+                const percentageChange = calculatePercentageChange(
+                  currentUnits,
+                  previousUnits
+                );
+
+                return (
+                  <tr key={product.sellerSku}>
+                    <td
+                      style={{
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "none",
+                        padding: "0",
+                        height: "85px",
+                      }}
+                    >
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(
+                            product.sellerSku,
+                            product.isFavourite,
+                            index
+                          );
+                        }}
+                        style={{
+                          textAlign: "center",
+                          cursor: "pointer",
+                          transition: "transform 0.2s ease-in-out",
+                          transform: product.isFavourite
+                            ? "scale(1.1)"
+                            : "scale(1)",
+                        }}
+                      >
+                        {product.isFavourite ? (
+                          <FaStar
+                            style={{ color: "#879618a3", fontSize: "20px" }}
+                          />
+                        ) : (
+                          <FaRegStar
+                            style={{ color: "gray", fontSize: "16px" }}
+                          />
+                        )}
+                      </span>
+                    </td>
+                    <td>
+                      <img
+                        src={
+                          product.imageUrl || "https://via.placeholder.com/50"
+                        }
+                        alt={"No Image"}
+                        width={50}
+                      />
+                    </td>
+                    <td>{product.sellerSku}</td>
+                    <td>{product.itemName || "Unknown Product"}</td>
+                    <td>{currentUnits}</td>
+                    <td>{previousUnits}</td>
+                    <td>
+                      {`${percentageChange}%`}
+                      <span>
+                        {percentageChange > 0 ? (
+                          <FaArrowUp />
+                        ) : (
+                          <FaArrowDownLong />
+                        )}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+          </div>
+          <SaleReportPagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
     </div>
   );
 };

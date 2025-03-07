@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
 import { RiArrowLeftSLine } from "react-icons/ri";
 import { FaChartLine, FaListUl, FaRegCalendarAlt } from "react-icons/fa";
+import { TbReportAnalytics } from "react-icons/tb";
 import { GoGear, GoHistory } from "react-icons/go";
 import { MdOutlineManageAccounts } from "react-icons/md";
 import { HiOutlineDocumentReport } from "react-icons/hi";
@@ -24,6 +25,7 @@ const SidebarLayout = () => {
     { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
     // { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
+    // { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
     // {
