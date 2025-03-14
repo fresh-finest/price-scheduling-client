@@ -25,7 +25,7 @@ const SidebarLayout = () => {
     { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
     // { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
-    // { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
+    { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
     // {

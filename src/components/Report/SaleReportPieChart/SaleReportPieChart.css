@@ -1,0 +1,7 @@
+.salesReportPieChart .recharts-wrapper {
+    height: 100% !important;
+    max-height: 260px !important;
+  }
+  .salesReportPieChart .recharts-responsive-container {
+    height: 272px !important;
+  }

@@ -90,8 +90,11 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
     }
   }, [showModal]);
 
-  const productName = productDetails?.summaries[0]?.itemName;
-  const productImage = productDetails?.summaries[0]?.mainImage?.link;
+  const productName =
+    productDetails?.summaries?.[0]?.itemName || "Unknown Product";
+  const productImage =
+    productDetails?.summaries?.[0]?.mainImage?.link ||
+    "https://via.placeholder.com/150";
 
   const formattedStartDate = startDate?.format("YYYY-MM-DD");
   const formattedEndDate = endDate?.format("YYYY-MM-DD");
@@ -294,7 +297,9 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
                 required
               />
               <div>
-                <Checkbox onChange={handleSaleCheckboxChange}>Sale Price</Checkbox>
+                <Checkbox onChange={handleSaleCheckboxChange}>
+                  Sale Price
+                </Checkbox>
               </div>
             </div>
 

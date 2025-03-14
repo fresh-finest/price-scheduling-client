@@ -1,46 +1,153 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { FaRegStar } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
 import { DatePicker, Space } from "antd";
-import { Table, Spinner, Row, Col } from "react-bootstrap";
+import { Table, Spinner, Row, Col, InputGroup, Form } from "react-bootstrap";
 import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDownLong } from "react-icons/fa6";
-import SaleReportPagination from "./SaleReportPagination";
-import "antd/dist/reset.css"; // Ant Design styles
+import dayjs from "dayjs";
+import "antd/dist/reset.css";
 import moment from "moment";
+import SaleReportPagination from "./SaleReportPagination";
+
+import { HiMagnifyingGlass } from "react-icons/hi2";
+import { MdCheck, MdOutlineClose } from "react-icons/md";
+import SaleReportLoadingSkeleton from "../LoadingSkeleton/SaleReportLoadingSkeleton";
+import { ClipLoader } from "react-spinners";
+import SaleReportChart from "./SaleReportChart";
+import SaleReportPieChart from "./SaleReportPieChart/SaleReportPieChart";
+import { BsClipboardCheck } from "react-icons/bs";
+import SaleDetailsModal from "./SaleDetailsModal";
+import { RiArrowUpDownFill } from "react-icons/ri";
 
 const { RangePicker } = DatePicker;
-const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://api.priceobo.com";
+const MONTH_ORDER = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+const COLORS = [
+  "#E76E50",
+  "#2A9D90",
+  "#E8C468",
+  "#F4A462",
+  "#C1CFA1",
+  "#EC7FA9",
+  "#3ABEF9",
+  "#2DAA9E",
+  "#D84040",
+  "#80CBC4",
+  "#578FCA",
+];
 
 const SaleReport = () => {
   const [products, setProducts] = useState([]);
-  const [currentDateRange, setCurrentDateRange] = useState([]);
-  const [previousDateRange, setPreviousDateRange] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1); // Current page
-  const [totalPages, setTotalPages] = useState(1); // Total pages
-  const [isFavorite, setIsFavorite] = useState(false);
-  useEffect(() => {
-    fetchProducts();
-  }, [page, currentDateRange, previousDateRange]); // Recalculate when dates or page changes
+  const [colorMap, setColorMap] = useState({});
 
-  const fetchProducts = async () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [currentDateRange, setCurrentDateRange] = useState([
+    dayjs().subtract(30, "day").startOf("day"),
+    dayjs().endOf("day"),
+  ]);
+
+  const [previousDateRange, setPreviousDateRange] = useState([
+    dayjs().subtract(60, "day").startOf("day"),
+    dayjs().subtract(30, "day").endOf("day"),
+  ]);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [copiedAsinIndex, setCopiedAsinIndex] = useState(null);
+  const [copiedSkuIndex, setCopiedSkuIndex] = useState(null);
+  const [data, setData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [visibleMonths, setVisibleMonths] = useState({});
+  const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
+  const [selectedSku, setSelectedSku] = useState(null);
+  useEffect(() => {
+    fetchProducts(true);
+  }, []);
+
+  useEffect(() => {
+    if (!initialLoading) {
+      fetchProducts(false);
+    }
+  }, [page, currentDateRange, previousDateRange]);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      fetchProducts(true);
+    } else {
+      fetchSearchResults(searchTerm);
+    }
+  }, [searchTerm, page]);
+
+  useEffect(() => {
+    axios
+      // .get("/salesReportChartData.json")
+      .get(`${BASE_URL}/total-sales`)
+      .then((response) => {
+        setData(response.data.payload);
+        setChartLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching sales data:", error);
+        setError(error);
+        setChartLoading(false);
+      });
+  }, []);
+
+  const fetchSearchResults = async (query) => {
     setLoading(true);
     try {
+      const response = await axios.get(
+        `${BASE_URL}/api/favourite/search/${query}`
+      );
+      setProducts(response.data.data.listings);
+      setTotalPages(response.data.data.totalPages || 1);
+    } catch (error) {
+      console.error("Search API Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async (isInitialLoad) => {
+    if (!isInitialLoad) {
+      setLoading(true);
+    }
+
+    try {
       const response = await axios.get(`${BASE_URL}/api/favourite/report`, {
-        params: {
-          page,
-          limit: 20, // Limit results to 20 per page
-        },
+        params: { page, limit: 20 },
       });
-      const listings = response.data.data.listings;
-      setProducts(listings);
+
+      setProducts(response.data.data.listings);
       setTotalPages(response.data.data.totalPages || 1);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      setLoading(false);
+      if (!isInitialLoad) {
+        setLoading(false);
+      } else {
+        setInitialLoading(false);
+      }
     }
   };
 
@@ -66,6 +173,43 @@ const SaleReport = () => {
       0
     );
   };
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
+
+  const handleClearInput = () => {
+    setSearchTerm("");
+    setPage(1);
+    setLoading(true);
+
+    fetchProducts(false);
+  };
+  const handleSaleDetailsModalShow = (sku) => {
+    setSelectedSku(sku);
+    setSaleDetailsModalShow(true);
+  };
+  const handleSaleDetailsModalClose = () => {
+    setSelectedSku(null);
+    setSaleDetailsModalShow(false);
+  };
+
+  const handleCopy = (text, type, index) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        if (type === "asin") {
+          setCopiedAsinIndex(index);
+          setTimeout(() => setCopiedAsinIndex(null), 2000);
+        } else if (type === "sku") {
+          setCopiedSkuIndex(index);
+          setTimeout(() => setCopiedSkuIndex(null), 2000);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
 
   const calculatePercentageChange = (current, previous) => {
     if (previous === 0) {
@@ -89,12 +233,10 @@ const SaleReport = () => {
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
     console.log("Toggling favorite status for SKU:", sku);
     try {
-      // Update favorite status in the backend
       await axios.put(`${BASE_URL}/api/favourite/${sku}`, {
         isFavourite: !currentFavoriteStatus,
       });
 
-      // Optimistically update the UI
       setProducts((prevProducts) =>
         prevProducts.map((product, i) =>
           i === index
@@ -106,84 +248,284 @@ const SaleReport = () => {
       console.error("Error updating favorite status:", error.message);
     }
   };
-  const tableContainerStyle = {
-    maxHeight: "1000px", // Adjust height as needed
-    overflowY: "auto", // Enable vertical scrolling
-    position: "relative",
-  };
 
-  const stickyHeaderStyle = {
-    position: "sticky",
-    top: "0",
-    background: "white",
-    zIndex: "100",
-    boxShadow: "0px 2px 5px rgba(0,0,0,0.1)",
-  };
+  const rangePresets = [
+    {
+      label: "Today",
+      value: [dayjs().startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "Last 7 Days",
+      value: [dayjs().subtract(7, "day").startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "This Week",
+      value: [dayjs().startOf("week"), dayjs().endOf("week")],
+    },
+    {
+      label: "Last Week",
+      value: [
+        dayjs().subtract(1, "week").startOf("week"),
+        dayjs().subtract(1, "week").endOf("week"),
+      ],
+    },
+    {
+      label: "Last 30 Days",
+      value: [dayjs().subtract(30, "day").startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "Last 90 Days",
+      value: [dayjs().subtract(90, "day").startOf("day"), dayjs().endOf("day")],
+    },
+    {
+      label: "This Month",
+      value: [dayjs().startOf("month"), dayjs().endOf("month")],
+    },
+    {
+      label: "Last Month",
+      value: [
+        dayjs().subtract(1, "month").startOf("month"),
+        dayjs().subtract(1, "month").endOf("month"),
+      ],
+    },
+    {
+      label: "Last 6 Months",
+      value: [
+        dayjs().subtract(6, "month").startOf("month"),
+        dayjs().endOf("month"),
+      ],
+    },
+    {
+      label: "Year to Date",
+      value: [dayjs().startOf("year"), dayjs().endOf("day")],
+    },
+  ];
 
-  const boxStyle = (backgroundColor) => ({
-    backgroundColor,
-    color: "white",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "150px",
-    borderRadius: "8px",
-    fontSize: "24px",
-  });
-  const circleStyle = (backgroundColor) => ({
-    backgroundColor,
-    color: "white",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "200px",
-    width: "200px",
-    borderRadius: "50%",
-    fontSize: "24px",
-    margin: "0 auto", // Center the circle horizontally
-  });
+  const { uniqueMonths } = useMemo(() => {
+    if (data.length === 0) return { uniqueMonths: [] };
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonthIndex = today.getMonth(); // 0 for Jan, 1 for Feb, etc.
+
+    const lastTwoMonths = [];
+    for (let i = 2; i > 0; i--) {
+      let monthIndex = (currentMonthIndex - i + 12) % 12; // Handle wrap-around for January
+      let year = currentYear;
+      if (monthIndex > currentMonthIndex) {
+        year -= 1; // Adjust for previous year if needed
+      }
+      lastTwoMonths.push(`${MONTH_ORDER[monthIndex]} ${year}`);
+    }
+
+    const monthsSet = new Set();
+    data.forEach((entry) => {
+      const startDate = new Date(entry.interval.split("--")[0]);
+      const month = startDate.toLocaleString("en-US", { month: "short" });
+      const year = startDate.getFullYear();
+      monthsSet.add(`${month} ${year}`);
+    });
+
+    const sortedMonths = [...monthsSet].sort((a, b) => {
+      const [monthA, yearA] = a.split(" ");
+      const [monthB, yearB] = b.split(" ");
+      if (yearA !== yearB) return yearA - yearB;
+      return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
+    });
+
+    // Assign colors for consistency
+    setColorMap(() => {
+      const newColorMap = {};
+      sortedMonths.forEach((month, index) => {
+        newColorMap[month] = COLORS[index % COLORS.length];
+      });
+      return newColorMap;
+    });
+
+    // Ensure last two months are checked by default
+    setVisibleMonths((prev) => {
+      if (Object.keys(prev).length === 0) {
+        return sortedMonths.reduce(
+          (acc, month) => ({ ...acc, [month]: lastTwoMonths.includes(month) }),
+          {}
+        );
+      }
+      return prev;
+    });
+
+    return { uniqueMonths: sortedMonths };
+  }, [data]);
+
+  if (initialLoading) {
+    return <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>;
+  }
+
   return (
-    <div className="container mt-5">
-      {loading ? (
-        <Spinner animation="border" />
-      ) : (
-        <>
-        <div style={tableContainerStyle}>
-          <Table striped bordered hover>
-            <thead style={stickyHeaderStyle}>
+    <div className=" mt-5">
+      {/* Checkboxes for Months */}
+      <div
+        style={{
+          marginBottom: "10px",
+          display: "flex",
+          gap: "10px",
+          marginTop: "-40px",
+        }}
+      >
+        {uniqueMonths.map((month) => (
+          <label key={month} style={{ display: "flex", alignItems: "center" }}>
+            <input
+              type="checkbox"
+              checked={visibleMonths[month] ?? false}
+              onChange={() =>
+                setVisibleMonths((prev) => ({
+                  ...prev,
+                  [month]: !prev[month],
+                }))
+              }
+              style={{ marginRight: "5px" }}
+            />
+            {month}
+          </label>
+        ))}
+      </div>
+      <div className="grid grid-cols-5 gap-4">
+        <div className="col-span-3">
+          <SaleReportChart
+            data={data}
+            setData={setData}
+            chartLoading={chartLoading}
+            setChartLoading={setChartLoading}
+            visibleMonths={visibleMonths}
+            error={error}
+            setError={setError}
+            colorMap={colorMap}
+          />
+        </div>
+
+        <div className="col-span-2">
+          <SaleReportPieChart
+            data={data}
+            setData={setData}
+            visibleMonths={visibleMonths}
+            chartLoading={chartLoading}
+            setChartLoading={setChartLoading}
+            error={error}
+            setError={setError}
+            colorMap={colorMap}
+          />
+        </div>
+      </div>
+
+      <div>
+        <InputGroup className="max-w-[500px] mt-[15px] z-0">
+          <Form.Control
+            type="text"
+            placeholder="Search by Product Name, Asin or SKU..."
+            value={searchTerm}
+            onChange={handleSearch}
+            style={{ borderRadius: "0px" }}
+            className="custom-input"
+          />
+          {searchTerm && (
+            <button
+              onClick={handleClearInput}
+              className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+            >
+              <MdOutlineClose />
+            </button>
+          )}
+        </InputGroup>
+      </div>
+      <>
+        <div
+          style={{
+            maxHeight: "91vh",
+            overflowY: "auto",
+            marginTop: "15px",
+            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <table
+            style={{
+              tableLayout: "fixed",
+            }}
+            className="reportCustomTable table"
+          >
+            <thead
+              style={{
+                backgroundColor: "#f0f0f0",
+                color: "#333",
+                fontFamily: "Arial, sans-serif",
+                fontSize: "14px",
+              }}
+            >
               <tr>
-                <th>Favourite</th>
-                <th>Image</th>
-                <th>SKU</th>
-                <th>Title</th>
-                <th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    width: "100px",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                    zIndex: 3,
+                  }}
+                >
+                  Favorite
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    width: "180px",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Image
+                </th>
+
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    width: "400px",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                    zIndex: 3,
+                  }}
+                >
+                  Title
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
                   Current Interval Units
                   <div>
                     <Space direction="vertical" size={12}>
                       <RangePicker
+                        presets={rangePresets}
                         value={
                           currentDateRange.length === 2
-                            ? [
-                                moment(currentDateRange[0], "YYYY-MM-DD"),
-                                moment(currentDateRange[1], "YYYY-MM-DD"),
-                              ]
+                            ? currentDateRange
                             : null
                         }
                         onChange={(dates) => {
                           if (dates && dates.length === 2) {
-                            const formattedStart =
-                              dates[0].format("YYYY-MM-DD");
-                            const formattedEnd = dates[1].format("YYYY-MM-DD");
-
-                            console.log(
-                              "Selected Current Date Range:",
-                              formattedStart,
-                              formattedEnd
-                            ); // Debugging log
-
-                            setCurrentDateRange([formattedStart, formattedEnd]);
+                            setCurrentDateRange([dates[0], dates[1]]);
                           } else {
-                            setCurrentDateRange([]);
+                            setCurrentDateRange([
+                              dayjs().subtract(30, "day").startOf("day"),
+                              dayjs().endOf("day"),
+                            ]);
                           }
                         }}
                         format="YYYY-MM-DD"
@@ -191,139 +533,407 @@ const SaleReport = () => {
                     </Space>
                   </div>
                 </th>
-                <th>
+
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
                   Previous Interval Units
                   <div>
                     <Space direction="vertical" size={12}>
                       <RangePicker
+                        presets={rangePresets}
                         value={
                           previousDateRange.length === 2
-                            ? [
-                                moment(previousDateRange[0]),
-                                moment(previousDateRange[1]),
-                              ]
+                            ? previousDateRange
                             : null
                         }
-                        onChange={(dates) =>
-                          setPreviousDateRange(
-                            dates
-                              ? [dates[0].toISOString(), dates[1].toISOString()]
-                              : []
-                          )
-                        }
+                        onChange={(dates) => {
+                          if (dates && dates.length === 2) {
+                            setPreviousDateRange([dates[0], dates[1]]);
+                          } else {
+                            setPreviousDateRange([
+                              dayjs().subtract(60, "day").startOf("day"),
+                              dayjs().subtract(30, "day").endOf("day"),
+                            ]);
+                          }
+                        }}
                         format="YYYY-MM-DD"
                       />
                     </Space>
                   </div>
                 </th>
-                <th>Change (%)</th>
+
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    width: "150px",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  <p className="flex justify-center items-center gap-1 ">
+                    Change (%)
+             
+                  </p>
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    width: "150px",
+                    zIndex: 3,
+                  }}
+                >
+                  Details
+                </th>
               </tr>
             </thead>
-            <tbody>
-              {products.map((product, index) => {
-                const currentMetrics =
-                  currentDateRange.length === 2
-                    ? filterMetricsForInterval(
-                        product.salesMetrics || [],
-                        currentDateRange[0],
-                        currentDateRange[1]
-                      )
-                    : [];
-
-                const previousMetrics =
-                  previousDateRange.length === 2
-                    ? filterMetricsForInterval(
-                        product.salesMetrics || [],
-                        previousDateRange[0],
-                        previousDateRange[1]
-                      )
-                    : [];
-
-                const currentUnits = calculateUnits(currentMetrics);
-                const previousUnits = calculateUnits(previousMetrics);
-                const percentageChange = calculatePercentageChange(
-                  currentUnits,
-                  previousUnits
-                );
-
-                return (
-                  <tr key={product.sellerSku}>
-                    <td
-                      style={{
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        border: "none",
-                        padding: "0",
-                        height: "85px",
-                      }}
-                    >
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(
-                            product.sellerSku,
-                            product.isFavourite,
-                            index
-                          );
+            <tbody
+              style={{
+                fontSize: "12px",
+                fontFamily: "Arial, sans-serif",
+                lineHeight: "1.5",
+              }}
+            >
+              {loading ? (
+                <tr>
+                  <td
+                    className="h-[90vh] text-base"
+                    colSpan="6"
+                    style={{
+                      textAlign: "center",
+                      padding: "20px",
+                      border: "none",
+                    }}
+                  >
+                    <div className="mt-[30vh]">
+                      <ClipLoader
+                        color="#0E6FFD"
+                        loading={true}
+                        cssOverride={{
+                          margin: "0 auto",
+                          borderWidth: "3px",
                         }}
+                        size={40}
+                        width={100}
+                        aria-label="Loading Spinner"
+                        data-testid="loader"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                products.map((product, index) => {
+                  const currentMetrics =
+                    currentDateRange.length === 2
+                      ? filterMetricsForInterval(
+                          product.salesMetrics || [],
+                          currentDateRange[0],
+                          currentDateRange[1]
+                        )
+                      : [];
+
+                  const previousMetrics =
+                    previousDateRange.length === 2
+                      ? filterMetricsForInterval(
+                          product.salesMetrics || [],
+                          previousDateRange[0],
+                          previousDateRange[1]
+                        )
+                      : [];
+
+                  const currentUnits = calculateUnits(currentMetrics);
+                  const previousUnits = calculateUnits(previousMetrics);
+                  const percentageChange = calculatePercentageChange(
+                    currentUnits,
+                    previousUnits
+                  );
+
+                  return (
+                    <tr key={product.sellerSku}>
+                      <td
                         style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
                           textAlign: "center",
-                          cursor: "pointer",
-                          transition: "transform 0.2s ease-in-out",
-                          transform: product.isFavourite
-                            ? "scale(1.1)"
-                            : "scale(1)",
+                          verticalAlign: "middle",
                         }}
                       >
-                        {product.isFavourite ? (
-                          <FaStar
-                            style={{ color: "#879618a3", fontSize: "20px" }}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "100%",
+                          }}
+                        >
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(
+                                product.sellerSku,
+                                product.isFavourite,
+                                index
+                              );
+                            }}
+                            style={{
+                              textAlign: "center",
+                              cursor: "pointer",
+                              transition: "transform 0.2s ease-in-out",
+                              transform: product.isFavourite
+                                ? "scale(1.1)"
+                                : "scale(1)",
+                            }}
+                          >
+                            {product.isFavourite ? (
+                              <FaStar
+                                style={{
+                                  color: "#879618a3",
+                                  fontSize: "20px",
+                                }}
+                              />
+                            ) : (
+                              <FaRegStar
+                                style={{ color: "gray", fontSize: "16px" }}
+                              />
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "100%",
+                          }}
+                        >
+                          <img
+                            src={
+                              product.imageUrl ||
+                              "https://via.placeholder.com/50"
+                            }
+                            alt="Product"
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "contain",
+                              borderRadius: "5px",
+                              display: "block",
+                              imageRendering: "auto",
+                            }}
                           />
-                        ) : (
-                          <FaRegStar
-                            style={{ color: "gray", fontSize: "16px" }}
-                          />
-                        )}
-                      </span>
-                    </td>
-                    <td>
-                      <img
-                        src={
-                          product.imageUrl || "https://via.placeholder.com/50"
-                        }
-                        alt={"No Image"}
-                        width={50}
-                      />
-                    </td>
-                    <td>{product.sellerSku}</td>
-                    <td>{product.itemName || "Unknown Product"}</td>
-                    <td>{currentUnits}</td>
-                    <td>{previousUnits}</td>
-                    <td>
-                      {`${percentageChange}%`}
-                      <span>
-                        {percentageChange > 0 ? (
-                          <FaArrowUp />
-                        ) : (
-                          <FaArrowDownLong />
-                        )}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                        </div>
+                      </td>
+
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {product.itemName || "Unknown Product"}
+
+                        <div className="details mt-[5px]">
+                          <span
+                            className="bubble-text"
+                            style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "stretch",
+                            }}
+                          >
+                            {product.asin1}{" "}
+                            {copiedAsinIndex === index ? (
+                              <MdCheck
+                                style={{
+                                  marginLeft: "10px",
+                                  cursor: "pointer",
+                                  color: "green",
+                                  fontSize: "16px",
+                                }}
+                              />
+                            ) : (
+                              <BsClipboardCheck
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(product.asin1, "asin", index);
+                                }}
+                                style={{
+                                  marginLeft: "10px",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                }}
+                              />
+                            )}
+                          </span>{" "}
+                          <span
+                            className="bubble-text"
+                            style={{
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            {product.sellerSku}{" "}
+                            {copiedSkuIndex === index ? (
+                              <MdCheck
+                                style={{
+                                  marginLeft: "10px",
+                                  cursor: "pointer",
+                                  color: "green",
+                                  fontSize: "16px",
+                                }}
+                              />
+                            ) : (
+                              <BsClipboardCheck
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopy(product.sellerSku, "sku", index);
+                                }}
+                                style={{
+                                  marginLeft: "10px",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                }}
+                              />
+                            )}
+                          </span>{" "}
+                        </div>
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {currentUnits}
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {previousUnits}
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          color:
+                            percentageChange > 0
+                              ? "green"
+                              : percentageChange < 0
+                              ? "red"
+                              : "black",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "100%",
+                          }}
+                        >
+                          {`${percentageChange}%`}
+                          {percentageChange !== 0 &&
+                            percentageChange !== "0.00" && (
+                              <span>
+                                {percentageChange > 0 ? (
+                                  <FaArrowUp />
+                                ) : (
+                                  <FaArrowDownLong />
+                                )}
+                              </span>
+                            )}
+                        </div>
+                      </td>
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          color:
+                            percentageChange > 0
+                              ? "green"
+                              : percentageChange < 0
+                              ? "red"
+                              : "black",
+                        }}
+                      >
+                        <button
+                          onClick={() =>
+                            handleSaleDetailsModalShow(product.sellerSku)
+                          }
+                          className="bg-[#0662BB] text-white rounded drop-shadow-sm  gap-1  px-2 py-1"
+                        >
+                          See Details
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
-          </Table>
-          </div>
+          </table>
           <SaleReportPagination
             currentPage={page}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
-        </>
-      )}
+        </div>
+      </>
+
+      <SaleDetailsModal
+        saleDetailsModalShow={saleDetailsModalShow}
+        setSaleDetailsModalShow={setSaleDetailsModalShow}
+        handleSaleDetailsModalShow={handleSaleDetailsModalShow}
+        handleSaleDetailsModalClose={handleSaleDetailsModalClose}
+        sku={selectedSku}
+      ></SaleDetailsModal>
     </div>
   );
 };

@@ -1,14 +1,12 @@
-import React from 'react';
-import { Pagination } from 'react-bootstrap';
-import SaleReport from './SaleReport';
+import React from "react";
+import { Pagination } from "react-bootstrap";
+import SaleReport from "./SaleReport";
 
 const SaleReportPagination = ({ currentPage, totalPages, onPageChange }) => {
   const pageItems = [];
   const visiblePages = 5; // Number of pages to display at a time
 
-  const createEllipsis = (key) => (
-    <Pagination.Ellipsis key={key} disabled />
-  );
+  const createEllipsis = (key) => <Pagination.Ellipsis key={key} disabled />;
 
   // Generate pagination items
   for (let i = 1; i <= totalPages; i++) {
@@ -35,8 +33,11 @@ const SaleReportPagination = ({ currentPage, totalPages, onPageChange }) => {
   }
 
   return (
-    <Pagination className="justify-content-center">
-      <Pagination.First onClick={() => onPageChange(1)} disabled={currentPage === 1} />
+    <Pagination className="justify-content-center pb-3">
+      <Pagination.First
+        onClick={() => onPageChange(1)}
+        disabled={currentPage === 1}
+      />
       <Pagination.Prev
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
