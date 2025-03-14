@@ -50,7 +50,7 @@ const Login = () => {
       }
 
       dispatch(signInSuccess(data));
-      navigate("/calendar");
+      navigate("/list");
     } catch (error) {
       dispatch(signInFailure(error.message));
       console.log(error);

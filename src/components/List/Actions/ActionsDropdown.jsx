@@ -16,13 +16,11 @@ import { Button as ShadCdnButton } from "@/components/ui/button";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { IoIosArrowDown } from "react-icons/io";
-import AssginTagsModal from "./AssginTagsModal";
+import AssginTagsModal from "./AssignTagsModal";
 
-// const BASE_URL = "http://192.168.0.102:3000";
 const BASE_URL = `https://api.priceobo.com`;
 
 const ActionsDropdown = ({ filteredProducts, handleProductSync }) => {
-  console.log("filteredProducts", filteredProducts);
   const [loading, setLoading] = useState(false);
   const [exportThisPageLoading, setExportThisPageLoading] = useState(false);
   const [assignTagsModalOpen, setAssignTagsModalOpen] = useState(false);

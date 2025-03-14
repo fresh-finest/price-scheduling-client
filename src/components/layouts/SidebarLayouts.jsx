@@ -9,8 +9,9 @@ import AccountDropdown from "../shared/ui/AccountDropdown";
 import UserDropdown from "../shared/ui/UserDropDown";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import priceoboLogo from "../../assets/images/priceobo-logo.png";
-import { PiChartLineUpLight } from "react-icons/pi";
+import { TbReportAnalytics } from "react-icons/tb";
 import { AiOutlineProduct } from "react-icons/ai";
+import { LuGroup } from "react-icons/lu";
 import { FaListCheck } from "react-icons/fa6";
 
 import { Cog } from "lucide-react";
@@ -20,11 +21,12 @@ const SidebarLayout = () => {
 
   const Menus = [
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
-    { title: "Products", icon: <AiOutlineProduct />, path: "/list" },
+    { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
+    { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
     // { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
-    { title: "Report", icon: <PiChartLineUpLight />, path: "/report" },
+    { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
     // {
     //   title: "Manage User",

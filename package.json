@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.0",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
@@ -58,6 +60,7 @@
     "react-spinners": "^0.15.0",
     "react-timezone-select": "^3.2.8",
     "react-window": "^1.8.10",
+    "read-excel-file": "^5.8.6",
     "recharts": "^2.13.3",
     "redux-persist": "^6.0.0",
     "socket.io-client": "^4.8.1",

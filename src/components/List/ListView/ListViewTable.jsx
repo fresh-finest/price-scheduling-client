@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { Button } from "react-bootstrap";
-import { BsClipboardCheck } from "react-icons/bs";
+import { BsClipboardCheck, BsHeart, BsHeartFill } from "react-icons/bs";
+import { FaRegStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { MdCheck } from "react-icons/md";
+
+// const BASE_URL = `http://localhost:3000`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const ListViewTable = ({
   index,
@@ -24,6 +30,22 @@ const ListViewTable = ({
   const getUnitsForSelectedTime = (salesMetrics, selectedDay) => {
     const metric = salesMetrics.find((m) => m.time === selectedDay.value);
     return metric ? metric.totalUnits : "N/A";
+  };
+
+  const [isFavorite, setIsFavorite] = useState(item.isFavourite); // Local state to manage favorite status
+
+  const toggleFavorite = async (sku, currentFavoriteStatus) => {
+    setIsFavorite(!currentFavoriteStatus);
+
+    try {
+      await axios.put(`${BASE_URL}/api/product/favourite/${sku}`, {
+        isFavourite: !currentFavoriteStatus,
+      });
+    } catch (error) {
+      console.error("Error updating favorite status:", error.message);
+      // Revert the UI if the API call fails
+      setIsFavorite(currentFavoriteStatus);
+    }
   };
 
   return (
@@ -53,6 +75,40 @@ const ListViewTable = ({
         selectedRowIndex === index ? "selected-row" : ""
       }`}
     >
+      <td
+        style={{
+          cursor: "pointer",
+
+          backgroundColor: selectedRowIndex === index ? "#F1F1F2" : "",
+          display: "flex", // Enable flexbox
+          alignItems: "center", // Vertically center
+          justifyContent: "center", // Horizontally center
+          border: "none", // Remove the border from the cell
+          padding: "0", // Remove padding from the cell
+          height: "85px",
+        }}
+      >
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(item.sellerSku, isFavorite);
+          }}
+          style={{
+            textAlign: "center",
+            cursor: "pointer",
+            transition: "transform 0.2s ease-in-out",
+            transform: isFavorite ? "scale(1.1)" : "scale(1)",
+          }}
+        >
+       {/* "#879618a3" */}
+          {isFavorite ? (
+            <FaStar style={{ color:"#879618a3", fontSize: "20px" }} />
+          ) : (
+            <FaRegStar style={{ color: "gray", fontSize: "16px" }} />
+          )}
+        </span>
+      </td>
+
       <td
         className={` ${selectedRowIndex === index ? "selected-row" : ""}`}
         style={{

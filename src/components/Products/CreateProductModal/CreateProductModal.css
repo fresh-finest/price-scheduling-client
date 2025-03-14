@@ -1,0 +1,24 @@
+.create-product-modal {
+  /* position: relative; */
+
+  max-width: 35vw;
+}
+.create-product-modal .modal-body {
+  z-index: 1050 !important;
+}
+.shadcn-dropdown,
+.shadcn-select {
+  z-index: 1051 !important; /* Higher than Bootstrap modal */
+}
+.create-product-modal .modal-content {
+  height: 45vh; /*modal height */
+  overflow-y: auto;
+}
+.create-product-modal .modal-header {
+  border: 0;
+}
+.create-product-modal .modal-header button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}

@@ -7,7 +7,7 @@ import { MdCheck } from "react-icons/md";
 import { PiWarehouse } from "react-icons/pi";
 
 const BASE_URL = `https://api.priceobo.com`;
-
+// const BASE_URL = "http://localhost:3000";
 const fetchProductDetails = async (sku) => {
   const encodedSku = encodeURIComponent(sku);
   try {
@@ -328,7 +328,7 @@ const ProductDetailsWithNumbers = ({
               className="border flex justify-around items-center text-xs px-[7px] py-[5px] text-[#505050]"
               style={{
                 cursor: "pointer",
-               
+                
                 transition: "color 0.3s ease", 
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e8f8f5")} 
@@ -341,11 +341,18 @@ const ProductDetailsWithNumbers = ({
                 style={{
                   textDecoration: "none",
                   color: "#505050",
+                  
                   transition: "color 0.3s ease"
                 }}
               
               >
-                {asin}
+              <span  style={{
+                cursor: "pointer",
+                transition: "color 0.3s ease", 
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "blue")} 
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#505050")}> {asin}</span>
+               
               </a>
               {copiedAsinIndex ? (
                 <MdCheck

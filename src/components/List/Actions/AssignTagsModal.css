@@ -1,24 +1,9 @@
-.assign-tags-modal {
-  /* position: relative; */
+.assign-tags-modal .modal-content {
+  overflow: visible !important; /* Prevents clipping of the popover */
+  position: relative;
+}
 
-  max-width: 30vw;
-}
-.create-rule-modal .modal-body {
-  /* z-index: 1050 !important; */
-}
-.shadcn-dropdown,
-.shadcn-select {
-  z-index: 1051 !important; /* Higher than Bootstrap modal */
-}
-.create-rule-modal .modal-content {
-  height: 57vh; /*modal height */
-  overflow-y: auto;
-}
-.create-rule-modal .modal-header {
-  border: 0;
-}
-.create-rule-modal .modal-header button {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+.assign-tags-modal .popover-content {
+  z-index: 1055 !important; /* Ensures popover appears above the modal */
+  position: absolute !important;
 }

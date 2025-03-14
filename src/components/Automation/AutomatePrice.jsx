@@ -15,8 +15,8 @@ import axios from "axios";
 import { Checkbox } from "antd";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.102:3000";
-// // const BASE_URL = `https://api.priceobo.com`;
+
+const BASE_URL = `https://api.priceobo.com`;
 
 const AutomatePrice = ({ sku, productDetails, product }) => {
   const [showModal, setShowModal] = useState(false);
@@ -90,8 +90,11 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
     }
   }, [showModal]);
 
-  const productName = productDetails?.summaries[0]?.itemName;
-  const productImage = productDetails?.summaries[0]?.mainImage?.link;
+  const productName =
+    productDetails?.summaries?.[0]?.itemName || "Unknown Product";
+  const productImage =
+    productDetails?.summaries?.[0]?.mainImage?.link ||
+    "https://via.placeholder.com/150";
 
   const formattedStartDate = startDate?.format("YYYY-MM-DD");
   const formattedEndDate = endDate?.format("YYYY-MM-DD");
@@ -274,7 +277,7 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-1">
               <Form.Control
                 type="number"
                 className="update-custom-input"
@@ -294,7 +297,9 @@ const AutomatePrice = ({ sku, productDetails, product }) => {
                 required
               />
               <div>
-                <Checkbox onChange={handleSaleCheckboxChange}>On Sale</Checkbox>
+                <Checkbox onChange={handleSaleCheckboxChange}>
+                  Sale Price
+                </Checkbox>
               </div>
             </div>
 

@@ -7,8 +7,8 @@ import Swal from "sweetalert2";
 import ExistingsTags from "./ExistingsTags";
 import { set } from "lodash";
 
-const BASE_URL = "http://192.168.0.102:3000";
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = "http://192.168.0.102:3000";
+const BASE_URL = `https://api.priceobo.com`;
 
 // Generate Preset Colors
 const genPresets = (presets = presetPalettes) =>
