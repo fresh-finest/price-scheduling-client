@@ -1,9 +1,93 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Modal, Button, Form } from "react-bootstrap";
 import readXlsxFile from "read-excel-file";
-import { addSku, bulkmapSku, createProduct, deleteProduct, fetchProduct, fetchProductBySku, fetchSingleProduct, updateSingleProduct, updateSku } from "@/api/product";
+import { RxCross1 } from "react-icons/rx";
+import {
+  addSku,
+  bulkmapSku,
+  createProduct,
+  deleteProduct,
+  fetchGroupSaleReport,
+  fetchProduct,
+  fetchProductBySku,
+  fetchSingleProduct,
+  updateSingleProduct,
+  updateSku,
+} from "@/api/product";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { color } from "@mui/system";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
+// SalesGraph component renders the sales data graph for the last 30 days
+const SalesGraph = ({ saleReportData }) => {
+  // Calculate the date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  // Filter the data to only include dates within the last 30 days
+  const filteredData = saleReportData.filter((report) => {
+    const reportDate = new Date(report._id);
+    return reportDate >= thirtyDaysAgo;
+  });
+
+  // Sort the filtered data by date (ascending)
+  filteredData.sort((a, b) => new Date(a._id) - new Date(b._id));
+
+  // Create labels and data points from the filtered data
+  const labels = filteredData.map((report) => report._id);
+  const dataPoints = filteredData.map((report) => report.totalSales);
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Total Sales",
+        data: dataPoints,
+        // backgroundColor: "rgba(75,192,192,0.4)",
+        backgroundColor: "rgba(42, 156, 143,1.0)"
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: { position: "top" },
+      title: { display: true, text: "Sales Units vs Date (Last 30 Days)" },
+      datalabels:{
+        anchor: 'end',
+        align: 'top',
+        color: 'black',
+        font: {
+          weight: 'bold',
+          size: 10,
+        },
+        formatter:(value)=>value
+      }
+    },
+  };
+
+  return <Bar data={data} options={options} />;
+};
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -32,6 +116,30 @@ function Products() {
     cost: 0,
   });
 
+  // New state for handling the sales graph drawer
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [saleReportData, setSaleReportData] = useState([]);
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+  const [totalSales,setTotalSales] = useState(0);
+
+
+  const drawerRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (drawerRef.current && !drawerRef.current.contains(event.target)) {
+        setIsDrawerOpen(false);
+      }
+    };
+
+    if (isDrawerOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDrawerOpen]);
   // Fetch group products
   useEffect(() => {
     const fetchProducts = async () => {
@@ -106,7 +214,6 @@ function Products() {
         setNewProduct({
           name: "",
           title: "",
-          imageUrl: "",
           cost: 0,
         });
         // Refresh the product list after adding a new product
@@ -120,6 +227,7 @@ function Products() {
     }
   };
 
+  /*
   // Handle SKU addition
   const handleAddSku = async () => {
     try {
@@ -153,6 +261,46 @@ function Products() {
       alert("Failed to add SKUs.");
     }
   };
+  */
+
+  const handleAddSku = async () => {
+    try {
+      const response = await fetchSingleProduct(selectedProductId);
+      const existingSkus = response.data.result.skus || [];
+      const updatedSkus = [
+        ...existingSkus,
+        ...excelData,
+        ...(newSku.sku && newSku.uom ? [newSku] : []),
+      ];
+
+      await addSku(selectedProductId, updatedSkus);
+
+      alert("SKUs added successfully!");
+      setSkuModalOpen(false);
+      setExcelData([]);
+      setNewSku({ sku: "", uom: "" });
+
+      // Fetch updated product list
+      const fetchProducts = await fetchProduct();
+      const updatedProducts = fetchProducts.data.result.map((product) => {
+        if (product._id === selectedProductId) {
+          return {
+            ...product,
+            imageUrl:
+              product.imageUrl ||
+              (updatedSkus.length > 0 ? updatedSkus[0].imageUrl : ""),
+          };
+        }
+        return product;
+      });
+
+      setProducts(updatedProducts);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error adding SKUs:", error);
+      alert("Failed to add SKUs.");
+    }
+  };
 
   const handleExcelUpload = (e) => {
     const file = e.target.files[0];
@@ -174,24 +322,24 @@ function Products() {
         alert("Please enter a valid UOM for replacement.");
         return;
       }
-  
+
       const body = { sku: newSku.sku, newSku: newSku.newSku, uom: newSku.uom };
-  
+
       console.log(body);
       // await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
-      await updateSku(selectedProductId,body);
+      await updateSku(selectedProductId, body);
       alert("SKU replaced successfully!");
       window.location.reload();
       // Close modal and refresh product list
       setSkuModalOpen(false);
       const response = await axios.get(`${BASE_URL}/api/group`);
       setProducts(response.data.result);
+      window.location.reload();
     } catch (error) {
       console.error("Error replacing SKU:", error);
       alert("Failed to replace SKU. Please try again later.");
     }
   };
-  
 
   const handleCancelSku = async () => {
     try {
@@ -203,7 +351,7 @@ function Products() {
       const body = { sku: newSku.sku };
 
       // await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
-      await updateSku(selectedProductId,body);
+      await updateSku(selectedProductId, body);
       alert("SKU canceled successfully!");
       setIsModal(false);
 
@@ -214,7 +362,6 @@ function Products() {
       window.location.reload();
     } catch (error) {
       console.error("Error canceling SKU:", error);
-      alert("Failed to cancel SKU. Please try again later.");
     }
   };
 
@@ -225,7 +372,7 @@ function Products() {
       //   `${BASE_URL}/api/group/${selectedProductId}`,
       //   editProduct
       // );
-      await updateSingleProduct(selectedProductId,editProduct);
+      await updateSingleProduct(selectedProductId, editProduct);
       alert("Product updated successfully!");
       setEditModalOpen(false);
 
@@ -265,12 +412,14 @@ function Products() {
     }
   };
 
-   // Handle Excel upload for bulk SKU mapping
-   const handleExcelUploadForBulkMapping = (e) => {
+  // Handle Excel upload for bulk SKU mapping
+  const handleExcelUploadForBulkMapping = (e) => {
     const file = e.target.files[0];
     if (file) {
       readXlsxFile(file).then((rows) => {
-        const data = rows.slice(1).map(([name, sku, uom]) => ({ name, sku, uom })); // Skip header row
+        const data = rows
+          .slice(1)
+          .map(([name, sku, uom]) => ({ name, sku, uom })); // Skip header row
         setBulkData(data);
       });
     }
@@ -280,12 +429,14 @@ function Products() {
   const handleBulkSkuMapping = async () => {
     try {
       if (!bulkData.length) {
-        alert("No data found in the uploaded file. Please upload a valid Excel file.");
+        alert(
+          "No data found in the uploaded file. Please upload a valid Excel file."
+        );
         return;
       }
 
       setIsLoading(true); // Show loading state
-      // await axios.put("/api/group", bulkData); 
+      // await axios.put("/api/group", bulkData);
       await bulkmapSku(bulkData);
       alert("Bulk SKU mapping completed successfully!");
       setBulkModalOpen(false);
@@ -296,11 +447,24 @@ function Products() {
       const response = await fetchProduct();
       setProducts(response.data.result);
       window.location.reload();
-
     } catch (error) {
       console.error("Error during bulk SKU mapping:", error);
       alert("Failed to map SKUs. Please try again later.");
       setIsLoading(false);
+    }
+  };
+  // New function to open the sales graph drawer
+  const handleOpenSalesGraph = async (groupId, product) => {
+    try {
+      const response = await fetchGroupSaleReport(groupId);
+      const saleReports = response.data.data.saleReports;
+      setSaleReportData(saleReports);
+      setTotalSales(response.data.data.sumOfTotalSales);
+      setSelectedProductDetails(product);
+      setIsDrawerOpen(true);
+    } catch (error) {
+      console.error("Error fetching sales report data:", error);
+      alert("Failed to fetch sales report data.");
     }
   };
   return (
@@ -313,8 +477,11 @@ function Products() {
           marginBottom: "20px",
         }}
       >
-       
-        <Button style={{marginRight:"20px"}} variant="primary" onClick={() => setModalOpen(true)}>
+        <Button
+          style={{ marginRight: "20px" }}
+          variant="primary"
+          onClick={() => setModalOpen(true)}
+        >
           Create Product
         </Button>
         <Button variant="success" onClick={() => setBulkModalOpen(true)}>
@@ -349,7 +516,7 @@ function Products() {
                 onChange={handleInputChange}
               />
             </Form.Group>
-            <Form.Group className="mb-3">
+            {/* <Form.Group className="mb-3">
               <Form.Label>Image URL</Form.Label>
               <Form.Control
                 type="text"
@@ -358,7 +525,7 @@ function Products() {
                 value={newProduct.imageUrl}
                 onChange={handleInputChange}
               />
-            </Form.Group>
+            </Form.Group> */}
             <Form.Group className="mb-3">
               <Form.Label>Cost</Form.Label>
               <Form.Control
@@ -504,15 +671,11 @@ function Products() {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Current SKU</Form.Label>
-              <Form.Control type="text" value={newSku.sku} readOnly />
-            </Form.Group>
-            <Form.Group className="mb-3">
               <Form.Label>New SKU (Optional for Replace)</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter new SKU"
-                value={newSku.newSku || ""}
+                value={newSku.newSku || newSku.sku}
                 onChange={(e) =>
                   setNewSku({ ...newSku, newSku: e.target.value })
                 }
@@ -544,8 +707,8 @@ function Products() {
         </Modal.Footer>
       </Modal>
 
-        {/* Bulk Mapping Modal */}
-        <Modal show={isBulkModalOpen} onHide={() => setBulkModalOpen(false)}>
+      {/* Bulk Mapping Modal */}
+      <Modal show={isBulkModalOpen} onHide={() => setBulkModalOpen(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Bulk Map SKUs</Modal.Title>
         </Modal.Header>
@@ -565,7 +728,11 @@ function Products() {
           <Button variant="secondary" onClick={() => setBulkModalOpen(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleBulkSkuMapping} disabled={isLoading}>
+          <Button
+            variant="primary"
+            onClick={handleBulkSkuMapping}
+            disabled={isLoading}
+          >
             {isLoading ? "Processing..." : "Submit"}
           </Button>
         </Modal.Footer>
@@ -588,7 +755,14 @@ function Products() {
             <React.Fragment key={product.id}>
               <tr>
                 <td>
-                  <img src={product.imageUrl || ""} alt="" width="30" />
+                  <img
+                    src={
+                      product.imageUrl ||
+                      (product.skus.length > 0 ? product.skus[0].imageUrl : "")
+                    }
+                    alt=""
+                    width="30"
+                  />
                 </td>
                 <td>{product.name}</td>
                 <td>{product.title}</td>
@@ -628,6 +802,12 @@ function Products() {
                     }}
                   >
                     Edit
+                  </Button>
+                  <Button
+                    variant="link"
+                    onClick={() => handleOpenSalesGraph(product.id, product)}
+                  >
+                    View Details
                   </Button>
                 </td>
               </tr>
@@ -684,6 +864,56 @@ function Products() {
           ))}
         </tbody>
       </table>
+
+      {isDrawerOpen && (
+        <div
+          ref={drawerRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            width: "1000px",
+            height: "100%",
+            backgroundColor: "#fff",
+            borderLeft: "1px solid #ccc",
+        
+            padding: "20px",
+            overflowY: "auto",
+            boxShadow: "-2px 0 5px rgba(0,0,0,0.3)",
+            zIndex: 1000,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              onClick={() =>setIsDrawerOpen(false)}
+              className="mt-2 bg-white"
+              style={{
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                padding: "5px",
+              }}
+            >
+              <RxCross1
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  fontSize: "20px",
+                }}
+              />
+            </Button>
+          </div>
+          {selectedProductDetails && (
+            <div style={{ marginBottom: "20px" }}>
+              <h4 >{selectedProductDetails.name}</h4>
+              <p>{selectedProductDetails.title}</p>
+            </div>
+          )}
+          <h3>Sales Report</h3>
+          <h4>Total Sales: {totalSales} units</h4>
+          <SalesGraph saleReportData={saleReportData} />
+        </div>
+      )}
     </div>
   );
 }
