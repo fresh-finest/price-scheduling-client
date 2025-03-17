@@ -21,7 +21,8 @@ import SaleDetailsModal from "./SaleDetailsModal";
 import { RiArrowUpDownFill } from "react-icons/ri";
 
 const { RangePicker } = DatePicker;
-// const BASE_URL = "http://localhost:3000";
+
+
 const BASE_URL = "https://api.priceobo.com";
 const MONTH_ORDER = [
   "Jan",
