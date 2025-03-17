@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { FaRegStar } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
 import { DatePicker, Space } from "antd";
-import { Table, Spinner, Row, Col, InputGroup, Form } from "react-bootstrap";
+import { InputGroup, Form } from "react-bootstrap";
 import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDownLong } from "react-icons/fa6";
 import dayjs from "dayjs";
 import "antd/dist/reset.css";
-import moment from "moment";
 import SaleReportPagination from "./SaleReportPagination";
 
 import { HiMagnifyingGlass } from "react-icons/hi2";
@@ -80,6 +79,9 @@ const SaleReport = () => {
   const [visibleMonths, setVisibleMonths] = useState({});
   const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
   const [selectedSku, setSelectedSku] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
+  const [sortedProducts, setSortedProducts] = useState([]);
+
   useEffect(() => {
     fetchProducts(true);
   }, []);
@@ -90,13 +92,19 @@ const SaleReport = () => {
     }
   }, [page, currentDateRange, previousDateRange]);
 
+  // useEffect(() => {
+  //   if (!searchTerm) {
+  //     fetchProducts(true);
+  //   } else {
+  //     fetchSearchResults(searchTerm);
+  //   }
+  // }, [searchTerm, page]);
+
   useEffect(() => {
     if (!searchTerm) {
       fetchProducts(true);
-    } else {
-      fetchSearchResults(searchTerm);
     }
-  }, [searchTerm, page]);
+  }, [page]);
 
   useEffect(() => {
     axios
@@ -175,7 +183,16 @@ const SaleReport = () => {
   };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setPage(1);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      fetchSearchResults(searchTerm);
+    }
+  };
+
+  const handleSearchButtonClick = () => {
+    fetchSearchResults(searchTerm);
   };
 
   const handleClearInput = () => {
@@ -228,6 +245,55 @@ const SaleReport = () => {
     if (newPage > 0 && newPage <= totalPages) {
       setPage(newPage);
     }
+  };
+
+  const sortProducts = (order) => {
+    const sorted = [...products].sort((a, b) => {
+      const currentUnitsA = calculateUnits(
+        filterMetricsForInterval(
+          a.salesMetrics || [],
+          currentDateRange[0],
+          currentDateRange[1]
+        )
+      );
+      const previousUnitsA = calculateUnits(
+        filterMetricsForInterval(
+          a.salesMetrics || [],
+          previousDateRange[0],
+          previousDateRange[1]
+        )
+      );
+      const percentageChangeA = parseFloat(
+        calculatePercentageChange(currentUnitsA, previousUnitsA)
+      );
+
+      const currentUnitsB = calculateUnits(
+        filterMetricsForInterval(
+          b.salesMetrics || [],
+          currentDateRange[0],
+          currentDateRange[1]
+        )
+      );
+      const previousUnitsB = calculateUnits(
+        filterMetricsForInterval(
+          b.salesMetrics || [],
+          previousDateRange[0],
+          previousDateRange[1]
+        )
+      );
+      const percentageChangeB = parseFloat(
+        calculatePercentageChange(currentUnitsB, previousUnitsB)
+      );
+
+      if (order === "asc") {
+        return percentageChangeB - percentageChangeA;
+      } else if (order === "desc") {
+        return percentageChangeA - percentageChangeB;
+      }
+      return 0;
+    });
+
+    setSortedProducts(sorted);
   };
 
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
@@ -306,14 +372,14 @@ const SaleReport = () => {
 
     const today = new Date();
     const currentYear = today.getFullYear();
-    const currentMonthIndex = today.getMonth(); // 0 for Jan, 1 for Feb, etc.
+    const currentMonthIndex = today.getMonth();
 
     const lastTwoMonths = [];
     for (let i = 2; i > 0; i--) {
-      let monthIndex = (currentMonthIndex - i + 12) % 12; // Handle wrap-around for January
+      let monthIndex = (currentMonthIndex - i + 12) % 12;
       let year = currentYear;
       if (monthIndex > currentMonthIndex) {
-        year -= 1; // Adjust for previous year if needed
+        year -= 1;
       }
       lastTwoMonths.push(`${MONTH_ORDER[monthIndex]} ${year}`);
     }
@@ -423,17 +489,24 @@ const SaleReport = () => {
             placeholder="Search by Product Name, Asin or SKU..."
             value={searchTerm}
             onChange={handleSearch}
+            onKeyDown={handleKeyDown}
             style={{ borderRadius: "0px" }}
             className="custom-input"
           />
           {searchTerm && (
             <button
               onClick={handleClearInput}
-              className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+              className="absolute right-12 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
             >
               <MdOutlineClose />
             </button>
           )}
+          <button
+            className="px-3 py-2 bg-gray-300"
+            onClick={handleSearchButtonClick}
+          >
+            <HiMagnifyingGlass />
+          </button>
         </InputGroup>
       </div>
       <>
@@ -581,7 +654,20 @@ const SaleReport = () => {
                 >
                   <p className="flex justify-center items-center gap-1 ">
                     Change (%)
-             
+                    {/* <button>
+                      <RiArrowUpDownFill className="text-sm" />
+                    </button> */}
+                    <button
+                      onClick={() => {
+                        setSortOrder((prev) => {
+                          const newOrder = prev === "asc" ? "desc" : "asc"; // Toggle order
+                          sortProducts(newOrder); // Update sorted data
+                          return newOrder; // Update state
+                        });
+                      }}
+                    >
+                      <RiArrowUpDownFill className="text-sm" />
+                    </button>
                   </p>
                 </th>
                 <th
@@ -633,289 +719,285 @@ const SaleReport = () => {
                   </td>
                 </tr>
               ) : (
-                products.map((product, index) => {
-                  const currentMetrics =
-                    currentDateRange.length === 2
-                      ? filterMetricsForInterval(
-                          product.salesMetrics || [],
-                          currentDateRange[0],
-                          currentDateRange[1]
-                        )
-                      : [];
+                (sortOrder ? sortedProducts : products).map(
+                  (product, index) => {
+                    const currentMetrics = filterMetricsForInterval(
+                      product.salesMetrics || [],
+                      currentDateRange[0],
+                      currentDateRange[1]
+                    );
 
-                  const previousMetrics =
-                    previousDateRange.length === 2
-                      ? filterMetricsForInterval(
-                          product.salesMetrics || [],
-                          previousDateRange[0],
-                          previousDateRange[1]
-                        )
-                      : [];
+                    const previousMetrics = filterMetricsForInterval(
+                      product.salesMetrics || [],
+                      previousDateRange[0],
+                      previousDateRange[1]
+                    );
 
-                  const currentUnits = calculateUnits(currentMetrics);
-                  const previousUnits = calculateUnits(previousMetrics);
-                  const percentageChange = calculatePercentageChange(
-                    currentUnits,
-                    previousUnits
-                  );
+                    const currentUnits = calculateUnits(currentMetrics);
+                    const previousUnits = calculateUnits(previousMetrics);
+                    const percentageChange = calculatePercentageChange(
+                      currentUnits,
+                      previousUnits
+                    );
 
-                  return (
-                    <tr key={product.sellerSku}>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <div
+                    return (
+                      <tr key={product.sellerSku}>
+                        <td
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            height: "100%",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
                           }}
                         >
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavorite(
-                                product.sellerSku,
-                                product.isFavourite,
-                                index
-                              );
-                            }}
+                          <div
                             style={{
-                              textAlign: "center",
-                              cursor: "pointer",
-                              transition: "transform 0.2s ease-in-out",
-                              transform: product.isFavourite
-                                ? "scale(1.1)"
-                                : "scale(1)",
-                            }}
-                          >
-                            {product.isFavourite ? (
-                              <FaStar
-                                style={{
-                                  color: "#879618a3",
-                                  fontSize: "20px",
-                                }}
-                              />
-                            ) : (
-                              <FaRegStar
-                                style={{ color: "gray", fontSize: "16px" }}
-                              />
-                            )}
-                          </span>
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            height: "100%",
-                          }}
-                        >
-                          <img
-                            src={
-                              product.imageUrl ||
-                              "https://via.placeholder.com/50"
-                            }
-                            alt="Product"
-                            style={{
-                              width: "50px",
-                              height: "50px",
-                              objectFit: "contain",
-                              borderRadius: "5px",
-                              display: "block",
-                              imageRendering: "auto",
-                            }}
-                          />
-                        </div>
-                      </td>
-
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {product.itemName || "Unknown Product"}
-
-                        <div className="details mt-[5px]">
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "stretch",
-                            }}
-                          >
-                            {product.asin1}{" "}
-                            {copiedAsinIndex === index ? (
-                              <MdCheck
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  color: "green",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            ) : (
-                              <BsClipboardCheck
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(product.asin1, "asin", index);
-                                }}
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            )}
-                          </span>{" "}
-                          <span
-                            className="bubble-text"
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-flex",
+                              display: "flex",
                               alignItems: "center",
+                              justifyContent: "center",
+                              height: "100%",
                             }}
                           >
-                            {product.sellerSku}{" "}
-                            {copiedSkuIndex === index ? (
-                              <MdCheck
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  color: "green",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            ) : (
-                              <BsClipboardCheck
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleCopy(product.sellerSku, "sku", index);
-                                }}
-                                style={{
-                                  marginLeft: "10px",
-                                  cursor: "pointer",
-                                  fontSize: "16px",
-                                }}
-                              />
-                            )}
-                          </span>{" "}
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {currentUnits}
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {previousUnits}
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          color:
-                            percentageChange > 0
-                              ? "green"
-                              : percentageChange < 0
-                              ? "red"
-                              : "black",
-                        }}
-                      >
-                        <div
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(
+                                  product.sellerSku,
+                                  product.isFavourite,
+                                  index
+                                );
+                              }}
+                              style={{
+                                textAlign: "center",
+                                cursor: "pointer",
+                                transition: "transform 0.2s ease-in-out",
+                                transform: product.isFavourite
+                                  ? "scale(1.1)"
+                                  : "scale(1)",
+                              }}
+                            >
+                              {product.isFavourite ? (
+                                <FaStar
+                                  style={{
+                                    color: "#879618a3",
+                                    fontSize: "20px",
+                                  }}
+                                />
+                              ) : (
+                                <FaRegStar
+                                  style={{ color: "gray", fontSize: "16px" }}
+                                />
+                              )}
+                            </span>
+                          </div>
+                        </td>
+                        <td
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            height: "100%",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
                           }}
                         >
-                          {`${percentageChange}%`}
-                          {percentageChange !== 0 &&
-                            percentageChange !== "0.00" && (
-                              <span>
-                                {percentageChange > 0 ? (
-                                  <FaArrowUp />
-                                ) : (
-                                  <FaArrowDownLong />
-                                )}
-                              </span>
-                            )}
-                        </div>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                          color:
-                            percentageChange > 0
-                              ? "green"
-                              : percentageChange < 0
-                              ? "red"
-                              : "black",
-                        }}
-                      >
-                        <button
-                          onClick={() =>
-                            handleSaleDetailsModalShow(product.sellerSku)
-                          }
-                          className="bg-[#0662BB] text-white rounded drop-shadow-sm  gap-1  px-2 py-1"
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              height: "100%",
+                            }}
+                          >
+                            <img
+                              src={
+                                product.imageUrl ||
+                                "https://via.placeholder.com/50"
+                              }
+                              alt="Product"
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                objectFit: "contain",
+                                borderRadius: "5px",
+                                display: "block",
+                                imageRendering: "auto",
+                              }}
+                            />
+                          </div>
+                        </td>
+
+                        <td
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                          }}
                         >
-                          See Details
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                          {product.itemName || "Unknown Product"}
+
+                          <div className="details mt-[5px]">
+                            <span
+                              className="bubble-text"
+                              style={{
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "stretch",
+                              }}
+                            >
+                              {product.asin1}{" "}
+                              {copiedAsinIndex === index ? (
+                                <MdCheck
+                                  style={{
+                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    color: "green",
+                                    fontSize: "16px",
+                                  }}
+                                />
+                              ) : (
+                                <BsClipboardCheck
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopy(product.asin1, "asin", index);
+                                  }}
+                                  style={{
+                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                  }}
+                                />
+                              )}
+                            </span>{" "}
+                            <span
+                              className="bubble-text"
+                              style={{
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              {product.sellerSku}{" "}
+                              {copiedSkuIndex === index ? (
+                                <MdCheck
+                                  style={{
+                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    color: "green",
+                                    fontSize: "16px",
+                                  }}
+                                />
+                              ) : (
+                                <BsClipboardCheck
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopy(product.sellerSku, "sku", index);
+                                  }}
+                                  style={{
+                                    marginLeft: "10px",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                  }}
+                                />
+                              )}
+                            </span>{" "}
+                          </div>
+                        </td>
+                        <td
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          {currentUnits}
+                        </td>
+                        <td
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          {previousUnits}
+                        </td>
+                        <td
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                            color:
+                              percentageChange > 0
+                                ? "green"
+                                : percentageChange < 0
+                                ? "red"
+                                : "black",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              height: "100%",
+                            }}
+                          >
+                            {`${percentageChange}%`}
+                            {percentageChange !== 0 &&
+                              percentageChange !== "0.00" && (
+                                <span>
+                                  {percentageChange > 0 ? (
+                                    <FaArrowUp />
+                                  ) : (
+                                    <FaArrowDownLong />
+                                  )}
+                                </span>
+                              )}
+                          </div>
+                        </td>
+                        <td
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                            color:
+                              percentageChange > 0
+                                ? "green"
+                                : percentageChange < 0
+                                ? "red"
+                                : "black",
+                          }}
+                        >
+                          <button
+                            onClick={() =>
+                              handleSaleDetailsModalShow(product.sellerSku)
+                            }
+                            className="bg-[#0662BB] text-white rounded drop-shadow-sm  gap-1  px-2 py-1"
+                          >
+                            See Details
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
               )}
             </tbody>
           </table>
