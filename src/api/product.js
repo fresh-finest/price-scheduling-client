@@ -18,4 +18,4 @@ export const updateSku = (id,data) => apiClient.put(`/api/group/${id}/sku`,data)
 
 export const bulkmapSku = (data)=>apiClient.put(`api/group`,data)
 
-
+export const fetchGroupSaleReport = (id) => apiClient.get(`/api/group/sale-report/${id}`)
