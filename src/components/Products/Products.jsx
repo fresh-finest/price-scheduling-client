@@ -18,6 +18,8 @@ import {
 import CreateProductModal from "./CreateProductModal/CreateProductModal";
 import EditSkuModal from "./EditSkuModal/EditSkuModal";
 import BulkMappingModal from "./BulkMappingModal/BulkMappingModal";
+import AddSkuModal from "./AddSkuModal/AddSkuModal";
+import EditProductModal from "./EditProductModal/EditProductModal";
 
 // const BASE_URL = `http://localhost:3000`;
 const BASE_URL = `https://api.priceobo.com`;
@@ -798,121 +800,26 @@ function Products() {
         newProduct={newProduct}
       ></CreateProductModal>
 
-      <Modal show={isSkuModalOpen} onHide={() => setSkuModalOpen(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add SKUs</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>SKU</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter SKU"
-                name="sku"
-                value={newSku.sku}
-                onChange={(e) => setNewSku({ ...newSku, sku: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>UOM</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter UOM"
-                name="uom"
-                value={newSku.uom}
-                onChange={(e) => setNewSku({ ...newSku, uom: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Or Upload Excel</Form.Label>
-              <Form.Control
-                type="file"
-                accept=".xlsx"
-                onChange={handleExcelUpload}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setSkuModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleAddSku}>
-            Submit
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* add skus modal */}
+
+      <AddSkuModal
+        isSkuModalOpen={isSkuModalOpen}
+        setSkuModalOpen={setSkuModalOpen}
+        newSku={newSku}
+        setNewSku={setNewSku}
+        handleExcelUpload={handleExcelUpload}
+        handleAddSku={handleAddSku}
+      ></AddSkuModal>
 
       {/* Edit Product Modal */}
-      <Modal show={isEditModalOpen} onHide={() => setEditModalOpen(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Product</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product name"
-                name="name"
-                value={editProduct.name}
-                onChange={(e) =>
-                  setEditProduct({ ...editProduct, name: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Title</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product title"
-                name="title"
-                value={editProduct.title}
-                onChange={(e) =>
-                  setEditProduct({ ...editProduct, title: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Image URL</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product image URL"
-                name="imageUrl"
-                value={editProduct.imageUrl}
-                onChange={(e) =>
-                  setEditProduct({ ...editProduct, imageUrl: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Cost</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter product cost"
-                name="cost"
-                value={editProduct.cost}
-                onChange={(e) =>
-                  setEditProduct({ ...editProduct, cost: e.target.value })
-                }
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setEditModalOpen(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleEditProduct}>
-            Save Changes
-          </Button>
-          <Button variant="danger" onClick={handleDeleteProduct}>
-            Delete Product
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <EditProductModal
+        isEditModalOpen={isEditModalOpen}
+        setEditModalOpen={setEditModalOpen}
+        editProduct={editProduct}
+        setEditProduct={setEditProduct}
+        handleEditProduct={handleEditProduct}
+        handleDeleteProduct={handleDeleteProduct}
+      ></EditProductModal>
 
       <EditSkuModal
         isModal={isModal}

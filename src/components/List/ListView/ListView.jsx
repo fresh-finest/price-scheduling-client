@@ -422,6 +422,7 @@ const ListView = () => {
     });
 
     setCurrentPage(1);
+    fetchProducts(1);
   };
 
   const handleClearFbaFbmSearch = () => {

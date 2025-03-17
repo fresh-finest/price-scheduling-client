@@ -1,20 +1,20 @@
-.edit-sku-modal {
+.add-sku-modal {
   /* position: relative; */
 
-  max-width: 40vw;
+  max-width: 35vw;
 }
-.edit-sku-modal .modal-body {
+.add-sku-modal .modal-body {
   z-index: 1050 !important;
 }
 
-.edit-sku-modal .modal-content {
+.add-sku-modal .modal-content {
   height: 50vh; /*modal height */
   overflow-y: auto;
 }
-.edit-sku-modal .modal-header {
+.add-sku-modal .modal-header {
   border: 0;
 }
-.edit-sku-modal .modal-header button {
+.add-sku-modal .modal-header button {
   position: absolute;
   top: 12px;
   right: 12px;

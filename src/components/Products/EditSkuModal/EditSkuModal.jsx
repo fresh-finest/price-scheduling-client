@@ -59,11 +59,31 @@ const EditSkuModal = ({
           </Form.Group>
         </Form>
       </Modal.Body>
+
       <Modal.Footer>
-        <Button variant="danger" onClick={handleCancelSku}>
+        <Button
+          className="text-sm flex items-center gap-1 "
+          style={{
+            padding: "8px 20px",
+            border: "none",
+            backgroundColor: "#d33 ",
+            borderRadius: "3px",
+          }}
+          variant="secondary"
+          onClick={handleCancelSku}
+        >
           Cancel SKU
         </Button>
-        <Button variant="primary" onClick={handleReplaceSku}>
+        <Button
+          className="text-sm flex items-center gap-1 "
+          style={{
+            padding: "8px 20px",
+            border: "none",
+            backgroundColor: "#0662BB",
+            borderRadius: "3px",
+          }}
+          onClick={handleReplaceSku}
+        >
           Replace SKU
         </Button>
       </Modal.Footer>
