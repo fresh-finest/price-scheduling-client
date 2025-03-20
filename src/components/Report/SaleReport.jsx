@@ -21,8 +21,7 @@ import SaleDetailsModal from "./SaleDetailsModal";
 import { RiArrowUpDownFill } from "react-icons/ri";
 
 const { RangePicker } = DatePicker;
-
-
+// const BASE_URL = "http://192.168.0.26:3000";
 const BASE_URL = "https://api.priceobo.com";
 const MONTH_ORDER = [
   "Jan",
@@ -87,9 +86,19 @@ const SaleReport = () => {
     fetchProducts(true);
   }, []);
 
+  // useEffect(() => {
+  //   if (!initialLoading) {
+  //     fetchProducts(false);
+  //   }
+  // }, [page, currentDateRange, previousDateRange]);
+
   useEffect(() => {
     if (!initialLoading) {
-      fetchProducts(false);
+      if (searchTerm) {
+        fetchSearchResults(searchTerm); // Keep the search filter active
+      } else {
+        fetchProducts(false); // Otherwise, fetch all products
+      }
     }
   }, [page, currentDateRange, previousDateRange]);
 
@@ -184,25 +193,42 @@ const SaleReport = () => {
   };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setSortOrder(null); // Reset sorting state
+    setSortedProducts([]); // Clear sorted products
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       fetchSearchResults(searchTerm);
+      setSortOrder(null); // Reset sorting state
+      setSortedProducts([]); // Clear sorted products
     }
   };
 
   const handleSearchButtonClick = () => {
     fetchSearchResults(searchTerm);
+    setSortOrder(null); // Reset sorting state
+    setSortedProducts([]); // Clear sorted products
   };
+
+  // const handleClearInput = () => {
+  //   setSearchTerm("");
+  //   setPage(1);
+  //   setLoading(true);
+
+  //   fetchProducts(false);
+  // };
 
   const handleClearInput = () => {
     setSearchTerm("");
     setPage(1);
+    setSortOrder(null); // Reset sorting state
+    setSortedProducts([]); // Clear sorted products
     setLoading(true);
 
     fetchProducts(false);
   };
+
   const handleSaleDetailsModalShow = (sku) => {
     setSelectedSku(sku);
     setSaleDetailsModalShow(true);
@@ -248,53 +274,56 @@ const SaleReport = () => {
     }
   };
 
+  
+
   const sortProducts = (order) => {
-    const sorted = [...products].sort((a, b) => {
-      const currentUnitsA = calculateUnits(
-        filterMetricsForInterval(
-          a.salesMetrics || [],
-          currentDateRange[0],
-          currentDateRange[1]
-        )
-      );
-      const previousUnitsA = calculateUnits(
-        filterMetricsForInterval(
-          a.salesMetrics || [],
-          previousDateRange[0],
-          previousDateRange[1]
-        )
-      );
-      const percentageChangeA = parseFloat(
-        calculatePercentageChange(currentUnitsA, previousUnitsA)
-      );
+    setSortOrder(order); // Store sorting order in state
 
-      const currentUnitsB = calculateUnits(
-        filterMetricsForInterval(
-          b.salesMetrics || [],
-          currentDateRange[0],
-          currentDateRange[1]
-        )
-      );
-      const previousUnitsB = calculateUnits(
-        filterMetricsForInterval(
-          b.salesMetrics || [],
-          previousDateRange[0],
-          previousDateRange[1]
-        )
-      );
-      const percentageChangeB = parseFloat(
-        calculatePercentageChange(currentUnitsB, previousUnitsB)
-      );
+    setSortedProducts(() => {
+      const sorted = [...products].sort((a, b) => {
+        const currentUnitsA = calculateUnits(
+          filterMetricsForInterval(
+            a.salesMetrics || [],
+            currentDateRange[0],
+            currentDateRange[1]
+          )
+        );
+        const previousUnitsA = calculateUnits(
+          filterMetricsForInterval(
+            a.salesMetrics || [],
+            previousDateRange[0],
+            previousDateRange[1]
+          )
+        );
+        const percentageChangeA = parseFloat(
+          calculatePercentageChange(currentUnitsA, previousUnitsA)
+        );
 
-      if (order === "asc") {
-        return percentageChangeB - percentageChangeA;
-      } else if (order === "desc") {
-        return percentageChangeA - percentageChangeB;
-      }
-      return 0;
+        const currentUnitsB = calculateUnits(
+          filterMetricsForInterval(
+            b.salesMetrics || [],
+            currentDateRange[0],
+            currentDateRange[1]
+          )
+        );
+        const previousUnitsB = calculateUnits(
+          filterMetricsForInterval(
+            b.salesMetrics || [],
+            previousDateRange[0],
+            previousDateRange[1]
+          )
+        );
+        const percentageChangeB = parseFloat(
+          calculatePercentageChange(currentUnitsB, previousUnitsB)
+        );
+
+        return order === "asc"
+          ? percentageChangeB - percentageChangeA
+          : percentageChangeA - percentageChangeB;
+      });
+
+      return sorted;
     });
-
-    setSortedProducts(sorted);
   };
 
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
