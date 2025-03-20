@@ -1,14 +1,14 @@
 .edit-sku-modal {
   /* position: relative; */
 
-  max-width: 40vw;
+  max-width: 25vw;
 }
 .edit-sku-modal .modal-body {
   z-index: 1050 !important;
 }
 
 .edit-sku-modal .modal-content {
-  height: 50vh; /*modal height */
+  height: 35vh; /*modal height */
   overflow-y: auto;
 }
 .edit-sku-modal .modal-header {

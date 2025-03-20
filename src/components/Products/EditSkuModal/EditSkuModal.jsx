@@ -1,6 +1,7 @@
 import { Button, Form, Modal } from "react-bootstrap";
 import "./EditSkuModal.css";
 import { MdOutlineClose } from "react-icons/md";
+import { FiTrash } from "react-icons/fi";
 
 const EditSkuModal = ({
   isModal,
@@ -27,25 +28,35 @@ const EditSkuModal = ({
           <MdOutlineClose className="text-xl" />
         </button>
         <Form>
-          <Form.Group className="my-3">
-            <Form.Control
+          <Form.Group className="my-3 flex justify-center items-center gap-1">
+            {/* <Form.Control
               className="update-custom-input "
               placeholder="Current SKU"
               type="text"
               value={newSku.sku}
               readOnly
               disabled
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
+            /> */}
             <Form.Control
-              className="update-custom-input "
               type="text"
-              placeholder="New SKU (Optional for Replace)"
-              value={newSku.newSku || ""}
+              className="update-custom-input"
+              placeholder="Enter new SKU"
+              value={newSku.newSku || newSku.sku}
               onChange={(e) => setNewSku({ ...newSku, newSku: e.target.value })}
             />
+            <Button
+              className="text-sm rounded-sm flex items-center gap-1 "
+              style={{
+                padding: "10px 11px",
+              }}
+              variant="danger"
+              size="md"
+              onClick={handleCancelSku}
+            >
+              <FiTrash />
+            </Button>
           </Form.Group>
+
           <Form.Group className="mb-3">
             <Form.Control
               className="update-custom-input "
@@ -61,19 +72,6 @@ const EditSkuModal = ({
       </Modal.Body>
 
       <Modal.Footer>
-        <Button
-          className="text-sm flex items-center gap-1 "
-          style={{
-            padding: "8px 20px",
-            border: "none",
-            backgroundColor: "#d33 ",
-            borderRadius: "3px",
-          }}
-          variant="secondary"
-          onClick={handleCancelSku}
-        >
-          Cancel SKU
-        </Button>
         <Button
           className="text-sm flex items-center gap-1 "
           style={{

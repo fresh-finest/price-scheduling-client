@@ -28,6 +28,7 @@
     "antd": "^5.22.2",
     "axios": "^1.7.2",
     "bootstrap": "^5.3.3",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

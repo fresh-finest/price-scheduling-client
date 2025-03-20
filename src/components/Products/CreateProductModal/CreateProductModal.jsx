@@ -46,7 +46,7 @@ const CreateProductModal = ({
               onChange={handleInputChange}
             />
           </Form.Group>
-          <Form.Group className="mb-3">
+          {/* <Form.Group className="mb-3">
             <Form.Control
               className="update-custom-input"
               type="text"
@@ -55,7 +55,7 @@ const CreateProductModal = ({
               value={newProduct.imageUrl}
               onChange={handleInputChange}
             />
-          </Form.Group>
+          </Form.Group> */}
           <Form.Group className="mb-3">
             <Form.Control
               className="update-custom-input"

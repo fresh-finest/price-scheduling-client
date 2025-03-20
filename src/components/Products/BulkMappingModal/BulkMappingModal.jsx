@@ -3,7 +3,9 @@ import "./BulkMappingModal.css";
 import { MdOutlineClose } from "react-icons/md";
 import { Tooltip } from "antd";
 import { BsFillInfoSquareFill } from "react-icons/bs";
-import skuImage from "../../../assets/images/skus.png";
+import bulkSkuImage from "../../../assets/images/bulk_sku.png";
+import * as XLSX from "xlsx";
+import { TbFileDownload } from "react-icons/tb";
 const BulkMappingModal = ({
   isBulkModalOpen,
   setBulkModalOpen,
@@ -11,6 +13,20 @@ const BulkMappingModal = ({
   handleBulkSkuMapping,
   isLoading,
 }) => {
+  const handleDownloadTemplate = () => {
+    // Define headers
+    const headers = [["name", "sku", "uom"]];
+
+    // Create a worksheet with headers
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+
+    // Create a workbook and append the worksheet
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "SKU_Template");
+
+    // Write the Excel file and trigger the download
+    XLSX.writeFile(wb, "skus.xlsx");
+  };
   return (
     <Modal
       show={isBulkModalOpen}
@@ -39,11 +55,11 @@ const BulkMappingModal = ({
                       Supported formats: <strong>.xlsx</strong>
                     </p>
                     <p className="text-base">
-                      Please ensure the file contains valid SKUs in the first
+                      Please ensure the file contains valid SKUs in the second
                       column.
                     </p>
                     <img
-                      src={skuImage}
+                      src={bulkSkuImage}
                       alt="Information Screenshot"
                       style={{
                         maxWidth: "100%",
@@ -57,6 +73,10 @@ const BulkMappingModal = ({
               >
                 <BsFillInfoSquareFill className="text-[#0D6EFD] hover:cursor-pointer" />
               </Tooltip>
+
+              <button type="button" onClick={handleDownloadTemplate}>
+                <TbFileDownload className="text-xl" />
+              </button>
             </div>
             <Form.Control
               type="file"
