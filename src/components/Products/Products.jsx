@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, InputGroup } from "react-bootstrap";
 import readXlsxFile from "read-excel-file";
 import { IoIosArrowForward, IoMdAdd } from "react-icons/io";
 import { PenLine } from "lucide-react";
@@ -9,9 +9,11 @@ import {
   bulkmapSku,
   createProduct,
   deleteProduct,
+  fetchGroupSaleReport,
   fetchProduct,
   fetchProductBySku,
   fetchSingleProduct,
+  searchProduct,
   updateSingleProduct,
   updateSku,
 } from "@/api/product";
@@ -20,9 +22,85 @@ import EditSkuModal from "./EditSkuModal/EditSkuModal";
 import BulkMappingModal from "./BulkMappingModal/BulkMappingModal";
 import AddSkuModal from "./AddSkuModal/AddSkuModal";
 import EditProductModal from "./EditProductModal/EditProductModal";
+import { RxCross1 } from "react-icons/rx";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { Bar } from "react-chartjs-2";
+import { MdOutlineClose } from "react-icons/md";
+import { HiMagnifyingGlass } from "react-icons/hi2";
+import { GoGraph } from "react-icons/go";
 // const BASE_URL = `http://localhost:3000`;
 const BASE_URL = `https://api.priceobo.com`;
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels
+);
+// SalesGraph component renders the sales data graph for the last 30 days
+const SalesGraph = ({ saleReportData }) => {
+  // Calculate the date 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  // Filter the data to only include dates within the last 30 days
+  const filteredData = saleReportData.filter((report) => {
+    const reportDate = new Date(report._id);
+    return reportDate >= thirtyDaysAgo;
+  });
+
+  // Sort the filtered data by date (ascending)
+  filteredData.sort((a, b) => new Date(a._id) - new Date(b._id));
+
+  // Create labels and data points from the filtered data
+  const labels = filteredData.map((report) => report._id);
+  const dataPoints = filteredData.map((report) => report.totalSales);
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Total Sales",
+        data: dataPoints,
+        // backgroundColor: "rgba(75,192,192,0.4)",
+        backgroundColor: "rgba(42, 156, 143,1.0)",
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: { position: "top" },
+      title: { display: true, text: "Sales Units vs Date (Last 30 Days)" },
+      datalabels: {
+        anchor: "end",
+        align: "top",
+        color: "black",
+        font: {
+          weight: "bold",
+          size: 10,
+        },
+        formatter: (value) => value,
+      },
+    },
+  };
+
+  return <Bar data={data} options={options} />;
+};
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -37,6 +115,12 @@ function Products() {
   const [isBulkModalOpen, setBulkModalOpen] = useState(false);
   const [bulkData, setBulkData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalSales, setTotalSales] = useState(0);
+  const [saleReportData, setSaleReportData] = useState([]);
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [editProduct, setEditProduct] = useState({
     name: "",
     title: "",
@@ -50,6 +134,24 @@ function Products() {
     imageUrl: "",
     cost: 0,
   });
+
+  const drawerRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (drawerRef.current && !drawerRef.current.contains(event.target)) {
+        setIsDrawerOpen(false);
+      }
+    };
+
+    if (isDrawerOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDrawerOpen]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -113,6 +215,60 @@ function Products() {
     setNewProduct((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchSubmit = async () => {
+    if (!searchTerm.trim()) return;
+    setIsSearching(true);
+    try {
+      // const response = await axios.get(`http://localhost:3000/api/group/search`, {
+      //   params: { uid: searchTerm.trim() },
+      // });
+      const response = await searchProduct(searchTerm.trim());
+      const groupProducts = response.data.result;
+
+      const productsWithDetails = await Promise.all(
+        groupProducts.map(async (product) => {
+          const skuDetails = await Promise.all(
+            product.skus.map(async (sku) => {
+              const skuResponse = await fetchProductBySku(sku.sku);
+              return {
+                ...skuResponse.data.data,
+                uom: sku.uom,
+              };
+            })
+          );
+
+          const totalStock = skuDetails.reduce(
+            (sum, sku) => sum + sku.stock,
+            0
+          );
+          let minPrice = Math.min(...skuDetails.map((sku) => sku.price));
+          if (minPrice === Infinity) minPrice = 0;
+
+          return {
+            id: product._id,
+            imageUrl: product.imageUrl,
+            name: product.name,
+            title: product.title,
+            avgCost: product.cost,
+            price: minPrice,
+            stock: totalStock,
+            skus: skuDetails,
+          };
+        })
+      );
+
+      setProducts(productsWithDetails);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   const handleCreateProduct = async () => {
     try {
       const response = await createProduct(newProduct);
@@ -134,6 +290,11 @@ function Products() {
       console.error("Error creating product:", error);
       alert("Failed to create product.");
     }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    window.location.reload(); // or call the original fetchProducts()
   };
 
   const handleAddSku = async () => {
@@ -219,6 +380,20 @@ function Products() {
     }
   };
 
+  const handleOpenSalesGraph = async (groupId, product) => {
+    try {
+      const response = await fetchGroupSaleReport(groupId);
+      const saleReports = response.data.data.saleReports;
+      setSaleReportData(saleReports);
+      setTotalSales(response.data.data.sumOfTotalSales);
+      setSelectedProductDetails(product);
+      setIsDrawerOpen(true);
+    } catch (error) {
+      console.error("Error fetching sales report data:", error);
+      alert("Failed to fetch sales report data.");
+    }
+  };
+
   const handleEditProduct = async () => {
     try {
       await updateSingleProduct(selectedProductId, editProduct);
@@ -294,9 +469,9 @@ function Products() {
       <div
         style={{
           display: "flex",
-
+          justifyContent: "end",
           alignItems: "center",
-          marginBottom: "20px",
+          marginBottom: "10px",
           gap: "20px",
         }}
       >
@@ -326,6 +501,64 @@ function Products() {
           Bulk Map SKUs
         </Button>
       </div>
+
+      <div>
+        <InputGroup className="max-w-[500px]  z-0 absolute top-[30px]">
+          <Form.Control
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="custom-input"
+            placeholder="Search by Name or Title"
+            style={{ borderRadius: "0px" }}
+          />
+
+          <button
+            className="px-3 py-2 bg-gray-300"
+            onClick={handleSearchSubmit}
+            disabled={isSearching}
+          >
+            <HiMagnifyingGlass />
+          </button>
+          {searchTerm && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-12 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+            >
+              <MdOutlineClose />
+            </button>
+          )}
+        </InputGroup>
+      </div>
+      {/* 
+      <div>
+        <InputGroup className="max-w-[500px] mt-[15px] z-0">
+          <Form.Control
+            type="text"
+            placeholder="Search by Product Name, Asin or SKU..."
+            value={searchTerm}
+            onChange={handleSearch}
+            onKeyDown={handleKeyDown}
+            style={{ borderRadius: "0px" }}
+            className="custom-input"
+          />
+          {searchTerm && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-12 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+            >
+              <MdOutlineClose />
+            </button>
+          )}
+          <button
+            className="px-3 py-2 bg-gray-300"
+            onClick={handleSearchSubmit}
+            disabled={isSearching}
+          >
+            <HiMagnifyingGlass />
+          </button>
+        </InputGroup>
+      </div> */}
 
       <table
         style={{
@@ -471,7 +704,10 @@ function Products() {
                       objectFit: "contain",
                       margin: "0 auto",
                     }}
-                    src={product.imageUrl || ""}
+                    src={
+                      product.imageUrl ||
+                      (product.skus.length > 0 ? product.skus[0].imageUrl : "")
+                    }
                     alt=""
                   />
                 </td>
@@ -570,6 +806,18 @@ function Products() {
                       }}
                     >
                       <PenLine size={16} className="text-white" />
+                    </Button>
+                    <Button
+                      style={{
+                        padding: "5px 9px",
+                        border: "none",
+                        backgroundColor: "#0662BB",
+                        borderRadius: "3px",
+                      }}
+                      onClick={() => handleOpenSalesGraph(product.id, product)}
+                    >
+                      {/* View Details */}
+                      <GoGraph size={16} className="text-white" />
                     </Button>
                   </div>
                 </td>
@@ -836,6 +1084,56 @@ function Products() {
         handleBulkSkuMapping={handleBulkSkuMapping}
         isLoading={isLoading}
       ></BulkMappingModal>
+
+      {isDrawerOpen && (
+        <div
+          ref={drawerRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            width: "1000px",
+            height: "100%",
+            backgroundColor: "#fff",
+            borderLeft: "1px solid #ccc",
+
+            padding: "20px",
+            overflowY: "auto",
+            boxShadow: "-2px 0 5px rgba(0,0,0,0.3)",
+            zIndex: 1000,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              onClick={() => setIsDrawerOpen(false)}
+              className="mt-2 bg-white"
+              style={{
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                padding: "5px",
+              }}
+            >
+              <RxCross1
+                style={{
+                  backgroundColor: "white",
+                  color: "black",
+                  fontSize: "20px",
+                }}
+              />
+            </Button>
+          </div>
+          {selectedProductDetails && (
+            <div style={{ marginBottom: "20px" }}>
+              <h4>{selectedProductDetails.name}</h4>
+              <p>{selectedProductDetails.title}</p>
+            </div>
+          )}
+          <h3>Sales Report</h3>
+          <h4>Total Sales: {totalSales} units</h4>
+          <SalesGraph saleReportData={saleReportData} />
+        </div>
+      )}
     </div>
   );
 }

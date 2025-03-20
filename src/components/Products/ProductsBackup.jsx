@@ -1,8 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
+import { MdDownload } from "react-icons/md";
+
 import axios from "axios";
 import { Modal, Button, Form } from "react-bootstrap";
 import readXlsxFile from "read-excel-file";
 import { RxCross1 } from "react-icons/rx";
+import * as XLSX from "xlsx";
 import {
   addSku,
   bulkmapSku,
@@ -12,6 +15,7 @@ import {
   fetchProduct,
   fetchProductBySku,
   fetchSingleProduct,
+  searchProduct,
   updateSingleProduct,
   updateSku,
 } from "@/api/product";
@@ -87,6 +91,14 @@ const SalesGraph = ({ saleReportData }) => {
   };
 
   return <Bar data={data} options={options} />;
+};
+
+const downloadTemplate = () => {
+  const wsData = [["name", "sku", "uom"]]; // Column headers only
+  const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "SKUs");
+  XLSX.writeFile(workbook, "skus.xlsx");
 };
 
 function Products() {
@@ -313,21 +325,17 @@ function Products() {
 
   const handleReplaceSku = async () => {
     try {
-      if (!newSku.newSku) {
-        alert("Please enter a valid new SKU for replacement.");
-        return;
-      }
       if (!newSku.uom) {
         alert("Please enter a valid UOM for replacement.");
         return;
       }
 
-      const body = { sku: newSku.sku, newSku: newSku.newSku, uom: newSku.uom };
+      const body = { sku: newSku.sku, newSku: newSku.sku, uom: newSku.uom };
 
       console.log(body);
       // await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
       await updateSku(selectedProductId, body);
-      alert("SKU replaced successfully!");
+      alert("SKU updated successfully!");
       window.location.reload();
       // Close modal and refresh product list
       setSkuModalOpen(false);
@@ -336,7 +344,6 @@ function Products() {
       window.location.reload();
     } catch (error) {
       console.error("Error replacing SKU:", error);
-      alert("Failed to replace SKU. Please try again later.");
     }
   };
 
@@ -466,6 +473,67 @@ function Products() {
       alert("Failed to fetch sales report data.");
     }
   };
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+  const handleSearchSubmit = async () => {
+    if (!searchTerm.trim()) return;
+    setIsSearching(true);
+    try {
+      // const response = await axios.get(`http://localhost:3000/api/group/search`, {
+      //   params: { uid: searchTerm.trim() },
+      // });
+      const response = await searchProduct(searchTerm.trim());
+      const groupProducts = response.data.result;
+
+      const productsWithDetails = await Promise.all(
+        groupProducts.map(async (product) => {
+          const skuDetails = await Promise.all(
+            product.skus.map(async (sku) => {
+              const skuResponse = await fetchProductBySku(sku.sku);
+              return {
+                ...skuResponse.data.data,
+                uom: sku.uom,
+              };
+            })
+          );
+
+          const totalStock = skuDetails.reduce(
+            (sum, sku) => sum + sku.stock,
+            0
+          );
+          let minPrice = Math.min(...skuDetails.map((sku) => sku.price));
+          if (minPrice === Infinity) minPrice = 0;
+
+          return {
+            id: product._id,
+            imageUrl: product.imageUrl,
+            name: product.name,
+            title: product.title,
+            avgCost: product.cost,
+            price: minPrice,
+            stock: totalStock,
+            skus: skuDetails,
+          };
+        })
+      );
+
+      setProducts(productsWithDetails);
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    window.location.reload(); // or call the original fetchProducts()
+  };
+
   return (
     <div className="mt-5 ml-5">
       <div
@@ -488,6 +556,31 @@ function Products() {
         </Button>
       </div>
 
+      <div style={{ marginBottom: "15px" }}>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search by Name or Title"
+          style={{ padding: "6px 10px", width: "250px", marginRight: "10px" }}
+        />
+        <Button
+          variant="primary"
+          onClick={handleSearchSubmit}
+          disabled={isSearching}
+        >
+          {isSearching ? "Searching..." : "Search"}
+        </Button>
+        {searchTerm && (
+          <Button
+            variant="outline-secondary"
+            style={{ marginLeft: "10px" }}
+            onClick={handleClearSearch}
+          >
+            Clear
+          </Button>
+        )}
+      </div>
       {/* Create Product Modal */}
       <Modal show={isModalOpen} onHide={() => setModalOpen(false)}>
         <Modal.Header closeButton>
@@ -710,6 +803,13 @@ function Products() {
       <Modal show={isBulkModalOpen} onHide={() => setBulkModalOpen(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Bulk Map SKUs</Modal.Title>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={downloadTemplate}
+          >
+            <MdDownload />
+          </Button>
         </Modal.Header>
         <Modal.Body>
           <Form>
