@@ -15,7 +15,6 @@ const PriceVsCount = ({
   identifierType,
   scheduleSalesData,
 }) => {
-  
   const totalUnitCount = salesData.reduce(
     (sum, data) => sum + data.unitCount,
     0
@@ -23,31 +22,31 @@ const PriceVsCount = ({
   const formattedTotalUnitCount = totalUnitCount.toLocaleString();
   return (
     <Card className="mt-1 relative ">
-      <div className="absolute top-1 right-[5.8%]">
-        <Button
-          className={` ${
-            identifierType === "sku"
-              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-              : ""
-          }`}
-          onClick={() => handleIdentifierTypeChange("sku")}
-          variant="outline"
-        >
-          SKU
-        </Button>
-      </div>
-      <div className="absolute top-1 right-2">
-        <Button
-          className={` ${
-            identifierType === "asin"
-              ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
-              : ""
-          }`}
-          onClick={() => handleIdentifierTypeChange("asin")}
-          variant="outline"
-        >
-          ASIN
-        </Button>
+      <div className="absolute top-1 right-[1%]">
+        <div className="flex gap-2">
+          <Button
+            className={` ${
+              identifierType === "sku"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
+            onClick={() => handleIdentifierTypeChange("sku")}
+            variant="outline"
+          >
+            SKU
+          </Button>
+          <Button
+            className={` ${
+              identifierType === "asin"
+                ? "bg-[#007BFF] text-white hover:bg-[#007BFF] border-[#007BFF]"
+                : ""
+            }`}
+            onClick={() => handleIdentifierTypeChange("asin")}
+            variant="outline"
+          >
+            ASIN
+          </Button>
+        </div>
       </div>
 
       <SalesDetailsBarChart

@@ -15,7 +15,7 @@ import {
   MdOutlineArrowBackIos,
   MdOutlineClose,
 } from "react-icons/md";
-import { BsClipboardCheck,BsFillInfoSquareFill} from "react-icons/bs";
+import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
 import ScheduleVsCount from "./ScheduleVsCount";
@@ -25,6 +25,8 @@ import dayjs from "dayjs";
 import "./SaleDetails.css";
 import SaleDetailsProductDetailSkeleton from "../LoadingSkeleton/SaleDetailsProductDetailSkeleton";
 import AutomatePrice from "../Automation/AutomatePrice";
+import PriceVSCountPieChart from "./PriceVSCountPieChart";
+import SalesPieChart from "../Graph/SalesPieChart";
 const { RangePicker } = DatePicker;
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -81,7 +83,6 @@ const SaleDetailsModal = ({
     }
   };
 
-  console.log("has automation", hasAutomation);
   const fetchSalesMetrics = async () => {
     if (!identifier) return;
 
@@ -94,7 +95,7 @@ const SaleDetailsModal = ({
 
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
-        params.startDate = moment(startDate).add(1,'day').format("YYYY-MM-DD");
+        params.startDate = moment(startDate).format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
       }
@@ -155,9 +156,7 @@ const SaleDetailsModal = ({
     setError(null);
     const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(
-        `${BASE_URL}/list/${encodedSku}`
-      );
+      const response = await axios.get(`${BASE_URL}/list/${encodedSku}`);
       const price = response?.data?.offerAmount;
 
       setProductPrice(price);
@@ -412,25 +411,41 @@ const SaleDetailsModal = ({
                 )}
               </div>
             </div>
+
             <div className="mt-1">
               {salesChartloading ? (
-                <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
+                <ChartsLoadingSkeleton />
               ) : (
-                <PriceVsCount
-                  handleViewChange={handleViewChange}
-                  view={view}
-                  salesData={salesData}
-                  showTable={showTable}
-                  setShowTable={setShowTable}
-                  startDate={startDate}
-                  endDate={endDate}
-                  formatDate={formatDate}
-                  handleIdentifierTypeChange={handleIdentifierTypeChange}
-                  identifierType={identifierType}
-                  scheduleSalesData={scheduleSalesData}
-                ></PriceVsCount>
+                <div className={`flex gap-4`}>
+                  <div className={`${view === "month" ? "w-[70%]" : "w-full"}`}>
+                    <PriceVsCount
+                      handleViewChange={handleViewChange}
+                      view={view}
+                      salesData={salesData}
+                      showTable={showTable}
+                      setShowTable={setShowTable}
+                      startDate={startDate}
+                      endDate={endDate}
+                      formatDate={formatDate}
+                      handleIdentifierTypeChange={handleIdentifierTypeChange}
+                      identifierType={identifierType}
+                      scheduleSalesData={scheduleSalesData}
+                    />
+                  </div>
+
+                  {view === "month" && (
+                    <div className="w-[30%] ">
+                      <PriceVSCountPieChart
+                        salesData={salesData}
+                        view={view}
+                        identifierType={identifierType}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
+
             <div>
               {schduleChartLoading ? (
                 <ChartsLoadingSkeleton></ChartsLoadingSkeleton>
