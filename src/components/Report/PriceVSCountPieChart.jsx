@@ -32,7 +32,7 @@ const renderCustomizedLabel = ({
   index,
 }) => {
   const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -72,7 +72,7 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
             data={pieData}
             cx="50%"
             cy="50%"
-            outerRadius={100}
+            outerRadius={160}
             label={renderCustomizedLabel}
             labelLine={false}
             dataKey="value"

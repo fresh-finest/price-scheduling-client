@@ -133,20 +133,6 @@ const SaleReport = () => {
       });
   }, []);
 
-  // const fetchSearchResults = async (query) => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.get(
-  //       `${BASE_URL}/api/favourite/find/${query}`
-  //     );
-  //     setProducts(response.data.data.listings);
-  //     setTotalPages(response.data.data.totalPages || 1);
-  //   } catch (error) {
-  //     console.error("Search API Error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const fetchSearchResults = async (query, mode = isAsinMode) => {
     setLoading(true);
 
@@ -164,32 +150,6 @@ const SaleReport = () => {
       setLoading(false);
     }
   };
-
-  // const fetchProducts = async (isInitialLoad) => {
-  //   if (!isInitialLoad) {
-  //     setLoading(true);
-  //   }
-
-  //   try {
-  //     const response = await axios.get(
-  //       `${BASE_URL}/api/favourite/report/asins`,
-  //       {
-  //         params: { page, limit: 20 },
-  //       }
-  //     );
-
-  //     setProducts(response.data.data.listings);
-  //     setTotalPages(response.data.data.totalPages || 1);
-  //   } catch (error) {
-  //     console.error("Error fetching products:", error);
-  //   } finally {
-  //     if (!isInitialLoad) {
-  //       setLoading(false);
-  //     } else {
-  //       setInitialLoading(false);
-  //     }
-  //   }
-  // };
 
   const fetchProducts = async (isInitialLoad, mode = isAsinMode) => {
     if (!isInitialLoad) setLoading(true);

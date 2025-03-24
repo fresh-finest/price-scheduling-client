@@ -85,7 +85,7 @@ const SaleReportPieChart = ({
               outerRadius={100}
               fill="#8884d8"
               label={renderCustomLabel}
-              labelLine={false} // Hides the label lines
+              labelLine={false}
               isAnimationActive={true}
             >
               {chartData.map((entry, index) => (
