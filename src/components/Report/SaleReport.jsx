@@ -256,7 +256,7 @@ const SaleReport = () => {
   };
 
   const onChange = (checked) => {
-    console.log(`switch to ${checked}`);
+    // console.log(`switch to ${checked}`);
   };
 
   const handleClearInput = () => {

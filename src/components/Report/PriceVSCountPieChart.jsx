@@ -52,7 +52,7 @@ import {
   };
   
   const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
-    console.log("piechart data", salesData, view);
+
     if (view !== "month" || !salesData.length) return null;
   
     const totalUnits = salesData.reduce((sum, item) => sum + item.unitCount, 0);
@@ -61,7 +61,7 @@ import {
       value: parseFloat(((item.unitCount / totalUnits) * 100).toFixed(2)),
     }));
   
-    console.log("Rendering Pie Chart", pieData);
+
   
     return (
       <Card className="w-full flex justify-end  ">
