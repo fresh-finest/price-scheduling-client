@@ -166,7 +166,7 @@ function Products() {
           groupProducts.map(async (product) => {
             const skuDetails = await Promise.all(
               product.skus.map(async (sku) => {
-                console.log(sku);
+              
                 const skuResponse = await fetchProductBySku(sku.sku);
                 return {
                   ...skuResponse.data.data,
@@ -231,13 +231,14 @@ function Products() {
           cost: 0,
         });
         // Refresh the product list after adding a new product
-        const fetchProducts = await axios.get(`${BASE_URL}/api/group`);
+        // const fetchProducts = await axios.get(`${BASE_URL}/api/group`);
+        const fetchProducts = await fetchProduct();
         setProducts(fetchProducts.data.result);
         window.location.reload();
       }
     } catch (error) {
       console.error("Error creating product:", error);
-      alert("Failed to create product.");
+     
     }
   };
 
@@ -335,7 +336,7 @@ function Products() {
 
       const body = { sku: newSku.sku, newSku: newSku.sku, uom: newSku.uom };
 
-      console.log(body);
+
       // await axios.put(`${BASE_URL}/api/group/${selectedProductId}/sku`, body);
       await updateSku(selectedProductId, body);
       alert("SKU updated successfully!");
@@ -367,7 +368,8 @@ function Products() {
 
       // Close modal and refresh product list
       setSkuModalOpen(false);
-      const response = await axios.get(`${BASE_URL}/api/group`);
+      // const response = await axios.get(`${BASE_URL}/api/group`);
+      const response = await fetchProduct();
       setProducts(response.data.result);
       window.location.reload();
     } catch (error) {

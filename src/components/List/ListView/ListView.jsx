@@ -16,6 +16,7 @@ import { Button as ShadcdnBtn } from "@/components/ui/button";
 
 import noImage from "../../../assets/images/noimage.png";
 
+// const BASE_URL = `http://localhost:3000`;
 
 const BASE_URL = `https://api.priceobo.com`;
 

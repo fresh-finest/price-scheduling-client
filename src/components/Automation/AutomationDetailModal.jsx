@@ -308,7 +308,19 @@ const AutomationDetailModal = ({
                 <th
                   className="tableHeader"
                   style={{
-                    width: "130px",
+                    width: "70px",
+                    position: "sticky",
+                    textAlign: "center",
+                    verticalAlign: "middle",
+                    borderRight: "2px solid #C3C6D4",
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  className="tableHeader"
+                  style={{
+                    width: "100px",
                     position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -320,7 +332,7 @@ const AutomationDetailModal = ({
                 <th
                   className="tableHeader"
                   style={{
-                    width: "350px",
+                    width: "320px",
                     position: "sticky",
                     textAlign: "center",
                     verticalAlign: "middle",
@@ -402,7 +414,27 @@ const AutomationDetailModal = ({
               {productData.length > 0 ? (
                 productData.map((data, index) => {
                   return (
-                    <tr key={index}>
+                    <tr
+                      key={index}               
+                      className={
+                        data.status === "Inactive" ? "inactive-row" : ""
+                      }
+                      style={{
+                        opacity: data.status === "Inactive" ? 0.6 : 1,
+                      }}
+                    >
+                      <td
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          height: "40px",
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        {data.status}
+                      </td>
                       <td
                         style={{
                           whiteSpace: "nowrap",

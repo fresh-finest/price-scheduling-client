@@ -9,8 +9,9 @@ import axios from "axios";
 import { Button as ShadCdnButton } from "@/components/ui/button";
 import Swal from "sweetalert2";
 // import { BASE_URL } from "@/utils/baseUrl";
-// const BASE_URL = "http://192.168.0.102:3000";
+
 const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://localhost:3000`;
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,

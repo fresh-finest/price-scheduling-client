@@ -11,6 +11,7 @@ import { ClipLoader } from "react-spinners";
 // import { BASE_URL } from "@/utils/baseUrl";
 
 const BASE_URL = `https://api.priceobo.com`
+// const BASE_URL =`http://localhost:3000`;
 
 
 const AutomationSelectProductModal = ({
