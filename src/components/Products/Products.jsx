@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Modal, Button, Form, InputGroup } from "react-bootstrap";
+import { Button, Form, InputGroup } from "react-bootstrap";
 import readXlsxFile from "read-excel-file";
 import { IoIosArrowForward, IoMdAdd } from "react-icons/io";
 import { PenLine } from "lucide-react";
@@ -560,484 +560,495 @@ function Products() {
         </InputGroup>
       </div> */}
 
-      <table
+      <section
         style={{
-          tableLayout: "fixed",
+          maxHeight: "85vh",
+          overflowY: "auto",
         }}
-        className="reportCustomTable table"
       >
-        <thead
+        <table
           style={{
-            backgroundColor: "#f0f0f0",
-            color: "#333",
-            fontFamily: "Arial, sans-serif",
-            fontSize: "14px",
+            tableLayout: "fixed",
           }}
+          className="reportCustomTable table"
         >
-          <tr>
-            <th
-              className="tableHeader"
-              style={{
-                width: "60px",
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            ></th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            >
-              Image
-            </th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            >
-              Name
-            </th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            >
-              Title
-            </th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            >
-              Avg Cost
-            </th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            >
-              Price
-            </th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-                borderRight: "2px solid #C3C6D4",
-              }}
-            >
-              Stock
-            </th>
-            <th
-              className="tableHeader"
-              style={{
-                position: "sticky",
-                textAlign: "center",
-                verticalAlign: "middle",
-              }}
-            >
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody
-          style={{
-            fontSize: "12px",
-            fontFamily: "Arial, sans-serif",
-            lineHeight: "1.5",
-          }}
-        >
-          {products.map((product) => (
-            <React.Fragment key={product.id}>
-              <tr>
-                <td
-                  style={{
-                    height: "40px",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  <IoIosArrowForward
-                    onClick={() => toggleRowExpansion(product.id)}
-                    className={` text-base transition-all cursor-pointer duration-300 ${
-                      expandedRows[product.id] ? "rotate-90" : ""
-                    }`}
-                  ></IoIosArrowForward>
-                </td>
-                <td
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    height: "40px",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  <img
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      objectFit: "contain",
-                      margin: "0 auto",
-                    }}
-                    src={
-                      product.imageUrl ||
-                      (product.skus.length > 0 ? product.skus[0].imageUrl : "")
-                    }
-                    alt=""
-                  />
-                </td>
-                <td
-                  style={{
-                    padding: "15px 0",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  {product.name}
-                </td>
-                <td
-                  style={{
-                    padding: "15px 0",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  {product.title}
-                </td>
-                <td
-                  style={{
-                    padding: "15px 0",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  ${product.avgCost}
-                </td>
-                <td
-                  style={{
-                    padding: "15px 0",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  ${product.price ? product.price : 0}
-                </td>
-                <td
-                  style={{
-                    padding: "15px 0",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  {product.stock}
-                </td>
-                <td
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    height: "40px",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                  }}
-                >
-                  <div className="flex justify-center items-center gap-1">
-                    <Button
-                      onClick={() => {
-                        setSelectedProductId(product.id);
-                        setSkuModalOpen(true);
-                      }}
-                      className="text-xs flex items-center gap-1 "
-                      style={{
-                        padding: "5px 9px",
-                        border: "none",
-                        backgroundColor: "#0662BB",
-                        borderRadius: "3px",
-                      }}
-                    >
-                      <IoMdAdd size={15} />
-                      SKU
-                    </Button>
-
-                    <Button
-                      style={{
-                        padding: "5px 9px",
-                        border: "none",
-                        backgroundColor: "#0662BB",
-                        borderRadius: "3px",
-                      }}
-                      onClick={() => {
-                        setSelectedProductId(product.id);
-                        const productToEdit = products.find(
-                          (p) => p.id === product.id
-                        );
-                        setEditProduct({
-                          name: productToEdit.name,
-                          title: productToEdit.title,
-                          imageUrl: productToEdit.imageUrl,
-                          cost: productToEdit.avgCost,
-                        });
-                        setEditModalOpen(true);
-                      }}
-                    >
-                      <PenLine size={16} className="text-white" />
-                    </Button>
-                    <Button
-                      style={{
-                        padding: "5px 9px",
-                        border: "none",
-                        backgroundColor: "#0662BB",
-                        borderRadius: "3px",
-                      }}
-                      onClick={() => handleOpenSalesGraph(product.id, product)}
-                    >
-                      {/* View Details */}
-                      <GoGraph size={16} className="text-white" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-              {expandedRows[product.id] && (
+          <thead
+            style={{
+              backgroundColor: "#f0f0f0",
+              color: "#333",
+              fontFamily: "Arial, sans-serif",
+              fontSize: "14px",
+            }}
+          >
+            <tr>
+              <th
+                className="tableHeader"
+                style={{
+                  width: "60px",
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              ></th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Image
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Name
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Title
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Avg Cost
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Price
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                  borderRight: "2px solid #C3C6D4",
+                }}
+              >
+                Stock
+              </th>
+              <th
+                className="tableHeader"
+                style={{
+                  position: "sticky",
+                  textAlign: "center",
+                  verticalAlign: "middle",
+                }}
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            style={{
+              fontSize: "12px",
+              fontFamily: "Arial, sans-serif",
+              lineHeight: "1.5",
+            }}
+          >
+            {products.map((product) => (
+              <React.Fragment key={product.id}>
                 <tr>
-                  <td colSpan="8">
-                    <table
+                  <td
+                    style={{
+                      height: "40px",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    <IoIosArrowForward
+                      onClick={() => toggleRowExpansion(product.id)}
+                      className={` text-base transition-all cursor-pointer duration-300 ${
+                        expandedRows[product.id] ? "rotate-90" : ""
+                      }`}
+                    ></IoIosArrowForward>
+                  </td>
+                  <td
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      height: "40px",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    <img
                       style={{
-                        tableLayout: "fixed",
+                        width: "50px",
+                        height: "50px",
+                        objectFit: "contain",
+                        margin: "0 auto",
                       }}
-                      className="reportCustomTable table"
-                      width="100%"
-                    >
-                      <thead
+                      src={
+                        product.imageUrl ||
+                        (product.skus.length > 0
+                          ? product.skus[0].imageUrl
+                          : "")
+                      }
+                      alt=""
+                    />
+                  </td>
+                  <td
+                    style={{
+                      padding: "15px 0",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    {product.name}
+                  </td>
+                  <td
+                    style={{
+                      padding: "15px 0",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    {product.title}
+                  </td>
+                  <td
+                    style={{
+                      padding: "15px 0",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    ${product.avgCost}
+                  </td>
+                  <td
+                    style={{
+                      padding: "15px 0",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    ${product.price ? product.price : 0}
+                  </td>
+                  <td
+                    style={{
+                      padding: "15px 0",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    {product.stock}
+                  </td>
+                  <td
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      height: "40px",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    <div className="flex justify-center items-center gap-1">
+                      <Button
+                        onClick={() => {
+                          setSelectedProductId(product.id);
+                          setSkuModalOpen(true);
+                        }}
+                        className="text-xs flex items-center gap-1 "
                         style={{
-                          backgroundColor: "#f0f0f0",
-                          color: "#333",
-                          fontFamily: "Arial, sans-serif",
-                          fontSize: "14px",
+                          padding: "5px 9px",
+                          border: "none",
+                          backgroundColor: "#0662BB",
+                          borderRadius: "3px",
                         }}
                       >
-                        <tr>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              borderRight: "2px solid #C3C6D4",
-                              width: "5%",
-                            }}
-                          >
-                            Image
-                          </th>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              borderRight: "2px solid #C3C6D4",
-                              width: "10%",
-                            }}
-                          >
-                            SKU
-                          </th>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              borderRight: "2px solid #C3C6D4",
-                              width: "16%",
-                            }}
-                          >
-                            Title
-                          </th>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              borderRight: "2px solid #C3C6D4",
-                              width: "5%",
-                            }}
-                          >
-                            UOM
-                          </th>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              borderRight: "2px solid #C3C6D4",
-                              width: "7%",
-                            }}
-                          >
-                            Price
-                          </th>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              borderRight: "2px solid #C3C6D4",
-                              width: "7%",
-                            }}
-                          >
-                            Stock
-                          </th>
-                          <th
-                            className="tableHeader"
-                            style={{
-                              position: "sticky",
-                              textAlign: "center",
-                              verticalAlign: "middle",
-                              width: "10%",
-                            }}
-                          >
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {product.skus.map((sku, index) => (
-                          <tr key={index}>
-                            <td
-                              style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                height: "40px",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              <img
-                                style={{
-                                  width: "30px",
-                                  height: "30px",
-                                  objectFit: "contain",
-                                  margin: "0 auto",
-                                }}
-                                src={sku.imageUrl}
-                                alt="SKU"
-                              />
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              {sku.sku}
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              {sku.title.length > 10
-                                ? `${sku.title.substring(0, 50)}...`
-                                : sku.title}
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              {sku.uom}
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              ${sku.price || 0}
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              {sku.stock}
-                            </td>
-                            <td
-                              style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                height: "40px",
-                                textAlign: "center",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              <div className="flex justify-center items-center gap-1">
-                                <Button
-                                  className="text-xs flex items-center justify-center gap-1 "
-                                  style={{
-                                    padding: "5px 9px",
-                                    border: "none",
-                                    backgroundColor: "#0662BB",
-                                    borderRadius: "3px",
-                                  }}
-                                  onClick={() => {
-                                    setSelectedProductId(product.id);
-                                    setNewSku({ sku: sku.sku, newSku: "" });
-                                    setIsModal(true);
-                                  }}
-                                >
-                                  <PenLine size={15} />
-                                  SKU
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        <IoMdAdd size={15} />
+                        SKU
+                      </Button>
+
+                      <Button
+                        style={{
+                          padding: "5px 9px",
+                          border: "none",
+                          backgroundColor: "#0662BB",
+                          borderRadius: "3px",
+                        }}
+                        onClick={() => {
+                          setSelectedProductId(product.id);
+                          const productToEdit = products.find(
+                            (p) => p.id === product.id
+                          );
+                          setEditProduct({
+                            name: productToEdit.name,
+                            title: productToEdit.title,
+                            imageUrl: productToEdit.imageUrl,
+                            cost: productToEdit.avgCost,
+                          });
+                          setEditModalOpen(true);
+                        }}
+                      >
+                        <PenLine size={16} className="text-white" />
+                      </Button>
+                      <Button
+                        style={{
+                          padding: "5px 9px",
+                          border: "none",
+                          backgroundColor: "#0662BB",
+                          borderRadius: "3px",
+                        }}
+                        onClick={() =>
+                          handleOpenSalesGraph(product.id, product)
+                        }
+                      >
+                        {/* View Details */}
+                        <GoGraph size={16} className="text-white" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
-              )}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+                {expandedRows[product.id] && (
+                  <tr>
+                    <td colSpan="8">
+                      <table
+                        style={{
+                          tableLayout: "fixed",
+                        }}
+                        className="reportCustomTable table"
+                        width="100%"
+                      >
+                        <thead
+                          style={{
+                            backgroundColor: "#f0f0f0",
+                            color: "#333",
+                            fontFamily: "Arial, sans-serif",
+                            fontSize: "14px",
+                          }}
+                        >
+                          <tr>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                borderRight: "2px solid #C3C6D4",
+                                width: "5%",
+                              }}
+                            >
+                              Image
+                            </th>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                borderRight: "2px solid #C3C6D4",
+                                width: "10%",
+                              }}
+                            >
+                              SKU
+                            </th>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                borderRight: "2px solid #C3C6D4",
+                                width: "16%",
+                              }}
+                            >
+                              Title
+                            </th>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                borderRight: "2px solid #C3C6D4",
+                                width: "5%",
+                              }}
+                            >
+                              UOM
+                            </th>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                borderRight: "2px solid #C3C6D4",
+                                width: "7%",
+                              }}
+                            >
+                              Price
+                            </th>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                borderRight: "2px solid #C3C6D4",
+                                width: "7%",
+                              }}
+                            >
+                              Stock
+                            </th>
+                            <th
+                              className="tableHeader"
+                              style={{
+                                position: "sticky",
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                width: "10%",
+                              }}
+                            >
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {product.skus.map((sku, index) => (
+                            <tr key={index}>
+                              <td
+                                style={{
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  height: "40px",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                <img
+                                  style={{
+                                    width: "30px",
+                                    height: "30px",
+                                    objectFit: "contain",
+                                    margin: "0 auto",
+                                  }}
+                                  src={sku.imageUrl}
+                                  alt="SKU"
+                                />
+                              </td>
+                              <td
+                                style={{
+                                  padding: "12px 0",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                {sku.sku}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "12px 0",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                {sku.title.length > 10
+                                  ? `${sku.title.substring(0, 50)}...`
+                                  : sku.title}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "12px 0",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                {sku.uom}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "12px 0",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                ${sku.price || 0}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "12px 0",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                {sku.stock}
+                              </td>
+                              <td
+                                style={{
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  height: "40px",
+                                  textAlign: "center",
+                                  verticalAlign: "middle",
+                                }}
+                              >
+                                <div className="flex justify-center items-center gap-1">
+                                  <Button
+                                    className="text-xs flex items-center justify-center gap-1 "
+                                    style={{
+                                      padding: "5px 9px",
+                                      border: "none",
+                                      backgroundColor: "#0662BB",
+                                      borderRadius: "3px",
+                                    }}
+                                    onClick={() => {
+                                      setSelectedProductId(product.id);
+                                      setNewSku({ sku: sku.sku, newSku: "" });
+                                      setIsModal(true);
+                                    }}
+                                  >
+                                    <PenLine size={15} />
+                                    SKU
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       {/* Create Product Modal */}
       <CreateProductModal

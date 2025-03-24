@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { FaRegStar } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
-import { DatePicker, Space } from "antd";
+import { DatePicker, Space, Switch } from "antd";
 import { InputGroup, Form } from "react-bootstrap";
 import { FaArrowUp } from "react-icons/fa";
 import { FaArrowDownLong } from "react-icons/fa6";
@@ -19,6 +19,7 @@ import SaleReportPieChart from "./SalesReportPieChart/SaleReportPieChart";
 import { BsClipboardCheck } from "react-icons/bs";
 import SaleDetailsModal from "./SaleDetailsModal";
 import { RiArrowUpDownFill } from "react-icons/ri";
+import { Card } from "../ui/card";
 
 const { RangePicker } = DatePicker;
 const BASE_URL = "http://192.168.0.26:3000";
@@ -81,6 +82,7 @@ const SaleReport = () => {
   const [selectedSku, setSelectedSku] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
   const [sortedProducts, setSortedProducts] = useState([]);
+  const [isAsinMode, setIsAsinMode] = useState(true);
 
   useEffect(() => {
     fetchProducts(true);
@@ -131,12 +133,29 @@ const SaleReport = () => {
       });
   }, []);
 
-  const fetchSearchResults = async (query) => {
+  // const fetchSearchResults = async (query) => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get(
+  //       `${BASE_URL}/api/favourite/find/${query}`
+  //     );
+  //     setProducts(response.data.data.listings);
+  //     setTotalPages(response.data.data.totalPages || 1);
+  //   } catch (error) {
+  //     console.error("Search API Error:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const fetchSearchResults = async (query, mode = isAsinMode) => {
     setLoading(true);
+
+    const endpoint = mode
+      ? `${BASE_URL}/api/favourite/find/${query}`
+      : `${BASE_URL}/api/favourite/search/${query}`;
+
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/favourite/search/${query}`
-      );
+      const response = await axios.get(endpoint);
       setProducts(response.data.data.listings);
       setTotalPages(response.data.data.totalPages || 1);
     } catch (error) {
@@ -146,13 +165,41 @@ const SaleReport = () => {
     }
   };
 
-  const fetchProducts = async (isInitialLoad) => {
-    if (!isInitialLoad) {
-      setLoading(true);
-    }
+  // const fetchProducts = async (isInitialLoad) => {
+  //   if (!isInitialLoad) {
+  //     setLoading(true);
+  //   }
+
+  //   try {
+  //     const response = await axios.get(
+  //       `${BASE_URL}/api/favourite/report/asins`,
+  //       {
+  //         params: { page, limit: 20 },
+  //       }
+  //     );
+
+  //     setProducts(response.data.data.listings);
+  //     setTotalPages(response.data.data.totalPages || 1);
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //   } finally {
+  //     if (!isInitialLoad) {
+  //       setLoading(false);
+  //     } else {
+  //       setInitialLoading(false);
+  //     }
+  //   }
+  // };
+
+  const fetchProducts = async (isInitialLoad, mode = isAsinMode) => {
+    if (!isInitialLoad) setLoading(true);
+
+    const endpoint = mode
+      ? `${BASE_URL}/api/favourite/report/asins`
+      : `${BASE_URL}/api/favourite/report`;
 
     try {
-      const response = await axios.get(`${BASE_URL}/api/favourite/report`, {
+      const response = await axios.get(endpoint, {
         params: { page, limit: 20 },
       });
 
@@ -161,11 +208,8 @@ const SaleReport = () => {
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      if (!isInitialLoad) {
-        setLoading(false);
-      } else {
-        setInitialLoading(false);
-      }
+      if (!isInitialLoad) setLoading(false);
+      else setInitialLoading(false);
     }
   };
 
@@ -211,13 +255,9 @@ const SaleReport = () => {
     setSortedProducts([]); // Clear sorted products
   };
 
-  // const handleClearInput = () => {
-  //   setSearchTerm("");
-  //   setPage(1);
-  //   setLoading(true);
-
-  //   fetchProducts(false);
-  // };
+  const onChange = (checked) => {
+    console.log(`switch to ${checked}`);
+  };
 
   const handleClearInput = () => {
     setSearchTerm("");
@@ -273,55 +313,6 @@ const SaleReport = () => {
       setPage(newPage);
     }
   };
-
-  // const sortProducts = (order) => {
-  //   const sorted = [...products].sort((a, b) => {
-  //     const currentUnitsA = calculateUnits(
-  //       filterMetricsForInterval(
-  //         a.salesMetrics || [],
-  //         currentDateRange[0],
-  //         currentDateRange[1]
-  //       )
-  //     );
-  //     const previousUnitsA = calculateUnits(
-  //       filterMetricsForInterval(
-  //         a.salesMetrics || [],
-  //         previousDateRange[0],
-  //         previousDateRange[1]
-  //       )
-  //     );
-  //     const percentageChangeA = parseFloat(
-  //       calculatePercentageChange(currentUnitsA, previousUnitsA)
-  //     );
-
-  //     const currentUnitsB = calculateUnits(
-  //       filterMetricsForInterval(
-  //         b.salesMetrics || [],
-  //         currentDateRange[0],
-  //         currentDateRange[1]
-  //       )
-  //     );
-  //     const previousUnitsB = calculateUnits(
-  //       filterMetricsForInterval(
-  //         b.salesMetrics || [],
-  //         previousDateRange[0],
-  //         previousDateRange[1]
-  //       )
-  //     );
-  //     const percentageChangeB = parseFloat(
-  //       calculatePercentageChange(currentUnitsB, previousUnitsB)
-  //     );
-
-  //     if (order === "asc") {
-  //       return percentageChangeB - percentageChangeA;
-  //     } else if (order === "desc") {
-  //       return percentageChangeA - percentageChangeB;
-  //     }
-  //     return 0;
-  //   });
-
-  //   setSortedProducts(sorted);
-  // };
 
   const sortProducts = (order) => {
     setSortOrder(order); // Store sorting order in state
@@ -506,33 +497,10 @@ const SaleReport = () => {
   return (
     <div className=" mt-5">
       {/* Checkboxes for Months */}
-      <div
-        style={{
-          marginBottom: "10px",
-          display: "flex",
-          gap: "10px",
-          marginTop: "-40px",
-        }}
-      >
-        {uniqueMonths.map((month) => (
-          <label key={month} style={{ display: "flex", alignItems: "center" }}>
-            <input
-              type="checkbox"
-              checked={visibleMonths[month] ?? false}
-              onChange={() =>
-                setVisibleMonths((prev) => ({
-                  ...prev,
-                  [month]: !prev[month],
-                }))
-              }
-              style={{ marginRight: "5px" }}
-            />
-            {month}
-          </label>
-        ))}
-      </div>
-      <div className="grid grid-cols-5 gap-4">
-        <div className="col-span-3">
+
+      <div className="flex gap-4">
+        {/* Chart Section - 60% */}
+        <div className="w-[60%]">
           <SaleReportChart
             data={data}
             setData={setData}
@@ -545,7 +513,33 @@ const SaleReport = () => {
           />
         </div>
 
-        <div className="col-span-2">
+        {/* Date Selection (Checkbox) - 10% */}
+        <Card className="w-[10%]   rounded p-2 overflow-auto flex justify-center items-center">
+          <div className="">
+            {uniqueMonths.map((month) => (
+              <label
+                key={month}
+                className="flex items-center  text-md space-x-2"
+              >
+                <input
+                  type="checkbox"
+                  className="cursor-pointer"
+                  checked={visibleMonths[month] ?? false}
+                  onChange={() =>
+                    setVisibleMonths((prev) => ({
+                      ...prev,
+                      [month]: !prev[month],
+                    }))
+                  }
+                />
+                <span>{month}</span>
+              </label>
+            ))}
+          </div>
+        </Card>
+
+        {/* Pie Chart Section - 30% */}
+        <div className="w-[30%]">
           <SaleReportPieChart
             data={data}
             setData={setData}
@@ -559,8 +553,8 @@ const SaleReport = () => {
         </div>
       </div>
 
-      <div>
-        <InputGroup className="max-w-[500px] mt-[15px] z-0">
+      <div className="flex justify-start items-center mt-[15px] gap-3">
+        <InputGroup className="max-w-[500px]  z-0">
           <Form.Control
             type="text"
             placeholder="Search by Product Name, Asin or SKU..."
@@ -585,6 +579,29 @@ const SaleReport = () => {
             <HiMagnifyingGlass />
           </button>
         </InputGroup>
+        <div className="flex flex-col items-center">
+          {/* <Switch defaultChecked onChange={onChange} /> */}
+          {/* <Switch
+            checkedChildren="Asin Mode"
+            unCheckedChildren="SKU Mode"
+            defaultChecked
+          /> */}
+          <Switch
+            checkedChildren="Asin Mode"
+            unCheckedChildren="SKU Mode"
+            checked={isAsinMode}
+            onChange={(checked) => {
+              setIsAsinMode(checked);
+              setLoading(true); // Show spinner
+              setPage(1); // Reset to page 1
+              if (searchTerm) {
+                fetchSearchResults(searchTerm, checked);
+              } else {
+                fetchProducts(false, checked);
+              }
+            }}
+          />
+        </div>
       </div>
       <>
         <div

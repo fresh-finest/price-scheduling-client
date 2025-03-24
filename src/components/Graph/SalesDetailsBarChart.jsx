@@ -54,8 +54,6 @@ const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
 
   let isMatchingDate;
 
-  console.log("isMatchingDate", isMatchingDate);
-
   // Determine the dataKey for the X-axis dynamically
   const xAxisKey = useMemo(() => {
     if (view === "day") return "date";
@@ -91,7 +89,6 @@ const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
   const showLabels = filteredSalesData.length <= 40;
 
   const CustomTooltip = ({ active, payload, label, view, isMatchingDate }) => {
-    console.log("is matching date from custom tooltip", isMatchingDate);
     if (active && payload && payload.length) {
       const unitCount = payload[0].value;
       const price =
@@ -150,7 +147,7 @@ const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
       <CardContent className="px-2  sm:p-6">
         <ChartContainer
           config={chartConfig}
-          className={`aspect-auto w-full ${
+          className={`aspect-auto  ${
             view === "week" ? "h-[400px]" : "h-[300px]"
           }`}
         >
@@ -256,8 +253,6 @@ const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
                 // Check if the payload date is in the list of matching dates
 
                 isMatchingDate = matchingDates.includes(payload.date);
-
-                console.log("is Matching Date", { isMatchingDate });
 
                 return (
                   <Rectangle
