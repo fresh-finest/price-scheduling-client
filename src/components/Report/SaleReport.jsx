@@ -695,8 +695,8 @@ const SaleReport = () => {
                             ]);
                           }
                         }}
-                        format="YYYY-MM-DD"
-                      />
+                        format="DD MMM, YYYY"
+                        />
                     </Space>
                   </div>
                 </th>
@@ -730,8 +730,8 @@ const SaleReport = () => {
                             ]);
                           }
                         }}
-                        format="YYYY-MM-DD"
-                      />
+                        format="DD MMM, YYYY"
+                        />
                     </Space>
                   </div>
                 </th>
