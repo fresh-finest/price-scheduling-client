@@ -696,7 +696,7 @@ const SaleReport = () => {
                           }
                         }}
                         format="DD MMM, YYYY"
-                        />
+                      />
                     </Space>
                   </div>
                 </th>
@@ -731,7 +731,7 @@ const SaleReport = () => {
                           }
                         }}
                         format="DD MMM, YYYY"
-                        />
+                      />
                     </Space>
                   </div>
                 </th>
@@ -760,7 +760,7 @@ const SaleReport = () => {
                         });
                       }}
                     >
-                     
+                      <RiArrowUpDownFill className="text-sm" />
                     </button>
                   </p>
                 </th>
