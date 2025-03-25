@@ -760,7 +760,7 @@ const SaleReport = () => {
                         });
                       }}
                     >
-                      <RiArrowUpDownFill className="text-sm" />
+                     
                     </button>
                   </p>
                 </th>
