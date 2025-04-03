@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Button, Form, InputGroup } from "react-bootstrap";
+import { Button, Form, InputGroup, Offcanvas } from "react-bootstrap";
 import readXlsxFile from "read-excel-file";
 import { IoIosArrowForward, IoMdAdd } from "react-icons/io";
 import { PenLine } from "lucide-react";
@@ -38,7 +38,10 @@ import { Bar } from "react-chartjs-2";
 import { MdOutlineClose } from "react-icons/md";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { GoGraph } from "react-icons/go";
-// const BASE_URL = `http://localhost:3000`;
+
+import "./Products.css";
+import SalesGraph from "./SalesGraph/SalesGraph";
+
 const BASE_URL = `https://api.priceobo.com`;
 
 ChartJS.register(
@@ -50,57 +53,6 @@ ChartJS.register(
   Legend,
   ChartDataLabels
 );
-// SalesGraph component renders the sales data graph for the last 30 days
-const SalesGraph = ({ saleReportData }) => {
-  // Calculate the date 30 days ago
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  // Filter the data to only include dates within the last 30 days
-  const filteredData = saleReportData.filter((report) => {
-    const reportDate = new Date(report._id);
-    return reportDate >= thirtyDaysAgo;
-  });
-
-  // Sort the filtered data by date (ascending)
-  filteredData.sort((a, b) => new Date(a._id) - new Date(b._id));
-
-  // Create labels and data points from the filtered data
-  const labels = filteredData.map((report) => report._id);
-  const dataPoints = filteredData.map((report) => report.totalSales);
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Total Sales",
-        data: dataPoints,
-        // backgroundColor: "rgba(75,192,192,0.4)",
-        backgroundColor: "rgba(42, 156, 143,1.0)",
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: { position: "top" },
-      title: { display: true, text: "Sales Units vs Date (Last 30 Days)" },
-      datalabels: {
-        anchor: "end",
-        align: "top",
-        color: "black",
-        font: {
-          weight: "bold",
-          size: 10,
-        },
-        formatter: (value) => value,
-      },
-    },
-  };
-
-  return <Bar data={data} options={options} />;
-};
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -223,9 +175,6 @@ function Products() {
     if (!searchTerm.trim()) return;
     setIsSearching(true);
     try {
-      // const response = await axios.get(`http://localhost:3000/api/group/search`, {
-      //   params: { uid: searchTerm.trim() },
-      // });
       const response = await searchProduct(searchTerm.trim());
       const groupProducts = response.data.result;
 
@@ -294,7 +243,7 @@ function Products() {
 
   const handleClearSearch = () => {
     setSearchTerm("");
-    window.location.reload(); // or call the original fetchProducts()
+    window.location.reload();
   };
 
   const handleAddSku = async () => {
@@ -530,35 +479,6 @@ function Products() {
           )}
         </InputGroup>
       </div>
-      {/* 
-      <div>
-        <InputGroup className="max-w-[500px] mt-[15px] z-0">
-          <Form.Control
-            type="text"
-            placeholder="Search by Product Name, Asin or SKU..."
-            value={searchTerm}
-            onChange={handleSearch}
-            onKeyDown={handleKeyDown}
-            style={{ borderRadius: "0px" }}
-            className="custom-input"
-          />
-          {searchTerm && (
-            <button
-              onClick={handleClearSearch}
-              className="absolute right-12 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
-            >
-              <MdOutlineClose />
-            </button>
-          )}
-          <button
-            className="px-3 py-2 bg-gray-300"
-            onClick={handleSearchSubmit}
-            disabled={isSearching}
-          >
-            <HiMagnifyingGlass />
-          </button>
-        </InputGroup>
-      </div> */}
 
       <section
         style={{
@@ -1096,7 +1016,7 @@ function Products() {
         isLoading={isLoading}
       ></BulkMappingModal>
 
-      {isDrawerOpen && (
+      {/* {isDrawerOpen && (
         <div
           ref={drawerRef}
           style={{
@@ -1144,7 +1064,67 @@ function Products() {
           <h4>Total Sales: {totalSales} units</h4>
           <SalesGraph saleReportData={saleReportData} />
         </div>
-      )}
+      )} */}
+
+      <div>
+        <Offcanvas
+          show={isDrawerOpen}
+          onHide={() => setIsDrawerOpen(false)}
+          placement="end"
+          className="product-page-drawer "
+        >
+          <div
+          // ref={drawerRef}
+          // style={{
+          //   position: "fixed",
+          //   top: 0,
+          //   right: 0,
+          //   width: "1000px",
+          //   height: "100%",
+          //   backgroundColor: "#fff",
+          //   borderLeft: "1px solid #ccc",
+
+          //   padding: "20px",
+          //   overflowY: "auto",
+          //   boxShadow: "-2px 0 5px rgba(0,0,0,0.3)",
+          //   zIndex: 1000,
+          // }}
+          >
+            <div
+              className=""
+              style={{ display: "flex", justifyContent: "flex-end" }}
+            >
+              <Button
+                onClick={() => setIsDrawerOpen(false)}
+                className="mt-2 bg-white"
+                style={{
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "5px",
+                }}
+              >
+                <RxCross1
+                  style={{
+                    backgroundColor: "white",
+                    color: "black",
+                    fontSize: "20px",
+                  }}
+                />
+              </Button>
+            </div>
+            {selectedProductDetails && (
+              <div style={{ marginBottom: "20px" }}>
+                <h4>{selectedProductDetails.name}</h4>
+                <p>{selectedProductDetails.title}</p>
+              </div>
+            )}
+            <h3>Sales Report</h3>
+            <h4>Total Sales: {totalSales} units</h4>
+            <SalesGraph saleReportData={saleReportData} />
+          </div>
+        </Offcanvas>
+      </div>
     </div>
   );
 }

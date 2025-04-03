@@ -376,6 +376,7 @@ const SaleDetailsModal = ({
                     className="ant-datePicker-input"
                     presets={rangePresets}
                     onChange={onRangeChange}
+                    format="DD MMM, YYYY"
                   />
                 </div>
               </div>
