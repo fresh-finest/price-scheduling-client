@@ -16,6 +16,11 @@ import SaleDetailsModal from "./SaleDetailsModal";
 import { RiArrowUpDownFill } from "react-icons/ri";
 import { Card } from "../ui/card";
 import SaleReportTableRow from "./SaleReportTable/SaleReportTableRow";
+import SaleReportSelectedLineChart from "./SaleReportSelectedLineChart/SaleReportSelectedLineChart";
+import SaleReportSelectedPieChart from "./SaleReportSelectedPieChart/SaleReportSelectedPieChart";
+import CurrentIntervalUnitsLineChart from "./CurrentIntervalUnitsLineChart/CurrentIntervalUnitsLIneChart";
+import PreviousIntervalUnitsLineChart from "./PreviousIntervalUnitsLineChart/PreviousIntervalUnitsLineChart";
+import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
 
 const { RangePicker } = DatePicker;
 const BASE_URL = "http://192.168.0.26:3000";
@@ -80,33 +85,30 @@ const SaleReport = () => {
   const [sortedProducts, setSortedProducts] = useState([]);
   const [isAsinMode, setIsAsinMode] = useState(true);
 
+const [selectedValue, setSelectedValue] = useState(null); 
+const [selectedChartData, setSelectedChartData] = useState([]);
+const [isDetailChartLoading, setIsDetailChartLoading] = useState(false);
+const [showDefaultCharts, setShowDefaultCharts] = useState(true);
+const [lastSelected, setLastSelected] = useState(null); // To remember the previous selection
+
+
+
   useEffect(() => {
     fetchProducts(true);
   }, []);
 
-  // useEffect(() => {
-  //   if (!initialLoading) {
-  //     fetchProducts(false);
-  //   }
-  // }, [page, currentDateRange, previousDateRange]);
 
   useEffect(() => {
     if (!initialLoading) {
       if (searchTerm) {
-        fetchSearchResults(searchTerm); // Keep the search filter active
+        fetchSearchResults(searchTerm); 
       } else {
-        fetchProducts(false); // Otherwise, fetch all products
+        fetchProducts(false);
       }
     }
   }, [page, currentDateRange, previousDateRange]);
 
-  // useEffect(() => {
-  //   if (!searchTerm) {
-  //     fetchProducts(true);
-  //   } else {
-  //     fetchSearchResults(searchTerm);
-  //   }
-  // }, [searchTerm, page]);
+
 
   useEffect(() => {
     if (!searchTerm) {
@@ -116,7 +118,7 @@ const SaleReport = () => {
 
   useEffect(() => {
     axios
-      // .get("/salesReportChartData.json")
+     
       .get(`${BASE_URL}/total-sales`)
       .then((response) => {
         setData(response.data.payload);
@@ -224,6 +226,9 @@ const SaleReport = () => {
 
     fetchProducts(false);
   };
+
+
+
 
   const handleSaleDetailsModalShow = (sku) => {
     setSelectedSku(sku);
@@ -339,6 +344,104 @@ const SaleReport = () => {
     }
   };
 
+  // const handleRowClick = async (product) => {
+
+  //   const value = isAsinMode ? product.asin1 : product.sellerSku;
+  //   const type = isAsinMode ? "asin" : "sku";
+  
+
+    
+    
+  //   const endDate = dayjs().format("YYYY-MM-DD");
+  //   const startDate = dayjs().subtract(6, "month").startOf("day").format("YYYY-MM-DD");
+  
+  //   const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
+  //   console.log("Fetching chart data from:", url);
+  
+  //   setIsDetailChartLoading(true);
+  //   setSelectedValue(value);
+  //   setLastSelected(value);
+  
+  //   try {
+  //     const response = await axios.get(url);
+  //     setSelectedChartData(response.data.data.entries || []);
+  //   } catch (error) {
+  //     console.error("Error fetching selected chart data", error);
+  //     setSelectedChartData([]);
+  //   } finally {
+  //     setIsDetailChartLoading(false);
+  //   }
+  // };
+
+  const handleRowClick = async (product) => {
+    const value = isAsinMode ? product.asin1 : product.sellerSku;
+    const type = isAsinMode ? "asin" : "sku";
+  
+    const endDate = dayjs().format("YYYY-MM-DD");
+    const startDate = dayjs().subtract(6, "month").startOf("day").format("YYYY-MM-DD");
+  
+    const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
+    console.log("Fetching chart data from:", url);
+  
+    setIsDetailChartLoading(true);
+    setSelectedValue(value);
+    setLastSelected(value);
+    setShowDefaultCharts(false); // ✅ auto-disable "Show All" toggle
+  
+    try {
+      const response = await axios.get(url);
+      setSelectedChartData(response.data.data.entries || []);
+    } catch (error) {
+      console.error("Error fetching selected chart data", error);
+      setSelectedChartData([]);
+    } finally {
+      setIsDetailChartLoading(false);
+    }
+  };
+  
+
+  // const handleShowAllToggle = (checked) => {
+  //   setShowDefaultCharts(checked); 
+  //   if (!checked && lastSelected) {
+  //     setSelectedValue(lastSelected); 
+  //   } else {
+  //     setSelectedValue(null); 
+  //     setSelectedChartData([]); // clear charts
+  //   }
+  // };
+  
+
+  const handleShowAllToggle = async (checked) => {
+    setShowDefaultCharts(checked);
+  
+    if (!checked && lastSelected) {
+      setSelectedValue(lastSelected);
+  
+      const type = isAsinMode ? "asin" : "sku";
+      const endDate = dayjs().format("YYYY-MM-DD");
+      const startDate = dayjs().subtract(6, "month").startOf("day").format("YYYY-MM-DD");
+  
+      const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${lastSelected}&startDate=${startDate}&endDate=${endDate}`;
+      setIsDetailChartLoading(true);
+      try {
+        const response = await axios.get(url);
+        setSelectedChartData(response.data.data.entries || []);
+      } catch (error) {
+        console.error("Error re-fetching selected chart data", error);
+        setSelectedChartData([]);
+      } finally {
+        setIsDetailChartLoading(false);
+      }
+    } else {
+      setSelectedValue(null);
+      setSelectedChartData([]);
+    }
+  };
+  
+  
+
+  
+
   const rangePresets = [
     {
       label: "Today",
@@ -444,6 +547,22 @@ const SaleReport = () => {
     return { uniqueMonths: sortedMonths };
   }, [data]);
 
+  const selectedProduct = (sortOrder ? sortedProducts : products).find((product) =>
+    isAsinMode ? product.asin1 === selectedValue : product.sellerSku === selectedValue
+  );
+  
+  const selectedCurrentMetrics = selectedProduct
+    ? filterMetricsForInterval(selectedProduct.salesMetrics || [], currentDateRange[0], currentDateRange[1])
+    : [];
+  
+  const selectedPreviousMetrics = selectedProduct
+    ? filterMetricsForInterval(selectedProduct.salesMetrics || [], previousDateRange[0], previousDateRange[1])
+    : [];
+  
+  const selectedCurrentUnits = calculateUnits(selectedCurrentMetrics);
+  const selectedPreviousUnits = calculateUnits(selectedPreviousMetrics);
+  
+
   if (initialLoading) {
     return <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>;
   }
@@ -452,60 +571,10 @@ const SaleReport = () => {
     <div className=" mt-5">
       {/* Checkboxes for Months */}
 
-      {/* <div className="flex gap-4">
-        <div className="w-[60%]">
-          <SaleReportChart
-            data={data}
-            setData={setData}
-            chartLoading={chartLoading}
-            setChartLoading={setChartLoading}
-            visibleMonths={visibleMonths}
-            error={error}
-            setError={setError}
-            colorMap={colorMap}
-          />
-        </div>
-
-        <Card className="w-[10%]   rounded p-2 overflow-auto flex justify-center items-center">
-          <div className="">
-            {uniqueMonths.map((month) => (
-              <label
-                key={month}
-                className="flex items-center  text-md space-x-2"
-              >
-                <input
-                  type="checkbox"
-                  className="cursor-pointer"
-                  checked={visibleMonths[month] ?? false}
-                  onChange={() =>
-                    setVisibleMonths((prev) => ({
-                      ...prev,
-                      [month]: !prev[month],
-                    }))
-                  }
-                />
-                <span>{month}</span>
-              </label>
-            ))}
-          </div>
-        </Card>
-
-        <div className="w-[30%]">
-          <SaleReportPieChart
-            data={data}
-            setData={setData}
-            visibleMonths={visibleMonths}
-            chartLoading={chartLoading}
-            setChartLoading={setChartLoading}
-            error={error}
-            setError={setError}
-            colorMap={colorMap}
-          />
-        </div>
-      </div> */}
+    
 
       <div className=" absolute top-[11px]">
-        <div className="  flex justify-start items-center  gap-3">
+        <div className=" flex justify-start items-center  gap-3">
           <InputGroup className=" z-0">
             <Form.Control
               type="text"
@@ -532,21 +601,38 @@ const SaleReport = () => {
             </button>
           </InputGroup>
           <div className="flex flex-col items-center">
+
+              <Switch
+                checkedChildren="Asin Mode"
+                unCheckedChildren="SKU Mode"
+                checked={isAsinMode}
+                style={{ width: 100 }}
+                onChange={(checked) => {
+                  setIsAsinMode(checked);
+                  setLoading(true);
+                  setPage(1);
+                  setSelectedChartData([]); 
+                  setSelectedValue(null); 
+                  if (searchTerm) {
+                    fetchSearchResults(searchTerm, checked);
+                  } else {
+                    fetchProducts(false, checked);
+                  }
+                }}
+              />
+
+          </div>
+
+          <div className="flex flex-col items-center ">
             <Switch
-              checkedChildren="Asin Mode"
-              unCheckedChildren="SKU Mode"
-              checked={isAsinMode}
-              onChange={(checked) => {
-                setIsAsinMode(checked);
-                setLoading(true); // Show spinner
-                setPage(1); // Reset to page 1
-                if (searchTerm) {
-                  fetchSearchResults(searchTerm, checked);
-                } else {
-                  fetchProducts(false, checked);
-                }
-              }}
-            />
+          checkedChildren="Show Previous"
+          unCheckedChildren="Show All"
+          checked={!showDefaultCharts} 
+          style={{ width: 120 }}
+          onChange={(checked) => handleShowAllToggle(!checked)} 
+        />
+
+
           </div>
         </div>
       </div>
@@ -710,18 +796,6 @@ const SaleReport = () => {
                       </button>
                     </p>
                   </th>
-                  {/* <th
-                    className="tableHeader"
-                    style={{
-                      position: "sticky",
-                      textAlign: "center",
-                      verticalAlign: "middle",
-                      width: "150px",
-                      zIndex: 3,
-                    }}
-                  >
-                    Details
-                  </th> */}
                 </tr>
               </thead>
               <tbody
@@ -773,6 +847,8 @@ const SaleReport = () => {
                         previousDateRange[1]
                       );
 
+                    
+
                       const currentUnits = calculateUnits(currentMetrics);
                       const previousUnits = calculateUnits(previousMetrics);
                       const percentageChange = calculatePercentageChange(
@@ -795,6 +871,9 @@ const SaleReport = () => {
                           handleSaleDetailsModalShow={
                             handleSaleDetailsModalShow
                           }
+                          handleRowClick={handleRowClick}
+                          selectedValue={selectedValue}
+                          isAsinMode={isAsinMode}
                         ></SaleReportTableRow>
                       );
                     }
@@ -810,58 +889,166 @@ const SaleReport = () => {
           </div>
         </section>
 
-        {/* sale report chart part */}
-        <Card className="w-[40%] h-[90vh] p-3">
-          <SaleReportPieChart
-            data={data}
-            setData={setData}
-            visibleMonths={visibleMonths}
-            chartLoading={chartLoading}
-            setChartLoading={setChartLoading}
-            error={error}
-            setError={setError}
-            colorMap={colorMap}
-          />
+       
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 my-4">
-            {[...uniqueMonths].reverse().map((month) => (
-              <label key={month} className="flex items-center space-x-1">
-                <input
-                  type="checkbox"
-                  className="cursor-pointer"
-                  checked={visibleMonths[month] ?? false}
-                  onChange={() =>
-                    setVisibleMonths((prev) => ({
-                      ...prev,
-                      [month]: !prev[month],
-                    }))
-                  }
-                />
-                <span>{month}</span>
-              </label>
-            ))}
-          </div>
 
-          <SaleReportChart
-            data={data}
-            setData={setData}
-            chartLoading={chartLoading}
-            setChartLoading={setChartLoading}
-            visibleMonths={visibleMonths}
-            error={error}
-            setError={setError}
-            colorMap={colorMap}
-          />
-        </Card>
+    <Card className="w-[40%] h-[90vh] overflow-y-auto  p-3">
+
+
+{/* {selectedValue ? (
+     <>
+      <CurrentIntervalUnitsLineChart
+      metrics={selectedChartData}
+      currentDateRange={currentDateRange}
+    />
+    <PreviousIntervalUnitsLineChart
+      metrics={selectedChartData}
+      previousDateRange={previousDateRange}
+    />
+    <div className="grid grid-cols-2 gap-1">
+    <CurrentPreviousIntervalUnitsPieChart
+      currentUnits={selectedCurrentUnits}
+      previousUnits={selectedPreviousUnits}
+    />
+     <SaleReportSelectedPieChart
+       entries={selectedChartData}
+       visibleMonths={visibleMonths}
+       loading={isDetailChartLoading}
+       error={error}
+       colorMap={colorMap}
+     />
+
+    </div>
+   </>
+  ) : (
+    <SaleReportPieChart
+      data={data}
+      visibleMonths={visibleMonths}
+      chartLoading={chartLoading}
+      colorMap={colorMap}
+      error={error}
+    />
+  )} */}
+
+  {/* <div className="flex flex-wrap gap-x-4 gap-y-2 my-4">
+    {[...uniqueMonths].reverse().map((month) => (
+      <label key={month} className="flex items-center space-x-1">
+        <input
+          type="checkbox"
+          className="cursor-pointer"
+          checked={visibleMonths[month] ?? false}
+          onChange={() =>
+            setVisibleMonths((prev) => ({
+              ...prev,
+              [month]: !prev[month],
+            }))
+          }
+        />
+        <span>{month}</span>
+      </label>
+    ))}
+  </div> */}
+
+  {/* {selectedValue ? (
+    <SaleReportSelectedLineChart   entries={selectedChartData}
+    loading={isDetailChartLoading}
+    visibleMonths={visibleMonths}
+    colorMap={colorMap}
+     />
+  ) : (
+    <SaleReportChart
+      data={data}
+      setData={setData}
+      chartLoading={chartLoading}
+      setChartLoading={setChartLoading}
+      visibleMonths={visibleMonths}
+      error={error}
+      setError={setError}
+      colorMap={colorMap}
+    />
+  )} */}
+
+
+{showDefaultCharts || !selectedValue ? (
+  <>
+    <SaleReportPieChart
+      data={data}
+      visibleMonths={visibleMonths}
+      chartLoading={chartLoading}
+      colorMap={colorMap}
+      error={error}
+    />
+  </>
+) : (
+  <>
+    <CurrentIntervalUnitsLineChart
+      metrics={selectedChartData}
+      currentDateRange={currentDateRange}
+    />
+    <PreviousIntervalUnitsLineChart
+      metrics={selectedChartData}
+      previousDateRange={previousDateRange}
+    />
+    <div className="grid grid-cols-2 gap-1">
+      <CurrentPreviousIntervalUnitsPieChart
+        currentUnits={selectedCurrentUnits}
+        previousUnits={selectedPreviousUnits}
+      />
+      <SaleReportSelectedPieChart
+        entries={selectedChartData}
+        visibleMonths={visibleMonths}
+        loading={isDetailChartLoading}
+        error={error}
+        colorMap={colorMap}
+      />
+    </div>
+  </>
+)}
+
+<div className="flex flex-wrap gap-x-4 gap-y-2 my-4">
+  {[...uniqueMonths].reverse().map((month) => (
+    <label key={month} className="flex items-center space-x-1">
+      <input
+        type="checkbox"
+        className="cursor-pointer"
+        checked={visibleMonths[month] ?? false}
+        onChange={() =>
+          setVisibleMonths((prev) => ({
+            ...prev,
+            [month]: !prev[month],
+          }))
+        }
+      />
+      <span>{month}</span>
+    </label>
+  ))}
+</div>
+
+{showDefaultCharts || !selectedValue ? (
+  <SaleReportChart
+    data={data}
+    setData={setData}
+    chartLoading={chartLoading}
+    setChartLoading={setChartLoading}
+    visibleMonths={visibleMonths}
+    error={error}
+    setError={setError}
+    colorMap={colorMap}
+  />
+) : (
+  <SaleReportSelectedLineChart
+    entries={selectedChartData}
+    loading={isDetailChartLoading}
+    visibleMonths={visibleMonths}
+    colorMap={colorMap}
+  />
+)}
+
+</Card>
+
       </section>
 
-      <SaleDetailsModal
-        saleDetailsModalShow={saleDetailsModalShow}
-        setSaleDetailsModalShow={setSaleDetailsModalShow}
-        handleSaleDetailsModalShow={handleSaleDetailsModalShow}
-        handleSaleDetailsModalClose={handleSaleDetailsModalClose}
-        sku={selectedSku}
-      ></SaleDetailsModal>
+     
     </div>
   );
 };

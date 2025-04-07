@@ -13,11 +13,26 @@ const SaleReportTableRow = ({
   currentUnits,
   previousUnits,
   percentageChange,
-  handleSaleDetailsModalShow,
+  handleRowClick, 
+  selectedValue, 
+  isAsinMode
 }) => {
+
+  const isSelected =
+  selectedValue &&
+  (isAsinMode
+    ? product.asin1 === selectedValue
+    : product.sellerSku === selectedValue);
+
+    if (isSelected) {
+      console.log("✅ Row is selected:", product.asin1 || product.sellerSku);
+    }
+    
+
   return (
-    <tr className="hover:cursor-pointer">
+    <tr onClick={() => handleRowClick(product)}   >
       <td
+
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -25,6 +40,8 @@ const SaleReportTableRow = ({
           height: "40px",
           textAlign: "center",
           verticalAlign: "middle",
+          cursor: "pointer",
+          backgroundColor: isSelected ? "#F1F1F2" : "",
         }}
       >
         <div
@@ -61,6 +78,7 @@ const SaleReportTableRow = ({
         </div>
       </td>
       <td
+    
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -68,6 +86,8 @@ const SaleReportTableRow = ({
           height: "40px",
           textAlign: "center",
           verticalAlign: "middle",
+          cursor: "pointer",
+          backgroundColor: isSelected ? "#F1F1F2" : "",
         }}
       >
         <div
@@ -94,6 +114,7 @@ const SaleReportTableRow = ({
       </td>
 
       <td
+  
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -101,6 +122,8 @@ const SaleReportTableRow = ({
           height: "40px",
           textAlign: "center",
           verticalAlign: "middle",
+          cursor: "pointer",
+          backgroundColor: isSelected ? "#F1F1F2" : "",
         }}
       >
         {product.itemName || "Unknown Product"}
@@ -180,6 +203,8 @@ const SaleReportTableRow = ({
           height: "40px",
           textAlign: "center",
           verticalAlign: "middle",
+          cursor: "pointer",
+          backgroundColor: isSelected ? "#F1F1F2" : "",
         }}
       >
         {currentUnits}
@@ -192,6 +217,8 @@ const SaleReportTableRow = ({
           height: "40px",
           textAlign: "center",
           verticalAlign: "middle",
+          cursor: "pointer",
+          backgroundColor: isSelected ? "#F1F1F2" : "",
         }}
       >
         {previousUnits}
@@ -204,6 +231,8 @@ const SaleReportTableRow = ({
           height: "40px",
           textAlign: "center",
           verticalAlign: "middle",
+          cursor: "pointer",
+          backgroundColor: isSelected ? "#F1F1F2" : "",
           color:
             percentageChange > 0
               ? "green"
@@ -228,29 +257,7 @@ const SaleReportTableRow = ({
           )}
         </div>
       </td>
-      {/* <td
-        style={{
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          height: "40px",
-          textAlign: "center",
-          verticalAlign: "middle",
-          color:
-            percentageChange > 0
-              ? "green"
-              : percentageChange < 0
-              ? "red"
-              : "black",
-        }}
-      >
-        <button
-          onClick={() => handleSaleDetailsModalShow(product.sellerSku)}
-          className="bg-[#0662BB] text-white rounded drop-shadow-sm  gap-1  px-2 py-1"
-        >
-          See Details
-        </button>
-      </td> */}
+    
     </tr>
   );
 };
