@@ -24,7 +24,7 @@ import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnits
 
 const { RangePicker } = DatePicker;
 const BASE_URL = "http://192.168.0.26:3000";
-// const BASE_URL = "https://api.priceobo.com";
+
 const MONTH_ORDER = [
   "Jan",
   "Feb",
@@ -89,7 +89,7 @@ const [selectedValue, setSelectedValue] = useState(null);
 const [selectedChartData, setSelectedChartData] = useState([]);
 const [isDetailChartLoading, setIsDetailChartLoading] = useState(false);
 const [showDefaultCharts, setShowDefaultCharts] = useState(true);
-const [lastSelected, setLastSelected] = useState(null); // To remember the previous selection
+const [lastSelected, setLastSelected] = useState(null); 
 
 
 
@@ -234,10 +234,7 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
     setSelectedSku(sku);
     setSaleDetailsModalShow(true);
   };
-  const handleSaleDetailsModalClose = () => {
-    setSelectedSku(null);
-    setSaleDetailsModalShow(false);
-  };
+
 
   const handleCopy = (text, type, index) => {
     navigator.clipboard
@@ -344,34 +341,6 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
     }
   };
 
-  // const handleRowClick = async (product) => {
-
-  //   const value = isAsinMode ? product.asin1 : product.sellerSku;
-  //   const type = isAsinMode ? "asin" : "sku";
-  
-
-    
-    
-  //   const endDate = dayjs().format("YYYY-MM-DD");
-  //   const startDate = dayjs().subtract(6, "month").startOf("day").format("YYYY-MM-DD");
-  
-  //   const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
-  //   console.log("Fetching chart data from:", url);
-  
-  //   setIsDetailChartLoading(true);
-  //   setSelectedValue(value);
-  //   setLastSelected(value);
-  
-  //   try {
-  //     const response = await axios.get(url);
-  //     setSelectedChartData(response.data.data.entries || []);
-  //   } catch (error) {
-  //     console.error("Error fetching selected chart data", error);
-  //     setSelectedChartData([]);
-  //   } finally {
-  //     setIsDetailChartLoading(false);
-  //   }
-  // };
 
   const handleRowClick = async (product) => {
     const value = isAsinMode ? product.asin1 : product.sellerSku;
@@ -386,7 +355,7 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
     setIsDetailChartLoading(true);
     setSelectedValue(value);
     setLastSelected(value);
-    setShowDefaultCharts(false); // ✅ auto-disable "Show All" toggle
+    setShowDefaultCharts(false); 
   
     try {
       const response = await axios.get(url);
@@ -400,15 +369,7 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
   };
   
 
-  // const handleShowAllToggle = (checked) => {
-  //   setShowDefaultCharts(checked); 
-  //   if (!checked && lastSelected) {
-  //     setSelectedValue(lastSelected); 
-  //   } else {
-  //     setSelectedValue(null); 
-  //     setSelectedChartData([]); // clear charts
-  //   }
-  // };
+
   
 
   const handleShowAllToggle = async (checked) => {
@@ -569,7 +530,7 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
 
   return (
     <div className=" mt-5">
-      {/* Checkboxes for Months */}
+   
 
     
 
@@ -623,7 +584,9 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
 
           </div>
 
-          <div className="flex flex-col items-center ">
+        </div>
+      </div>
+          <div className="absolute top-[15px] right-[29%] ">
             <Switch
           checkedChildren="Show Previous"
           unCheckedChildren="Show All"
@@ -634,8 +597,6 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
 
 
           </div>
-        </div>
-      </div>
 
       <section className="flex gap-3">
         {/* sale report table part */}
@@ -895,78 +856,6 @@ const [lastSelected, setLastSelected] = useState(null); // To remember the previ
     <Card className="w-[40%] h-[90vh] overflow-y-auto  p-3">
 
 
-{/* {selectedValue ? (
-     <>
-      <CurrentIntervalUnitsLineChart
-      metrics={selectedChartData}
-      currentDateRange={currentDateRange}
-    />
-    <PreviousIntervalUnitsLineChart
-      metrics={selectedChartData}
-      previousDateRange={previousDateRange}
-    />
-    <div className="grid grid-cols-2 gap-1">
-    <CurrentPreviousIntervalUnitsPieChart
-      currentUnits={selectedCurrentUnits}
-      previousUnits={selectedPreviousUnits}
-    />
-     <SaleReportSelectedPieChart
-       entries={selectedChartData}
-       visibleMonths={visibleMonths}
-       loading={isDetailChartLoading}
-       error={error}
-       colorMap={colorMap}
-     />
-
-    </div>
-   </>
-  ) : (
-    <SaleReportPieChart
-      data={data}
-      visibleMonths={visibleMonths}
-      chartLoading={chartLoading}
-      colorMap={colorMap}
-      error={error}
-    />
-  )} */}
-
-  {/* <div className="flex flex-wrap gap-x-4 gap-y-2 my-4">
-    {[...uniqueMonths].reverse().map((month) => (
-      <label key={month} className="flex items-center space-x-1">
-        <input
-          type="checkbox"
-          className="cursor-pointer"
-          checked={visibleMonths[month] ?? false}
-          onChange={() =>
-            setVisibleMonths((prev) => ({
-              ...prev,
-              [month]: !prev[month],
-            }))
-          }
-        />
-        <span>{month}</span>
-      </label>
-    ))}
-  </div> */}
-
-  {/* {selectedValue ? (
-    <SaleReportSelectedLineChart   entries={selectedChartData}
-    loading={isDetailChartLoading}
-    visibleMonths={visibleMonths}
-    colorMap={colorMap}
-     />
-  ) : (
-    <SaleReportChart
-      data={data}
-      setData={setData}
-      chartLoading={chartLoading}
-      setChartLoading={setChartLoading}
-      visibleMonths={visibleMonths}
-      error={error}
-      setError={setError}
-      colorMap={colorMap}
-    />
-  )} */}
 
 
 {showDefaultCharts || !selectedValue ? (
