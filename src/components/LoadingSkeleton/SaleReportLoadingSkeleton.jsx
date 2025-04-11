@@ -3,17 +3,17 @@ import React from "react";
 const SaleReportLoadingSkeleton = () => {
   return (
     <div className="">
-      <div className=" ">
+      {/* <div className=" ">
         <div className="min-w-[500px] absolute top-[11px] mb-3 bg-gray-800/20 h-10 animate-pulse"></div>
-      </div>
+      </div> */}
 
       <section
         className=" rounded-md  bg-gray-800/10 animate-pulse"
         style={{
-          maxHeight: "91vh",
-          overflowY: "auto",
-          marginTop: "50px",
-          boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+          // maxHeight: "91vh",
+          // overflowY: "auto",
+          // marginTop: "50px",
+          // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
         <table
@@ -92,7 +92,7 @@ const SaleReportLoadingSkeleton = () => {
                   position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
+                
                 }}
               >
                 <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-14 h-4 mx-auto"></p>

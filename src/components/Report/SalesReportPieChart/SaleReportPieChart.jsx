@@ -8,6 +8,7 @@ import {
   Legend,
 } from "recharts";
 import { Card } from "@/components/ui/card";
+import PieChartLoadingSkeleton from "@/components/LoadingSkeleton/PieChartLoadingSkeleton";
 
 const transformData = (data, visibleMonths) => {
   const monthlyData = {};
@@ -68,14 +69,15 @@ const SaleReportPieChart = ({
     return data.length ? transformData(data, visibleMonths) : [];
   }, [data, visibleMonths]);
 
-  if (chartLoading) return <p>Loading sales data...</p>;
+  // if (chartLoading) return <p>Loading sales data...</p>;
+  // if (chartLoading) return <PieChartLoadingSkeleton></PieChartLoadingSkeleton>;
   if (error) return <p>Error loading sales data.</p>;
 
   return (
     <Card className="px-2 py-3 ">
-      <div className="salesReportPieChart flex justify-between gap-1 items-center">
-        <ResponsiveContainer width="100%" height={280}>
-          <PieChart>
+      <div className="flex justify-between gap-1 items-center">
+       {chartLoading ? <PieChartLoadingSkeleton></PieChartLoadingSkeleton> :  <ResponsiveContainer width="100%" height={280}>
+       <PieChart>
             <Pie
               data={chartData}
               dataKey="unitCount"
@@ -98,7 +100,8 @@ const SaleReportPieChart = ({
             <Tooltip />
             <Legend />
           </PieChart>
-        </ResponsiveContainer>
+          
+        </ResponsiveContainer>}
       </div>
     </Card>
   );

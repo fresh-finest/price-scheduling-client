@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card } from "../ui/card";
+import LineChartLoadingSkeleton from "../LoadingSkeleton/LineChartLoadingSkeleton";
 
 const transformData = (data) => {
   const groupedData = {};
@@ -98,12 +99,23 @@ export default function SaleReportChart({
     return data.length ? transformData(data) : [];
   }, [data]);
 
-  if (chartLoading) return <p>Loading sales data...</p>;
+  if (chartLoading) {
+    return (
+      <Card className="px-2 py-3">
+        <LineChartLoadingSkeleton />
+      </Card>
+    );
+  }
+  
+  // if (chartLoading) return <p>Loading sales data...</p>;
   if (error) return <p>Error loading sales data.</p>;
 
   return (
     <Card className="px-2 py-3">
-      <ResponsiveContainer width="100%" height={280}>
+      <div className=" flex justify-between gap-1 items-center">
+
+     
+   {  <ResponsiveContainer width="100%" height={280}>
         <LineChart data={chartData}>
           <CartesianGrid
             horizontal
@@ -144,7 +156,9 @@ export default function SaleReportChart({
             ) : null
           )}
         </LineChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>}
+    </div>
     </Card>
+
   );
 }
