@@ -1,29 +1,39 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
-import { FaRegStar } from "react-icons/fa";
-import { FaStar } from "react-icons/fa";
 import { DatePicker, Space, Switch } from "antd";
 import { InputGroup, Form } from "react-bootstrap";
-import { FaArrowUp } from "react-icons/fa";
-import { FaArrowDownLong } from "react-icons/fa6";
 import dayjs from "dayjs";
 import "antd/dist/reset.css";
-import SaleReportPagination from "./SaleReportPagination";
+
 
 import { HiMagnifyingGlass } from "react-icons/hi2";
-import { MdCheck, MdOutlineClose } from "react-icons/md";
+import { MdOutlineClose } from "react-icons/md";
 import SaleReportLoadingSkeleton from "../LoadingSkeleton/SaleReportLoadingSkeleton";
 import { ClipLoader } from "react-spinners";
 import SaleReportChart from "./SaleReportChart";
 import SaleReportPieChart from "./SaleReportPieChart/SaleReportPieChart";
-import { BsClipboardCheck } from "react-icons/bs";
-import SaleDetailsModal from "./SaleDetailsModal";
 import { RiArrowUpDownFill } from "react-icons/ri";
 import { Card } from "../ui/card";
 
+
+import SaleDetailsModal from "./SaleDetailsModal";
+
+import './SaleReport.css'
+import ReportChangeFilterPopover from "./ReportChangeFilterPopover/ReportChangeFilterPopover";
+import { BsDashCircle } from "react-icons/bs";
+import SaleReportSelectedLineChart from "./SaleReportSelectedLineChart/SaleReportSelectedLineChart";
+import SaleReportTableRow from "./SaleReportTable/SaleReportTableRow";
+import SaleReportSelectedPieChart from "./SaleReportSelectedPieChart/SaleReportSelectedPieChart";
+import CurrentIntervalUnitsLineChart from "./CurrentIntervalUnitsLineChart/CurrentIntervalUnitsLineChart";
+import PreviousIntervalUnitsLineChart from "./PreviousIntervalUnitsLineChart/PreviousIntervalUnitsLineChart";
+
+import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
+
+
+
 const { RangePicker } = DatePicker;
-// const BASE_URL = "http://localhost:3000";
 const BASE_URL = "https://api.priceobo.com";
+
 const MONTH_ORDER = [
   "Jan",
   "Feb",
@@ -84,45 +94,56 @@ const SaleReport = () => {
   const [sortedProducts, setSortedProducts] = useState([]);
   const [isAsinMode, setIsAsinMode] = useState(true);
 
-  useEffect(() => {
-    fetchProducts(true);
-  }, []);
+  const [selectedValue, setSelectedValue] = useState(null);
+  const [selectedChartData, setSelectedChartData] = useState([]);
+  const [isDetailChartLoading, setIsDetailChartLoading] = useState(false);
+  const [showDefaultCharts, setShowDefaultCharts] = useState(true);
+  const [lastSelected, setLastSelected] = useState(null);
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [reportChangeFilter, setReportChangeFilter] = useState({
+    unit: "",
+    value: "",
+  });
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
-  // useEffect(() => {
-  //   if (!initialLoading) {
-  //     fetchProducts(false);
-  //   }
-  // }, [page, currentDateRange, previousDateRange]);
+  const initialFetchDoneRef = useRef(false);
+  console.log("visible months", visibleMonths);
+
+  const unitOptions = [
+    { value: "between", label: "Between" },
+    { value: "!=", label: "Does not equal" },
+    { value: ">", label: "Greater than" },
+    { value: ">=", label: "Greater than or equal to" },
+    { value: "<", label: "Less than" },
+    { value: "<=", label: "Less than or equal to" },
+    { value: "==", label: "Equals" },
+  ];
 
   useEffect(() => {
+    // Initial Load Only
+    if (initialLoading) {
+      fetchProducts(true);
+    }
+  }, [initialLoading]);
+
+  useEffect(() => {
+    // Only runs after initial load
     if (!initialLoading) {
       if (searchTerm) {
-        fetchSearchResults(searchTerm); // Keep the search filter active
+        fetchSearchResults(searchTerm);
       } else {
-        fetchProducts(false); // Otherwise, fetch all products
+        fetchProducts(false);
       }
     }
   }, [page, currentDateRange, previousDateRange]);
 
-  // useEffect(() => {
-  //   if (!searchTerm) {
-  //     fetchProducts(true);
-  //   } else {
-  //     fetchSearchResults(searchTerm);
-  //   }
-  // }, [searchTerm, page]);
-
-  useEffect(() => {
-    if (!searchTerm) {
-      fetchProducts(true);
-    }
-  }, [page]);
-
   useEffect(() => {
     axios
-      // .get("/salesReportChartData.json")
       .get(`${BASE_URL}/total-sales`)
       .then((response) => {
+        console.log("Total Sales Payload:", response.data.payload);
+
         setData(response.data.payload);
         setChartLoading(false);
       })
@@ -133,26 +154,86 @@ const SaleReport = () => {
       });
   }, []);
 
-  // const fetchSearchResults = async (query) => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.get(
-  //       `${BASE_URL}/api/favourite/find/${query}`
-  //     );
-  //     setProducts(response.data.data.listings);
-  //     setTotalPages(response.data.data.totalPages || 1);
-  //   } catch (error) {
-  //     console.error("Search API Error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
+  // const applyChangeFilter = (items) => {
+  //   const { unit, value } = reportChangeFilter;
+  //   const numVal = Number(value);
+  //   if (!unit || value === '') return items;
+
+  //   return items.filter(item => {
+  //     const pct = parseFloat(item.percentageChange ?? 0);
+  //     switch (unit) {
+  //       case '==': return pct === numVal;
+  //       case '!=': return pct !== numVal;
+  //       case '>': return pct > numVal;
+  //       case '>=': return pct >= numVal;
+  //       case '<': return pct < numVal;
+  //       case '<=': return pct <= numVal;
+  //       default: return true;
+  //     }
+  //   });
   // };
+
+  const applyChangeFilter = (items) => {
+    const { unit, value, minValue, maxValue } = reportChangeFilter;
+
+    if (!unit) return items;
+
+    return items.filter((item) => {
+      const pct = parseFloat(item.percentageChange ?? 0);
+      const numVal = Number(value);
+      const min = Number(minValue);
+      const max = Number(maxValue);
+
+      switch (unit) {
+        case "==":
+          return pct === numVal;
+        case "!=":
+          return pct !== numVal;
+        case ">":
+          return pct > numVal;
+        case ">=":
+          return pct >= numVal;
+        case "<":
+          return pct < numVal;
+        case "<=":
+          return pct <= numVal;
+        case "between":
+          if (isNaN(min) || isNaN(max)) return true;
+          return pct >= min && pct <= max;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const handleChangeFilterSubmit = () => {
+    if (
+      !reportChangeFilter.unit ||
+      (reportChangeFilter.unit !== "between" &&
+        reportChangeFilter.value === "") ||
+      (reportChangeFilter.unit === "between" &&
+        (reportChangeFilter.minValue === "" ||
+          reportChangeFilter.maxValue === ""))
+    ) {
+      setFilteredProducts([]);
+      return;
+    }
+    const source = sortOrder ? sortedProducts : products;
+    const result = applyChangeFilter(source);
+    setFilteredProducts(result);
+  };
+
   const fetchSearchResults = async (query, mode = isAsinMode) => {
     setLoading(true);
 
+    const startDate = currentDateRange[0]?.format("YYYY-MM-DD");
+    const endDate = currentDateRange[1]?.format("YYYY-MM-DD");
+    const prevStartDate = previousDateRange[0]?.format("YYYY-MM-DD");
+    const prevEndDate = previousDateRange[1]?.format("YYYY-MM-DD");
+
     const endpoint = mode
-      ? `${BASE_URL}/api/favourite/find/${query}`
-      : `${BASE_URL}/api/favourite/search/${query}`;
+      ? `${BASE_URL}/api/favourite/find/${query}?startDate=${startDate}&endDate=${endDate}&prevStartDate=${prevStartDate}&prevEndDate=${prevEndDate}`
+      : `${BASE_URL}/api/favourite/search/${query}?startDate=${startDate}&endDate=${endDate}&prevStartDate=${prevStartDate}&prevEndDate=${prevEndDate}`;
 
     try {
       const response = await axios.get(endpoint);
@@ -165,51 +246,44 @@ const SaleReport = () => {
     }
   };
 
-  // const fetchProducts = async (isInitialLoad) => {
-  //   if (!isInitialLoad) {
-  //     setLoading(true);
-  //   }
-
-  //   try {
-  //     const response = await axios.get(
-  //       `${BASE_URL}/api/favourite/report/asins`,
-  //       {
-  //         params: { page, limit: 20 },
-  //       }
-  //     );
-
-  //     setProducts(response.data.data.listings);
-  //     setTotalPages(response.data.data.totalPages || 1);
-  //   } catch (error) {
-  //     console.error("Error fetching products:", error);
-  //   } finally {
-  //     if (!isInitialLoad) {
-  //       setLoading(false);
-  //     } else {
-  //       setInitialLoading(false);
-  //     }
-  //   }
-  // };
-
   const fetchProducts = async (isInitialLoad, mode = isAsinMode) => {
-    if (!isInitialLoad) setLoading(true);
+    // Prevent multiple initial fetches
+    if (isInitialLoad && initialFetchDoneRef.current) return;
+
+    if (isInitialLoad) {
+      initialFetchDoneRef.current = true; // mark as done
+    } else {
+      setLoading(true);
+    }
+
+    const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
+    const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
+    const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
+    const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
 
     const endpoint = mode
-      ? `${BASE_URL}/api/favourite/report/asins`
-      : `${BASE_URL}/api/favourite/report`;
+      ? `${BASE_URL}/api/favourite/report/byasins`
+      : `${BASE_URL}/api/favourite/report/skus`;
+
+    const params = {
+      startDate,
+      endDate,
+      prevStartDate,
+      prevEndDate,
+    };
 
     try {
-      const response = await axios.get(endpoint, {
-        params: { page, limit: 20 },
-      });
-
+      const response = await axios.get(endpoint, { params });
       setProducts(response.data.data.listings);
       setTotalPages(response.data.data.totalPages || 1);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      if (!isInitialLoad) setLoading(false);
-      else setInitialLoading(false);
+      if (!isInitialLoad) {
+        setLoading(false);
+      } else {
+        setInitialLoading(false);
+      }
     }
   };
 
@@ -237,44 +311,52 @@ const SaleReport = () => {
   };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setSortOrder(null); // Reset sorting state
-    setSortedProducts([]); // Clear sorted products
+    setSortOrder(null);
+    setSortedProducts([]);
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       fetchSearchResults(searchTerm);
-      setSortOrder(null); // Reset sorting state
-      setSortedProducts([]); // Clear sorted products
+      setSortOrder(null);
+      setSortedProducts([]);
     }
   };
 
   const handleSearchButtonClick = () => {
     fetchSearchResults(searchTerm);
-    setSortOrder(null); // Reset sorting state
-    setSortedProducts([]); // Clear sorted products
+    setSortOrder(null);
+    setSortedProducts([]);
   };
 
-  const onChange = (checked) => {
-    // console.log(`switch to ${checked}`);
+  const handleClearFilter = () => {
+    setReportChangeFilter({ unit: "", value: "", minValue: "", maxValue: "" });
+    setFilteredProducts([]);
   };
+
+  // const handleClearInput = () => {
+  //   setSearchTerm("");
+  //   setPage(1);
+  //   setSortOrder(null);
+  //   setSortedProducts([]);
+  //   setLoading(true);
+
+  //   fetchProducts(false);
+  // };
 
   const handleClearInput = () => {
     setSearchTerm("");
     setPage(1);
-    setSortOrder(null); // Reset sorting state
-    setSortedProducts([]); // Clear sorted products
+    setSortOrder(null);
+    setSortedProducts([]);
     setLoading(true);
-
     fetchProducts(false);
   };
 
-  const handleSaleDetailsModalShow = (sku) => {
-    setSelectedSku(sku);
+  const handleSaleDetailsModalShow = () => {
     setSaleDetailsModalShow(true);
   };
   const handleSaleDetailsModalClose = () => {
-    setSelectedSku(null);
     setSaleDetailsModalShow(false);
   };
 
@@ -315,57 +397,74 @@ const SaleReport = () => {
   };
 
   const sortProducts = (order) => {
-    setSortOrder(order); // Store sorting order in state
+    setSortOrder(order);
 
-    setSortedProducts(() => {
-      const sorted = [...products].sort((a, b) => {
-        const currentUnitsA = calculateUnits(
-          filterMetricsForInterval(
-            a.salesMetrics || [],
-            currentDateRange[0],
-            currentDateRange[1]
-          )
-        );
-        const previousUnitsA = calculateUnits(
-          filterMetricsForInterval(
-            a.salesMetrics || [],
-            previousDateRange[0],
-            previousDateRange[1]
-          )
-        );
-        const percentageChangeA = parseFloat(
-          calculatePercentageChange(currentUnitsA, previousUnitsA)
-        );
+    const baseList = isFilterActive ? filteredProducts : products;
 
-        const currentUnitsB = calculateUnits(
-          filterMetricsForInterval(
-            b.salesMetrics || [],
-            currentDateRange[0],
-            currentDateRange[1]
-          )
-        );
-        const previousUnitsB = calculateUnits(
-          filterMetricsForInterval(
-            b.salesMetrics || [],
-            previousDateRange[0],
-            previousDateRange[1]
-          )
-        );
-        const percentageChangeB = parseFloat(
-          calculatePercentageChange(currentUnitsB, previousUnitsB)
-        );
-
-        return order === "asc"
-          ? percentageChangeB - percentageChangeA
-          : percentageChangeA - percentageChangeB;
-      });
-
-      return sorted;
+    const sorted = [...baseList].sort((a, b) => {
+      const valA = parseFloat(a.percentageChange ?? 0);
+      const valB = parseFloat(b.percentageChange ?? 0);
+      return order === "asc" ? valA - valB : valB - valA;
     });
+
+    setSortedProducts(sorted);
+
+    if (isFilterActive) {
+      setFilteredProducts(sorted);
+    }
   };
 
+  // const sortProducts = (order) => {
+  //   setSortOrder(order);
+
+  //   const source = isFilterActive ? filteredProducts : products;
+
+  //   const sorted = [...source].sort((a, b) => {
+  //     const valA = parseFloat(a.percentageChange ?? 0);
+  //     const valB = parseFloat(b.percentageChange ?? 0);
+
+  //     return order === "asc" ? valA - valB : valB - valA;
+  //   });
+
+  //   setSortedProducts(sorted);
+  // };
+
+  // const sortProducts = async (order) => {
+  //   setSortOrder(order);
+  //   setLoading(true);
+
+  //   const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
+  //   const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
+  //   const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
+  //   const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
+
+  //   const endpoint = isAsinMode
+  //     ? `${BASE_URL}/api/favourite/report/byasins`
+  //     : `${BASE_URL}/api/favourite/report/skus`;
+
+  //   const params = {
+  //     startDate,
+  //     endDate,
+  //     prevStartDate,
+  //     prevEndDate,
+  //     sortByChange: true,
+  //     sortOrder: order,
+  //   };
+
+  //   const fullURL = axios.getUri({ url: endpoint, params });
+
+  //   try {
+  //     const response = await axios.get(endpoint, { params });
+  //     setSortedProducts(response.data.data.listings);
+  //     setTotalPages(response.data.data.totalPages || 1);
+  //   } catch (error) {
+  //     console.error("Error fetching sorted products:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
-    console.log("Toggling favorite status for SKU:", sku);
     try {
       await axios.put(`${BASE_URL}/api/favourite/${sku}`, {
         isFavourite: !currentFavoriteStatus,
@@ -380,6 +479,65 @@ const SaleReport = () => {
       );
     } catch (error) {
       console.error("Error updating favorite status:", error.message);
+    }
+  };
+
+  const handleRowClick = async (product) => {
+    const value = isAsinMode ? product.asin1 : product.sellerSku;
+    const type = isAsinMode ? "asin" : "sku";
+
+    const endDate = dayjs().format("YYYY-MM-DD");
+    const startDate = dayjs()
+      .subtract(11, "month")
+      .startOf("day")
+      .format("YYYY-MM-DD");
+
+    const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
+
+    setIsDetailChartLoading(true);
+    setSelectedValue(value);
+    setLastSelected(value);
+    setShowDefaultCharts(false);
+    setSelectedProductDetails(product);
+
+    try {
+      const response = await axios.get(url);
+      setSelectedChartData(response.data.data.entries || []);
+    } catch (error) {
+      console.error("Error fetching selected chart data", error);
+      setSelectedChartData([]);
+    } finally {
+      setIsDetailChartLoading(false);
+    }
+  };
+
+  const handleShowAllToggle = async (checked) => {
+    setShowDefaultCharts(checked);
+
+    if (!checked && lastSelected) {
+      setSelectedValue(lastSelected);
+
+      const type = isAsinMode ? "asin" : "sku";
+      const endDate = dayjs().format("YYYY-MM-DD");
+      const startDate = dayjs()
+        .subtract(6, "month")
+        .startOf("day")
+        .format("YYYY-MM-DD");
+
+      const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${lastSelected}&startDate=${startDate}&endDate=${endDate}`;
+      setIsDetailChartLoading(true);
+      try {
+        const response = await axios.get(url);
+        setSelectedChartData(response.data.data.entries || []);
+      } catch (error) {
+        console.error("Error re-fetching selected chart data", error);
+        setSelectedChartData([]);
+      } finally {
+        setIsDetailChartLoading(false);
+      }
+    } else {
+      setSelectedValue(null);
+      setSelectedChartData([]);
     }
   };
 
@@ -467,7 +625,6 @@ const SaleReport = () => {
       return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
     });
 
-    // Assign colors for consistency
     setColorMap(() => {
       const newColorMap = {};
       sortedMonths.forEach((month, index) => {
@@ -476,7 +633,6 @@ const SaleReport = () => {
       return newColorMap;
     });
 
-    // Ensure last two months are checked by default
     setVisibleMonths((prev) => {
       if (Object.keys(prev).length === 0) {
         return sortedMonths.reduce(
@@ -490,37 +646,450 @@ const SaleReport = () => {
     return { uniqueMonths: sortedMonths };
   }, [data]);
 
-  if (initialLoading) {
-    return <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>;
-  }
+  const selectedProduct = (sortOrder ? sortedProducts : products).find(
+    (product) =>
+      isAsinMode
+        ? product.asin1 === selectedValue
+        : product.sellerSku === selectedValue
+  );
+
+  const selectedCurrentMetrics = selectedProduct
+    ? filterMetricsForInterval(
+        selectedProduct.salesMetrics || [],
+        currentDateRange[0],
+        currentDateRange[1]
+      )
+    : [];
+
+  const selectedPreviousMetrics = selectedProduct
+    ? filterMetricsForInterval(
+        selectedProduct.salesMetrics || [],
+        previousDateRange[0],
+        previousDateRange[1]
+      )
+    : [];
+
+  // 👇 Place this before your return statement
+  const ROW_HEIGHT = 100;
+  const BUFFER_ROWS = 5;
+  const containerHeight = 820;
+
+  const handleScroll = (e) => setScrollTop(e.target.scrollTop);
+
+  // const activeProducts = sortOrder ? sortedProducts : products;
+
+  // const visibleStartIndex = Math.max(
+  //   0,
+  //   Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS
+  // );
+  // const visibleEndIndex = Math.min(
+  //   activeProducts.length,
+  //   Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS
+  // );
+
+  // const visibleProducts = activeProducts.slice(visibleStartIndex, visibleEndIndex);
+
+  // const activeProducts = filteredProducts.length > 0 ? filteredProducts : (sortOrder ? sortedProducts : products);
+  const isFilterActive =
+    !!reportChangeFilter.unit &&
+    ((reportChangeFilter.unit === "between" &&
+      reportChangeFilter.minValue !== "" &&
+      reportChangeFilter.maxValue !== "") ||
+      (reportChangeFilter.unit !== "between" &&
+        reportChangeFilter.value !== ""));
+
+  const activeProducts = isFilterActive
+    ? filteredProducts
+    : sortOrder
+    ? sortedProducts
+    : products;
+
+  const visibleStartIndex = Math.max(
+    0,
+    Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS
+  );
+  const visibleEndIndex = Math.min(
+    activeProducts.length,
+    Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS
+  );
+
+  const visibleProducts = activeProducts.slice(
+    visibleStartIndex,
+    visibleEndIndex
+  );
+
+  // if (initialLoading) {
+  //   return <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>;
+  // }
+
+  console.log("unique months", uniqueMonths);
 
   return (
     <div className=" mt-5">
-      {/* Checkboxes for Months */}
-
-      <div className="flex gap-4">
-        {/* Chart Section - 60% */}
-        <div className="w-[60%]">
-          <SaleReportChart
-            data={data}
-            setData={setData}
-            chartLoading={chartLoading}
-            setChartLoading={setChartLoading}
-            visibleMonths={visibleMonths}
-            error={error}
-            setError={setError}
-            colorMap={colorMap}
-          />
-        </div>
-
-        {/* Date Selection (Checkbox) - 10% */}
-        <Card className="w-[10%]   rounded p-2 overflow-auto flex justify-center items-center">
-          <div className="">
-            {uniqueMonths.map((month) => (
-              <label
-                key={month}
-                className="flex items-center  text-md space-x-2"
+      <div className=" absolute top-[11px]">
+        <div className=" flex justify-start items-center  gap-3">
+          <InputGroup className=" z-0">
+            <Form.Control
+              type="text"
+              placeholder="Search by Product Name, Asin or SKU..."
+              value={searchTerm}
+              onChange={handleSearch}
+              onKeyDown={handleKeyDown}
+              style={{ borderRadius: "0px", width: "300px" }}
+              className="custom-input"
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClearInput}
+                className="absolute right-12 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
               >
+                <MdOutlineClose />
+              </button>
+            )}
+            <button
+              className="px-3 py-2 bg-gray-300"
+              onClick={handleSearchButtonClick}
+            >
+              <HiMagnifyingGlass />
+            </button>
+          </InputGroup>
+          <div className="flex flex-col items-center">
+            <Switch
+              checkedChildren="Asin Mode"
+              unCheckedChildren="SKU Mode"
+              checked={isAsinMode}
+              style={{ width: 100 }}
+              onChange={(checked) => {
+                setIsAsinMode(checked);
+                setLoading(true);
+                setPage(1);
+                setSelectedChartData([]);
+                setSelectedValue(null);
+                if (searchTerm) {
+                  fetchSearchResults(searchTerm, checked);
+                } else {
+                  fetchProducts(false, checked);
+                }
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="absolute top-[15px] right-[29%] ">
+        <Switch
+          checkedChildren="Show Previous"
+          unCheckedChildren="Show All"
+          checked={!showDefaultCharts}
+          style={{ width: 120 }}
+          onChange={(checked) => handleShowAllToggle(!checked)}
+        />
+      </div>
+
+      <section className="flex gap-3">
+        {/* sale report table part */}
+        <section className="w-[60%]">
+          <div
+            className="sale-report-table-scroll"
+            onScroll={handleScroll}
+            style={{
+              // maxHeight: "91vh",
+              maxHeight: `${containerHeight}px`,
+              overflowY: "auto",
+
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            {initialLoading ? (
+              <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>
+            ) : (
+              <table
+                style={{
+                  tableLayout: "fixed",
+                }}
+                className="reportCustomTable table"
+              >
+                <thead
+                  style={{
+                    backgroundColor: "#f0f0f0",
+                    color: "#333",
+                    fontFamily: "Arial, sans-serif",
+                    fontSize: "14px",
+                  }}
+                >
+                  <tr>
+                    <th
+                      className="tableHeader"
+                      style={{
+                        position: "sticky",
+                        width: "70px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        borderRight: "2px solid #C3C6D4",
+                        zIndex: 3,
+                      }}
+                    >
+                      Favorite
+                    </th>
+                    <th
+                      className="tableHeader"
+                      style={{
+                        position: "sticky",
+                        width: "120px",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        borderRight: "2px solid #C3C6D4",
+                      }}
+                    >
+                      Image
+                    </th>
+
+                    <th
+                      className="tableHeader"
+                      style={{
+                        position: "sticky",
+                        textAlign: "center",
+                        width: "270px",
+                        verticalAlign: "middle",
+                        borderRight: "2px solid #C3C6D4",
+                        zIndex: 3,
+                      }}
+                    >
+                      Title
+                    </th>
+                    <th
+                      className="tableHeader"
+                      style={{
+                        position: "sticky",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        borderRight: "2px solid #C3C6D4",
+                      }}
+                    >
+                      Current Interval Units
+                      <div>
+                        <Space direction="vertical" size={12}>
+                          <RangePicker
+                            presets={rangePresets}
+                            value={
+                              currentDateRange.length === 2
+                                ? currentDateRange
+                                : null
+                            }
+                            onChange={(dates) => {
+                              if (dates && dates.length === 2) {
+                                setCurrentDateRange([dates[0], dates[1]]);
+                              } else {
+                                setCurrentDateRange([
+                                  dayjs().subtract(30, "day").startOf("day"),
+                                  dayjs().endOf("day"),
+                                ]);
+                              }
+                            }}
+                            format="DD MMM, YYYY"
+                          />
+                        </Space>
+                      </div>
+                    </th>
+
+                    <th
+                      className="tableHeader"
+                      style={{
+                        position: "sticky",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        borderRight: "2px solid #C3C6D4",
+                      }}
+                    >
+                      Previous Interval Units
+                      <div>
+                        <Space direction="vertical" size={12}>
+                          <RangePicker
+                            presets={rangePresets}
+                            value={
+                              previousDateRange.length === 2
+                                ? previousDateRange
+                                : null
+                            }
+                            onChange={(dates) => {
+                              if (dates && dates.length === 2) {
+                                setPreviousDateRange([dates[0], dates[1]]);
+                              } else {
+                                setPreviousDateRange([
+                                  dayjs().subtract(60, "day").startOf("day"),
+                                  dayjs().subtract(30, "day").endOf("day"),
+                                ]);
+                              }
+                            }}
+                            format="DD MMM, YYYY"
+                          />
+                        </Space>
+                      </div>
+                    </th>
+
+                    <th
+                      className="tableHeader"
+                      style={{
+                        position: "sticky",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        width: "140px",
+                      }}
+                    >
+                      <p className="flex justify-center items-center gap-1 ">
+                        {isFilterActive && (
+                          <BsDashCircle
+                            onClick={handleClearFilter}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        )}
+                        <ReportChangeFilterPopover
+                          unitOptions={unitOptions}
+                          reportChangeFilter={reportChangeFilter}
+                          setReportChangeFilter={setReportChangeFilter}
+                          onSubmitFilter={handleChangeFilterSubmit}
+                        />
+                        Change (%)
+                        <button
+                          onClick={() => {
+                            setSortOrder((prev) => {
+                              const newOrder = prev === "asc" ? "desc" : "asc";
+                              sortProducts(newOrder);
+                              return newOrder;
+                            });
+                          }}
+                        >
+                          <RiArrowUpDownFill className="text-sm" />
+                        </button>
+                      </p>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  style={{
+                    fontSize: "12px",
+                    fontFamily: "Arial, sans-serif",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="h-[90vh] text-center text-base"
+                      >
+                        <div className="mt-[30vh]">
+                          <ClipLoader
+                            color="#0E6FFD"
+                            loading={true}
+                            size={40}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : visibleProducts.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="text-center py-10 text-gray-500 text-sm"
+                      >
+                        No products found matching the filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    <>
+                      <tr
+                        style={{
+                          height: `${visibleStartIndex * ROW_HEIGHT}px`,
+                        }}
+                      />
+                      {visibleProducts.map((product, index) => (
+                        <SaleReportTableRow
+                          key={product.sellerSku}
+                          product={product}
+                          toggleFavorite={toggleFavorite}
+                          index={visibleStartIndex + index}
+                          handleCopy={handleCopy}
+                          copiedAsinIndex={copiedAsinIndex}
+                          copiedSkuIndex={copiedSkuIndex}
+                          currentUnits={product.currentUnits ?? 0}
+                          previousUnits={product.previousUnits ?? 0}
+                          percentageChange={product.percentageChange ?? 0}
+                          handleSaleDetailsModalShow={
+                            handleSaleDetailsModalShow
+                          }
+                          handleRowClick={handleRowClick}
+                          selectedValue={selectedValue}
+                          isAsinMode={isAsinMode}
+                        />
+                      ))}
+                      <tr
+                        style={{
+                          height: `${
+                            (activeProducts.length - visibleEndIndex) *
+                            ROW_HEIGHT
+                          }px`,
+                        }}
+                      />
+                    </>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </section>
+
+        <Card className="w-[40%] h-[90vh] overflow-y-auto  p-2">
+          {showDefaultCharts || !selectedValue ? (
+            <>
+              <SaleReportPieChart
+                data={data}
+                visibleMonths={visibleMonths}
+                chartLoading={chartLoading}
+                colorMap={colorMap}
+                error={error}
+              />
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => handleSaleDetailsModalShow()}
+                className="bg-[#0662BB] text-white text-sm rounded drop-shadow-sm  gap-1  px-2 py-1 mb-1"
+              >
+                See Details
+              </button>
+              {/* <span>{selectedProductDetails?.sellerSku}</span> */}
+              <CurrentIntervalUnitsLineChart
+                metrics={selectedChartData}
+                currentDateRange={currentDateRange}
+                currentUnits={selectedProductDetails.currentUnits ?? 0}
+              />
+              <PreviousIntervalUnitsLineChart
+                metrics={selectedChartData}
+                previousDateRange={previousDateRange}
+                previousUnits={selectedProductDetails.previousUnits ?? 0}
+              />
+              <div className="grid grid-cols-2 gap-1">
+                <CurrentPreviousIntervalUnitsPieChart
+                  // currentUnits={selectedCurrentUnits}
+                  // previousUnits={selectedPreviousUnits}
+
+                  currentUnits={selectedProduct?.currentUnits ?? 0}
+                  previousUnits={selectedProduct?.previousUnits ?? 0}
+                />
+                <SaleReportSelectedPieChart
+                  entries={selectedChartData}
+                  visibleMonths={visibleMonths}
+                  loading={isDetailChartLoading}
+                  error={error}
+                  colorMap={colorMap}
+                />
+              </div>
+            </>
+          )}
+
+          <div className="flex flex-wrap gap-x-4 gap-y-2 my-4">
+            {[...uniqueMonths].reverse().map((month) => (
+              <label key={month} className="flex items-center space-x-1">
                 <input
                   type="checkbox"
                   className="cursor-pointer"
@@ -536,579 +1105,35 @@ const SaleReport = () => {
               </label>
             ))}
           </div>
-        </Card>
 
-        {/* Pie Chart Section - 30% */}
-        <div className="w-[30%]">
-          <SaleReportPieChart
-            data={data}
-            setData={setData}
-            visibleMonths={visibleMonths}
-            chartLoading={chartLoading}
-            setChartLoading={setChartLoading}
-            error={error}
-            setError={setError}
-            colorMap={colorMap}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-start items-center mt-[15px] gap-3">
-        <InputGroup className="max-w-[500px]  z-0">
-          <Form.Control
-            type="text"
-            placeholder="Search by Product Name, Asin or SKU..."
-            value={searchTerm}
-            onChange={handleSearch}
-            onKeyDown={handleKeyDown}
-            style={{ borderRadius: "0px" }}
-            className="custom-input"
-          />
-          {searchTerm && (
-            <button
-              onClick={handleClearInput}
-              className="absolute right-12 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
-            >
-              <MdOutlineClose />
-            </button>
+          {showDefaultCharts || !selectedValue ? (
+            <SaleReportChart
+              data={data}
+              setData={setData}
+              chartLoading={chartLoading}
+              setChartLoading={setChartLoading}
+              visibleMonths={visibleMonths}
+              error={error}
+              setError={setError}
+              colorMap={colorMap}
+            />
+          ) : (
+            <SaleReportSelectedLineChart
+              entries={selectedChartData}
+              loading={isDetailChartLoading}
+              visibleMonths={visibleMonths}
+              colorMap={colorMap}
+            />
           )}
-          <button
-            className="px-3 py-2 bg-gray-300"
-            onClick={handleSearchButtonClick}
-          >
-            <HiMagnifyingGlass />
-          </button>
-        </InputGroup>
-        <div className="flex flex-col items-center">
-          {/* <Switch defaultChecked onChange={onChange} /> */}
-          {/* <Switch
-            checkedChildren="Asin Mode"
-            unCheckedChildren="SKU Mode"
-            defaultChecked
-          /> */}
-          <Switch
-            checkedChildren="Asin Mode"
-            unCheckedChildren="SKU Mode"
-            checked={isAsinMode}
-            onChange={(checked) => {
-              setIsAsinMode(checked);
-              setLoading(true); // Show spinner
-              setPage(1); // Reset to page 1
-              if (searchTerm) {
-                fetchSearchResults(searchTerm, checked);
-              } else {
-                fetchProducts(false, checked);
-              }
-            }}
-          />
-        </div>
-      </div>
-      <>
-        <div
-          style={{
-            maxHeight: "91vh",
-            overflowY: "auto",
-            marginTop: "15px",
-            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <table
-            style={{
-              tableLayout: "fixed",
-            }}
-            className="reportCustomTable table"
-          >
-            <thead
-              style={{
-                backgroundColor: "#f0f0f0",
-                color: "#333",
-                fontFamily: "Arial, sans-serif",
-                fontSize: "14px",
-              }}
-            >
-              <tr>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    width: "100px",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                    zIndex: 3,
-                  }}
-                >
-                  Favorite
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    width: "180px",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Image
-                </th>
-
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    width: "400px",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                    zIndex: 3,
-                  }}
-                >
-                  Title
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Current Interval Units
-                  <div>
-                    <Space direction="vertical" size={12}>
-                      <RangePicker
-                        presets={rangePresets}
-                        value={
-                          currentDateRange.length === 2
-                            ? currentDateRange
-                            : null
-                        }
-                        onChange={(dates) => {
-                          if (dates && dates.length === 2) {
-                            setCurrentDateRange([dates[0], dates[1]]);
-                          } else {
-                            setCurrentDateRange([
-                              dayjs().subtract(30, "day").startOf("day"),
-                              dayjs().endOf("day"),
-                            ]);
-                          }
-                        }}
-                        format="DD MMM, YYYY"
-                      />
-                    </Space>
-                  </div>
-                </th>
-
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Previous Interval Units
-                  <div>
-                    <Space direction="vertical" size={12}>
-                      <RangePicker
-                        presets={rangePresets}
-                        value={
-                          previousDateRange.length === 2
-                            ? previousDateRange
-                            : null
-                        }
-                        onChange={(dates) => {
-                          if (dates && dates.length === 2) {
-                            setPreviousDateRange([dates[0], dates[1]]);
-                          } else {
-                            setPreviousDateRange([
-                              dayjs().subtract(60, "day").startOf("day"),
-                              dayjs().subtract(30, "day").endOf("day"),
-                            ]);
-                          }
-                        }}
-                        format="DD MMM, YYYY"
-                      />
-                    </Space>
-                  </div>
-                </th>
-
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    width: "150px",
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  <p className="flex justify-center items-center gap-1 ">
-                    Change (%)
-                    {/* <button>
-                      <RiArrowUpDownFill className="text-sm" />
-                    </button> */}
-                    <button
-                      onClick={() => {
-                        setSortOrder((prev) => {
-                          const newOrder = prev === "asc" ? "desc" : "asc"; // Toggle order
-                          sortProducts(newOrder); // Update sorted data
-                          return newOrder; // Update state
-                        });
-                      }}
-                    >
-                      <RiArrowUpDownFill className="text-sm" />
-                    </button>
-                  </p>
-                </th>
-                <th
-                  className="tableHeader"
-                  style={{
-                    position: "sticky",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    width: "150px",
-                    zIndex: 3,
-                  }}
-                >
-                  Details
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              style={{
-                fontSize: "12px",
-                fontFamily: "Arial, sans-serif",
-                lineHeight: "1.5",
-              }}
-            >
-              {loading ? (
-                <tr>
-                  <td
-                    className="h-[90vh] text-base"
-                    colSpan="6"
-                    style={{
-                      textAlign: "center",
-                      padding: "20px",
-                      border: "none",
-                    }}
-                  >
-                    <div className="mt-[30vh]">
-                      <ClipLoader
-                        color="#0E6FFD"
-                        loading={true}
-                        cssOverride={{
-                          margin: "0 auto",
-                          borderWidth: "3px",
-                        }}
-                        size={40}
-                        width={100}
-                        aria-label="Loading Spinner"
-                        data-testid="loader"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                (sortOrder ? sortedProducts : products).map(
-                  (product, index) => {
-                    const currentMetrics = filterMetricsForInterval(
-                      product.salesMetrics || [],
-                      currentDateRange[0],
-                      currentDateRange[1]
-                    );
-
-                    const previousMetrics = filterMetricsForInterval(
-                      product.salesMetrics || [],
-                      previousDateRange[0],
-                      previousDateRange[1]
-                    );
-
-                    const currentUnits = calculateUnits(currentMetrics);
-                    const previousUnits = calculateUnits(previousMetrics);
-                    const percentageChange = calculatePercentageChange(
-                      currentUnits,
-                      previousUnits
-                    );
-
-                    return (
-                      <tr key={product.sellerSku}>
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "100%",
-                            }}
-                          >
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFavorite(
-                                  product.sellerSku,
-                                  product.isFavourite,
-                                  index
-                                );
-                              }}
-                              style={{
-                                textAlign: "center",
-                                cursor: "pointer",
-                                transition: "transform 0.2s ease-in-out",
-                                transform: product.isFavourite
-                                  ? "scale(1.1)"
-                                  : "scale(1)",
-                              }}
-                            >
-                              {product.isFavourite ? (
-                                <FaStar
-                                  style={{
-                                    color: "#879618a3",
-                                    fontSize: "20px",
-                                  }}
-                                />
-                              ) : (
-                                <FaRegStar
-                                  style={{ color: "gray", fontSize: "16px" }}
-                                />
-                              )}
-                            </span>
-                          </div>
-                        </td>
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "100%",
-                            }}
-                          >
-                            <img
-                              src={
-                                product.imageUrl ||
-                                "https://via.placeholder.com/50"
-                              }
-                              alt="Product"
-                              style={{
-                                width: "50px",
-                                height: "50px",
-                                objectFit: "contain",
-                                borderRadius: "5px",
-                                display: "block",
-                                imageRendering: "auto",
-                              }}
-                            />
-                          </div>
-                        </td>
-
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                          }}
-                        >
-                          {product.itemName || "Unknown Product"}
-
-                          <div className="details mt-[5px]">
-                            <span
-                              className="bubble-text"
-                              style={{
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "stretch",
-                              }}
-                            >
-                              {product.asin1}{" "}
-                              {copiedAsinIndex === index ? (
-                                <MdCheck
-                                  style={{
-                                    marginLeft: "10px",
-                                    cursor: "pointer",
-                                    color: "green",
-                                    fontSize: "16px",
-                                  }}
-                                />
-                              ) : (
-                                <BsClipboardCheck
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCopy(product.asin1, "asin", index);
-                                  }}
-                                  style={{
-                                    marginLeft: "10px",
-                                    cursor: "pointer",
-                                    fontSize: "16px",
-                                  }}
-                                />
-                              )}
-                            </span>{" "}
-                            <span
-                              className="bubble-text"
-                              style={{
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              {product.sellerSku}{" "}
-                              {copiedSkuIndex === index ? (
-                                <MdCheck
-                                  style={{
-                                    marginLeft: "10px",
-                                    cursor: "pointer",
-                                    color: "green",
-                                    fontSize: "16px",
-                                  }}
-                                />
-                              ) : (
-                                <BsClipboardCheck
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCopy(product.sellerSku, "sku", index);
-                                  }}
-                                  style={{
-                                    marginLeft: "10px",
-                                    cursor: "pointer",
-                                    fontSize: "16px",
-                                  }}
-                                />
-                              )}
-                            </span>{" "}
-                          </div>
-                        </td>
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                          }}
-                        >
-                          {currentUnits}
-                        </td>
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                          }}
-                        >
-                          {previousUnits}
-                        </td>
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                            color:
-                              percentageChange > 0
-                                ? "green"
-                                : percentageChange < 0
-                                ? "red"
-                                : "black",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              height: "100%",
-                            }}
-                          >
-                            {`${percentageChange}%`}
-                            {percentageChange !== 0 &&
-                              percentageChange !== "0.00" && (
-                                <span>
-                                  {percentageChange > 0 ? (
-                                    <FaArrowUp />
-                                  ) : (
-                                    <FaArrowDownLong />
-                                  )}
-                                </span>
-                              )}
-                          </div>
-                        </td>
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                            color:
-                              percentageChange > 0
-                                ? "green"
-                                : percentageChange < 0
-                                ? "red"
-                                : "black",
-                          }}
-                        >
-                          <button
-                            onClick={() =>
-                              handleSaleDetailsModalShow(product.sellerSku)
-                            }
-                            className="bg-[#0662BB] text-white rounded drop-shadow-sm  gap-1  px-2 py-1"
-                          >
-                            See Details
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  }
-                )
-              )}
-            </tbody>
-          </table>
-          <SaleReportPagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      </>
+        </Card>
+      </section>
 
       <SaleDetailsModal
         saleDetailsModalShow={saleDetailsModalShow}
         setSaleDetailsModalShow={setSaleDetailsModalShow}
         handleSaleDetailsModalShow={handleSaleDetailsModalShow}
         handleSaleDetailsModalClose={handleSaleDetailsModalClose}
-        sku={selectedSku}
+        sku={selectedProductDetails?.sellerSku}
       ></SaleDetailsModal>
     </div>
   );
