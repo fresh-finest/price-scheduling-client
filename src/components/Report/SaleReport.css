@@ -1,0 +1,16 @@
+/* in your CSS file, scoped to .sale-report-table-scroll */
+
+.sale-report-table-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .sale-report-table-scroll::-webkit-scrollbar-track {
+    background: #ebedf0;
+  }
+  
+  .sale-report-table-scroll::-webkit-scrollbar-thumb {
+    background-color: #c3c6d4;
+    border-radius: 5px;
+  }
+  

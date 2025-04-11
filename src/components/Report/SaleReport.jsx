@@ -1,18 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import { DatePicker, Space, Switch } from "antd";
 import { InputGroup, Form } from "react-bootstrap";
 import dayjs from "dayjs";
 import "antd/dist/reset.css";
-import SaleReportPagination from "./SaleReportPagination";
+
 
 import { HiMagnifyingGlass } from "react-icons/hi2";
-import { MdCheck, MdOutlineClose } from "react-icons/md";
+import { MdOutlineClose } from "react-icons/md";
 import SaleReportLoadingSkeleton from "../LoadingSkeleton/SaleReportLoadingSkeleton";
 import { ClipLoader } from "react-spinners";
 import SaleReportChart from "./SaleReportChart";
 import SaleReportPieChart from "./SalesReportPieChart/SaleReportPieChart";
-import SaleDetailsModal from "./SaleDetailsModal";
 import { RiArrowUpDownFill } from "react-icons/ri";
 import { Card } from "../ui/card";
 import SaleReportTableRow from "./SaleReportTable/SaleReportTableRow";
@@ -21,6 +20,11 @@ import SaleReportSelectedPieChart from "./SaleReportSelectedPieChart/SaleReportS
 import CurrentIntervalUnitsLineChart from "./CurrentIntervalUnitsLineChart/CurrentIntervalUnitsLIneChart";
 import PreviousIntervalUnitsLineChart from "./PreviousIntervalUnitsLineChart/PreviousIntervalUnitsLineChart";
 import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
+import SaleDetailsModal from "./SaleDetailsModal";
+
+import './SaleReport.css'
+import ReportChangeFilterPopover from "./ReportChangeFilterPopover/ReportChangeFilterPopover";
+import { BsDashCircle } from "react-icons/bs";
 
 const { RangePicker } = DatePicker;
 const BASE_URL = "http://192.168.0.26:3000";
@@ -90,15 +94,35 @@ const [selectedChartData, setSelectedChartData] = useState([]);
 const [isDetailChartLoading, setIsDetailChartLoading] = useState(false);
 const [showDefaultCharts, setShowDefaultCharts] = useState(true);
 const [lastSelected, setLastSelected] = useState(null); 
+const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+const [scrollTop, setScrollTop] = useState(0);
+const [reportChangeFilter, setReportChangeFilter] = useState({ unit: '', value: '' });
+const [filteredProducts, setFilteredProducts] = useState([]);
+
+const initialFetchDoneRef = useRef(false);
+console.log('visible months', visibleMonths)
 
 
+const unitOptions = [
+  { value: "between", label: "Between" },
+  { value: "!=", label: "Does not equal" },
+  { value: ">", label: "Greater than" },
+  { value: ">=", label: "Greater than or equal to" },
+  { value: "<", label: "Less than" },
+  { value: "<=", label: "Less than or equal to" },
+  { value: "==", label: "Equals" },
+
+];
 
   useEffect(() => {
-    fetchProducts(true);
-  }, []);
-
-
+    // Initial Load Only
+    if (initialLoading) {
+      fetchProducts(true);
+    }
+  }, [initialLoading]);
+  
   useEffect(() => {
+    // Only runs after initial load
     if (!initialLoading) {
       if (searchTerm) {
         fetchSearchResults(searchTerm); 
@@ -107,20 +131,16 @@ const [lastSelected, setLastSelected] = useState(null);
       }
     }
   }, [page, currentDateRange, previousDateRange]);
+  
 
 
-
-  useEffect(() => {
-    if (!searchTerm) {
-      fetchProducts(true);
-    }
-  }, [page]);
 
   useEffect(() => {
     axios
-     
       .get(`${BASE_URL}/total-sales`)
       .then((response) => {
+        console.log("Total Sales Payload:", response.data.payload);
+  
         setData(response.data.payload);
         setChartLoading(false);
       })
@@ -131,12 +151,78 @@ const [lastSelected, setLastSelected] = useState(null);
       });
   }, []);
 
+  // const applyChangeFilter = (items) => {
+  //   const { unit, value } = reportChangeFilter;
+  //   const numVal = Number(value);
+  //   if (!unit || value === '') return items;
+
+  //   return items.filter(item => {
+  //     const pct = parseFloat(item.percentageChange ?? 0);
+  //     switch (unit) {
+  //       case '==': return pct === numVal;
+  //       case '!=': return pct !== numVal;
+  //       case '>': return pct > numVal;
+  //       case '>=': return pct >= numVal;
+  //       case '<': return pct < numVal;
+  //       case '<=': return pct <= numVal;
+  //       default: return true;
+  //     }
+  //   });
+  // };
+
+  const applyChangeFilter = (items) => {
+    const { unit, value, minValue, maxValue } = reportChangeFilter;
+  
+    if (!unit) return items;
+  
+    return items.filter(item => {
+      const pct = parseFloat(item.percentageChange ?? 0);
+      const numVal = Number(value);
+      const min = Number(minValue);
+      const max = Number(maxValue);
+  
+      switch (unit) {
+        case '==': return pct === numVal;
+        case '!=': return pct !== numVal;
+        case '>': return pct > numVal;
+        case '>=': return pct >= numVal;
+        case '<': return pct < numVal;
+        case '<=': return pct <= numVal;
+        case 'between':
+          if (isNaN(min) || isNaN(max)) return true;
+          return pct >= min && pct <= max;
+        default:
+          return true;
+      }
+    });
+  };
+  
+
+  const handleChangeFilterSubmit = () => {
+    if (!reportChangeFilter.unit || 
+      (reportChangeFilter.unit !== 'between' && reportChangeFilter.value === '') ||
+      (reportChangeFilter.unit === 'between' && (reportChangeFilter.minValue === '' || reportChangeFilter.maxValue === ''))) {
+    setFilteredProducts([]);
+    return;
+  }
+    const source = sortOrder ? sortedProducts : products;
+    const result = applyChangeFilter(source);
+    setFilteredProducts(result);
+  };
+
+
+
   const fetchSearchResults = async (query, mode = isAsinMode) => {
     setLoading(true);
 
+    const startDate = currentDateRange[0]?.format("YYYY-MM-DD");
+    const endDate = currentDateRange[1]?.format("YYYY-MM-DD");
+    const prevStartDate = previousDateRange[0]?.format("YYYY-MM-DD");
+    const prevEndDate = previousDateRange[1]?.format("YYYY-MM-DD");
+
     const endpoint = mode
-      ? `${BASE_URL}/api/favourite/find/${query}`
-      : `${BASE_URL}/api/favourite/search/${query}`;
+      ? `${BASE_URL}/api/favourite/find/${query}?startDate=${startDate}&endDate=${endDate}&prevStartDate=${prevStartDate}&prevEndDate=${prevEndDate}`
+      : `${BASE_URL}/api/favourite/search/${query}?startDate=${startDate}&endDate=${endDate}&prevStartDate=${prevStartDate}&prevEndDate=${prevEndDate}`;
 
     try {
       const response = await axios.get(endpoint);
@@ -149,27 +235,51 @@ const [lastSelected, setLastSelected] = useState(null);
     }
   };
 
+  
+
+
   const fetchProducts = async (isInitialLoad, mode = isAsinMode) => {
-    if (!isInitialLoad) setLoading(true);
-
+    // Prevent multiple initial fetches
+    if (isInitialLoad && initialFetchDoneRef.current) return;
+  
+    if (isInitialLoad) {
+      initialFetchDoneRef.current = true; // mark as done
+    } else {
+      setLoading(true);
+    }
+  
+    const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
+    const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
+    const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
+    const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
+  
     const endpoint = mode
-      ? `${BASE_URL}/api/favourite/report/asins`
-      : `${BASE_URL}/api/favourite/report`;
-
+      ? `${BASE_URL}/api/favourite/report/byasins`
+      : `${BASE_URL}/api/favourite/report/skus`;
+  
+    const params = {
+      startDate,
+      endDate,
+      prevStartDate,
+      prevEndDate,
+    };
+  
     try {
-      const response = await axios.get(endpoint, {
-        params: { page, limit: 20 },
-      });
-
+      const response = await axios.get(endpoint, { params });
       setProducts(response.data.data.listings);
       setTotalPages(response.data.data.totalPages || 1);
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
-      if (!isInitialLoad) setLoading(false);
-      else setInitialLoading(false);
+      if (!isInitialLoad) {
+        setLoading(false);
+      } else {
+        setInitialLoading(false);
+      }
     }
   };
+  
+
 
   const filterMetricsForInterval = (
     salesMetrics,
@@ -213,9 +323,21 @@ const [lastSelected, setLastSelected] = useState(null);
     setSortedProducts([]);
   };
 
-  const onChange = (checked) => {
-    console.log(`switch to ${checked}`);
+  const handleClearFilter = () => {
+    setReportChangeFilter({ unit: '', value: '', minValue: '', maxValue: '' });
+    setFilteredProducts([]);
   };
+
+
+  // const handleClearInput = () => {
+  //   setSearchTerm("");
+  //   setPage(1);
+  //   setSortOrder(null);
+  //   setSortedProducts([]);
+  //   setLoading(true);
+
+  //   fetchProducts(false);
+  // };
 
   const handleClearInput = () => {
     setSearchTerm("");
@@ -223,16 +345,16 @@ const [lastSelected, setLastSelected] = useState(null);
     setSortOrder(null);
     setSortedProducts([]);
     setLoading(true);
-
     fetchProducts(false);
   };
 
+  const handleSaleDetailsModalShow = () => {
 
-
-
-  const handleSaleDetailsModalShow = (sku) => {
-    setSelectedSku(sku);
     setSaleDetailsModalShow(true);
+  };
+  const handleSaleDetailsModalClose = () => {
+
+    setSaleDetailsModalShow(false);
   };
 
 
@@ -272,58 +394,84 @@ const [lastSelected, setLastSelected] = useState(null);
     }
   };
 
+
   const sortProducts = (order) => {
     setSortOrder(order);
-
-    setSortedProducts(() => {
-      const sorted = [...products].sort((a, b) => {
-        const currentUnitsA = calculateUnits(
-          filterMetricsForInterval(
-            a.salesMetrics || [],
-            currentDateRange[0],
-            currentDateRange[1]
-          )
-        );
-        const previousUnitsA = calculateUnits(
-          filterMetricsForInterval(
-            a.salesMetrics || [],
-            previousDateRange[0],
-            previousDateRange[1]
-          )
-        );
-        const percentageChangeA = parseFloat(
-          calculatePercentageChange(currentUnitsA, previousUnitsA)
-        );
-
-        const currentUnitsB = calculateUnits(
-          filterMetricsForInterval(
-            b.salesMetrics || [],
-            currentDateRange[0],
-            currentDateRange[1]
-          )
-        );
-        const previousUnitsB = calculateUnits(
-          filterMetricsForInterval(
-            b.salesMetrics || [],
-            previousDateRange[0],
-            previousDateRange[1]
-          )
-        );
-        const percentageChangeB = parseFloat(
-          calculatePercentageChange(currentUnitsB, previousUnitsB)
-        );
-
-        return order === "asc"
-          ? percentageChangeB - percentageChangeA
-          : percentageChangeA - percentageChangeB;
-      });
-
-      return sorted;
+  
+    const baseList = isFilterActive ? filteredProducts : products;
+  
+    const sorted = [...baseList].sort((a, b) => {
+      const valA = parseFloat(a.percentageChange ?? 0);
+      const valB = parseFloat(b.percentageChange ?? 0);
+      return order === "asc" ? valA - valB : valB - valA;
     });
+  
+    setSortedProducts(sorted);
+  
+    if (isFilterActive) {
+      setFilteredProducts(sorted);
+    }
   };
+  
+
+  
+   // const sortProducts = (order) => {
+  //   setSortOrder(order);
+  
+  //   const source = isFilterActive ? filteredProducts : products;
+  
+  //   const sorted = [...source].sort((a, b) => {
+  //     const valA = parseFloat(a.percentageChange ?? 0);
+  //     const valB = parseFloat(b.percentageChange ?? 0);
+  
+  //     return order === "asc" ? valA - valB : valB - valA;
+  //   });
+  
+  //   setSortedProducts(sorted);
+  // };
+
+
+  // const sortProducts = async (order) => {
+  //   setSortOrder(order);
+  //   setLoading(true);
+  
+  //   const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
+  //   const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
+  //   const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
+  //   const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
+  
+  //   const endpoint = isAsinMode
+  //     ? `${BASE_URL}/api/favourite/report/byasins`
+  //     : `${BASE_URL}/api/favourite/report/skus`;
+  
+  //   const params = {
+  //     startDate,
+  //     endDate,
+  //     prevStartDate,
+  //     prevEndDate,
+  //     sortByChange: true,
+  //     sortOrder: order,
+  //   };
+  
+  //   const fullURL = axios.getUri({ url: endpoint, params });
+  
+  
+  //   try {
+  //     const response = await axios.get(endpoint, { params });
+  //     setSortedProducts(response.data.data.listings);
+  //     setTotalPages(response.data.data.totalPages || 1);
+  //   } catch (error) {
+  //     console.error("Error fetching sorted products:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+ 
+
 
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
-    console.log("Toggling favorite status for SKU:", sku);
+
     try {
       await axios.put(`${BASE_URL}/api/favourite/${sku}`, {
         isFavourite: !currentFavoriteStatus,
@@ -347,15 +495,16 @@ const [lastSelected, setLastSelected] = useState(null);
     const type = isAsinMode ? "asin" : "sku";
   
     const endDate = dayjs().format("YYYY-MM-DD");
-    const startDate = dayjs().subtract(6, "month").startOf("day").format("YYYY-MM-DD");
+    const startDate = dayjs().subtract(11, "month").startOf("day").format("YYYY-MM-DD");
   
     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
-    console.log("Fetching chart data from:", url);
+  
   
     setIsDetailChartLoading(true);
     setSelectedValue(value);
     setLastSelected(value);
     setShowDefaultCharts(false); 
+    setSelectedProductDetails(product);
   
     try {
       const response = await axios.get(url);
@@ -487,6 +636,8 @@ const [lastSelected, setLastSelected] = useState(null);
       return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
     });
 
+    
+    
     setColorMap(() => {
       const newColorMap = {};
       sortedMonths.forEach((month, index) => {
@@ -520,13 +671,58 @@ const [lastSelected, setLastSelected] = useState(null);
     ? filterMetricsForInterval(selectedProduct.salesMetrics || [], previousDateRange[0], previousDateRange[1])
     : [];
   
-  const selectedCurrentUnits = calculateUnits(selectedCurrentMetrics);
-  const selectedPreviousUnits = calculateUnits(selectedPreviousMetrics);
-  
+  // 👇 Place this before your return statement
+const ROW_HEIGHT = 100;
+const BUFFER_ROWS = 5;
+const containerHeight = 820; 
+
+
+const handleScroll = (e) => setScrollTop(e.target.scrollTop);
+
+// const activeProducts = sortOrder ? sortedProducts : products;
+
+// const visibleStartIndex = Math.max(
+//   0,
+//   Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS
+// );
+// const visibleEndIndex = Math.min(
+//   activeProducts.length,
+//   Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS
+// );
+
+// const visibleProducts = activeProducts.slice(visibleStartIndex, visibleEndIndex);
+
+
+// const activeProducts = filteredProducts.length > 0 ? filteredProducts : (sortOrder ? sortedProducts : products);
+const isFilterActive = !!reportChangeFilter.unit && (
+  (reportChangeFilter.unit === 'between' && reportChangeFilter.minValue !== '' && reportChangeFilter.maxValue !== '') ||
+  (reportChangeFilter.unit !== 'between' && reportChangeFilter.value !== '')
+);
+
+const activeProducts = isFilterActive
+  ? filteredProducts
+  : (sortOrder ? sortedProducts : products);
+
+
+const visibleStartIndex = Math.max(
+  0,
+  Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS
+);
+const visibleEndIndex = Math.min(
+  activeProducts.length,
+  Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS
+);
+
+const visibleProducts = activeProducts.slice(visibleStartIndex, visibleEndIndex);
+
+
+    
 
   if (initialLoading) {
     return <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>;
   }
+
+  console.log('unique months', uniqueMonths)
 
   return (
     <div className=" mt-5">
@@ -602,14 +798,17 @@ const [lastSelected, setLastSelected] = useState(null);
         {/* sale report table part */}
         <section className="w-[60%]">
           <div
+          className="sale-report-table-scroll"
+          onScroll={handleScroll}
             style={{
-              maxHeight: "91vh",
+              // maxHeight: "91vh",
+              maxHeight: `${containerHeight}px`,
               overflowY: "auto",
 
               boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
             }}
           >
-            <table
+          <table
               style={{
                 tableLayout: "fixed",
               }}
@@ -739,24 +938,43 @@ const [lastSelected, setLastSelected] = useState(null);
                       position: "sticky",
                       textAlign: "center",
                       verticalAlign: "middle",
-                      width: "110px",
+                      width: "140px",
                     }}
                   >
                     <p className="flex justify-center items-center gap-1 ">
+                    {isFilterActive && (
+                        <BsDashCircle
+                          onClick={handleClearFilter}
+                          className="cursor-pointer text-sm text-red-400"
+                        />
+                      )}
+                                              
+                   <ReportChangeFilterPopover
+                        unitOptions={unitOptions}
+                        reportChangeFilter={reportChangeFilter}
+                        setReportChangeFilter={setReportChangeFilter}
+                        onSubmitFilter={handleChangeFilterSubmit}
+                      />
+
+                                              
                       Change (%)
-                      <button
-                        onClick={() => {
-                          setSortOrder((prev) => {
-                            const newOrder = prev === "asc" ? "desc" : "asc";
-                            sortProducts(newOrder);
-                            return newOrder;
-                          });
-                        }}
-                      >
-                        <RiArrowUpDownFill className="text-sm" />
-                      </button>
+                
+
+                          <button
+                              onClick={() => {
+                                setSortOrder((prev) => {
+                                  const newOrder = prev === "asc" ? "desc" : "asc";
+                                  sortProducts(newOrder);
+                                  return newOrder;
+                                });
+                              }}
+                            >
+                              <RiArrowUpDownFill className="text-sm" />
+                            </button>
+
                     </p>
                   </th>
+                 
                 </tr>
               </thead>
               <tbody
@@ -766,7 +984,7 @@ const [lastSelected, setLastSelected] = useState(null);
                   lineHeight: "1.5",
                 }}
               >
-                {loading ? (
+                {/* {loading ? (
                   <tr>
                     <td
                       className="h-[90vh] text-base"
@@ -794,66 +1012,86 @@ const [lastSelected, setLastSelected] = useState(null);
                     </td>
                   </tr>
                 ) : (
-                  (sortOrder ? sortedProducts : products).map(
-                    (product, index) => {
-                      const currentMetrics = filterMetricsForInterval(
-                        product.salesMetrics || [],
-                        currentDateRange[0],
-                        currentDateRange[1]
-                      );
+                  
 
-                      const previousMetrics = filterMetricsForInterval(
-                        product.salesMetrics || [],
-                        previousDateRange[0],
-                        previousDateRange[1]
-                      );
 
-                    
+                  <>
+                  <tr style={{ height: `${visibleStartIndex * ROW_HEIGHT}px` }} />
+        
+                  {visibleProducts.map((product, index) => (
+                    <SaleReportTableRow
+                      key={product.sellerSku}
+                      product={product}
+                      toggleFavorite={toggleFavorite}
+                      index={visibleStartIndex + index}
+                      handleCopy={handleCopy}
+                      copiedAsinIndex={copiedAsinIndex}
+                      copiedSkuIndex={copiedSkuIndex}
+                      currentUnits={product.currentUnits ?? 0}
+                      previousUnits={product.previousUnits ?? 0}
+                      percentageChange={product.percentageChange ?? 0}
+                      handleSaleDetailsModalShow={handleSaleDetailsModalShow}
+                      handleRowClick={handleRowClick}
+                      selectedValue={selectedValue}
+                      isAsinMode={isAsinMode}
+                    />
+                  ))}
+        
+                  <tr style={{ height: `${(activeProducts.length - visibleEndIndex) * ROW_HEIGHT}px` }} />
+                </>
+                )} */}
 
-                      const currentUnits = calculateUnits(currentMetrics);
-                      const previousUnits = calculateUnits(previousMetrics);
-                      const percentageChange = calculatePercentageChange(
-                        currentUnits,
-                        previousUnits
-                      );
-
-                      return (
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" className="h-[90vh] text-center text-base">
+                        <div className="mt-[30vh]">
+                          <ClipLoader color="#0E6FFD" loading={true} size={40} />
+                        </div>
+                      </td>
+                    </tr>
+                  ) : visibleProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-10 text-gray-500 text-sm">
+                        No products found matching the filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    <>
+                      <tr style={{ height: `${visibleStartIndex * ROW_HEIGHT}px` }} />
+                      {visibleProducts.map((product, index) => (
                         <SaleReportTableRow
                           key={product.sellerSku}
                           product={product}
                           toggleFavorite={toggleFavorite}
-                          index={index}
+                          index={visibleStartIndex + index}
                           handleCopy={handleCopy}
                           copiedAsinIndex={copiedAsinIndex}
                           copiedSkuIndex={copiedSkuIndex}
-                          currentUnits={currentUnits}
-                          previousUnits={previousUnits}
-                          percentageChange={percentageChange}
-                          handleSaleDetailsModalShow={
-                            handleSaleDetailsModalShow
-                          }
+                          currentUnits={product.currentUnits ?? 0}
+                          previousUnits={product.previousUnits ?? 0}
+                          percentageChange={product.percentageChange ?? 0}
+                          handleSaleDetailsModalShow={handleSaleDetailsModalShow}
                           handleRowClick={handleRowClick}
                           selectedValue={selectedValue}
                           isAsinMode={isAsinMode}
-                        ></SaleReportTableRow>
-                      );
-                    }
-                  )
-                )}
+                        />
+                      ))}
+                      <tr style={{ height: `${(activeProducts.length - visibleEndIndex) * ROW_HEIGHT}px` }} />
+                    </>
+                  )}
+
               </tbody>
             </table>
-            <SaleReportPagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            
+          
+            
           </div>
         </section>
 
        
 
 
-    <Card className="w-[40%] h-[90vh] overflow-y-auto  p-3">
+    <Card className="w-[40%] h-[90vh] overflow-y-auto  p-2">
 
 
 
@@ -870,18 +1108,33 @@ const [lastSelected, setLastSelected] = useState(null);
   </>
 ) : (
   <>
+                         <button
+                            onClick={() =>
+                              handleSaleDetailsModalShow()
+                            }
+                            className="bg-[#0662BB] text-white text-sm rounded drop-shadow-sm  gap-1  px-2 py-1 mb-1"
+                          >
+                            See Details
+                          </button>
+                          {/* <span>{selectedProductDetails?.sellerSku}</span> */}
     <CurrentIntervalUnitsLineChart
       metrics={selectedChartData}
       currentDateRange={currentDateRange}
+      currentUnits={selectedProductDetails.currentUnits ?? 0}     
+    
     />
     <PreviousIntervalUnitsLineChart
       metrics={selectedChartData}
       previousDateRange={previousDateRange}
+      previousUnits={selectedProductDetails.previousUnits ?? 0}   
     />
     <div className="grid grid-cols-2 gap-1">
       <CurrentPreviousIntervalUnitsPieChart
-        currentUnits={selectedCurrentUnits}
-        previousUnits={selectedPreviousUnits}
+        // currentUnits={selectedCurrentUnits}
+        // previousUnits={selectedPreviousUnits}
+
+        currentUnits={selectedProduct?.currentUnits ?? 0}
+        previousUnits={selectedProduct?.previousUnits ?? 0}
       />
       <SaleReportSelectedPieChart
         entries={selectedChartData}
@@ -937,7 +1190,15 @@ const [lastSelected, setLastSelected] = useState(null);
 
       </section>
 
-     
+      <SaleDetailsModal
+        saleDetailsModalShow={saleDetailsModalShow}
+        setSaleDetailsModalShow={setSaleDetailsModalShow}
+        handleSaleDetailsModalShow={handleSaleDetailsModalShow}
+        handleSaleDetailsModalClose={handleSaleDetailsModalClose}
+        sku={selectedProductDetails?.sellerSku}
+      ></SaleDetailsModal>
+
+    
     </div>
   );
 };

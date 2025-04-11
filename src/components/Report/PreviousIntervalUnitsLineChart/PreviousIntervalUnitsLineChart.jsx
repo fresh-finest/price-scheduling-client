@@ -41,7 +41,7 @@ const filterByDateRange = (data, range) => {
   });
 };
 
-const PreviousIntervalUnitsLineChart = ({ metrics, previousDateRange }) => {
+const PreviousIntervalUnitsLineChart = ({ metrics, previousDateRange, previousUnits }) => {
   if (!metrics || metrics.length === 0) return <p>No chart data available.</p>;
 
   const allChartData = transformMetricsToDaily(metrics);
@@ -65,7 +65,16 @@ const PreviousIntervalUnitsLineChart = ({ metrics, previousDateRange }) => {
           <Line type="monotone" dataKey="units" stroke="#F97316" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
-      <p className="text-center text-xs text-gray-500 mt-1">Previous Interval Units</p>
+      {/* <p className="text-center text-xs text-gray-500 mt-1">Previous Interval Units</p> */}
+      <div className="flex items-center justify-between w-full mt-1">
+  <div className="w-1/3 text-left">
+    <p className="text-xs text-gray-500 pl-3">Total Unit Count: {previousUnits}</p>
+  </div>
+  <div className="w-1/3 text-center">
+    <p className="text-xs text-gray-500">Previous Interval Units</p>
+  </div>
+  <div className="w-1/3" /> 
+</div>
     </Card>
   );
 };

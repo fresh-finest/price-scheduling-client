@@ -33,7 +33,7 @@ const SaleReportLoadingSkeleton = () => {
             <tr>
               <th
                 style={{
-                  width: "100px",
+                  width: "70px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -44,7 +44,7 @@ const SaleReportLoadingSkeleton = () => {
               </th>
               <th
                 style={{
-                  width: "180px",
+                  width: "120px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -55,18 +55,7 @@ const SaleReportLoadingSkeleton = () => {
               </th>
               <th
                 style={{
-                  width: "455px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  verticalAlign: "middle",
-                  borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-14 h-4 mx-auto"></p>
-              </th>
-              <th
-                style={{
-                  // width: "100px",
+                  width: "270px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
@@ -99,21 +88,11 @@ const SaleReportLoadingSkeleton = () => {
               </th>
               <th
                 style={{
-                  // width: "100px",
+                  width: "140px",
                   position: "sticky", // Sticky header
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
-                }}
-              >
-                <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-14 h-4 mx-auto"></p>
-              </th>
-              <th
-                style={{
-                  // width: "100px",
-                  position: "sticky", // Sticky header
-                  textAlign: "center",
-                  verticalAlign: "middle",
                 }}
               >
                 <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-14 h-4 mx-auto"></p>
@@ -199,24 +178,7 @@ const SaleReportLoadingSkeleton = () => {
                   >
                     <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-20 h-4 mx-auto"></p>
                   </td>
-                  <td
-                    style={{
-                      padding: "15px 0",
-                      textAlign: "center",
-                      verticalAlign: "middle",
-                    }}
-                  >
-                    <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-[70%] h-4 mx-auto"></p>
-                  </td>
-                  <td
-                    style={{
-                      padding: "15px 0",
-                      textAlign: "center",
-                      verticalAlign: "middle",
-                    }}
-                  >
-                    <p className="flex  items-center justify-center  bg-gray-800/20 animate-pulse w-16 h-7 mx-auto"></p>
-                  </td>
+                
                 </tr>
               ))}
           </tbody>

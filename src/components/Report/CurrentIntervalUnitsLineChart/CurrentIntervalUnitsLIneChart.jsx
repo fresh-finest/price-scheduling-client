@@ -41,7 +41,9 @@ const filterByDateRange = (data, range) => {
   });
 };
 
-const CurrentIntervalUnitsLineChart = ({ metrics, currentDateRange }) => {
+const CurrentIntervalUnitsLineChart = ({ metrics, currentDateRange , currentUnits}) => {
+
+
   if (!metrics || metrics.length === 0) return <p>No chart data available.</p>;
 
   const allChartData = transformMetricsToDaily(metrics);
@@ -72,7 +74,17 @@ const CurrentIntervalUnitsLineChart = ({ metrics, currentDateRange }) => {
         </LineChart>
        
       </ResponsiveContainer>
-      <p className="text-center text-xs text-gray-500 mt-1">Current Interval Units</p>
+
+      <div className="flex items-center justify-between w-full mt-1">
+  <div className="w-1/3 text-left">
+    <p className="text-xs text-gray-500 pl-3">Total Unit Count: {currentUnits}</p>
+  </div>
+  <div className="w-1/3 text-center">
+    <p className="text-xs text-gray-500">Current Interval Units</p>
+  </div>
+  <div className="w-1/3" /> {/* optional empty right side */}
+</div>
+
     </Card>
   );
 };

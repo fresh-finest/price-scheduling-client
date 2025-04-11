@@ -94,7 +94,7 @@ const SaleReportSelectedPieChart = ({ entries, visibleMonths, loading, error, co
         <Legend />
       </PieChart>
     </ResponsiveContainer>
-
+    <p className="text-center text-xs text-gray-500 mt-1">By Month</p>
     </Card>
   );
 };

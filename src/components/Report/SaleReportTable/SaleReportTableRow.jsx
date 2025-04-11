@@ -2,6 +2,8 @@ import { BsClipboardCheck } from "react-icons/bs";
 import { FaArrowUp, FaRegStar, FaStar } from "react-icons/fa";
 import { FaArrowDownLong } from "react-icons/fa6";
 import { MdCheck } from "react-icons/md";
+import NoImage from '../../../assets/images/noimage.png';
+import { Tooltip } from "antd";
 
 const SaleReportTableRow = ({
   product,
@@ -15,7 +17,8 @@ const SaleReportTableRow = ({
   percentageChange,
   handleRowClick, 
   selectedValue, 
-  isAsinMode
+  isAsinMode, 
+  handleSaleDetailsModalShow
 }) => {
 
   const isSelected =
@@ -30,7 +33,8 @@ const SaleReportTableRow = ({
     
 
   return (
-    <tr onClick={() => handleRowClick(product)}   >
+  
+  <tr onClick={() => handleRowClick(product)}   >
       <td
 
         style={{
@@ -99,7 +103,7 @@ const SaleReportTableRow = ({
           }}
         >
           <img
-            src={product.imageUrl || "https://via.placeholder.com/50"}
+            src={product.imageUrl || NoImage}
             alt="Product"
             style={{
               width: "50px",
@@ -126,7 +130,30 @@ const SaleReportTableRow = ({
           backgroundColor: isSelected ? "#F1F1F2" : "",
         }}
       >
+        {/* <Tooltip placement="bottom" title={product.itemName}>
         {product.itemName || "Unknown Product"}
+
+        </Tooltip> */}
+
+        <Tooltip placement="bottom" title={product.itemName}>
+
+      <span
+  style={{
+    display: "inline-block",
+    maxWidth: "100%",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  }}
+>
+  {product.itemName || "Unknown Product"}
+</span>
+
+
+        </Tooltip>
+
+
+
 
         <div className="details mt-[5px]">
           <span
@@ -249,7 +276,7 @@ const SaleReportTableRow = ({
             height: "100%",
           }}
         >
-          {`${percentageChange}%`}
+          {`${percentageChange.toFixed(2)}%`}
           {percentageChange !== 0 && percentageChange !== "0.00" && (
             <span>
               {percentageChange > 0 ? <FaArrowUp /> : <FaArrowDownLong />}
@@ -258,7 +285,10 @@ const SaleReportTableRow = ({
         </div>
       </td>
     
+    
     </tr>
+
+    
   );
 };
 
