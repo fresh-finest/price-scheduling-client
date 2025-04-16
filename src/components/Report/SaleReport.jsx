@@ -28,6 +28,8 @@ import CurrentIntervalUnitsLineChart from "./CurrentIntervalUnitsLineChart/Curre
 import PreviousIntervalUnitsLineChart from "./PreviousIntervalUnitsLineChart/PreviousIntervalUnitsLineChart";
 
 import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
+import ReportPreviousIntervalUnitsFilter from "./ReportPreviousIntervalUnitsFilter/ReportPreviousIntervalUnitsFilter";
+import ReportCurrentIntervalUnitsFilter from "./ReportCurrentIntervalUnitsFilter/ReportCurrentIntervalUnitsFilter";
 
 
 
@@ -105,6 +107,20 @@ const SaleReport = () => {
     unit: "",
     value: "",
   });
+  const [unitsFilter, setUnitsFilter] = useState({
+    unit: "",
+    value: "",
+    minValue: "",
+    maxValue: "",
+  });
+  const [previousUnitsFilter, setPreviousUnitsFilter] = useState({
+    unit: "",
+    value: "",
+    minValue: "",
+    maxValue: "",
+  });
+  
+
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const initialFetchDoneRef = useRef(false);
@@ -121,23 +137,24 @@ const SaleReport = () => {
   ];
 
   useEffect(() => {
-    // Initial Load Only
     if (initialLoading) {
       fetchProducts(true);
     }
   }, [initialLoading]);
 
+
+
   useEffect(() => {
-    // Only runs after initial load
     if (!initialLoading) {
       if (searchTerm) {
-        fetchSearchResults(searchTerm);
+        fetchSearchResults(searchTerm, isAsinMode);
       } else {
-        fetchProducts(false);
+        fetchProducts(false, isAsinMode, true); 
       }
     }
   }, [page, currentDateRange, previousDateRange]);
 
+  
   useEffect(() => {
     axios
       .get(`${BASE_URL}/total-sales`)
@@ -154,24 +171,37 @@ const SaleReport = () => {
       });
   }, []);
 
-  // const applyChangeFilter = (items) => {
-  //   const { unit, value } = reportChangeFilter;
-  //   const numVal = Number(value);
-  //   if (!unit || value === '') return items;
-
-  //   return items.filter(item => {
-  //     const pct = parseFloat(item.percentageChange ?? 0);
-  //     switch (unit) {
-  //       case '==': return pct === numVal;
-  //       case '!=': return pct !== numVal;
-  //       case '>': return pct > numVal;
-  //       case '>=': return pct >= numVal;
-  //       case '<': return pct < numVal;
-  //       case '<=': return pct <= numVal;
-  //       default: return true;
-  //     }
-  //   });
-  // };
+  const applyPreviousUnitsFilter = (items) => {
+    const { unit, value, minValue, maxValue } = previousUnitsFilter;
+    if (!unit) return items;
+  
+    return items.filter((item) => {
+      const units = parseFloat(item.previousUnits ?? 0);
+      const numVal = Number(value);
+      const min = Number(minValue);
+      const max = Number(maxValue);
+  
+      switch (unit) {
+        case "==":
+          return units === numVal;
+        case "!=":
+          return units !== numVal;
+        case ">":
+          return units > numVal;
+        case ">=":
+          return units >= numVal;
+        case "<":
+          return units < numVal;
+        case "<=":
+          return units <= numVal;
+        case "between":
+          if (isNaN(min) || isNaN(max)) return true;
+          return units >= min && units <= max;
+        default:
+          return true;
+      }
+    });
+  };
 
   const applyChangeFilter = (items) => {
     const { unit, value, minValue, maxValue } = reportChangeFilter;
@@ -205,6 +235,66 @@ const SaleReport = () => {
       }
     });
   };
+
+  const applyUnitsFilter = (items) => {
+    const { unit, value, minValue, maxValue } = unitsFilter;
+    if (!unit) return items;
+  
+    return items.filter((item) => {
+      const units = parseFloat(item.currentUnits ?? 0);
+      const numVal = Number(value);
+      const min = Number(minValue);
+      const max = Number(maxValue);
+  
+      switch (unit) {
+        case "==":
+          return units === numVal;
+        case "!=":
+          return units !== numVal;
+        case ">":
+          return units > numVal;
+        case ">=":
+          return units >= numVal;
+        case "<":
+          return units < numVal;
+        case "<=":
+          return units <= numVal;
+        case "between":
+          if (isNaN(min) || isNaN(max)) return true;
+          return units >= min && units <= max;
+        default:
+          return true;
+      }
+    });
+  };
+  const handlePreviousUnitsFilterSubmit = () => {
+    if (
+      !previousUnitsFilter.unit ||
+      (previousUnitsFilter.unit !== "between" && previousUnitsFilter.value === "") ||
+      (previousUnitsFilter.unit === "between" &&
+        (previousUnitsFilter.minValue === "" || previousUnitsFilter.maxValue === ""))
+    ) {
+      setFilteredProducts([]);
+      return;
+    }
+    let source = sortOrder ? sortedProducts : products;
+    source = applyChangeFilter(source);
+    source = applyUnitsFilter(source);
+    const result = applyPreviousUnitsFilter(source);
+    setFilteredProducts(result);
+  };
+
+  const isPreviousUnitsFilterActive =
+  !!previousUnitsFilter.unit &&
+  ((previousUnitsFilter.unit === "between" &&
+    previousUnitsFilter.minValue !== "" &&
+    previousUnitsFilter.maxValue !== "") ||
+    (previousUnitsFilter.unit !== "between" && previousUnitsFilter.value !== ""));
+
+const handleClearPreviousUnitsFilter = () => {
+  setPreviousUnitsFilter({ unit: "", value: "", minValue: "", maxValue: "" });
+  setFilteredProducts([]);
+};
 
   const handleChangeFilterSubmit = () => {
     if (
@@ -246,32 +336,35 @@ const SaleReport = () => {
     }
   };
 
-  const fetchProducts = async (isInitialLoad, mode = isAsinMode) => {
-    // Prevent multiple initial fetches
-    if (isInitialLoad && initialFetchDoneRef.current) return;
 
+  const fetchProducts = async (
+    isInitialLoad = false,
+    mode = isAsinMode,
+    isDateChange = false
+  ) => {
+    if (isInitialLoad && initialFetchDoneRef.current) return;
+  
     if (isInitialLoad) {
-      initialFetchDoneRef.current = true; // mark as done
+      initialFetchDoneRef.current = true;
     } else {
       setLoading(true);
     }
-
+  
     const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
     const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
     const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
     const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
-
-    const endpoint = mode
-      ? `${BASE_URL}/api/favourite/report/byasins`
-      : `${BASE_URL}/api/favourite/report/skus`;
-
-    const params = {
-      startDate,
-      endDate,
-      prevStartDate,
-      prevEndDate,
-    };
-
+  
+    const endpoint = isDateChange
+      ? mode
+        ? `${BASE_URL}/api/favourite/report/byasins`
+        : `${BASE_URL}/api/favourite/report/skus`
+      : mode
+      ? `${BASE_URL}/api/favourite/report/asin-mode`
+      : `${BASE_URL}/api/favourite/report/sku-mode`;
+  
+    const params = { startDate, endDate, prevStartDate, prevEndDate };
+  
     try {
       const response = await axios.get(endpoint, { params });
       setProducts(response.data.data.listings);
@@ -286,7 +379,7 @@ const SaleReport = () => {
       }
     }
   };
-
+  
   const filterMetricsForInterval = (
     salesMetrics,
     intervalStart,
@@ -334,15 +427,7 @@ const SaleReport = () => {
     setFilteredProducts([]);
   };
 
-  // const handleClearInput = () => {
-  //   setSearchTerm("");
-  //   setPage(1);
-  //   setSortOrder(null);
-  //   setSortedProducts([]);
-  //   setLoading(true);
 
-  //   fetchProducts(false);
-  // };
 
   const handleClearInput = () => {
     setSearchTerm("");
@@ -414,55 +499,33 @@ const SaleReport = () => {
     }
   };
 
-  // const sortProducts = (order) => {
-  //   setSortOrder(order);
+const handleUnitsFilterSubmit = () => {
+  if (
+    !unitsFilter.unit ||
+    (unitsFilter.unit !== "between" && unitsFilter.value === "") ||
+    (unitsFilter.unit === "between" &&
+      (unitsFilter.minValue === "" || unitsFilter.maxValue === ""))
+  ) {
+    setFilteredProducts([]);
+    return;
+  }
+  let source = sortOrder ? sortedProducts : products;
+  source = applyChangeFilter(source); 
+  const result = applyUnitsFilter(source);
+  setFilteredProducts(result);
+};
+const isUnitsFilterActive =
+  !!unitsFilter.unit &&
+  ((unitsFilter.unit === "between" &&
+    unitsFilter.minValue !== "" &&
+    unitsFilter.maxValue !== "") ||
+    (unitsFilter.unit !== "between" && unitsFilter.value !== ""));
 
-  //   const source = isFilterActive ? filteredProducts : products;
+    const handleClearUnitsFilter = () => {
+      setUnitsFilter({ unit: "", value: "", minValue: "", maxValue: "" });
+      setFilteredProducts([]);
+    };
 
-  //   const sorted = [...source].sort((a, b) => {
-  //     const valA = parseFloat(a.percentageChange ?? 0);
-  //     const valB = parseFloat(b.percentageChange ?? 0);
-
-  //     return order === "asc" ? valA - valB : valB - valA;
-  //   });
-
-  //   setSortedProducts(sorted);
-  // };
-
-  // const sortProducts = async (order) => {
-  //   setSortOrder(order);
-  //   setLoading(true);
-
-  //   const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
-  //   const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
-  //   const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
-  //   const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
-
-  //   const endpoint = isAsinMode
-  //     ? `${BASE_URL}/api/favourite/report/byasins`
-  //     : `${BASE_URL}/api/favourite/report/skus`;
-
-  //   const params = {
-  //     startDate,
-  //     endDate,
-  //     prevStartDate,
-  //     prevEndDate,
-  //     sortByChange: true,
-  //     sortOrder: order,
-  //   };
-
-  //   const fullURL = axios.getUri({ url: endpoint, params });
-
-  //   try {
-  //     const response = await axios.get(endpoint, { params });
-  //     setSortedProducts(response.data.data.listings);
-  //     setTotalPages(response.data.data.totalPages || 1);
-  //   } catch (error) {
-  //     console.error("Error fetching sorted products:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
     try {
@@ -653,43 +716,16 @@ const SaleReport = () => {
         : product.sellerSku === selectedValue
   );
 
-  const selectedCurrentMetrics = selectedProduct
-    ? filterMetricsForInterval(
-        selectedProduct.salesMetrics || [],
-        currentDateRange[0],
-        currentDateRange[1]
-      )
-    : [];
 
-  const selectedPreviousMetrics = selectedProduct
-    ? filterMetricsForInterval(
-        selectedProduct.salesMetrics || [],
-        previousDateRange[0],
-        previousDateRange[1]
-      )
-    : [];
 
-  // 👇 Place this before your return statement
+
   const ROW_HEIGHT = 100;
   const BUFFER_ROWS = 5;
   const containerHeight = 820;
 
   const handleScroll = (e) => setScrollTop(e.target.scrollTop);
 
-  // const activeProducts = sortOrder ? sortedProducts : products;
 
-  // const visibleStartIndex = Math.max(
-  //   0,
-  //   Math.floor(scrollTop / ROW_HEIGHT) - BUFFER_ROWS
-  // );
-  // const visibleEndIndex = Math.min(
-  //   activeProducts.length,
-  //   Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + BUFFER_ROWS
-  // );
-
-  // const visibleProducts = activeProducts.slice(visibleStartIndex, visibleEndIndex);
-
-  // const activeProducts = filteredProducts.length > 0 ? filteredProducts : (sortOrder ? sortedProducts : products);
   const isFilterActive =
     !!reportChangeFilter.unit &&
     ((reportChangeFilter.unit === "between" &&
@@ -698,11 +734,20 @@ const SaleReport = () => {
       (reportChangeFilter.unit !== "between" &&
         reportChangeFilter.value !== ""));
 
-  const activeProducts = isFilterActive
-    ? filteredProducts
+
+
+  const activeProducts =
+  isFilterActive || isUnitsFilterActive || isPreviousUnitsFilterActive
+    ? applyPreviousUnitsFilter(
+        applyUnitsFilter(
+          applyChangeFilter(sortOrder ? sortedProducts : products)
+        )
+      )
     : sortOrder
     ? sortedProducts
     : products;
+
+
 
   const visibleStartIndex = Math.max(
     0,
@@ -718,11 +763,9 @@ const SaleReport = () => {
     visibleEndIndex
   );
 
-  // if (initialLoading) {
-  //   return <SaleReportLoadingSkeleton></SaleReportLoadingSkeleton>;
-  // }
 
-  console.log("unique months", uniqueMonths);
+
+
 
   return (
     <div className=" mt-5">
@@ -821,7 +864,7 @@ const SaleReport = () => {
                       className="tableHeader"
                       style={{
                         position: "sticky",
-                        width: "70px",
+                        width: "65px",
                         textAlign: "center",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
@@ -834,7 +877,7 @@ const SaleReport = () => {
                       className="tableHeader"
                       style={{
                         position: "sticky",
-                        width: "120px",
+                        width: "70px",
                         textAlign: "center",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
@@ -848,7 +891,7 @@ const SaleReport = () => {
                       style={{
                         position: "sticky",
                         textAlign: "center",
-                        width: "270px",
+                        width: "265px",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
                         zIndex: 3,
@@ -863,9 +906,26 @@ const SaleReport = () => {
                         textAlign: "center",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
+                        width: '225px'
                       }}
                     >
+                      <div className="flex justify-center items-center gap-1">
+                      {isUnitsFilterActive && (
+                        <BsDashCircle
+                          onClick={handleClearUnitsFilter}
+                          className="cursor-pointer text-sm text-red-400"
+                        />
+                      ) }
+                     <ReportCurrentIntervalUnitsFilter
+                      unitOptions={unitOptions}
+                      unitsFilter={unitsFilter}
+                      setUnitsFilter={setUnitsFilter}
+                      onSubmitUnitsFilter={handleUnitsFilterSubmit}
+                      />
+
                       Current Interval Units
+
+                      </div>
                       <div>
                         <Space direction="vertical" size={12}>
                           <RangePicker
@@ -875,6 +935,7 @@ const SaleReport = () => {
                                 ? currentDateRange
                                 : null
                             }
+                            style={{ minWidth: 150 }}
                             onChange={(dates) => {
                               if (dates && dates.length === 2) {
                                 setCurrentDateRange([dates[0], dates[1]]);
@@ -885,7 +946,7 @@ const SaleReport = () => {
                                 ]);
                               }
                             }}
-                            format="DD MMM, YYYY"
+                            format="DD MMM, YY"
                           />
                         </Space>
                       </div>
@@ -898,9 +959,24 @@ const SaleReport = () => {
                         textAlign: "center",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
+                           width: '225px'
                       }}
                     >
+                      <div className="flex justify-center items-center gap-1">
+                      {isPreviousUnitsFilterActive && (
+                            <BsDashCircle
+                              onClick={handleClearPreviousUnitsFilter}
+                              className="cursor-pointer text-sm text-red-400"
+                            />
+                          ) }
+                                                <ReportPreviousIntervalUnitsFilter
+                            unitOptions={unitOptions}
+                            unitsFilter={previousUnitsFilter}
+                            setUnitsFilter={setPreviousUnitsFilter}
+                            onSubmitUnitsFilter={handlePreviousUnitsFilterSubmit}
+                          />
                       Previous Interval Units
+                      </div>
                       <div>
                         <Space direction="vertical" size={12}>
                           <RangePicker
@@ -910,6 +986,7 @@ const SaleReport = () => {
                                 ? previousDateRange
                                 : null
                             }
+                            style={{ minWidth: 150 }}
                             onChange={(dates) => {
                               if (dates && dates.length === 2) {
                                 setPreviousDateRange([dates[0], dates[1]]);
@@ -920,7 +997,7 @@ const SaleReport = () => {
                                 ]);
                               }
                             }}
-                            format="DD MMM, YYYY"
+                            format="DD MMM, YY"
                           />
                         </Space>
                       </div>
@@ -1057,7 +1134,7 @@ const SaleReport = () => {
               >
                 See Details
               </button>
-              {/* <span>{selectedProductDetails?.sellerSku}</span> */}
+       
               <CurrentIntervalUnitsLineChart
                 metrics={selectedChartData}
                 currentDateRange={currentDateRange}
@@ -1070,8 +1147,6 @@ const SaleReport = () => {
               />
               <div className="grid grid-cols-2 gap-1">
                 <CurrentPreviousIntervalUnitsPieChart
-                  // currentUnits={selectedCurrentUnits}
-                  // previousUnits={selectedPreviousUnits}
 
                   currentUnits={selectedProduct?.currentUnits ?? 0}
                   previousUnits={selectedProduct?.previousUnits ?? 0}

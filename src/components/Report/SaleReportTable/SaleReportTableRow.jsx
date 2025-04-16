@@ -27,9 +27,7 @@ const SaleReportTableRow = ({
     ? product.asin1 === selectedValue
     : product.sellerSku === selectedValue);
 
-    if (isSelected) {
-      console.log("✅ Row is selected:", product.asin1 || product.sellerSku);
-    }
+  
     
 
   return (
