@@ -18,7 +18,7 @@ import { Checkbox } from "antd";
 
 const BASE_URL = `https://api.priceobo.com`;
 
-const AutomatePrice = ({ sku, productDetails, product }) => {
+const AutomatePrice = ({ sku, productDetails }) => {
   const [showModal, setShowModal] = useState(false);
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [minPriceInput, setMinPriceInput] = useState(null);

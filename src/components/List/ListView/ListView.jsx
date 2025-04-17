@@ -1,18 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 import ClipLoader from "react-spinners/ClipLoader";
-import { useQuery } from "react-query";
-import { MdCheck, MdOutlineClose } from "react-icons/md";
-import { IoMdAdd } from "react-icons/io";
+import {  MdOutlineClose } from "react-icons/md";
+
 import UpdatePriceFromList from "../UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
-import { FixedSizeList as List } from "react-window";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import "./ListView.css";
 import ProductDetailView from "../ProductDetailView";
-import { Button as ShadcdnBtn } from "@/components/ui/button";
 
 import noImage from "../../../assets/images/noimage.png";
 
@@ -35,7 +32,6 @@ import { IoClose } from "react-icons/io5";
 import ListTagsDropdown from "../../shared/ui/ListTagsDropDown";
 import ActionsDropdown from "../Actions/ActionsDropdown";
 import Swal from "sweetalert2";
-import { FaSync } from "react-icons/fa";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);

@@ -10,6 +10,7 @@ const ScheduleVsCount = ({
   showScheduleSalesTable,
   setShowScheduleSalesTable,
 }) => {
+  console.log('schedule sales Data', scheduleSalesData)
   const filterScheduleSalesData = scheduleSalesData.filter((sc) => {
     if (view === "day") {
       return sc.scheduleType === "single";

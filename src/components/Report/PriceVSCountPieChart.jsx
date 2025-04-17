@@ -22,34 +22,6 @@ const COLORS = [
   "#578FCA",
 ];
 
-// const renderCustomizedLabel = ({
-//   cx,
-//   cy,
-//   midAngle,
-//   innerRadius,
-//   outerRadius,
-//   percent,
-//   index,
-// }) => {
-//   const RADIAN = Math.PI / 180;
-//   const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
-//   const x = cx + radius * Math.cos(-midAngle * RADIAN);
-//   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-//   return (
-//     <text
-//       x={x}
-//       y={y}
-//       fill="white"
-//       textAnchor="middle"
-//       dominantBaseline="central"
-//       fontSize={12}
-//       fontWeight="bold"
-//     >
-//       {`${(percent * 100).toFixed(1)}%`}
-//     </text>
-//   );
-// };
 
 const renderCustomizedLabel = ({
   cx,
@@ -58,7 +30,6 @@ const renderCustomizedLabel = ({
   innerRadius,
   outerRadius,
   percent,
-  index,
   name,
 }) => {
   const RADIAN = Math.PI / 180;
@@ -95,8 +66,23 @@ const renderCustomizedLabel = ({
   );
 };
 
+const CustomTooltip = ({ active, payload }) => {
+  console.log('custom tool tip payload', payload)
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-2 border rounded text-sm shadow">
+        <p><strong>{data.name}</strong></p>
+        <p>Units Sold: {data.unitCount}</p>
+        <p>Avg Price: ${data.averageAmount}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
-  console.log("piechart data", salesData, view);
+
   if (view !== "month" || !salesData.length) return null;
 
   const totalUnits = salesData.reduce((sum, item) => sum + item.unitCount, 0);
@@ -104,10 +90,14 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
     .map((item) => ({
       name: item.month,
       value: parseFloat(((item.unitCount / totalUnits) * 100).toFixed(2)),
+      unitCount: item.unitCount, 
+      averageAmount: item.averageAmount
     }))
     .filter((item) => item.value > 0);
 
   console.log("Rendering Pie Chart", pieData);
+
+  console.log('sales data price vs count pie chart', salesData)
 
   return (
     <Card className="w-full flex justify-end  ">
@@ -132,7 +122,8 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
               />
             ))}
           </Pie>
-          <Tooltip formatter={(value) => `${value}%`} />
+          {/* <Tooltip formatter={(value) => `${value}%`} /> */}
+          <Tooltip content={<CustomTooltip/>}/>
           <Legend layout="vertical" verticalAlign="middle" align="right" />
         </PieChart>
       </ResponsiveContainer>

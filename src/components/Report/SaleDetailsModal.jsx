@@ -28,11 +28,14 @@ const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetailsModal = ({
   saleDetailsModalShow,
-  product,
+
   handleSaleDetailsModalClose,
   handleSaleDetailsModalShow,
   sku,
 }) => {
+
+
+ 
   //   const { sku } = useParams();
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
@@ -116,12 +119,16 @@ const SaleDetailsModal = ({
 
   const fetchScheduleSalesMetrics = async () => {
     setScheduleChartLoading(true);
+    setScheduleSalesData([]); 
     const encodedSku = encodeURIComponent(sku);
+    const url = `${BASE_URL}/api/report/${encodedSku}`;
+    console.log("Fetching Schedule Sales Data from URL:", url); 
+  
     try {
-      const response = await axios.get(`${BASE_URL}/api/report/${encodedSku}`);
+      const response = await axios.get(url);
       const filterStartDate = startDate ? new Date(startDate) : null;
       const filterEndDate = endDate ? new Date(endDate) : null;
-
+  
       const filteredData = response.data.filter((item) => {
         const itemStartDate = new Date(item.interval.split(" - ")[0]);
         return (
@@ -129,14 +136,14 @@ const SaleDetailsModal = ({
           (!filterEndDate || itemStartDate <= filterEndDate)
         );
       });
-
+  
       const sortedData = filteredData.sort((a, b) => {
         return (
           new Date(a.interval.split(" - ")[0]) -
           new Date(b.interval.split(" - ")[0])
         );
       });
-
+  
       setScheduleSalesData(sortedData);
     } catch (err) {
       console.error("Error fetching schedule sales data:", err);
@@ -144,6 +151,7 @@ const SaleDetailsModal = ({
       setScheduleChartLoading(false);
     }
   };
+  
 
   const fetchProductPrice = async () => {
     setLoading(true);
@@ -179,7 +187,7 @@ const SaleDetailsModal = ({
       fetchProductDetails();
       fetchAutomationStatus(sku);
     }
-  }, [sku]); // Dependency array ensures effect runs only when SKU changes
+  }, [sku]); 
 
   useEffect(() => {
     fetchSalesMetrics();
@@ -191,6 +199,10 @@ const SaleDetailsModal = ({
   useEffect(() => {
     fetchScheduleSalesMetrics();
   }, [sku, startDate, endDate]);
+
+  useEffect(() => {
+    fetchScheduleSalesMetrics()
+  },[sku])
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -210,11 +222,11 @@ const SaleDetailsModal = ({
       .writeText(text)
       .then(() => {
         if (type === "sku") {
-          setCopiedSku(text); // Set the copied SKU
-          setTimeout(() => setCopiedSku(null), 2000); // Reset after 2 seconds
+          setCopiedSku(text); 
+          setTimeout(() => setCopiedSku(null), 2000); 
         } else if (type === "asin") {
-          setCopiedAsin(text); // Set the copied SKU
-          setTimeout(() => setCopiedAsin(null), 2000); // Reset after 2 seconds
+          setCopiedAsin(text); 
+          setTimeout(() => setCopiedAsin(null), 2000); 
         }
       })
       .catch((err) => {
@@ -281,6 +293,9 @@ const SaleDetailsModal = ({
       value: [dayjs().startOf("year"), dayjs().endOf("day")],
     },
   ];
+
+  console.log('Schedule sales data', scheduleSalesData)
+  console.log('sku from sale detais modal', sku)
 
   return (
     <div>
@@ -400,7 +415,7 @@ const SaleDetailsModal = ({
                     sku={sku}
                     asin={asin}
                     productDetails={productDetails}
-                    product={product}
+                  
                     productPrice={productPrice}
                   ></AutomatePrice>
                 )}
