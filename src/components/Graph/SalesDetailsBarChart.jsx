@@ -59,32 +59,80 @@ const SalesDetailsBarChart = ({ view, salesData, scheduleSalesData }) => {
     if (view === "day") return "date";
     if (view === "week") return "week";
     if (view === "month") return "month";
-    return "date"; // Default to "date"
+    return "date"; 
   }, [view]);
 
+  // const formatXAxisLabel = (value) => {
+  //   if (view === "day") {
+  //     try {
+  //       // Parse the value assuming DD/MM/YYYY format
+  //       const [day, month, year] = value.split("/");
+  //       if (!day || !month || !year) throw new Error("Invalid date format");
+
+  //       const formattedDate = new Date(`${year}-${month}-${day}T00:00:00`);
+
+  //       return new Intl.DateTimeFormat("en-US", {
+  //         month: "short",
+  //         day: "numeric",
+  //         timeZone: "Asia/Dhaka",
+  //       }).format(formattedDate);
+  //     } catch (error) {
+  //       console.error("Error formatting date:", error.message);
+  //       return value;
+  //     }
+  //   }
+
+  //   return value;
+  // };
+
+
   const formatXAxisLabel = (value) => {
+    if (view === "month") {
+      const MONTHS = {
+        January: 0,
+        February: 1,
+        March: 2,
+        April: 3,
+        May: 4,
+        June: 5,
+        July: 6,
+        August: 7,
+        September: 8,
+        October: 9,
+        November: 10,
+        December: 11,
+      };
+  
+      const [monthName, year] = value.split(", ");
+      const fullYear = parseInt(year); // already full like 2024
+  
+      if (MONTHS[monthName] === undefined || isNaN(fullYear)) return value;
+  
+      const dateObj = new Date(fullYear, MONTHS[monthName], 1);
+      return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        year: "2-digit",
+      }).format(dateObj); // e.g., Nov 24
+    }
+  
     if (view === "day") {
       try {
-        // Parse the value assuming DD/MM/YYYY format
         const [day, month, year] = value.split("/");
-        if (!day || !month || !year) throw new Error("Invalid date format");
-
-        const formattedDate = new Date(`${year}-${month}-${day}T00:00:00`);
-
         return new Intl.DateTimeFormat("en-US", {
           month: "short",
           day: "numeric",
           timeZone: "Asia/Dhaka",
-        }).format(formattedDate);
+        }).format(new Date(`${year}-${month}-${day}`));
       } catch (error) {
-        console.error("Error formatting date:", error.message);
         return value;
       }
     }
-
+  
     return value;
   };
+  
 
+  
   // const showLabels = salesData.length <= 31;
   const showLabels = filteredSalesData.length <= 40;
 

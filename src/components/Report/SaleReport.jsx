@@ -3,6 +3,8 @@ import axios from "axios";
 import { DatePicker, Space, Switch } from "antd";
 import { InputGroup, Form } from "react-bootstrap";
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import "antd/dist/reset.css";
 
 
@@ -30,12 +32,16 @@ import PreviousIntervalUnitsLineChart from "./PreviousIntervalUnitsLineChart/Pre
 import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
 import ReportPreviousIntervalUnitsFilter from "./ReportPreviousIntervalUnitsFilter/ReportPreviousIntervalUnitsFilter";
 import ReportCurrentIntervalUnitsFilter from "./ReportCurrentIntervalUnitsFilter/ReportCurrentIntervalUnitsFilter";
+import CurrentPreviousIntervalUnitsLineChart from "./CurrentPreviousIntervalUnitsLineChart/CurrentPreviousIntervalUnitsLineChart";
 
 
 
 const { RangePicker } = DatePicker;
-const BASE_URL = "https://api.priceobo.com";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`
 
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 const MONTH_ORDER = [
   "Jan",
   "Feb",
@@ -91,7 +97,6 @@ const SaleReport = () => {
   const [error, setError] = useState(null);
   const [visibleMonths, setVisibleMonths] = useState({});
   const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
-  const [selectedSku, setSelectedSku] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
   const [sortedProducts, setSortedProducts] = useState([]);
   const [isAsinMode, setIsAsinMode] = useState(true);
@@ -119,7 +124,6 @@ const SaleReport = () => {
     minValue: "",
     maxValue: "",
   });
-  
 
   const [filteredProducts, setFilteredProducts] = useState([]);
 
@@ -142,19 +146,16 @@ const SaleReport = () => {
     }
   }, [initialLoading]);
 
-
-
   useEffect(() => {
     if (!initialLoading) {
       if (searchTerm) {
         fetchSearchResults(searchTerm, isAsinMode);
       } else {
-        fetchProducts(false, isAsinMode, true); 
+        fetchProducts(false, isAsinMode, true);
       }
     }
   }, [page, currentDateRange, previousDateRange]);
 
-  
   useEffect(() => {
     axios
       .get(`${BASE_URL}/total-sales`)
@@ -174,13 +175,13 @@ const SaleReport = () => {
   const applyPreviousUnitsFilter = (items) => {
     const { unit, value, minValue, maxValue } = previousUnitsFilter;
     if (!unit) return items;
-  
+
     return items.filter((item) => {
       const units = parseFloat(item.previousUnits ?? 0);
       const numVal = Number(value);
       const min = Number(minValue);
       const max = Number(maxValue);
-  
+
       switch (unit) {
         case "==":
           return units === numVal;
@@ -239,13 +240,13 @@ const SaleReport = () => {
   const applyUnitsFilter = (items) => {
     const { unit, value, minValue, maxValue } = unitsFilter;
     if (!unit) return items;
-  
+
     return items.filter((item) => {
       const units = parseFloat(item.currentUnits ?? 0);
       const numVal = Number(value);
       const min = Number(minValue);
       const max = Number(maxValue);
-  
+
       switch (unit) {
         case "==":
           return units === numVal;
@@ -270,9 +271,11 @@ const SaleReport = () => {
   const handlePreviousUnitsFilterSubmit = () => {
     if (
       !previousUnitsFilter.unit ||
-      (previousUnitsFilter.unit !== "between" && previousUnitsFilter.value === "") ||
+      (previousUnitsFilter.unit !== "between" &&
+        previousUnitsFilter.value === "") ||
       (previousUnitsFilter.unit === "between" &&
-        (previousUnitsFilter.minValue === "" || previousUnitsFilter.maxValue === ""))
+        (previousUnitsFilter.minValue === "" ||
+          previousUnitsFilter.maxValue === ""))
     ) {
       setFilteredProducts([]);
       return;
@@ -285,16 +288,17 @@ const SaleReport = () => {
   };
 
   const isPreviousUnitsFilterActive =
-  !!previousUnitsFilter.unit &&
-  ((previousUnitsFilter.unit === "between" &&
-    previousUnitsFilter.minValue !== "" &&
-    previousUnitsFilter.maxValue !== "") ||
-    (previousUnitsFilter.unit !== "between" && previousUnitsFilter.value !== ""));
+    !!previousUnitsFilter.unit &&
+    ((previousUnitsFilter.unit === "between" &&
+      previousUnitsFilter.minValue !== "" &&
+      previousUnitsFilter.maxValue !== "") ||
+      (previousUnitsFilter.unit !== "between" &&
+        previousUnitsFilter.value !== ""));
 
-const handleClearPreviousUnitsFilter = () => {
-  setPreviousUnitsFilter({ unit: "", value: "", minValue: "", maxValue: "" });
-  setFilteredProducts([]);
-};
+  const handleClearPreviousUnitsFilter = () => {
+    setPreviousUnitsFilter({ unit: "", value: "", minValue: "", maxValue: "" });
+    setFilteredProducts([]);
+  };
 
   const handleChangeFilterSubmit = () => {
     if (
@@ -336,25 +340,24 @@ const handleClearPreviousUnitsFilter = () => {
     }
   };
 
-
   const fetchProducts = async (
     isInitialLoad = false,
     mode = isAsinMode,
     isDateChange = false
   ) => {
     if (isInitialLoad && initialFetchDoneRef.current) return;
-  
+
     if (isInitialLoad) {
       initialFetchDoneRef.current = true;
     } else {
       setLoading(true);
     }
-  
+
     const startDate = dayjs(currentDateRange[0]).format("YYYY-MM-DD");
     const endDate = dayjs(currentDateRange[1]).format("YYYY-MM-DD");
     const prevStartDate = dayjs(previousDateRange[0]).format("YYYY-MM-DD");
     const prevEndDate = dayjs(previousDateRange[1]).format("YYYY-MM-DD");
-  
+
     const endpoint = isDateChange
       ? mode
         ? `${BASE_URL}/api/favourite/report/byasins`
@@ -362,9 +365,9 @@ const handleClearPreviousUnitsFilter = () => {
       : mode
       ? `${BASE_URL}/api/favourite/report/asin-mode`
       : `${BASE_URL}/api/favourite/report/sku-mode`;
-  
+
     const params = { startDate, endDate, prevStartDate, prevEndDate };
-  
+
     try {
       const response = await axios.get(endpoint, { params });
       setProducts(response.data.data.listings);
@@ -379,7 +382,7 @@ const handleClearPreviousUnitsFilter = () => {
       }
     }
   };
-  
+
   const filterMetricsForInterval = (
     salesMetrics,
     intervalStart,
@@ -426,8 +429,6 @@ const handleClearPreviousUnitsFilter = () => {
     setReportChangeFilter({ unit: "", value: "", minValue: "", maxValue: "" });
     setFilteredProducts([]);
   };
-
-
 
   const handleClearInput = () => {
     setSearchTerm("");
@@ -499,33 +500,32 @@ const handleClearPreviousUnitsFilter = () => {
     }
   };
 
-const handleUnitsFilterSubmit = () => {
-  if (
-    !unitsFilter.unit ||
-    (unitsFilter.unit !== "between" && unitsFilter.value === "") ||
-    (unitsFilter.unit === "between" &&
-      (unitsFilter.minValue === "" || unitsFilter.maxValue === ""))
-  ) {
-    setFilteredProducts([]);
-    return;
-  }
-  let source = sortOrder ? sortedProducts : products;
-  source = applyChangeFilter(source); 
-  const result = applyUnitsFilter(source);
-  setFilteredProducts(result);
-};
-const isUnitsFilterActive =
-  !!unitsFilter.unit &&
-  ((unitsFilter.unit === "between" &&
-    unitsFilter.minValue !== "" &&
-    unitsFilter.maxValue !== "") ||
-    (unitsFilter.unit !== "between" && unitsFilter.value !== ""));
-
-    const handleClearUnitsFilter = () => {
-      setUnitsFilter({ unit: "", value: "", minValue: "", maxValue: "" });
+  const handleUnitsFilterSubmit = () => {
+    if (
+      !unitsFilter.unit ||
+      (unitsFilter.unit !== "between" && unitsFilter.value === "") ||
+      (unitsFilter.unit === "between" &&
+        (unitsFilter.minValue === "" || unitsFilter.maxValue === ""))
+    ) {
       setFilteredProducts([]);
-    };
+      return;
+    }
+    let source = sortOrder ? sortedProducts : products;
+    source = applyChangeFilter(source);
+    const result = applyUnitsFilter(source);
+    setFilteredProducts(result);
+  };
+  const isUnitsFilterActive =
+    !!unitsFilter.unit &&
+    ((unitsFilter.unit === "between" &&
+      unitsFilter.minValue !== "" &&
+      unitsFilter.maxValue !== "") ||
+      (unitsFilter.unit !== "between" && unitsFilter.value !== ""));
 
+  const handleClearUnitsFilter = () => {
+    setUnitsFilter({ unit: "", value: "", minValue: "", maxValue: "" });
+    setFilteredProducts([]);
+  };
 
   const toggleFavorite = async (sku, currentFavoriteStatus, index) => {
     try {
@@ -551,11 +551,13 @@ const isUnitsFilterActive =
 
     const endDate = dayjs().format("YYYY-MM-DD");
     const startDate = dayjs()
-      .subtract(11, "month")
+      .subtract(17, "month")
+      // .subtract(11, "month")
       .startOf("day")
       .format("YYYY-MM-DD");
 
     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
+    console.log("url", url);
 
     setIsDetailChartLoading(true);
     setSelectedValue(value);
@@ -574,24 +576,84 @@ const isUnitsFilterActive =
     }
   };
 
+  console.log("selected chart data from sale report", selectedChartData);
+
+  // const handleShowAllToggle = async (checked) => {
+  //   setShowDefaultCharts(checked);
+
+  //   if (!checked && lastSelected) {
+  //     setSelectedValue(lastSelected);
+
+  //     const type = isAsinMode ? "asin" : "sku";
+  //     const endDate = dayjs().format("YYYY-MM-DD");
+  //     const startDate = dayjs()
+  //       .subtract(6, "month")
+  //       .startOf("day")
+  //       .format("YYYY-MM-DD");
+
+  //     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${lastSelected}&startDate=${startDate}&endDate=${endDate}`;
+  //     setIsDetailChartLoading(true);
+  //     try {
+  //       const response = await axios.get(url);
+  //       setSelectedChartData(response.data.data.entries || []);
+  //     } catch (error) {
+  //       console.error("Error re-fetching selected chart data", error);
+  //       setSelectedChartData([]);
+  //     } finally {
+  //       setIsDetailChartLoading(false);
+  //     }
+  //   } else {
+  //     setSelectedValue(null);
+  //     setSelectedChartData([]);
+  //   }
+  // };
+
   const handleShowAllToggle = async (checked) => {
     setShowDefaultCharts(checked);
-
+  
     if (!checked && lastSelected) {
       setSelectedValue(lastSelected);
-
+  
       const type = isAsinMode ? "asin" : "sku";
       const endDate = dayjs().format("YYYY-MM-DD");
       const startDate = dayjs()
-        .subtract(6, "month")
+        .subtract(17, "month")
         .startOf("day")
         .format("YYYY-MM-DD");
-
+  
       const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${lastSelected}&startDate=${startDate}&endDate=${endDate}`;
       setIsDetailChartLoading(true);
       try {
         const response = await axios.get(url);
-        setSelectedChartData(response.data.data.entries || []);
+        const entries = response.data.data.entries || [];
+        setSelectedChartData(entries);
+  
+        // 🆕 Refresh visibleMonths when entering selected mode
+        const monthsSet = new Set();
+        entries.forEach((entry) => {
+          const startDate = new Date(entry.interval.split("--")[0]);
+          const month = startDate.toLocaleString("en-US", { month: "short" });
+          const year = startDate.getFullYear();
+          monthsSet.add(`${month} ${year}`);
+        });
+  
+        const sortedMonths = [...monthsSet].sort((a, b) => {
+          const [monthA, yearA] = a.split(" ");
+          const [monthB, yearB] = b.split(" ");
+          if (yearA !== yearB) return yearA - yearB;
+          return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
+        });
+  
+        setVisibleMonths((prev) =>
+          sortedMonths.reduce(
+            (acc, month) => ({
+              ...acc,
+              [month]: prev[month] ?? false, // retain existing checked state
+            }),
+            {}
+          )
+        );
+        
       } catch (error) {
         console.error("Error re-fetching selected chart data", error);
         setSelectedChartData([]);
@@ -599,10 +661,12 @@ const isUnitsFilterActive =
         setIsDetailChartLoading(false);
       }
     } else {
+      // back to default view
       setSelectedValue(null);
       setSelectedChartData([]);
     }
   };
+  
 
   const rangePresets = [
     {
@@ -656,8 +720,62 @@ const isUnitsFilterActive =
     },
   ];
 
+  // const { uniqueMonths } = useMemo(() => {
+  //   if (data.length === 0) return { uniqueMonths: [] };
+
+  //   const today = new Date();
+  //   const currentYear = today.getFullYear();
+  //   const currentMonthIndex = today.getMonth();
+
+  //   const lastTwoMonths = [];
+  //   for (let i = 2; i > 0; i--) {
+  //     let monthIndex = (currentMonthIndex - i + 12) % 12;
+  //     let year = currentYear;
+  //     if (monthIndex > currentMonthIndex) {
+  //       year -= 1;
+  //     }
+  //     lastTwoMonths.push(`${MONTH_ORDER[monthIndex]} ${year}`);
+  //   }
+
+  //   const monthsSet = new Set();
+  //   data.forEach((entry) => {
+  //     const startDate = new Date(entry.interval.split("--")[0]);
+  //     const month = startDate.toLocaleString("en-US", { month: "short" });
+  //     const year = startDate.getFullYear();
+  //     monthsSet.add(`${month} ${year}`);
+  //   });
+
+  //   const sortedMonths = [...monthsSet].sort((a, b) => {
+  //     const [monthA, yearA] = a.split(" ");
+  //     const [monthB, yearB] = b.split(" ");
+  //     if (yearA !== yearB) return yearA - yearB;
+  //     return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
+  //   });
+
+  //   setColorMap(() => {
+  //     const newColorMap = {};
+  //     sortedMonths.forEach((month, index) => {
+  //       newColorMap[month] = COLORS[index % COLORS.length];
+  //     });
+  //     return newColorMap;
+  //   });
+
+  //   setVisibleMonths((prev) => {
+  //     if (Object.keys(prev).length === 0) {
+  //       return sortedMonths.reduce(
+  //         (acc, month) => ({ ...acc, [month]: lastTwoMonths.includes(month) }),
+  //         {}
+  //       );
+  //     }
+  //     return prev;
+  //   });
+
+  //   return { uniqueMonths: sortedMonths };
+  // }, [data]);
+
   const { uniqueMonths } = useMemo(() => {
-    if (data.length === 0) return { uniqueMonths: [] };
+    const monthSource = selectedChartData.length ? selectedChartData : data;
+    if (monthSource.length === 0) return { uniqueMonths: [] };
 
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -674,7 +792,7 @@ const isUnitsFilterActive =
     }
 
     const monthsSet = new Set();
-    data.forEach((entry) => {
+    monthSource.forEach((entry) => {
       const startDate = new Date(entry.interval.split("--")[0]);
       const month = startDate.toLocaleString("en-US", { month: "short" });
       const year = startDate.getFullYear();
@@ -697,9 +815,13 @@ const isUnitsFilterActive =
     });
 
     setVisibleMonths((prev) => {
+      // only initialize once (keep user toggles)
       if (Object.keys(prev).length === 0) {
         return sortedMonths.reduce(
-          (acc, month) => ({ ...acc, [month]: lastTwoMonths.includes(month) }),
+          (acc, month) => ({
+            ...acc,
+            [month]: lastTwoMonths.includes(month),
+          }),
           {}
         );
       }
@@ -707,7 +829,7 @@ const isUnitsFilterActive =
     });
 
     return { uniqueMonths: sortedMonths };
-  }, [data]);
+  }, [data, selectedChartData]);
 
   const selectedProduct = (sortOrder ? sortedProducts : products).find(
     (product) =>
@@ -716,15 +838,11 @@ const isUnitsFilterActive =
         : product.sellerSku === selectedValue
   );
 
-
-
-
   const ROW_HEIGHT = 100;
   const BUFFER_ROWS = 5;
   const containerHeight = 820;
 
   const handleScroll = (e) => setScrollTop(e.target.scrollTop);
-
 
   const isFilterActive =
     !!reportChangeFilter.unit &&
@@ -734,20 +852,16 @@ const isUnitsFilterActive =
       (reportChangeFilter.unit !== "between" &&
         reportChangeFilter.value !== ""));
 
-
-
   const activeProducts =
-  isFilterActive || isUnitsFilterActive || isPreviousUnitsFilterActive
-    ? applyPreviousUnitsFilter(
-        applyUnitsFilter(
-          applyChangeFilter(sortOrder ? sortedProducts : products)
+    isFilterActive || isUnitsFilterActive || isPreviousUnitsFilterActive
+      ? applyPreviousUnitsFilter(
+          applyUnitsFilter(
+            applyChangeFilter(sortOrder ? sortedProducts : products)
+          )
         )
-      )
-    : sortOrder
-    ? sortedProducts
-    : products;
-
-
+      : sortOrder
+      ? sortedProducts
+      : products;
 
   const visibleStartIndex = Math.max(
     0,
@@ -764,8 +878,23 @@ const isUnitsFilterActive =
   );
 
 
+  const currentIntervalMetrics = selectedChartData.filter((entry) => {
+    const [start] = entry.interval.split("--");
+    const startDate = dayjs(start).startOf("day");
+    return (
+      startDate.isSameOrAfter(dayjs(currentDateRange[0])) &&
+      startDate.isSameOrBefore(dayjs(currentDateRange[1]))
+    );
+  });
 
-
+  const previousIntervalMetrics = selectedChartData.filter((entry) => {
+    const [start] = entry.interval.split("--");
+    const startDate = dayjs(start).startOf("day");
+    return (
+      startDate.isSameOrAfter(dayjs(previousDateRange[0])) &&
+      startDate.isSameOrBefore(dayjs(previousDateRange[1]))
+    );
+  });
 
   return (
     <div className=" mt-5">
@@ -830,7 +959,7 @@ const isUnitsFilterActive =
 
       <section className="flex gap-3">
         {/* sale report table part */}
-        <section className="w-[60%]">
+        <section className="w-[64%]">
           <div
             className="sale-report-table-scroll"
             onScroll={handleScroll}
@@ -891,7 +1020,7 @@ const isUnitsFilterActive =
                       style={{
                         position: "sticky",
                         textAlign: "center",
-                        width: "265px",
+                        width: "320px",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
                         zIndex: 3,
@@ -906,25 +1035,23 @@ const isUnitsFilterActive =
                         textAlign: "center",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
-                        width: '225px'
+                        width: "225px",
                       }}
                     >
                       <div className="flex justify-center items-center gap-1">
-                      {isUnitsFilterActive && (
-                        <BsDashCircle
-                          onClick={handleClearUnitsFilter}
-                          className="cursor-pointer text-sm text-red-400"
+                        {isUnitsFilterActive && (
+                          <BsDashCircle
+                            onClick={handleClearUnitsFilter}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        )}
+                        <ReportCurrentIntervalUnitsFilter
+                          unitOptions={unitOptions}
+                          unitsFilter={unitsFilter}
+                          setUnitsFilter={setUnitsFilter}
+                          onSubmitUnitsFilter={handleUnitsFilterSubmit}
                         />
-                      ) }
-                     <ReportCurrentIntervalUnitsFilter
-                      unitOptions={unitOptions}
-                      unitsFilter={unitsFilter}
-                      setUnitsFilter={setUnitsFilter}
-                      onSubmitUnitsFilter={handleUnitsFilterSubmit}
-                      />
-
-                      Current Interval Units
-
+                        Current Interval Units
                       </div>
                       <div>
                         <Space direction="vertical" size={12}>
@@ -959,23 +1086,23 @@ const isUnitsFilterActive =
                         textAlign: "center",
                         verticalAlign: "middle",
                         borderRight: "2px solid #C3C6D4",
-                           width: '225px'
+                        width: "225px",
                       }}
                     >
                       <div className="flex justify-center items-center gap-1">
-                      {isPreviousUnitsFilterActive && (
-                            <BsDashCircle
-                              onClick={handleClearPreviousUnitsFilter}
-                              className="cursor-pointer text-sm text-red-400"
-                            />
-                          ) }
-                                                <ReportPreviousIntervalUnitsFilter
-                            unitOptions={unitOptions}
-                            unitsFilter={previousUnitsFilter}
-                            setUnitsFilter={setPreviousUnitsFilter}
-                            onSubmitUnitsFilter={handlePreviousUnitsFilterSubmit}
+                        {isPreviousUnitsFilterActive && (
+                          <BsDashCircle
+                            onClick={handleClearPreviousUnitsFilter}
+                            className="cursor-pointer text-sm text-red-400"
                           />
-                      Previous Interval Units
+                        )}
+                        <ReportPreviousIntervalUnitsFilter
+                          unitOptions={unitOptions}
+                          unitsFilter={previousUnitsFilter}
+                          setUnitsFilter={setPreviousUnitsFilter}
+                          onSubmitUnitsFilter={handlePreviousUnitsFilterSubmit}
+                        />
+                        Previous Interval Units
                       </div>
                       <div>
                         <Space direction="vertical" size={12}>
@@ -1134,8 +1261,8 @@ const isUnitsFilterActive =
               >
                 See Details
               </button>
-       
-              <CurrentIntervalUnitsLineChart
+
+              {/* <CurrentIntervalUnitsLineChart
                 metrics={selectedChartData}
                 currentDateRange={currentDateRange}
                 currentUnits={selectedProductDetails.currentUnits ?? 0}
@@ -1144,10 +1271,13 @@ const isUnitsFilterActive =
                 metrics={selectedChartData}
                 previousDateRange={previousDateRange}
                 previousUnits={selectedProductDetails.previousUnits ?? 0}
-              />
+              /> */}
+              <CurrentPreviousIntervalUnitsLineChart
+                currentMetrics={currentIntervalMetrics}
+                previousMetrics={previousIntervalMetrics}
+              ></CurrentPreviousIntervalUnitsLineChart>
               <div className="grid grid-cols-2 gap-1">
                 <CurrentPreviousIntervalUnitsPieChart
-
                   currentUnits={selectedProduct?.currentUnits ?? 0}
                   previousUnits={selectedProduct?.previousUnits ?? 0}
                 />
@@ -1162,8 +1292,8 @@ const isUnitsFilterActive =
             </>
           )}
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 my-4">
-            {[...uniqueMonths].reverse().map((month) => (
+          <div className="flex flex-wrap gap-x-4 justify-center gap-y-2 my-3">
+            {/* {[...uniqueMonths].reverse().map((month) => (
               <label key={month} className="flex items-center space-x-1">
                 <input
                   type="checkbox"
@@ -1176,9 +1306,83 @@ const isUnitsFilterActive =
                     }))
                   }
                 />
-                <span>{month}</span>
+                <span 
+                
+
+                >{month}</span>
               </label>
-            ))}
+            ))} */}
+
+            {/* {[...uniqueMonths].reverse().map((month) => {
+              const isChecked = visibleMonths[month] ?? false;
+              const color = colorMap[month] ?? "black";
+
+              return (
+                <label key={month} className="flex items-center  space-x-1">
+                  <input
+                    type="checkbox"
+                    className="w-3 h-3 accent-inherit"
+                    style={{
+                      accentColor: isChecked ? color : "transparent"  // fallback to gray-300 when unchecked
+                    }}
+                    checked={isChecked}
+                    onChange={() =>
+                      setVisibleMonths((prev) => ({
+                        ...prev,
+                        [month]: !prev[month],
+                      }))
+                    }
+                  />
+                  <span  style={{
+                      color: isChecked ? color : "black",
+                    }}>{month}</span>
+                </label>
+              );
+            })} */}
+            {[...uniqueMonths].reverse().map((month) => {
+              const isChecked = visibleMonths[month] ?? false;
+              const color = colorMap[month] ?? "black";
+
+              return (
+                <label key={month} className="flex items-center space-x-1 cursor-pointer">
+                <span
+                 className={`relative w-[14px] h-[14px] inline-block  rounded-[1px] ${
+                  isChecked ? '' : 'border border-black'
+                }`}
+                  style={{ backgroundColor: isChecked ? color : "white" }}
+                >
+                  {isChecked && (
+                    <svg
+                      className="absolute inset-0   text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() =>
+                      setVisibleMonths((prev) => ({
+                        ...prev,
+                        [month]: !prev[month],
+                      }))
+                    }
+                    className="absolute w-[14px] h-[14px] opacity-0 cursor-pointer"
+                  />
+                </span>
+                <span style={{ color: isChecked ? color : "black" }}>{month}</span>
+              </label>
+              
+              );
+            })}
+
+            
+
+            
           </div>
 
           {showDefaultCharts || !selectedValue ? (

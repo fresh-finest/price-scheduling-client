@@ -63,7 +63,7 @@ const SaleReportSelectedPieChart = ({ entries, visibleMonths, loading, error, co
     return entries.length ? transformSelectedPieData(entries, visibleMonths) : [];
   }, [entries, visibleMonths]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading selected pie chart...</p>;
   if (error) return <p>Error loading selected pie chart.</p>;
   if (!chartData.length) return <p>No data available for selected product.</p>;
 
@@ -91,7 +91,7 @@ const SaleReportSelectedPieChart = ({ entries, visibleMonths, loading, error, co
           ))}
         </Pie>
         <Tooltip />
-        <Legend />
+        {/* <Legend /> */}
       </PieChart>
     </ResponsiveContainer>
     <p className="text-center text-xs text-gray-500 mt-1">By Month</p>

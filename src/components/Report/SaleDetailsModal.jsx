@@ -95,7 +95,7 @@ const SaleDetailsModal = ({
 
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
-        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.startDate = moment(startDate).add(1,'day').format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
       }
@@ -121,7 +121,7 @@ const SaleDetailsModal = ({
   };
 
   const fetchScheduleSalesMetrics = async () => {
-    setScheduleChartLoading(true);
+     setScheduleChartLoading(true);
     const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.get(`${BASE_URL}/api/report/${encodedSku}`);
@@ -142,7 +142,7 @@ const SaleDetailsModal = ({
           new Date(b.interval.split(" - ")[0])
         );
       });
-
+     
       setScheduleSalesData(sortedData);
     } catch (err) {
       console.error("Error fetching schedule sales data:", err);
