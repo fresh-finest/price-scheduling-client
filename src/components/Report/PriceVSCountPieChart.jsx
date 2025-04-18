@@ -20,6 +20,7 @@ const COLORS = [
   "#D84040",
   "#80CBC4",
   "#578FCA",
+  "#4793AF"
 ];
 
 
@@ -81,6 +82,36 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
+
+const CustomLegend = ({ payload }) => {
+  return (
+    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+      {payload.map((entry, index) => {
+        const [month, year] = entry.value.split(", ");
+        const shortMonth = month.slice(0, 3);
+        const shortYear = year.slice(-2);
+        const percent = entry.payload?.value?.toFixed(1) ?? 0;
+
+        return (
+          <li key={`item-${index}`} style={{ marginBottom: 2, marginRight: 33, display: "flex", alignItems: "center" }}>
+            <div
+              style={{
+                width: 12,
+                height: 12,
+                backgroundColor: entry.color,
+                marginRight: 8,
+                borderRadius: 2,
+              }}
+            />
+            <span style={{ color: "#000", fontSize: 15 }}> {`${shortMonth}, ${shortYear} - ${percent}%`}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+
 const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
 
   if (view !== "month" || !salesData.length) return null;
@@ -124,7 +155,14 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
           </Pie>
           {/* <Tooltip formatter={(value) => `${value}%`} /> */}
           <Tooltip content={<CustomTooltip/>}/>
-          <Legend layout="vertical" verticalAlign="middle" align="right" />
+          {/* <Legend layout="vertical" verticalAlign="middle" align="right" /> */}
+          <Legend
+              content={<CustomLegend />}
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
+            />
+
         </PieChart>
       </ResponsiveContainer>
     </Card>
