@@ -78,14 +78,14 @@ const SaleReport = () => {
 
   const [currentDateRange, setCurrentDateRange] = useState([
     dayjs().subtract(30, "day").startOf("day"),
-    dayjs().endOf("day"),
+    dayjs().subtract(1,"day").endOf("day"),
   ]);
 
   const [previousDateRange, setPreviousDateRange] = useState([
     dayjs().subtract(60, "day").startOf("day"),
-    dayjs().subtract(30, "day").endOf("day"),
+    dayjs().subtract(31, "day").endOf("day"),
   ]);
-
+  
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);

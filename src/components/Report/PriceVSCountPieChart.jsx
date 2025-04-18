@@ -131,8 +131,8 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
   console.log('sales data price vs count pie chart', salesData)
 
   return (
-    <Card className="w-full flex justify-end  ">
-      <ResponsiveContainer height={425}>
+    <Card className="w-full flex justify-end py-3 ">
+      <ResponsiveContainer height={400} >
         <PieChart>
           <Pie
             data={pieData}
