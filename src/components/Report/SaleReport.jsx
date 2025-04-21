@@ -68,6 +68,13 @@ const COLORS = [
   "#D84040",
   "#80CBC4",
   "#578FCA",
+  "#C7C0A4", 
+   "#615E22",
+   "#A47E5B",
+   "#5B6366",
+   "#2382A9", 
+   "#2F6B9A", 
+   "#C86A27"
 ];
 
 const SaleReport = () => {
@@ -550,12 +557,8 @@ const SaleReport = () => {
     const type = isAsinMode ? "asin" : "sku";
 
     const endDate = dayjs().format("YYYY-MM-DD");
-    const startDate = dayjs()
-      .subtract(17, "month")
-      // .subtract(11, "month")
-      .startOf("day")
-      .format("YYYY-MM-DD");
-
+    
+      const startDate =   dayjs().subtract(17, "month").startOf("month").format("YYYY-MM-DD");
     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
     console.log("url", url);
 
@@ -578,35 +581,7 @@ const SaleReport = () => {
 
   console.log("selected chart data from sale report", selectedChartData);
 
-  // const handleShowAllToggle = async (checked) => {
-  //   setShowDefaultCharts(checked);
-
-  //   if (!checked && lastSelected) {
-  //     setSelectedValue(lastSelected);
-
-  //     const type = isAsinMode ? "asin" : "sku";
-  //     const endDate = dayjs().format("YYYY-MM-DD");
-  //     const startDate = dayjs()
-  //       .subtract(6, "month")
-  //       .startOf("day")
-  //       .format("YYYY-MM-DD");
-
-  //     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${lastSelected}&startDate=${startDate}&endDate=${endDate}`;
-  //     setIsDetailChartLoading(true);
-  //     try {
-  //       const response = await axios.get(url);
-  //       setSelectedChartData(response.data.data.entries || []);
-  //     } catch (error) {
-  //       console.error("Error re-fetching selected chart data", error);
-  //       setSelectedChartData([]);
-  //     } finally {
-  //       setIsDetailChartLoading(false);
-  //     }
-  //   } else {
-  //     setSelectedValue(null);
-  //     setSelectedChartData([]);
-  //   }
-  // };
+  
 
   const handleShowAllToggle = async (checked) => {
     setShowDefaultCharts(checked);
@@ -720,58 +695,7 @@ const SaleReport = () => {
     },
   ];
 
-  // const { uniqueMonths } = useMemo(() => {
-  //   if (data.length === 0) return { uniqueMonths: [] };
 
-  //   const today = new Date();
-  //   const currentYear = today.getFullYear();
-  //   const currentMonthIndex = today.getMonth();
-
-  //   const lastTwoMonths = [];
-  //   for (let i = 2; i > 0; i--) {
-  //     let monthIndex = (currentMonthIndex - i + 12) % 12;
-  //     let year = currentYear;
-  //     if (monthIndex > currentMonthIndex) {
-  //       year -= 1;
-  //     }
-  //     lastTwoMonths.push(`${MONTH_ORDER[monthIndex]} ${year}`);
-  //   }
-
-  //   const monthsSet = new Set();
-  //   data.forEach((entry) => {
-  //     const startDate = new Date(entry.interval.split("--")[0]);
-  //     const month = startDate.toLocaleString("en-US", { month: "short" });
-  //     const year = startDate.getFullYear();
-  //     monthsSet.add(`${month} ${year}`);
-  //   });
-
-  //   const sortedMonths = [...monthsSet].sort((a, b) => {
-  //     const [monthA, yearA] = a.split(" ");
-  //     const [monthB, yearB] = b.split(" ");
-  //     if (yearA !== yearB) return yearA - yearB;
-  //     return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
-  //   });
-
-  //   setColorMap(() => {
-  //     const newColorMap = {};
-  //     sortedMonths.forEach((month, index) => {
-  //       newColorMap[month] = COLORS[index % COLORS.length];
-  //     });
-  //     return newColorMap;
-  //   });
-
-  //   setVisibleMonths((prev) => {
-  //     if (Object.keys(prev).length === 0) {
-  //       return sortedMonths.reduce(
-  //         (acc, month) => ({ ...acc, [month]: lastTwoMonths.includes(month) }),
-  //         {}
-  //       );
-  //     }
-  //     return prev;
-  //   });
-
-  //   return { uniqueMonths: sortedMonths };
-  // }, [data]);
 
   const { uniqueMonths } = useMemo(() => {
     const monthSource = selectedChartData.length ? selectedChartData : data;
@@ -1292,53 +1216,8 @@ const SaleReport = () => {
             </>
           )}
 
-          <div className="flex flex-wrap gap-x-4 justify-center gap-y-2 my-3">
-            {/* {[...uniqueMonths].reverse().map((month) => (
-              <label key={month} className="flex items-center space-x-1">
-                <input
-                  type="checkbox"
-                  className="cursor-pointer"
-                  checked={visibleMonths[month] ?? false}
-                  onChange={() =>
-                    setVisibleMonths((prev) => ({
-                      ...prev,
-                      [month]: !prev[month],
-                    }))
-                  }
-                />
-                <span 
-                
-
-                >{month}</span>
-              </label>
-            ))} */}
-
-            {/* {[...uniqueMonths].reverse().map((month) => {
-              const isChecked = visibleMonths[month] ?? false;
-              const color = colorMap[month] ?? "black";
-
-              return (
-                <label key={month} className="flex items-center  space-x-1">
-                  <input
-                    type="checkbox"
-                    className="w-3 h-3 accent-inherit"
-                    style={{
-                      accentColor: isChecked ? color : "transparent"  // fallback to gray-300 when unchecked
-                    }}
-                    checked={isChecked}
-                    onChange={() =>
-                      setVisibleMonths((prev) => ({
-                        ...prev,
-                        [month]: !prev[month],
-                      }))
-                    }
-                  />
-                  <span  style={{
-                      color: isChecked ? color : "black",
-                    }}>{month}</span>
-                </label>
-              );
-            })} */}
+          <div className="flex flex-wrap gap-x-2 justify-center gap-y-2 my-3">
+           
             {[...uniqueMonths].reverse().map((month) => {
               const isChecked = visibleMonths[month] ?? false;
               const color = colorMap[month] ?? "black";
