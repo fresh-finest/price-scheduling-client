@@ -32,6 +32,9 @@ import {
     return Object.values(groupedByDay).sort((a, b) => a.day - b.day);
   };
   
+
+
+  
   
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -78,11 +81,17 @@ import {
   
 
   const SaleReportSelectedLineChart = ({ entries, loading, visibleMonths, colorMap }) => {
+
+    console.log('sale report selected line chart data', entries)
     const data = transformSelectedChartData(entries, visibleMonths);
   
     const monthKeys = Object.keys(data[0] || {}).filter(
       (key) => key !== "day" && !key.endsWith("_price")
     );
+
+  //   const monthKeys = Object.keys(visibleMonths)
+  // .filter((month) => visibleMonths[month]); 
+
   
     if (loading) return <p>Loading chart...</p>;
     if (!entries || entries.length === 0) return <p>No data available.</p>;

@@ -58,7 +58,18 @@ const COLORS = [
   "#D84040",
   "#80CBC4",
   "#578FCA",
+  "#C7C0A4", 
+  "#615E22",
+  "#A47E5B",
+  "#5B6366",
+  "#2382A9", 
+  "#2F6B9A", 
+  "#C86A27"
+
+
+
 ];
+
 
 const SaleReport = () => {
   const [products, setProducts] = useState([]);
@@ -68,14 +79,14 @@ const SaleReport = () => {
 
   const [currentDateRange, setCurrentDateRange] = useState([
     dayjs().subtract(30, "day").startOf("day"),
-    dayjs().endOf("day"),
+    dayjs().subtract(1,"day").endOf("day"),
   ]);
 
   const [previousDateRange, setPreviousDateRange] = useState([
     dayjs().subtract(60, "day").startOf("day"),
-    dayjs().subtract(30, "day").endOf("day"),
+    dayjs().subtract(31, "day").endOf("day"),
   ]);
-
+  
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -540,14 +551,16 @@ const SaleReport = () => {
     const type = isAsinMode ? "asin" : "sku";
 
     const endDate = dayjs().format("YYYY-MM-DD");
-    const startDate = dayjs()
-      .subtract(17, "month")
-      // .subtract(11, "month")
-      .startOf("day")
-      .format("YYYY-MM-DD");
+    // const startDate = dayjs()
+    //   .subtract(18, "month")
+    //   .startOf("day")
+    //   .format("YYYY-MM-DD");
+
+  const startDate =   dayjs().subtract(17, "month").startOf("month").format("YYYY-MM-DD");
+
 
     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
-    console.log("url", url);
+    console.log("handle row click select chart data url", url);
 
     setIsDetailChartLoading(true);
     setSelectedValue(value);
@@ -1252,16 +1265,6 @@ const SaleReport = () => {
                 See Details
               </button>
 
-              {/* <CurrentIntervalUnitsLineChart
-                metrics={selectedChartData}
-                currentDateRange={currentDateRange}
-                currentUnits={selectedProductDetails.currentUnits ?? 0}
-              />
-              <PreviousIntervalUnitsLineChart
-                metrics={selectedChartData}
-                previousDateRange={previousDateRange}
-                previousUnits={selectedProductDetails.previousUnits ?? 0}
-              /> */}
               <CurrentPreviousIntervalUnitsLineChart
                 currentMetrics={currentIntervalMetrics}
                 previousMetrics={previousIntervalMetrics}
@@ -1282,53 +1285,7 @@ const SaleReport = () => {
             </>
           )}
 
-          <div className="flex flex-wrap gap-x-4 justify-center gap-y-2 my-3">
-            {/* {[...uniqueMonths].reverse().map((month) => (
-              <label key={month} className="flex items-center space-x-1">
-                <input
-                  type="checkbox"
-                  className="cursor-pointer"
-                  checked={visibleMonths[month] ?? false}
-                  onChange={() =>
-                    setVisibleMonths((prev) => ({
-                      ...prev,
-                      [month]: !prev[month],
-                    }))
-                  }
-                />
-                <span 
-                
-
-                >{month}</span>
-              </label>
-            ))} */}
-
-            {/* {[...uniqueMonths].reverse().map((month) => {
-              const isChecked = visibleMonths[month] ?? false;
-              const color = colorMap[month] ?? "black";
-
-              return (
-                <label key={month} className="flex items-center  space-x-1">
-                  <input
-                    type="checkbox"
-                    className="w-3 h-3 accent-inherit"
-                    style={{
-                      accentColor: isChecked ? color : "transparent"  // fallback to gray-300 when unchecked
-                    }}
-                    checked={isChecked}
-                    onChange={() =>
-                      setVisibleMonths((prev) => ({
-                        ...prev,
-                        [month]: !prev[month],
-                      }))
-                    }
-                  />
-                  <span  style={{
-                      color: isChecked ? color : "black",
-                    }}>{month}</span>
-                </label>
-              );
-            })} */}
+          <div className="flex flex-wrap gap-x-2 justify-center gap-y-2 my-3">
             {[...uniqueMonths].reverse().map((month) => {
               const isChecked = visibleMonths[month] ?? false;
               const color = colorMap[month] ?? "black";
@@ -1406,6 +1363,8 @@ const SaleReport = () => {
       ></SaleDetailsModal>
     </div>
   );
-};
+}; 
 
 export default SaleReport;
+
+

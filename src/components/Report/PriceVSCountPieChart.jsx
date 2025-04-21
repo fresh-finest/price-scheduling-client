@@ -20,7 +20,16 @@ const COLORS = [
   "#D84040",
   "#80CBC4",
   "#578FCA",
-  "#4793AF"
+  "#C7C0A4", 
+  "#615E22",
+  "#A47E5B",
+  "#5B6366",
+  "#2382A9", 
+  "#2F6B9A", 
+  "#C86A27"
+
+
+
 ];
 
 
@@ -138,7 +147,7 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
             data={pieData}
             cx="50%"
             cy="50%"
-            outerRadius={160}
+            outerRadius={190}
             label={(props) =>
               renderCustomizedLabel({ ...props, name: props.name })
             }
@@ -155,14 +164,6 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
           </Pie>
           {/* <Tooltip formatter={(value) => `${value}%`} /> */}
           <Tooltip content={<CustomTooltip/>}/>
-          {/* <Legend layout="vertical" verticalAlign="middle" align="right" /> */}
-          <Legend
-              content={<CustomLegend />}
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-            />
-
         </PieChart>
       </ResponsiveContainer>
     </Card>
