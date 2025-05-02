@@ -586,14 +586,14 @@ const AutomationDetailModal = ({
                           >
                             <FiTrash />
                           </Button>
-                          <Button
+                          {/* <Button
                             // className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
                             style={{ marginLeft: "5px" }}
                             variant="info"
                             onClick={() => fetchGraphData(data.sku)}
                           >
                             <MdDataExploration />
-                          </Button>
+                          </Button> */}
                         </div>
                       </td>
                       <td></td>
