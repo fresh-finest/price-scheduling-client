@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Button as ShadCdnButton } from "@/components/ui/button";
 import Swal from "sweetalert2";
+import { ta } from "date-fns/locale";
 // import { BASE_URL } from "@/utils/baseUrl";
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -17,6 +18,7 @@ const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
   setAddProductsInRuleModalOpen,
   ruleId,
+  ruleType,
 }) => {
   const [searchedProducts, setSearchedProducts] = useState([]);
   const [searchingError, setSearchingError] = useState("");
@@ -98,6 +100,8 @@ const AddProductsInRuleModal = ({
         maxPrice: parseFloat(product.maxPrice) || product.price,
         minPrice: parseFloat(product.minPrice) || product.price,
         sale: saleChecked,
+        targetQuantity:
+          ruleType === "quantity-cycling" ? product.targetQuantity : null,
       })),
       hitAutoPricing: true,
     };
@@ -146,6 +150,7 @@ const AddProductsInRuleModal = ({
         ...product,
         maxPrice: "",
         minPrice: "",
+        ...(ruleType === "quantity-cycling" && { targetQuantity: "" }),
       };
       setSelectedProducts((prev) => [...prev, newProduct]);
       setDisplayedProducts((prev) => [...prev, newProduct]);
@@ -211,7 +216,7 @@ const AddProductsInRuleModal = ({
             onChange={(e) =>
               handleInputChange(product.sellerSku, "maxPrice", e.target.value)
             }
-            className="w-[30%]"
+            className="w-[20%]"
           />
 
           <Input
@@ -220,8 +225,24 @@ const AddProductsInRuleModal = ({
             onChange={(e) =>
               handleInputChange(product.sellerSku, "minPrice", e.target.value)
             }
-            className="w-[30%]"
+            className="w-[20%]"
           />
+          {ruleType === "quantity-cycling" && (
+            <Input
+              placeholder="Target Quantity"
+              type="number"
+              min={1}
+              value={product.targetQuantity}
+              onChange={(e) =>
+                handleInputChange(
+                  product.sellerSku,
+                  "targetQuantity",
+                  e.target.value
+                )
+              }
+              className="w-[20%]"
+            />
+          )}
 
           <Checkbox className="w-[50%]" onChange={handleSaleCheckboxChange}>
             On Sale

@@ -182,6 +182,7 @@ const AutomationDetailModal = ({
       maxPrice: data.maxPrice,
       minPrice: data.minPrice,
       sale: data.sale,
+      targetQuantity: data.targetQuantity,
     });
   };
 
@@ -200,6 +201,9 @@ const AutomationDetailModal = ({
           maxPrice: parseFloat(editValues.maxPrice),
           minPrice: parseFloat(editValues.minPrice),
           sale: editValues.sale,
+          ...(ruleData.category === "quantity-cycling" && {
+            targetQuantity: parseInt(editValues.targetQuantity),
+          }),
         }
       );
 
@@ -264,30 +268,34 @@ const AutomationDetailModal = ({
               >
                 {ruleData.category}
               </span>{" "}
-              <span
-                style={{
-                  marginRight: "0px",
-                  backgroundColor: "#0661bba3",
-                  color: "white",
-                  padding: "2px 5px",
-                  borderRadius: "3px",
-                }}
-              >
-                {ruleData.interval}
-              </span>{" "}
-              <span
-                style={{
-                  marginRight: "0px",
-                  backgroundColor: "#0661bba3",
-                  color: "white",
-                  padding: "2px 5px",
-                  borderRadius: "3px",
-                }}
-              >
-                {ruleData.amount
-                  ? `$${ruleData.amount}`
-                  : `${ruleData.percentage * 100}%`}
-              </span>
+              {ruleData.category !== "quantity-cycling" && (
+                <>
+                  <span
+                    style={{
+                      marginRight: "0px",
+                      backgroundColor: "#0661bba3",
+                      color: "white",
+                      padding: "2px 5px",
+                      borderRadius: "3px",
+                    }}
+                  >
+                    {ruleData.interval}
+                  </span>{" "}
+                  <span
+                    style={{
+                      marginRight: "0px",
+                      backgroundColor: "#0661bba3",
+                      color: "white",
+                      padding: "2px 5px",
+                      borderRadius: "3px",
+                    }}
+                  >
+                    {ruleData.amount
+                      ? `$${ruleData.amount}`
+                      : `${ruleData.percentage * 100}%`}
+                  </span>
+                </>
+              )}
             </p>
           </div>
           <table
@@ -378,6 +386,21 @@ const AutomationDetailModal = ({
                 >
                   Min Price
                 </th>
+                {ruleData.category === "quantity-cycling" && (
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "130px",
+                      position: "sticky",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Target Quantity
+                  </th>
+                )}
+
                 <th
                   className="tableHeader"
                   style={{
@@ -415,7 +438,7 @@ const AutomationDetailModal = ({
                 productData.map((data, index) => {
                   return (
                     <tr
-                      key={index}               
+                      key={index}
                       className={
                         data.status === "Inactive" ? "inactive-row" : ""
                       }
@@ -521,6 +544,30 @@ const AutomationDetailModal = ({
                           `$${parseFloat(data.minPrice).toFixed(2)}`
                         )}
                       </td>
+                      {ruleData.category === "quantity-cycling" && (
+                        <td
+                          style={{
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            height: "40px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                          }}
+                        > {editingRow === index ? (
+                          <Form.Control
+                            className="update-custom-input text-xs text-center"
+                            type="number"
+                            value={editValues.targetQuantity}
+                            onChange={(e) =>
+                              handleInputChange(e, "targetQuantity")
+                            }
+                          />  ) : (
+                          `${parseFloat(data.targetQuantity)}`
+                        )}
+                        </td>
+                      )}
+
                       <td
                         style={{
                           whiteSpace: "nowrap",
@@ -619,6 +666,7 @@ const AutomationDetailModal = ({
         addProductsInRuleModalOpen={addProductsInRuleModalOpen}
         setAddProductsInRuleModalOpen={setAddProductsInRuleModalOpen}
         ruleId={ruleId}
+        ruleType={ruleData.category}
       ></AddProductsInRuleModal>
 
       <Modal
