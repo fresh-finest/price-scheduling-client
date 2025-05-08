@@ -144,8 +144,24 @@ const AddProductsInRuleModal = ({
     }
   };
 
-  const handleCheckboxChange = (product, checked) => {
+  const handleCheckboxChange = async (product, checked) => {
     if (checked) {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/automation/active/${product.sellerSku}`);
+        if (response.data.success && response.data.job) {
+          Swal.fire({
+            title: "Already Added!",
+            text: `This product is already active in automation (SKU: ${product.sellerSku}). Please edit it from the existing rule.`,
+            icon: "info",
+            confirmButtonText: "Okay",
+          });
+          return;
+        }
+      } catch (err) {
+        // If 404 or not active, continue adding
+        console.log("Product not active in any rule, proceeding...");
+      }
+  
       const newProduct = {
         ...product,
         maxPrice: "",
@@ -163,6 +179,7 @@ const AddProductsInRuleModal = ({
       );
     }
   };
+  
   const handleInputChange = (sku, field, value) => {
     setDisplayedProducts((prev) =>
       prev.map((item) =>

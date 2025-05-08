@@ -8,6 +8,7 @@ import { IoIosSearch } from "react-icons/io";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { ClipLoader } from "react-spinners";
+import Swal from "sweetalert2";
 // import { BASE_URL } from "@/utils/baseUrl";
 
 const BASE_URL = `https://api.priceobo.com`
@@ -70,14 +71,42 @@ const AutomationSelectProductModal = ({
   const handleAddButtonClick = () => {
     handleAddSelectedProducts(selectedProducts);
   };
-
-  const handleCheckboxChange = (product, checked) => {
+  const handleCheckboxChange = async (product, checked) => {
     if (checked) {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/automation/active/${product.sellerSku}`);
+        console.log("response", response.data.job);
+        if (response.data.success && response.data.job) {
+          Swal.fire({
+            title: "Already Added!",
+            text: `This product is already active in automation (SKU: ${product.sellerSku}). Please edit it from the existing rule.`,
+            icon: "info",
+            confirmButtonText: "Okay",
+          });
+          return; // stop here
+        }
+      } catch (err) {
+        // ONLY proceed if error is 404 (not found)
+        if (err.response && err.response.status !== 404) {
+          Swal.fire({
+            title: "Error",
+            text: "Failed to check automation status. Please try again.",
+            icon: "error",
+          });
+          return;
+        }
+  
+        // If 404, it's safe to add
+        console.log("Product not active, safe to add.");
+      }
+  
+      // Add to selectedProducts if not active
       setSelectedProducts((prevSelectedProducts) => [
         ...prevSelectedProducts,
         product,
       ]);
     } else {
+      // Remove if unchecked
       setSelectedProducts((prevSelectedProducts) =>
         prevSelectedProducts.filter(
           (item) => item.sellerSku !== product.sellerSku
@@ -85,6 +114,7 @@ const AutomationSelectProductModal = ({
       );
     }
   };
+  
 
   const renderSelectedProducts = () => (
     <div
