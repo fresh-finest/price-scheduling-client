@@ -149,9 +149,10 @@ const AddProductsInRuleModal = ({
       try {
         const response = await axios.get(`${BASE_URL}/api/automation/active/${product.sellerSku}`);
         if (response.data.success && response.data.job) {
+          const result = await axios.get(`${BASE_URL}/api/automation/rule/${response.data.job.ruleId}`);
           Swal.fire({
             title: "Already Added!",
-            text: `This product is already active in automation (SKU: ${product.sellerSku}). Please edit it from the existing rule.`,
+            text: `This product is already active in automation (SKU: ${product.sellerSku} in ${result.data.rule.ruleId}.)`,
             icon: "info",
             confirmButtonText: "Okay",
           });
