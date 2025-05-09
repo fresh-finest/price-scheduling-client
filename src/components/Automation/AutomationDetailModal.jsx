@@ -54,8 +54,9 @@ const AutomationDetailModal = ({
   // const [editValues, setEditValues] = useState({});
 
   const fetchGraphData = async (sku) => {
+     const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.get(`${BASE_URL}/auto-report/${sku}`);
+      const response = await axios.get(`${BASE_URL}/auto-report/${encodedSku}`);
 
       const formattedData = response.data.result.map((item) => ({
         // executionDateTime: new Date(item.executionDateTime).toLocaleString(),
@@ -98,10 +99,11 @@ const AutomationDetailModal = ({
   };
 
   const fetchActiveProduct = async (sku) => {
+       const encodedSku = encodeURIComponent(sku);
     setLoading(true);
     try {
       const resposne = await axios.get(
-        `${BASE_URL}/api/automation/active/${sku}`
+        `${BASE_URL}/api/automation/active/${encodedSku}`
       );
       setSingleProduct(resposne.data.job);
     } catch (error) {
@@ -118,9 +120,10 @@ const AutomationDetailModal = ({
   }, [automationDetailModalShow]);
   console.log(("single product", singleProduct));
   const deleteAutomation = async (ruleId, sku) => {
+     const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.delete(
-        `${BASE_URL}/api/automation/products/${ruleId}/${sku}/delete`
+        `${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`
       );
 
       return response.data;

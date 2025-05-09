@@ -146,8 +146,9 @@ const AddProductsInRuleModal = ({
 
   const handleCheckboxChange = async (product, checked) => {
     if (checked) {
+       const encodedSku = encodeURIComponent(product.sellerSku);
       try {
-        const response = await axios.get(`${BASE_URL}/api/automation/active/${product.sellerSku}`);
+        const response = await axios.get(`${BASE_URL}/api/automation/active/${encodedSku}`);
         if (response.data.success && response.data.job) {
           const result = await axios.get(`${BASE_URL}/api/automation/rule/${response.data.job.ruleId}`);
           Swal.fire({
