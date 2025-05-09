@@ -122,7 +122,7 @@ const SaleDetailsModal = ({
     setScheduleSalesData([]); 
     const encodedSku = encodeURIComponent(sku);
     const url = `${BASE_URL}/api/report/${encodedSku}`;
-    console.log("Fetching Schedule Sales Data from URL:", url); 
+
   
     try {
       const response = await axios.get(url);
@@ -294,8 +294,7 @@ const SaleDetailsModal = ({
     },
   ];
 
-  console.log('Schedule sales data', scheduleSalesData)
-  console.log('sku from sale detais modal', sku)
+
 
   return (
     <div>

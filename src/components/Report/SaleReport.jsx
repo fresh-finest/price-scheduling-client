@@ -129,7 +129,7 @@ const SaleReport = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const initialFetchDoneRef = useRef(false);
-  console.log("visible months", visibleMonths);
+
 
   const unitOptions = [
     { value: "between", label: "Between" },
@@ -161,7 +161,7 @@ const SaleReport = () => {
     axios
       .get(`${BASE_URL}/total-sales`)
       .then((response) => {
-        console.log("Total Sales Payload:", response.data.payload);
+     
 
         setData(response.data.payload);
         setChartLoading(false);
@@ -560,7 +560,7 @@ const SaleReport = () => {
 
 
     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
-    console.log("handle row click select chart data url", url);
+  
 
     setIsDetailChartLoading(true);
     setSelectedValue(value);
@@ -579,7 +579,7 @@ const SaleReport = () => {
     }
   };
 
-  console.log("selected chart data from sale report", selectedChartData);
+
 
   // const handleShowAllToggle = async (checked) => {
   //   setShowDefaultCharts(checked);

@@ -82,7 +82,6 @@ import {
 
   const SaleReportSelectedLineChart = ({ entries, loading, visibleMonths, colorMap }) => {
 
-    console.log('sale report selected line chart data', entries)
     const data = transformSelectedChartData(entries, visibleMonths);
   
     const monthKeys = Object.keys(data[0] || {}).filter(

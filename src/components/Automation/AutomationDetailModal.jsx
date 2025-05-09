@@ -180,7 +180,8 @@ const AutomationDetailModal = ({
       <Modal
         show={automationDetailModalShow}
         onHide={handleAutomationDetailModalClose}
-        dialogClassName="automation-detail-modal"
+        fullscreen={true}
+        // dialogClassName="automation-detail-modal"
       >
         <Modal.Body>
           <button
