@@ -54,7 +54,7 @@ const AutomationDetailModal = ({
   // const [editValues, setEditValues] = useState({});
 
   const fetchGraphData = async (sku) => {
-     const encodedSku = encodeURIComponent(sku);
+    const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.get(`${BASE_URL}/auto-report/${encodedSku}`);
 
@@ -99,7 +99,7 @@ const AutomationDetailModal = ({
   };
 
   const fetchActiveProduct = async (sku) => {
-       const encodedSku = encodeURIComponent(sku);
+    const encodedSku = encodeURIComponent(sku);
     setLoading(true);
     try {
       const resposne = await axios.get(
@@ -120,7 +120,7 @@ const AutomationDetailModal = ({
   }, [automationDetailModalShow]);
   console.log(("single product", singleProduct));
   const deleteAutomation = async (ruleId, sku) => {
-     const encodedSku = encodeURIComponent(sku);
+    const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.delete(
         `${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`
@@ -235,7 +235,8 @@ const AutomationDetailModal = ({
       <Modal
         show={automationDetailModalShow}
         onHide={handleAutomationDetailModalClose}
-        dialogClassName="automation-detail-modal"
+        // dialogClassName="automation-detail-modal"
+        fullscreen={true}
       >
         <Modal.Body>
           <button
@@ -301,11 +302,20 @@ const AutomationDetailModal = ({
               )}
             </p>
           </div>
+          <section   style={{
+          maxHeight: "91vh",
+          overflowY: "auto",
+          marginTop: '15px',
+          // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+        }}>
+
           <table
             style={{
-              tableLayout: "fixed",
+              tableLayout: "auto",
+              // tableLayout: "fixed",
+              width: "100%",
             }}
-            className="reportCustomTable table mt-2"
+            className="reportCustomTable table "
           >
             <thead
               style={{
@@ -317,73 +327,73 @@ const AutomationDetailModal = ({
             >
               <tr>
                 <th
-                  className="tableHeader"
+                   className="tableHeader"
                   style={{
-                    width: "70px",
-                    position: "sticky",
+                    width: "10%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
+
                   }}
                 >
                   Status
                 </th>
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "100px",
-                    position: "sticky",
+                    width: "8%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   Image
                 </th>
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "320px",
-                    position: "sticky",
+                    width: "25%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   Title
                 </th>
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "130px",
-                    position: "sticky",
+                    width: "12%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   Sku
                 </th>
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "130px",
-                    position: "sticky",
+                    width: "10%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   Max Price
                 </th>
-
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "130px",
-                    position: "sticky",
+                    width: "10%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
@@ -391,38 +401,38 @@ const AutomationDetailModal = ({
                 </th>
                 {ruleData.category === "quantity-cycling" && (
                   <th
-                    className="tableHeader"
+                      className="tableHeader"
                     style={{
-                      width: "130px",
-                      position: "sticky",
+                      width: "10%",
                       textAlign: "center",
                       verticalAlign: "middle",
+                      position: "sticky", 
                       borderRight: "2px solid #C3C6D4",
                     }}
                   >
                     Target Quantity
                   </th>
                 )}
-
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "130px",
-                    position: "sticky",
+                    width: "7.5%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
                     borderRight: "2px solid #C3C6D4",
                   }}
                 >
                   On Change
                 </th>
                 <th
-                  className="tableHeader"
+                    className="tableHeader"
                   style={{
-                    width: "150px",
-                    position: "sticky",
+                    width: "7.5%",
                     textAlign: "center",
                     verticalAlign: "middle",
+                    position: "sticky", 
+               
                   }}
                 >
                   Actions
@@ -438,126 +448,70 @@ const AutomationDetailModal = ({
               }}
             >
               {productData.length > 0 ? (
-                productData.map((data, index) => {
-                  return (
-                    <tr
-                      key={index}
-                      className={
-                        data.status === "Inactive" ? "inactive-row" : ""
-                      }
-                      style={{
-                        opacity: data.status === "Inactive" ? 0.6 : 1,
-                      }}
+                productData.map((data, index) => (
+                  <tr
+                    key={index}
+                    style={{ opacity: data.status === "Inactive" ? 0.6 : 1 }}
+                  >
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
                     >
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {data.status}
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <img
-                          className="w-[50px] mx-auto "
-                          src={data.imageUrl}
-                          alt="product image"
+                      {data.status}
+                    </td>
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      <img
+                        className="w-[50px] mx-auto"
+                        src={data.imageUrl}
+                        alt="product"
+                      />
+                    </td>
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      <Tooltip title={data.title}>
+                        <p>{data.title}</p>
+                      </Tooltip>
+                    </td>
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      {data.sku}
+                    </td>
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      {editingRow === index ? (
+                        <Form.Control
+                          className="update-custom-input text-xs text-center"
+                          type="number"
+                          value={editValues.maxPrice}
+                          onChange={(e) => handleInputChange(e, "maxPrice")}
                         />
-                      </td>
+                      ) : (
+                        `$${parseFloat(data.maxPrice).toFixed(2)}`
+                      )}
+                    </td>
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      {editingRow === index ? (
+                        <Form.Control
+                          className="update-custom-input text-xs text-center"
+                          type="number"
+                          value={editValues.minPrice}
+                          onChange={(e) => handleInputChange(e, "minPrice")}
+                        />
+                      ) : (
+                        `$${parseFloat(data.minPrice).toFixed(2)}`
+                      )}
+                    </td>
+                    {ruleData.category === "quantity-cycling" && (
                       <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <Tooltip placement="bottom" title={data.title}>
-                          <p>{data.title}</p>
-                        </Tooltip>
-                      </td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {data.sku}
-                      </td>
-
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
                       >
                         {editingRow === index ? (
-                          <Form.Control
-                            className="update-custom-input text-xs text-center"
-                            type="number"
-                            value={editValues.maxPrice}
-                            onChange={(e) => handleInputChange(e, "maxPrice")}
-                          />
-                        ) : (
-                          `$${parseFloat(data.maxPrice).toFixed(2)}`
-                        )}
-                      </td>
-
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {editingRow === index ? (
-                          <Form.Control
-                            className="update-custom-input text-xs text-center"
-                            type="number"
-                            value={editValues.minPrice}
-                            onChange={(e) => handleInputChange(e, "minPrice")}
-                          />
-                        ) : (
-                          `$${parseFloat(data.minPrice).toFixed(2)}`
-                        )}
-                      </td>
-                      {ruleData.category === "quantity-cycling" && (
-                        <td
-                          style={{
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "40px",
-                            textAlign: "center",
-                            verticalAlign: "middle",
-                          }}
-                        > {editingRow === index ? (
                           <Form.Control
                             className="update-custom-input text-xs text-center"
                             type="number"
@@ -565,95 +519,73 @@ const AutomationDetailModal = ({
                             onChange={(e) =>
                               handleInputChange(e, "targetQuantity")
                             }
-                          />  ) : (
+                          />
+                        ) : (
                           `${parseFloat(data.targetQuantity)}`
                         )}
-                        </td>
+                      </td>
+                    )}
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      {editingRow === index ? (
+                        <Checkbox
+                          checked={editValues.sale}
+                          onChange={handleCheckboxChange}
+                        >
+                          On Sale
+                        </Checkbox>
+                      ) : data.sale ? (
+                        "Sale Price"
+                      ) : (
+                        "Your Price"
                       )}
-
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        {/* {data.sale ? "Sale Price" : "Your Price"} */}
-
+                    </td>
+                    <td
+                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    >
+                      <div className="flex justify-center items-center">
                         {editingRow === index ? (
-                          <Checkbox
-                            checked={editValues.sale}
-                            onChange={handleCheckboxChange}
+                          <button
+                            className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleSave(index, data.sku)}
+                            disabled={ruleData.mute}
                           >
-                            On Sale
-                          </Checkbox>
-                        ) : data.sale ? (
-                          "Sale Price"
+                            <FiSave size={20} />
+                          </button>
                         ) : (
-                          "Your Price"
+                          <button
+                            className="bg-[#0662BB] py-1 px-2 rounded-md mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleEditClick(index, data)}
+                            disabled={ruleData.mute}
+                          >
+                            <PenLine size={20} className="text-white" />
+                          </button>
                         )}
-                      </td>
-
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          height: "40px",
-                          textAlign: "center",
-                          verticalAlign: "middle",
-                        }}
-                      >
-                        <div className="flex justify-center items-center">
-                          {editingRow === index ? (
-                            <button
-                              // className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 "
-                              className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() => handleSave(index, data.sku)}
-                              disabled={ruleData.mute}
-                            >
-                              <FiSave size={20} />
-                            </button>
-                          ) : (
-                            <button
-                              // className="bg-[#0662BB] py-1 px-2 rounded-md mr-1"
-                              className="bg-[#0662BB] py-1 px-2 rounded-md mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() => handleEditClick(index, data)}
-                              disabled={ruleData.mute}
-                            >
-                              <PenLine size={20} className="text-white" />
-                            </button>
-                          )}
-                          <Button
-                            onClick={() =>
-                              handleDeleteAutomation(ruleData.ruleId, data.sku)
-                            }
-                            variant="danger"
-                            size="md"
-                          >
-                            <FiTrash />
-                          </Button>
-                           <Button
-                            // className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ marginLeft: "5px" }}
-                            variant="info"
-                            onClick={() => fetchGraphData(data.sku)}
-                          >
-                            <MdDataExploration />
-                          </Button> 
-                        </div>
-                      </td>
-                      <td></td>
-                    </tr>
-                  );
-                })
+                        <Button
+                          onClick={() =>
+                            handleDeleteAutomation(ruleData.ruleId, data.sku)
+                          }
+                          variant="danger"
+                          size="md"
+                        >
+                          <FiTrash />
+                        </Button>
+                        <Button
+                          variant="info"
+                          style={{ marginLeft: "5px" }}
+                          onClick={() => fetchGraphData(data.sku)}
+                        >
+                          <MdDataExploration />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="9"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
                     No Data Found
@@ -662,6 +594,7 @@ const AutomationDetailModal = ({
               )}
             </tbody>
           </table>
+          </section>
         </Modal.Body>
       </Modal>
 
