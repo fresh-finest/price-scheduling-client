@@ -111,6 +111,8 @@ const ListView = () => {
 
   console.log("filtered products", filteredProducts);
 
+  console.log('selected Product')
+
   const dayOptions = [
     { value: "1 D", label: "Yesterday" },
     { value: "7 D", label: "Last 7 Days" },
