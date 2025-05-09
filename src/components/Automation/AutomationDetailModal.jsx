@@ -203,11 +203,19 @@ const AutomationDetailModal = ({
           >
             <IoMdAdd className="text-[21px]" /> Add Product
           </Button>
+          <section
+        style={{
+          maxHeight: "91vh",
+          overflowY: "auto",
+          marginTop: '15px',
+          // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+        }}
+      >
           <table
             style={{
               tableLayout: "fixed",
             }}
-            className="reportCustomTable table mt-2"
+            className="reportCustomTable table "
           >
             <thead
               style={{
@@ -480,6 +488,7 @@ const AutomationDetailModal = ({
               )}
             </tbody>
           </table>
+          </section>
         </Modal.Body>
       </Modal>
 
