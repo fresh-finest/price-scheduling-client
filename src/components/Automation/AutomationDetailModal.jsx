@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { HiOutlineArrowNarrowRight, HiOutlinePlus } from "react-icons/hi";
 import { Button, Form, Modal } from "react-bootstrap";
 import "./AutomationDetailModal.css";
 import { MdOutlineClose } from "react-icons/md";
@@ -21,6 +22,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import AddProductsInRuleModal from "./AddProductsInRulesModal/AddProductsInRuleModal";
+import SaleDetailsModal from "../Report/SaleDetailsModal";
 
 const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL = `http://localhost:3000`;
@@ -46,12 +48,26 @@ const AutomationDetailModal = ({
     useState(false);
   const [graphData, setGraphData] = useState([]);
   const [graphModalShow, setGraphModalShow] = useState(false);
+  const [saleDetailsModalShow, setSaleDetailsModalShow] = useState(false);
+  const [selectedSkuForSaleDetails, setSelectedSkuForSaleDetails] =
+    useState("");
 
   const handleAddProductsInRuleModalOpen = () => {
     setAddProductsInRuleModalOpen(true);
   };
   // const [editingRow, setEditingRow] = useState(null);
   // const [editValues, setEditValues] = useState({});
+
+  // const handleSaleDetailsModalShow = () => setSaleDetailsModalShow(true);
+  // const handleSaleDetailsModalClose = () => setSaleDetailsModalShow(false);
+  const handleSaleDetailsModalShow = (sku) => {
+    setSelectedSkuForSaleDetails(sku);
+    setSaleDetailsModalShow(true);
+  };
+  const handleSaleDetailsModalClose = () => {
+    setSaleDetailsModalShow(false);
+    setSelectedSkuForSaleDetails("");
+  };
 
   const fetchGraphData = async (sku) => {
     const encodedSku = encodeURIComponent(sku);
@@ -302,212 +318,198 @@ const AutomationDetailModal = ({
               )}
             </p>
           </div>
-          <section   style={{
-          maxHeight: "91vh",
-          overflowY: "auto",
-          marginTop: '15px',
-          // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
-        }}>
-
-          <table
+          <section
             style={{
-              tableLayout: "auto",
-              // tableLayout: "fixed",
-              width: "100%",
+              maxHeight: "91vh",
+              overflowY: "auto",
+              marginTop: "15px",
+              // boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
             }}
-            className="reportCustomTable table "
           >
-            <thead
+            <table
               style={{
-                backgroundColor: "#f0f0f0",
-                color: "#333",
-                fontFamily: "Arial, sans-serif",
-                fontSize: "14px",
+                tableLayout: "auto",
+                // tableLayout: "fixed",
+                width: "100%",
               }}
+              className="reportCustomTable table "
             >
-              <tr>
-                <th
-                   className="tableHeader"
-                  style={{
-                    width: "10%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-
-                  }}
-                >
-                  Status
-                </th>
-                <th
-                    className="tableHeader"
-                  style={{
-                    width: "8%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Image
-                </th>
-                <th
-                    className="tableHeader"
-                  style={{
-                    width: "25%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Title
-                </th>
-                <th
-                    className="tableHeader"
-                  style={{
-                    width: "12%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Sku
-                </th>
-                <th
-                    className="tableHeader"
-                  style={{
-                    width: "10%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Max Price
-                </th>
-                <th
-                    className="tableHeader"
-                  style={{
-                    width: "10%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  Min Price
-                </th>
-                {ruleData.category === "quantity-cycling" && (
+              <thead
+                style={{
+                  backgroundColor: "#f0f0f0",
+                  color: "#333",
+                  fontFamily: "Arial, sans-serif",
+                  fontSize: "14px",
+                }}
+              >
+                <tr>
                   <th
-                      className="tableHeader"
+                    className="tableHeader"
                     style={{
                       width: "10%",
                       textAlign: "center",
                       verticalAlign: "middle",
-                      position: "sticky", 
+                      position: "sticky",
                       borderRight: "2px solid #C3C6D4",
                     }}
                   >
-                    Target Quantity
+                    Status
                   </th>
-                )}
-                <th
+                  <th
                     className="tableHeader"
-                  style={{
-                    width: "7.5%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-                    borderRight: "2px solid #C3C6D4",
-                  }}
-                >
-                  On Change
-                </th>
-                <th
-                    className="tableHeader"
-                  style={{
-                    width: "7.5%",
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    position: "sticky", 
-               
-                  }}
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody
-              style={{
-                fontSize: "12px",
-                fontFamily: "Arial, sans-serif",
-                lineHeight: "1.5",
-              }}
-            >
-              {productData.length > 0 ? (
-                productData.map((data, index) => (
-                  <tr
-                    key={index}
-                    style={{ opacity: data.status === "Inactive" ? 0.6 : 1 }}
+                    style={{
+                      width: "8%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
                   >
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                    Image
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "25%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Title
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "12%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Sku
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "10%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Max Price
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "10%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Min Price
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "10%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Sale Report
+                  </th>
+                  {ruleData.category === "quantity-cycling" && (
+                    <th
+                      className="tableHeader"
+                      style={{
+                        width: "10%",
+                        textAlign: "center",
+                        verticalAlign: "middle",
+                        position: "sticky",
+                        borderRight: "2px solid #C3C6D4",
+                      }}
                     >
-                      {data.status}
-                    </td>
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
+                      Target Quantity
+                    </th>
+                  )}
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "7.5%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    On Change
+                  </th>
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: "7.5%",
+                      textAlign: "center",
+                      verticalAlign: "middle",
+                      position: "sticky",
+                    }}
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody
+                style={{
+                  fontSize: "12px",
+                  fontFamily: "Arial, sans-serif",
+                  lineHeight: "1.5",
+                }}
+              >
+                {productData.length > 0 ? (
+                  productData.map((data, index) => (
+                    <tr
+                      key={index}
+                      style={{ opacity: data.status === "Inactive" ? 0.6 : 1 }}
                     >
-                      <img
-                        className="w-[50px] mx-auto"
-                        src={data.imageUrl}
-                        alt="product"
-                      />
-                    </td>
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
-                    >
-                      <Tooltip title={data.title}>
-                        <p>{data.title}</p>
-                      </Tooltip>
-                    </td>
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
-                    >
-                      {data.sku}
-                    </td>
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
-                    >
-                      {editingRow === index ? (
-                        <Form.Control
-                          className="update-custom-input text-xs text-center"
-                          type="number"
-                          value={editValues.maxPrice}
-                          onChange={(e) => handleInputChange(e, "maxPrice")}
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        {data.status}
+                      </td>
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        <img
+                          className="w-[50px] mx-auto"
+                          src={data.imageUrl}
+                          alt="product"
                         />
-                      ) : (
-                        `$${parseFloat(data.maxPrice).toFixed(2)}`
-                      )}
-                    </td>
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
-                    >
-                      {editingRow === index ? (
-                        <Form.Control
-                          className="update-custom-input text-xs text-center"
-                          type="number"
-                          value={editValues.minPrice}
-                          onChange={(e) => handleInputChange(e, "minPrice")}
-                        />
-                      ) : (
-                        `$${parseFloat(data.minPrice).toFixed(2)}`
-                      )}
-                    </td>
-                    {ruleData.category === "quantity-cycling" && (
+                      </td>
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        <Tooltip title={data.title}>
+                          <p>
+                            {data.title.length > 70
+                              ? data.title.slice(0, 70) + "..."
+                              : data.title}
+                          </p>
+                        </Tooltip>
+                      </td>
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        {data.sku}
+                      </td>
                       <td
                         style={{ textAlign: "center", verticalAlign: "middle" }}
                       >
@@ -515,85 +517,132 @@ const AutomationDetailModal = ({
                           <Form.Control
                             className="update-custom-input text-xs text-center"
                             type="number"
-                            value={editValues.targetQuantity}
-                            onChange={(e) =>
-                              handleInputChange(e, "targetQuantity")
-                            }
+                            value={editValues.maxPrice}
+                            onChange={(e) => handleInputChange(e, "maxPrice")}
                           />
                         ) : (
-                          `${parseFloat(data.targetQuantity)}`
+                          `$${parseFloat(data.maxPrice).toFixed(2)}`
                         )}
                       </td>
-                    )}
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
-                    >
-                      {editingRow === index ? (
-                        <Checkbox
-                          checked={editValues.sale}
-                          onChange={handleCheckboxChange}
-                        >
-                          On Sale
-                        </Checkbox>
-                      ) : data.sale ? (
-                        "Sale Price"
-                      ) : (
-                        "Your Price"
-                      )}
-                    </td>
-                    <td
-                      style={{ textAlign: "center", verticalAlign: "middle" }}
-                    >
-                      <div className="flex justify-center items-center">
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
                         {editingRow === index ? (
-                          <button
-                            className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={() => handleSave(index, data.sku)}
-                            disabled={ruleData.mute}
-                          >
-                            <FiSave size={20} />
-                          </button>
+                          <Form.Control
+                            className="update-custom-input text-xs text-center"
+                            type="number"
+                            value={editValues.minPrice}
+                            onChange={(e) => handleInputChange(e, "minPrice")}
+                          />
                         ) : (
-                          <button
-                            className="bg-[#0662BB] py-1 px-2 rounded-md mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={() => handleEditClick(index, data)}
-                            disabled={ruleData.mute}
-                          >
-                            <PenLine size={20} className="text-white" />
-                          </button>
+                          `$${parseFloat(data.minPrice).toFixed(2)}`
                         )}
-                        <Button
-                          onClick={() =>
-                            handleDeleteAutomation(ruleData.ruleId, data.sku)
-                          }
-                          variant="danger"
-                          size="md"
+                      </td>
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        <button
+                          onClick={() => handleSaleDetailsModalShow(data.sku)}
+                          className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
                         >
-                          <FiTrash />
-                        </Button>
-                        <Button
-                          variant="info"
-                          style={{ marginLeft: "5px" }}
-                          onClick={() => fetchGraphData(data.sku)}
+                          <span className="inline-block mb-1">
+                            Sales Report
+                          </span>
+                          <span className="absolute top-[8.5px] right-1">
+                            <HiOutlineArrowNarrowRight />
+                          </span>
+                        </button>
+                      </td>
+                      {ruleData.category === "quantity-cycling" && (
+                        <td
+                          style={{
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                          }}
                         >
-                          <MdDataExploration />
-                        </Button>
-                      </div>
+                          {editingRow === index ? (
+                            <Form.Control
+                              className="update-custom-input text-xs text-center"
+                              type="number"
+                              value={editValues.targetQuantity}
+                              onChange={(e) =>
+                                handleInputChange(e, "targetQuantity")
+                              }
+                            />
+                          ) : (
+                            `${parseFloat(data.targetQuantity)}`
+                          )}
+                        </td>
+                      )}
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        {editingRow === index ? (
+                          <Checkbox
+                            checked={editValues.sale}
+                            onChange={handleCheckboxChange}
+                          >
+                            On Sale
+                          </Checkbox>
+                        ) : data.sale ? (
+                          "Sale Price"
+                        ) : (
+                          "Your Price"
+                        )}
+                      </td>
+                      <td
+                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      >
+                        <div className="flex justify-center items-center">
+                          {editingRow === index ? (
+                            <button
+                              className="bg-[#0662BB] py-1 px-2 rounded-md text-white mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleSave(index, data.sku)}
+                              disabled={ruleData.mute}
+                            >
+                              <FiSave size={20} />
+                            </button>
+                          ) : (
+                            <button
+                              className="bg-[#0662BB] py-1 px-2 rounded-md mr-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => handleEditClick(index, data)}
+                              disabled={ruleData.mute}
+                            >
+                              <PenLine size={20} className="text-white" />
+                            </button>
+                          )}
+                          <Button
+                            onClick={() =>
+                              handleDeleteAutomation(ruleData.ruleId, data.sku)
+                            }
+                            variant="danger"
+                            size="md"
+                          >
+                            <FiTrash />
+                          </Button>
+                          <Button
+                            variant="info"
+                            style={{ marginLeft: "5px" }}
+                            onClick={() => fetchGraphData(data.sku)}
+                          >
+                            <MdDataExploration />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="9"
+                      style={{ textAlign: "center", padding: "20px" }}
+                    >
+                      No Data Found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="9"
-                    style={{ textAlign: "center", padding: "20px" }}
-                  >
-                    No Data Found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
           </section>
         </Modal.Body>
       </Modal>
@@ -704,6 +753,13 @@ const AutomationDetailModal = ({
           </ResponsiveContainer>
         </Modal.Body>
       </Modal>
+      <SaleDetailsModal
+        saleDetailsModalShow={saleDetailsModalShow}
+        setSaleDetailsModalShow={setSaleDetailsModalShow}
+        handleSaleDetailsModalShow={handleSaleDetailsModalShow}
+        handleSaleDetailsModalClose={handleSaleDetailsModalClose}
+        sku={selectedSkuForSaleDetails}
+      ></SaleDetailsModal>
     </div>
   );
 };
