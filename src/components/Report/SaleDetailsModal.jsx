@@ -122,6 +122,7 @@ const SaleDetailsModal = ({
 
   const fetchScheduleSalesMetrics = async () => {
      setScheduleChartLoading(true);
+     setScheduleSalesData([]); 
     const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.get(`${BASE_URL}/api/report/${encodedSku}`);

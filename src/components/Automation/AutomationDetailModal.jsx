@@ -55,18 +55,12 @@ const AutomationDetailModal = ({
   const handleAddProductsInRuleModalOpen = () => {
     setAddProductsInRuleModalOpen(true);
   };
-  // const [editingRow, setEditingRow] = useState(null);
-  // const [editValues, setEditValues] = useState({});
-
-  // const handleSaleDetailsModalShow = () => setSaleDetailsModalShow(true);
-  // const handleSaleDetailsModalClose = () => setSaleDetailsModalShow(false);
   const handleSaleDetailsModalShow = (sku) => {
     setSelectedSkuForSaleDetails(sku);
     setSaleDetailsModalShow(true);
   };
   const handleSaleDetailsModalClose = () => {
     setSaleDetailsModalShow(false);
-    setSelectedSkuForSaleDetails("");
   };
 
   const fetchGraphData = async (sku) => {
