@@ -686,7 +686,7 @@ const ListView = () => {
       );
 
       const response = await axios.get(`${BASE_URL}/details/${asin}`);
-      setSelectedProduct(response.data.payload);
+      setSelectedProduct(response?.data);
 
       const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
       setSelectedListing(response2.data);
