@@ -20,7 +20,9 @@ import { useSelector } from "react-redux";
 import { IoCloseOutline } from "react-icons/io5";
 import { Checkbox } from "antd";
 
-const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `http://192.168.0.15:3000`;
+// const BASE_URL = "http://192.168.0.26:3000";
 
 const CreateRuleForm = () => {
   const {
@@ -43,10 +45,15 @@ const CreateRuleForm = () => {
   const [searchingError, setSearchingError] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [finalSelectedProducts, setFinalSelectedProducts] = useState([]);
+  const [targetQuantity, setTargetQuantity] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [saleChecked, setSaleChecked] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
 
+  const isQuantityCycling = watch("ruleType") === "quantity-cycling";
+  const isQuantityTarget = watch("ruleType") === "age-by-day";
+  const requiresTargetQuantity = isQuantityCycling;
   const handleRuleFormClose = () => {
     reset();
     setRuleFormOpen(false);
@@ -105,7 +112,12 @@ const CreateRuleForm = () => {
     // const parsedUnitValue = parseFloat(unitValue);
 
     // const interval = `${timeValue} ${timeType}`;
-    const interval = `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
+    // const interval = `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
+   const interval = isQuantityCycling
+  ? "30 minutes"
+  : isQuantityTarget
+  ? "1 day"
+  : `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
 
     const products = finalSelectedProducts.map((product) => {
       return {
@@ -119,14 +131,35 @@ const CreateRuleForm = () => {
           document.getElementById(`minPrice-${product.sellerSku}`).value
         ),
         sale: saleChecked,
+        // targetQuantity: requiresTargetQuantity
+        //   ? parseInt(
+        //       document.getElementById(`targetQuantity-${product.sellerSku}`)
+        //         .value
+        //     )
+        //   : 1,
+
+          targetQuantity:
+  (requiresTargetQuantity || isQuantityTarget)
+    ? parseInt(
+        document.getElementById(`targetQuantity-${product.sellerSku}`).value
+      )
+    : 1,
+
       };
     });
     setLoading(true);
 
-    const parsedUnitValue = parseFloat(unitValue);
+    // const parsedUnitValue = parseFloat(unitValue);
+    // const percentageValue =
+    //   unitType === "percentage" ? parsedUnitValue / 100 : null;
+    // const amountValue = unitType === "amount" ? parsedUnitValue : null;
+    const parsedUnitValue = isQuantityCycling ? 0 : parseFloat(unitValue);
     const percentageValue =
-      unitType === "percentage" ? parsedUnitValue / 100 : null;
-    const amountValue = unitType === "amount" ? parsedUnitValue : null;
+      !isQuantityCycling && unitType === "percentage"
+        ? parsedUnitValue / 100
+        : null;
+    const amountValue =
+      !isQuantityCycling && unitType === "amount" ? parsedUnitValue : null;
 
     const payload = {
       rule: {
@@ -232,8 +265,28 @@ const CreateRuleForm = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="random">Random</SelectItem>
-                    <SelectItem value="increasing">Increase</SelectItem>
-                    <SelectItem value="decreasing">Decrease</SelectItem>
+                    <SelectItem value="increasing">
+                      Increasing and Stop
+                    </SelectItem>
+                    <SelectItem value="decreasing">
+                      Decreasing and Stop
+                    </SelectItem>
+                    <SelectItem value="increasingRepeat">
+                      Increasing and Repeat
+                    </SelectItem>
+                    <SelectItem value="decreasingRepeat">
+                      Decreasing and Repeat
+                    </SelectItem>
+                    <SelectItem value="increasing-cycling">
+                      Increasing Cycle
+                    </SelectItem>
+                    <SelectItem value="decreasing-cycling">
+                      Decreasing Cycle
+                    </SelectItem>
+                    <SelectItem value="quantity-cycling">
+                      Quantity Cycle
+                    </SelectItem>
+                    <SelectItem value="age-by-day">Quantity Target</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -242,123 +295,128 @@ const CreateRuleForm = () => {
                 <p className="text-red-500 ">Rule Type is required</p>
               )}
             </div>
+            {!["quantity-cycling", "age-by-day"].includes(
+              watch("ruleType")
+            ) && (
+              <div className="mt-2 flex justify-between gap-2">
+                <Select
+                  onValueChange={(value) => {
+                    setValue("timeType", value);
+                    setTimeType(value);
+                    trigger("timeType");
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Day/Hour" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="day">Day</SelectItem>
+                      <SelectItem value="hour">Hour</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
 
-            <div className="mt-2 flex justify-between gap-2">
-              <Select
-                onValueChange={(value) => {
-                  setValue("timeType", value);
-                  setTimeType(value);
-                  trigger("timeType");
-                }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Day/Hour" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="day">Day</SelectItem>
-                    <SelectItem value="hour">Hour</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                <input
+                  type="hidden"
+                  step="0.01"
+                  {...register("timeType", {
+                    required: "Day/Hour selection is required",
+                  })}
+                />
 
-              <input
-                type="hidden"
-                step="0.01"
-                {...register("timeType", {
-                  required: "Day/Hour selection is required",
-                })}
-              />
+                {errors.timeType && (
+                  <p className="text-red-500">{errors.timeType.message}</p>
+                )}
 
-              {errors.timeType && (
-                <p className="text-red-500">{errors.timeType.message}</p>
-              )}
+                {timeType && (
+                  <div className="w-full">
+                    <Form.Control
+                      {...register("timeValue", {
+                        required: `${
+                          timeType === "day"
+                            ? "Day value is required"
+                            : "Hour value is required"
+                        }`,
+                        min: {
+                          value: 1,
+                          message: "Value must be greater than 0",
+                        },
+                      })}
+                      className="update-custom-input"
+                      type="number"
+                      step="0.01"
+                      placeholder={timeType === "day" ? "Days" : "Hours"}
+                    />
 
-              {timeType && (
-                <div className="w-full">
-                  <Form.Control
-                    {...register("timeValue", {
-                      required: `${
-                        timeType === "day"
-                          ? "Day value is required"
-                          : "Hour value is required"
-                      }`,
-                      min: {
-                        value: 1,
-                        message: "Value must be greater than 0",
-                      },
-                    })}
-                    className="update-custom-input"
-                    type="number"
-                    step="0.01"
-                    placeholder={timeType === "day" ? "Days" : "Hours"}
-                  />
+                    {errors.timeValue && (
+                      <p className="text-red-500">{errors.timeValue.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            {!["quantity-cycling", "age-by-day"].includes(
+              watch("ruleType")
+            ) && (
+              <div className="mt-2 flex justify-between gap-2">
+                <Select
+                  onValueChange={(value) => {
+                    setValue("unitType", value);
+                    setUnitType(value);
+                    trigger("unitType");
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Amount/Percentage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="amount">Amount</SelectItem>
+                      <SelectItem value="percentage">Percentage</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
 
-                  {errors.timeValue && (
-                    <p className="text-red-500">{errors.timeValue.message}</p>
-                  )}
-                </div>
-              )}
-            </div>
+                <input
+                  step="0.01"
+                  type="hidden"
+                  {...register("unitType", {
+                    required: "Amount/Percentage selection is required",
+                  })}
+                />
 
-            <div className="mt-2 flex justify-between gap-2">
-              <Select
-                onValueChange={(value) => {
-                  setValue("unitType", value);
-                  setUnitType(value);
-                  trigger("unitType");
-                }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Amount/Percentage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="amount">Amount</SelectItem>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                {errors.unitType && (
+                  <p className="text-red-500">{errors.unitType.message}</p>
+                )}
 
-              <input
-                step="0.01"
-                type="hidden"
-                {...register("unitType", {
-                  required: "Amount/Percentage selection is required",
-                })}
-              />
+                {unitType && (
+                  <div className="w-full">
+                    <Form.Control
+                      {...register("unitValue", {
+                        required: `${
+                          unitType === "amount"
+                            ? "amount value is required"
+                            : "percentage value is required"
+                        }`,
+                        validate: (value) =>
+                          value > 0 || "Value must be greater than 0",
+                      })}
+                      className="update-custom-input"
+                      type="number"
+                      step="0.01"
+                      placeholder={
+                        unitType === "amount" ? "Amount" : "Percentage"
+                      }
+                    />
 
-              {errors.unitType && (
-                <p className="text-red-500">{errors.unitType.message}</p>
-              )}
-
-              {unitType && (
-                <div className="w-full">
-                  <Form.Control
-                    {...register("unitValue", {
-                      required: `${
-                        unitType === "amount"
-                          ? "amount value is required"
-                          : "percentage value is required"
-                      }`,
-                      validate: (value) =>
-                        value > 0 || "Value must be greater than 0",
-                    })}
-                    className="update-custom-input"
-                    type="number"
-                    step="0.01"
-                    placeholder={
-                      unitType === "amount" ? "Amount" : "Percentage"
-                    }
-                  />
-
-                  {errors.unitValue && (
-                    <p className="text-red-500">{errors.unitValue.message}</p>
-                  )}
-                </div>
-              )}
-            </div>
-
+                    {errors.unitValue && (
+                      <p className="text-red-500">{errors.unitValue.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <Button
                 onClick={handleSelectProductModalOpen}
@@ -416,7 +474,16 @@ const CreateRuleForm = () => {
                     className="w-[15%] px-2 py-1 update-custom-input"
                     placeholder="Min Price"
                   />
-
+               {(requiresTargetQuantity  || isQuantityTarget) && (
+                    <Form.Control
+                      id={`targetQuantity-${product.sellerSku}`}
+                      type="number"
+                      step="1"
+                      min="1"
+                      className="w-[15%] px-2 py-1 update-custom-input"
+                      placeholder="Target Qty"
+                    />
+                  )}
                   <Checkbox
                     className="w-[15%]"
                     onChange={handleSaleCheckboxChange}

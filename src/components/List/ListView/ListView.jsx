@@ -111,7 +111,13 @@ const ListView = () => {
 
   console.log("filtered products", filteredProducts);
 
-  console.log('selected Product')
+  console.log('selected Product from list view', selectedProduct); 
+  console.log('selected listing from list view', selectedListing); 
+  console.log('selected asin from list view', selectedAsin);
+
+  const checkProductDetailsWhyIsNotComing =  selectedProduct && selectedListing && selectedAsin; 
+  console.log('checkProductDetailsWhyIsNitComing', checkProductDetailsWhyIsNotComing) 
+console.log('selected product', selectedProduct);
 
   const dayOptions = [
     { value: "1 D", label: "Yesterday" },
@@ -683,8 +689,12 @@ const ListView = () => {
         pendingTransshipmentQuantity
       );
 
+      console.log('asin from handle update function', asin)
+
       const response = await axios.get(`${BASE_URL}/details/${asin}`);
-      setSelectedProduct(response.data.payload);
+      console.log('response from handle update function', response);
+      console.log('response from handle update function payload', response.data.payload);
+      setSelectedProduct(response.data);
 
       const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
       setSelectedListing(response2.data);

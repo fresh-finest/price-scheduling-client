@@ -8,14 +8,18 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Button as ShadCdnButton } from "@/components/ui/button";
 import Swal from "sweetalert2";
+import { ta } from "date-fns/locale";
 // import { BASE_URL } from "@/utils/baseUrl";
-// const BASE_URL = "http://192.168.0.102:3000";
-const BASE_URL = `https://api.priceobo.com`;
+
+// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `http://192.168.0.15:3000`;
+// const BASE_URL = `http://localhost:3000`;
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
   setAddProductsInRuleModalOpen,
   ruleId,
+  ruleType,
 }) => {
   const [searchedProducts, setSearchedProducts] = useState([]);
   const [searchingError, setSearchingError] = useState("");
@@ -97,7 +101,11 @@ const AddProductsInRuleModal = ({
         maxPrice: parseFloat(product.maxPrice) || product.price,
         minPrice: parseFloat(product.minPrice) || product.price,
         sale: saleChecked,
-      })),
+      targetQuantity:
+      ["quantity-cycling", "age-by-day"].includes(ruleType)
+        ? product.targetQuantity
+        : null,
+  })),
       hitAutoPricing: true,
     };
 
@@ -139,12 +147,31 @@ const AddProductsInRuleModal = ({
     }
   };
 
-  const handleCheckboxChange = (product, checked) => {
+  const handleCheckboxChange = async (product, checked) => {
     if (checked) {
+       const encodedSku = encodeURIComponent(product.sellerSku);
+      try {
+        const response = await axios.get(`${BASE_URL}/api/automation/active/${encodedSku}`);
+        if (response.data.success && response.data.job) {
+          const result = await axios.get(`${BASE_URL}/api/automation/rule/${response.data.job.ruleId}`);
+          Swal.fire({
+            title: "Already Added!",
+            text: `This product is already active in automation (SKU: ${product.sellerSku} in ${result.data.rule.ruleId}.)`,
+            icon: "info",
+            confirmButtonText: "Okay",
+          });
+          return;
+        }
+      } catch (err) {
+        // If 404 or not active, continue adding
+        console.log("Product not active in any rule, proceeding...");
+      }
+  
       const newProduct = {
         ...product,
         maxPrice: "",
         minPrice: "",
+        ...(ruleType === "quantity-cycling" && { targetQuantity: "" }),
       };
       setSelectedProducts((prev) => [...prev, newProduct]);
       setDisplayedProducts((prev) => [...prev, newProduct]);
@@ -157,6 +184,7 @@ const AddProductsInRuleModal = ({
       );
     }
   };
+  
   const handleInputChange = (sku, field, value) => {
     setDisplayedProducts((prev) =>
       prev.map((item) =>
@@ -210,7 +238,7 @@ const AddProductsInRuleModal = ({
             onChange={(e) =>
               handleInputChange(product.sellerSku, "maxPrice", e.target.value)
             }
-            className="w-[30%]"
+            className="w-[20%]"
           />
 
           <Input
@@ -219,8 +247,26 @@ const AddProductsInRuleModal = ({
             onChange={(e) =>
               handleInputChange(product.sellerSku, "minPrice", e.target.value)
             }
-            className="w-[30%]"
+            className="w-[20%]"
           />
+        
+       {["quantity-cycling", "age-by-day"].includes(ruleType) && (
+
+            <Input
+              placeholder="Target Quantity"
+              type="number"
+              min={1}
+              value={product.targetQuantity}
+              onChange={(e) =>
+                handleInputChange(
+                  product.sellerSku,
+                  "targetQuantity",
+                  e.target.value
+                )
+              }
+              className="w-[20%]"
+            />
+          )}
 
           <Checkbox className="w-[50%]" onChange={handleSaleCheckboxChange}>
             On Sale
