@@ -12,7 +12,7 @@ import { ta } from "date-fns/locale";
 // import { BASE_URL } from "@/utils/baseUrl";
 
 const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = `http://localhost:3000`;
+
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
@@ -100,9 +100,11 @@ const AddProductsInRuleModal = ({
         maxPrice: parseFloat(product.maxPrice) || product.price,
         minPrice: parseFloat(product.minPrice) || product.price,
         sale: saleChecked,
-        targetQuantity:
-          ruleType === "quantity-cycling" ? product.targetQuantity : null,
-      })),
+      targetQuantity:
+      ["quantity-cycling", "age-by-day"].includes(ruleType)
+        ? product.targetQuantity
+        : null,
+  })),
       hitAutoPricing: true,
     };
 
@@ -246,7 +248,9 @@ const AddProductsInRuleModal = ({
             }
             className="w-[20%]"
           />
-          {ruleType === "quantity-cycling" && (
+        
+       {["quantity-cycling", "age-by-day"].includes(ruleType) && (
+
             <Input
               placeholder="Target Quantity"
               type="number"

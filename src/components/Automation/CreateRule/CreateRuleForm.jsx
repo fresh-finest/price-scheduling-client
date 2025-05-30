@@ -21,7 +21,8 @@ import { IoCloseOutline } from "react-icons/io5";
 import { Checkbox } from "antd";
 
 const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = `http://localhost:3000`;
+// const BASE_URL = `http://192.168.0.15:3000`;
+// const BASE_URL = "http://192.168.0.26:3000";
 
 const CreateRuleForm = () => {
   const {
@@ -51,6 +52,7 @@ const CreateRuleForm = () => {
   const { currentUser } = useSelector((state) => state.user);
 
   const isQuantityCycling = watch("ruleType") === "quantity-cycling";
+  const isQuantityTarget = watch("ruleType") === "age-by-day";
   const requiresTargetQuantity = isQuantityCycling;
   const handleRuleFormClose = () => {
     reset();
@@ -111,9 +113,11 @@ const CreateRuleForm = () => {
 
     // const interval = `${timeValue} ${timeType}`;
     // const interval = `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
-    const interval = isQuantityCycling
-      ? "30 minutes"
-      : `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
+   const interval = isQuantityCycling
+  ? "30 minutes"
+  : isQuantityTarget
+  ? "1 day"
+  : `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
 
     const products = finalSelectedProducts.map((product) => {
       return {
@@ -127,12 +131,20 @@ const CreateRuleForm = () => {
           document.getElementById(`minPrice-${product.sellerSku}`).value
         ),
         sale: saleChecked,
-        targetQuantity: requiresTargetQuantity
-          ? parseInt(
-              document.getElementById(`targetQuantity-${product.sellerSku}`)
-                .value
-            )
-          : 1,
+        // targetQuantity: requiresTargetQuantity
+        //   ? parseInt(
+        //       document.getElementById(`targetQuantity-${product.sellerSku}`)
+        //         .value
+        //     )
+        //   : 1,
+
+          targetQuantity:
+  (requiresTargetQuantity || isQuantityTarget)
+    ? parseInt(
+        document.getElementById(`targetQuantity-${product.sellerSku}`).value
+      )
+    : 1,
+
       };
     });
     setLoading(true);
@@ -274,6 +286,7 @@ const CreateRuleForm = () => {
                     <SelectItem value="quantity-cycling">
                       Quantity Cycle
                     </SelectItem>
+                    <SelectItem value="age-by-day">Quantity Target</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -282,7 +295,9 @@ const CreateRuleForm = () => {
                 <p className="text-red-500 ">Rule Type is required</p>
               )}
             </div>
-            {!isQuantityCycling && (
+            {!["quantity-cycling", "age-by-day"].includes(
+              watch("ruleType")
+            ) && (
               <div className="mt-2 flex justify-between gap-2">
                 <Select
                   onValueChange={(value) => {
@@ -341,7 +356,9 @@ const CreateRuleForm = () => {
                 )}
               </div>
             )}
-            {!isQuantityCycling && (
+            {!["quantity-cycling", "age-by-day"].includes(
+              watch("ruleType")
+            ) && (
               <div className="mt-2 flex justify-between gap-2">
                 <Select
                   onValueChange={(value) => {
@@ -457,7 +474,7 @@ const CreateRuleForm = () => {
                     className="w-[15%] px-2 py-1 update-custom-input"
                     placeholder="Min Price"
                   />
-                  {requiresTargetQuantity && (
+               {(requiresTargetQuantity  || isQuantityTarget) && (
                     <Form.Control
                       id={`targetQuantity-${product.sellerSku}`}
                       type="number"

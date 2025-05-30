@@ -383,7 +383,8 @@ const Automationtable = () => {
                     >
                       {data.ruleName}
                       <p>
-                        {data.category !== "quantity-cycling" && (
+                      {!["quantity-cycling", "age-by-day"].includes(data.category) && (
+
                           <>
                             <span
                               style={{

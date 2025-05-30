@@ -214,9 +214,9 @@ const AutomationDetailModal = ({
           maxPrice: parseFloat(editValues.maxPrice),
           minPrice: parseFloat(editValues.minPrice),
           sale: editValues.sale,
-          ...(ruleData.category === "quantity-cycling" && {
-            targetQuantity: parseInt(editValues.targetQuantity),
-          }),
+        ...(["quantity-cycling", "age-by-day"].includes(ruleData.category) && {
+  targetQuantity: parseInt(editValues.targetQuantity),
+}),
         }
       );
 
@@ -421,7 +421,7 @@ const AutomationDetailModal = ({
                   >
                     Sale Report
                   </th>
-                  {ruleData.category === "quantity-cycling" && (
+                 {["quantity-cycling", "age-by-day"].includes(ruleData.category) && (
                     <th
                       className="tableHeader"
                       style={{
@@ -547,7 +547,7 @@ const AutomationDetailModal = ({
                           </span>
                         </button>
                       </td>
-                      {ruleData.category === "quantity-cycling" && (
+                    {["quantity-cycling", "age-by-day"].includes(ruleData.category) && (
                         <td
                           style={{
                             textAlign: "center",
