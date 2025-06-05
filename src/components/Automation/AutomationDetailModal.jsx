@@ -63,6 +63,8 @@ const AutomationDetailModal = ({
     setSaleDetailsModalShow(false);
   };
 
+
+console.log('product data', productData)
   const fetchGraphData = async (sku) => {
     const encodedSku = encodeURIComponent(sku);
     try {
@@ -129,22 +131,52 @@ const AutomationDetailModal = ({
     }
   }, [automationDetailModalShow]);
   console.log(("single product", singleProduct));
-  const deleteAutomation = async (ruleId, sku) => {
+  // const deleteAutomation = async (ruleId, sku) => {
+  //   const encodedSku = encodeURIComponent(sku);
+  //   try {
+  //     const response = await axios.delete(
+  //       `${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`
+  //     );
+
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error(
+  //       "Error deleting automation:",
+  //       error.response ? error.response.data : error.message
+  //     );
+  //     throw error;
+  //   }
+  // };
+
+ const cancelAutomationTag = async (sku) => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/product/${sku}`);
+      const product = res.data?.data?.listings?.[0];
+      const tags = product?.tags || [];
+      const automationTag = tags.find(tag => tag.tag === "Automation");
+      if (automationTag) {
+        await axios.put(`${BASE_URL}/api/product/tag/${sku}/cancel`, {
+          tag: automationTag.tag,
+          colorCode: automationTag.colorCode 
+        });
+      }
+    } catch (err) {
+      console.error("Error cancelling Automation tag:", err);
+    }
+  };
+
+   const deleteAutomation = async (ruleId, sku) => {
     const encodedSku = encodeURIComponent(sku);
     try {
-      const response = await axios.delete(
-        `${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`
-      );
-
+        await cancelAutomationTag(sku);
+      const response = await axios.delete(`${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`);
       return response.data;
     } catch (error) {
-      console.error(
-        "Error deleting automation:",
-        error.response ? error.response.data : error.message
-      );
+      console.error("Error deleting automation:", error.response ? error.response.data : error.message);
       throw error;
     }
   };
+
 
   const handleDeleteAutomation = async (ruleId, sku) => {
     Swal.fire({
@@ -331,6 +363,7 @@ const AutomationDetailModal = ({
               <thead
                 style={{
                   backgroundColor: "#f0f0f0",
+                
                   color: "#333",
                   fontFamily: "Arial, sans-serif",
                   fontSize: "14px",
@@ -345,6 +378,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                      zIndex: 10
                     }}
                   >
                     Status
@@ -357,6 +391,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     Image
@@ -369,6 +404,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     Title
@@ -381,6 +417,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     Sku
@@ -393,6 +430,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     Max Price
@@ -405,6 +443,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     Min Price
@@ -417,6 +456,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     Sale Report
@@ -430,6 +470,7 @@ const AutomationDetailModal = ({
                         verticalAlign: "middle",
                         position: "sticky",
                         borderRight: "2px solid #C3C6D4",
+                            zIndex: 10
                       }}
                     >
                       Target Quantity
@@ -443,6 +484,7 @@ const AutomationDetailModal = ({
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
+                          zIndex: 10
                     }}
                   >
                     On Change
@@ -454,6 +496,7 @@ const AutomationDetailModal = ({
                       textAlign: "center",
                       verticalAlign: "middle",
                       position: "sticky",
+                          zIndex: 10
                     }}
                   >
                     Actions
@@ -475,12 +518,12 @@ const AutomationDetailModal = ({
                       style={{ opacity: data.status === "Inactive" ? 0.6 : 1 }}
                     >
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         {data.status}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                         style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         <img
                           className="w-[50px] mx-auto"
@@ -489,7 +532,7 @@ const AutomationDetailModal = ({
                         />
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         <Tooltip title={data.title}>
                           <p>
@@ -500,12 +543,12 @@ const AutomationDetailModal = ({
                         </Tooltip>
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                     style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         {data.sku}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                         style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         {editingRow === index ? (
                           <Form.Control
@@ -519,7 +562,7 @@ const AutomationDetailModal = ({
                         )}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         {editingRow === index ? (
                           <Form.Control
@@ -533,17 +576,17 @@ const AutomationDetailModal = ({
                         )}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                      style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         <button
                           onClick={() => handleSaleDetailsModalShow(data.sku)}
-                          className="bg-[#0662BB] text-white rounded drop-shadow-md  gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
+                          className="bg-[#0662BB] text-white rounded   gap-1 relative pl-4 pr-6 pt-1 pb-0.5"
                         >
                           <span className="inline-block mb-1">
                             Sales Report
                           </span>
-                          <span className="absolute top-[8.5px] right-1">
-                            <HiOutlineArrowNarrowRight />
+                          <span className="absolute top-[4.5px] right-1">
+                            <HiOutlineArrowNarrowRight className="text-base" />
                           </span>
                         </button>
                       </td>
@@ -569,7 +612,7 @@ const AutomationDetailModal = ({
                         </td>
                       )}
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                         style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         {editingRow === index ? (
                           <Checkbox
@@ -585,7 +628,7 @@ const AutomationDetailModal = ({
                         )}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle" }}
+                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
                       >
                         <div className="flex justify-center items-center">
                           {editingRow === index ? (

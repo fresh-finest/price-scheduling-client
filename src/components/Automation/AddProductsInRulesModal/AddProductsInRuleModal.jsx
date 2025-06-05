@@ -11,8 +11,8 @@ import Swal from "sweetalert2";
 import { ta } from "date-fns/locale";
 // import { BASE_URL } from "@/utils/baseUrl";
 
-// const BASE_URL = `https://api.priceobo.com`;
-const BASE_URL = `http://192.168.0.15:3000`;
+const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://192.168.0.15:3000`;
 // const BASE_URL = `http://localhost:3000`;
 
 const AddProductsInRuleModal = ({
@@ -408,7 +408,7 @@ const handleAddButtonClick = async () => {
       >
         <Modal.Body>
           <div>
-            <h2 className="text-center text-xl font-semibold">Add Productss</h2>
+            <h2 className="text-center text-xl font-semibold">Add Products</h2>
           </div>
           <button
             className="px-2 py-1 hover:bg-gray-200 rounded-md transition-all duration-200 absolute right-1 top-1"
