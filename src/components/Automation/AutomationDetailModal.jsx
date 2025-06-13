@@ -207,9 +207,10 @@ const AutomationDetailModal = ({
   };
 
   const handleSave = async (index, sku) => {
+    const encodedSku = encodeURIComponent(sku);
     try {
       const response = await axios.put(
-        `${BASE_URL}/api/automation/products/${ruleData.ruleId}/${sku}/update`,
+     `${BASE_URL}/api/automation/products/${ruleData.ruleId}/${encodedSku}/update`,
         {
           maxPrice: parseFloat(editValues.maxPrice),
           minPrice: parseFloat(editValues.minPrice),
