@@ -21,7 +21,7 @@ import { IoCloseOutline } from "react-icons/io5";
 import { Checkbox } from "antd";
 
 const BASE_URL = `https://api.priceobo.com`;
-// const BASE_URL = `http://192.168.0.15:3000`;
+// const BASE_URL = `http://localhost:3000`;
 // const BASE_URL = "http://192.168.0.26:3000";
 
 const CreateRuleForm = () => {
@@ -106,109 +106,207 @@ const CreateRuleForm = () => {
 
   console.log("final selected products", finalSelectedProducts);
 
+  // const onSubmit = async (data) => {
+  //   const { ruleName, ruleType, timeType, timeValue, unitType, unitValue } =
+  //     data;
+    
+  //  const interval = isQuantityCycling
+  // ? "30 minutes"
+  // : isQuantityTarget
+  // ? "1 day"
+  // : `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
+
+  //   const products = finalSelectedProducts.map((product) => {
+  //     return {
+  //       sku: product.sellerSku,
+  //       title: product.itemName,
+  //       imageUrl: product.imageUrl,
+  //       maxPrice: parseFloat(
+  //         document.getElementById(`maxPrice-${product.sellerSku}`).value
+  //       ),
+  //       minPrice: parseFloat(
+  //         document.getElementById(`minPrice-${product.sellerSku}`).value
+  //       ),
+  //       sale: saleChecked,
+   
+
+  //         targetQuantity:
+  // (requiresTargetQuantity || isQuantityTarget)
+  //   ? parseInt(
+  //       document.getElementById(`targetQuantity-${product.sellerSku}`).value
+  //     )
+  //   : 1,
+
+  //     };
+  //   });
+  //   setLoading(true);
+
+    
+  //   const parsedUnitValue = isQuantityCycling ? 0 : parseFloat(unitValue);
+  //   const percentageValue =
+  //     !isQuantityCycling && unitType === "percentage"
+  //       ? parsedUnitValue / 100
+  //       : null;
+  //   const amountValue =
+  //     !isQuantityCycling && unitType === "amount" ? parsedUnitValue : null;
+
+  //   const payload = {
+  //     rule: {
+  //       ruleName,
+  //       category: ruleType,
+  //       percentage: percentageValue,
+  //       amount: amountValue,
+  //       interval,
+  //       userName: currentUser.userName,
+  //     },
+  //     products,
+  //     hitAutoPricing: true,
+  //   };
+
+  //   console.log("Payload:", payload);
+
+  //   try {
+  //     const response = await axios.post(
+  //       `${BASE_URL}/api/automation/rules-with-products`,
+  //       payload
+  //     );
+
+  //     setRuleFormOpen(false);
+  //     Swal.fire({
+  //       title: "Successfully Created Automation rules!",
+  //       icon: "success",
+  //       showConfirmButton: false,
+  //       timer: 2000,
+  //     });
+
+  //     console.log("Rule created successfully:", response.data);
+  //   } catch (error) {
+  //     Swal.fire({
+  //       title: "Something Went Wrong!",
+  //       icon: "error",
+  //       showConfirmButton: false,
+  //       timer: 2000,
+  //     });
+  //     console.error("Error creating rule:", error);
+  //   } finally {
+
+  //     setLoading(false);
+  //   }
+  // };
+
+
   const onSubmit = async (data) => {
-    const { ruleName, ruleType, timeType, timeValue, unitType, unitValue } =
-      data;
-    // const parsedUnitValue = parseFloat(unitValue);
+  const { ruleName, ruleType, timeType, timeValue, unitType, unitValue } = data;
 
-    // const interval = `${timeValue} ${timeType}`;
-    // const interval = `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
-   const interval = isQuantityCycling
-  ? "30 minutes"
-  : isQuantityTarget
-  ? "1 day"
-  : `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
+  const interval = isQuantityCycling
+    ? "30 minutes"
+    : isQuantityTarget
+    ? "1 day"
+    : `${timeValue} ${timeType}${timeValue > 1 ? "s" : ""}`;
 
-    const products = finalSelectedProducts.map((product) => {
-      return {
-        sku: product.sellerSku,
-        title: product.itemName,
-        imageUrl: product.imageUrl,
-        maxPrice: parseFloat(
-          document.getElementById(`maxPrice-${product.sellerSku}`).value
-        ),
-        minPrice: parseFloat(
-          document.getElementById(`minPrice-${product.sellerSku}`).value
-        ),
-        sale: saleChecked,
-        // targetQuantity: requiresTargetQuantity
-        //   ? parseInt(
-        //       document.getElementById(`targetQuantity-${product.sellerSku}`)
-        //         .value
-        //     )
-        //   : 1,
-
-          targetQuantity:
-  (requiresTargetQuantity || isQuantityTarget)
-    ? parseInt(
-        document.getElementById(`targetQuantity-${product.sellerSku}`).value
-      )
-    : 1,
-
-      };
-    });
-    setLoading(true);
-
-    // const parsedUnitValue = parseFloat(unitValue);
-    // const percentageValue =
-    //   unitType === "percentage" ? parsedUnitValue / 100 : null;
-    // const amountValue = unitType === "amount" ? parsedUnitValue : null;
-    const parsedUnitValue = isQuantityCycling ? 0 : parseFloat(unitValue);
-    const percentageValue =
-      !isQuantityCycling && unitType === "percentage"
-        ? parsedUnitValue / 100
-        : null;
-    const amountValue =
-      !isQuantityCycling && unitType === "amount" ? parsedUnitValue : null;
-
-    const payload = {
-      rule: {
-        ruleName,
-        category: ruleType,
-        percentage: percentageValue,
-        amount: amountValue,
-        interval,
-        userName: currentUser.userName,
-      },
-      products,
-      hitAutoPricing: true,
+  const products = finalSelectedProducts.map((product) => {
+    return {
+      sku: product.sellerSku,
+      title: product.itemName,
+      imageUrl: product.imageUrl,
+      maxPrice: parseFloat(
+        document.getElementById(`maxPrice-${product.sellerSku}`).value
+      ),
+      minPrice: parseFloat(
+        document.getElementById(`minPrice-${product.sellerSku}`).value
+      ),
+      sale: saleChecked,
+      targetQuantity:
+        (requiresTargetQuantity || isQuantityTarget)
+          ? parseInt(
+              document.getElementById(`targetQuantity-${product.sellerSku}`).value
+            )
+          : 1,
     };
+  });
 
-    console.log("Payload:", payload);
+  setLoading(true);
 
-    try {
-      const response = await axios.post(
-        `${BASE_URL}/api/automation/rules-with-products`,
-        payload
-      );
+  const parsedUnitValue = isQuantityCycling ? 0 : parseFloat(unitValue);
+  const percentageValue =
+    !isQuantityCycling && unitType === "percentage"
+      ? parsedUnitValue / 100
+      : null;
+  const amountValue =
+    !isQuantityCycling && unitType === "amount" ? parsedUnitValue : null;
 
-      setRuleFormOpen(false);
-      Swal.fire({
-        title: "Successfully Created Automation rules!",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-
-      console.log("Rule created successfully:", response.data);
-    } catch (error) {
-      Swal.fire({
-        title: "Something Went Wrong!",
-        icon: "error",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      console.error("Error creating rule:", error);
-    } finally {
-      // Set loading to false once the request completes (success or failure)
-      setLoading(false);
-    }
+  const payload = {
+    rule: {
+      ruleName,
+      category: ruleType,
+      percentage: percentageValue,
+      amount: amountValue,
+      interval,
+      userName: currentUser.userName,
+    },
+    products,
+    hitAutoPricing: true,
   };
+
+  console.log("Payload:", payload);
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/api/automation/rules-with-products`,
+      payload
+    );
+
+    // Tagging logic
+    const automationTag = { tag: "Automation", colorCode: "#08979C" };
+
+    const tagRequests = products.map(async (product) => {
+      try {
+        const { data } = await axios.get(`${BASE_URL}/api/product/${encodeURIComponent(product.sku)}`);
+        const existingTags = data?.data?.listings?.[0]?.tags || [];
+
+        const alreadyTagged = existingTags.some((t) => t.tag === automationTag.tag);
+        const updatedTags = alreadyTagged
+          ? existingTags
+          : [...existingTags, automationTag];
+
+        return axios.put(
+          `${BASE_URL}/api/product/tag/${encodeURIComponent(product.sku)}`,
+          { tags: updatedTags }
+        );
+      } catch (err) {
+        console.warn(`Failed to update tags for ${product.sku}`, err);
+        return Promise.resolve();
+      }
+    });
+
+    await Promise.allSettled(tagRequests);
+
+    setRuleFormOpen(false);
+    Swal.fire({
+      title: "Successfully Created Automation rules!",
+      icon: "success",
+      showConfirmButton: false,
+      timer: 2000,
+    });
+
+    console.log("Rule created successfully:", response.data);
+  } catch (error) {
+    Swal.fire({
+      title: "Something Went Wrong!",
+      icon: "error",
+      showConfirmButton: false,
+      timer: 2000,
+    });
+    console.error("Error creating rule:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   console.log("final selected products", finalSelectedProducts);
 
   return (
-    <div className="mb-2">
+    <div className="">
       <Button
         onClick={handleRuleFormOpen}
         className="text-sm flex items-center gap-1 "

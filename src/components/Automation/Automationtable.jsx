@@ -2,20 +2,23 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { formatDate } from "@/utils/formatDate";
 import { IoMdAdd } from "react-icons/io";
-import { Button } from "react-bootstrap";
+import { Button, Form, InputGroup, Spinner } from "react-bootstrap";
 import AutomationDetailModal from "./AutomationDetailModal";
 import { PenLine } from "lucide-react";
 import { FiTrash } from "react-icons/fi";
 import AutomationEditModal from "./AutomationEditModal/AutomationEditModal";
 import Swal from "sweetalert2";
 import { Switch } from "antd";
-import { set } from "lodash";
+
+
+
+import { MdOutlineClose } from "react-icons/md";
 // import { BASE_URL } from "@/utils/baseUrl";
 
 const BASE_URL = `https://api.priceobo.com`;
 // const BASE_URL = `http://localhost:3000`;
 
-const Automationtable = () => {
+const Automationtable = ({searchTerm}) => {
   const [automationData, setAutomationData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,6 +35,9 @@ const Automationtable = () => {
     {}
   );
 
+
+
+
   const fetchData = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/api/automation/rules`);
@@ -46,9 +52,37 @@ const Automationtable = () => {
     }
   };
 
+   const fetchSearchData = async (sku) => {
+    const trimmedSku = encodeURIComponent(sku.trim());
+    setLoading(true);
+    try {
+      const activeRes = await axios.get(`${BASE_URL}/api/automation/active/${trimmedSku}`);
+      const ruleId1 = activeRes.data.job?.ruleId;
+      if (!ruleId1) throw new Error("No ruleId in active job");
+
+      const ruleRes = await axios.get(`${BASE_URL}/api/automation/rule/${ruleId1}`);
+      const ruleId2 = ruleRes.data.rule?.ruleId;
+      if (!ruleId2) throw new Error("No ruleId in rule object");
+
+      const finalRes = await axios.get(`${BASE_URL}/api/automation/rules/${ruleId2}`);
+      const finalRule = finalRes.data.rules;
+      setAutomationData([finalRule]);
+    } catch (err) {
+      setError("Search failed or no data found");
+      setAutomationData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (searchTerm) {
+      fetchSearchData(searchTerm);
+    } else {
+      fetchData();
+    }
+  }, [searchTerm]);
 
   const handleAutomationDetailModalShow = (ruleId) => {
     setAutomationDetailModalShow(true);
@@ -230,8 +264,13 @@ const Automationtable = () => {
     });
   };
 
+
+  
+
   return (
     <div>
+
+     
       <section   style={{
             maxHeight: "91vh",
             overflowY: "auto",
@@ -345,7 +384,11 @@ const Automationtable = () => {
               lineHeight: "1.5",
             }}
           >
-            {automationData.length > 0 ? (
+            {loading ?  <tr>
+                <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+                  Loading...
+                </td>
+              </tr> :automationData.length > 0 ? (
               automationData.map((data, index) => {
                 return (
                   <tr key={index}>
@@ -487,14 +530,12 @@ const Automationtable = () => {
                         </button>
 
                         <Button
-                          // onClick={() =>
-                          //   handleDeleteAutomation(ruleData.ruleId, data.sku)
-                          // }
+                         
                           onClick={() => handleDeleteRule(data.ruleId)}
                           variant="danger"
                           size="md"
                           className="rounded-sm"
-                          // disabled={data.mute || deleteLoading}
+                       
                         >
                           <FiTrash />
                         </Button>

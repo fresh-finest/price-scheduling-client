@@ -12,13 +12,15 @@ import { ta } from "date-fns/locale";
 // import { BASE_URL } from "@/utils/baseUrl";
 
 const BASE_URL = `https://api.priceobo.com`;
-
+// const BASE_URL = `http://localhost:3000`;
+// const BASE_URL = `http://localhost:3000`;
 
 const AddProductsInRuleModal = ({
   addProductsInRuleModalOpen,
   setAddProductsInRuleModalOpen,
   ruleId,
   ruleType,
+  onSuccess
 }) => {
   const [searchedProducts, setSearchedProducts] = useState([]);
   const [searchingError, setSearchingError] = useState("");
@@ -72,79 +74,178 @@ const AddProductsInRuleModal = ({
     }, 300);
   };
 
-  const handleAddButtonClick = async () => {
-    const invalidProducts = displayedProducts.filter(
-      (product) =>
-        !product.maxPrice ||
-        isNaN(parseFloat(product.maxPrice)) ||
-        !product.minPrice ||
-        isNaN(parseFloat(product.minPrice)) ||
-        parseFloat(product.minPrice) > parseFloat(product.maxPrice)
-    );
+  // const handleAddButtonClick = async () => {
+  //   const invalidProducts = displayedProducts.filter(
+  //     (product) =>
+  //       !product.maxPrice ||
+  //       isNaN(parseFloat(product.maxPrice)) ||
+  //       !product.minPrice ||
+  //       isNaN(parseFloat(product.minPrice)) ||
+  //       parseFloat(product.minPrice) > parseFloat(product.maxPrice)
+  //   );
 
-    if (invalidProducts.length > 0) {
-      Swal.fire({
-        title: "Validation Error!",
-        text: "Please provide valid Max Price and Min Price for all products. Min Price cannot be greater than Max Price.",
-        icon: "error",
-        showConfirmButton: true,
-      });
-      return;
-    }
+  //   if (invalidProducts.length > 0) {
+  //     Swal.fire({
+  //       title: "Validation Error!",
+  //       text: "Please provide valid Max Price and Min Price for all products. Min Price cannot be greater than Max Price.",
+  //       icon: "error",
+  //       showConfirmButton: true,
+  //     });
+  //     return;
+  //   }
 
-    const requestBody = {
-      products: displayedProducts.map((product) => ({
-        sku: product.sellerSku,
-        title: product.itemName,
-        imageUrl: product.imageUrl,
-        maxPrice: parseFloat(product.maxPrice) || product.price,
-        minPrice: parseFloat(product.minPrice) || product.price,
-        sale: saleChecked,
-      targetQuantity:
-      ["quantity-cycling", "age-by-day"].includes(ruleType)
+  //   const requestBody = {
+  //     products: displayedProducts.map((product) => ({
+  //       sku: product.sellerSku,
+  //       title: product.itemName,
+  //       imageUrl: product.imageUrl,
+  //       maxPrice: parseFloat(product.maxPrice) || product.price,
+  //       minPrice: parseFloat(product.minPrice) || product.price,
+  //       sale: saleChecked,
+  //     targetQuantity:
+  //     ["quantity-cycling", "age-by-day"].includes(ruleType)
+  //       ? product.targetQuantity
+  //       : null,
+  // })),
+  //     hitAutoPricing: true,
+  //   };
+
+  //   console.log("Payload:", requestBody);
+
+  //   try {
+  //     setAddProductsLoading(true);
+  //     const response = await axios.post(
+  //       `${BASE_URL}/api/automation/rules/${ruleId}/products`,
+  //       requestBody,
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+
+  //     console.log("API Response:", response.data);
+
+  //     Swal.fire({
+  //       title: "Products added successfully!",
+  //       icon: "success",
+  //       showConfirmButton: false,
+  //       timer: 2000,
+  //     });
+  //     setAddProductsLoading(false);
+  //     handleAddProductsInRuleModalClose();
+  //   } catch (error) {
+  //     console.error("API Error:", error);
+  //     setAddProductsLoading(false);
+  //     Swal.fire({
+  //       title: "Something Went Wrong!",
+  //       icon: "error",
+  //       showConfirmButton: false,
+  //       timer: 2000,
+  //     });
+  //   } finally {
+  //     setAddProductsLoading(false);
+  //   }
+  // };
+
+const handleAddButtonClick = async () => {
+  const invalidProducts = displayedProducts.filter(
+    (product) =>
+      !product.maxPrice ||
+      isNaN(parseFloat(product.maxPrice)) ||
+      !product.minPrice ||
+      isNaN(parseFloat(product.minPrice)) ||
+      parseFloat(product.minPrice) > parseFloat(product.maxPrice)
+  );
+
+  if (invalidProducts.length > 0) {
+    Swal.fire({
+      title: "Validation Error!",
+      text: "Please provide valid Max Price and Min Price for all products. Min Price cannot be greater than Max Price.",
+      icon: "error",
+      showConfirmButton: true,
+    });
+    return;
+  }
+
+  const requestBody = {
+    products: displayedProducts.map((product) => ({
+      sku: product.sellerSku,
+      title: product.itemName,
+      imageUrl: product.imageUrl,
+      maxPrice: parseFloat(product.maxPrice) || product.price,
+      minPrice: parseFloat(product.minPrice) || product.price,
+      sale: saleChecked,
+      targetQuantity: ["quantity-cycling", "age-by-day"].includes(ruleType)
         ? product.targetQuantity
         : null,
-  })),
-      hitAutoPricing: true,
-    };
-
-    console.log("Payload:", requestBody);
-
-    try {
-      setAddProductsLoading(true);
-      const response = await axios.post(
-        `${BASE_URL}/api/automation/rules/${ruleId}/products`,
-        requestBody,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("API Response:", response.data);
-
-      Swal.fire({
-        title: "Products added successfully!",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      setAddProductsLoading(false);
-      handleAddProductsInRuleModalClose();
-    } catch (error) {
-      console.error("API Error:", error);
-      setAddProductsLoading(false);
-      Swal.fire({
-        title: "Something Went Wrong!",
-        icon: "error",
-        showConfirmButton: false,
-        timer: 2000,
-      });
-    } finally {
-      setAddProductsLoading(false);
-    }
+    })),
+    hitAutoPricing: true,
   };
+
+  try {
+    setAddProductsLoading(true);
+
+    // 1. POST to add products to rule
+    await axios.post(
+      `${BASE_URL}/api/automation/rules/${ruleId}/products`,
+      requestBody,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // 2. PUT tag for each product after merging existing tags
+    const automationTag = { tag: "Automation", colorCode: "#08979C" };
+
+    const tagRequests = displayedProducts.map(async (product) => {
+      try {
+        const { data } = await axios.get(`${BASE_URL}/api/product/${encodeURIComponent(product.sellerSku)}`);
+        const existingTags = data?.data?.listings?.[0]?.tags || [];
+
+        const alreadyTagged = existingTags.some((t) => t.tag === automationTag.tag);
+        const updatedTags = alreadyTagged
+          ? existingTags
+          : [...existingTags, automationTag];
+
+        return axios.put(
+          `${BASE_URL}/api/product/tag/${encodeURIComponent(product.sellerSku)}`,
+          { tags: updatedTags }
+        );
+      } catch (err) {
+        console.warn(`Failed to update tags for ${product.sellerSku}`, err);
+        return Promise.resolve(); // Let others continue even if one fails
+      }
+    });
+
+    await Promise.allSettled(tagRequests);
+
+    Swal.fire({
+      title: "Products added successfully!",
+      icon: "success",
+      showConfirmButton: false,
+      timer: 2000,
+    });
+
+    handleAddProductsInRuleModalClose();
+    onSuccess();
+  } catch (error) {
+    console.error("API Error:", error);
+    Swal.fire({
+      title: "Something Went Wrong!",
+      icon: "error",
+      showConfirmButton: false,
+      timer: 2000,
+    });
+  } finally {
+    setAddProductsLoading(false);
+  }
+};
+
+
+
 
   const handleCheckboxChange = async (product, checked) => {
     if (checked) {
