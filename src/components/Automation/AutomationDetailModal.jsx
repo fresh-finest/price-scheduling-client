@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HiOutlineArrowNarrowRight, HiOutlinePlus } from "react-icons/hi";
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, InputGroup, Modal } from "react-bootstrap";
 import "./AutomationDetailModal.css";
 import { MdOutlineClose } from "react-icons/md";
 import axios from "axios";
@@ -43,6 +43,7 @@ const AutomationDetailModal = ({
   const [error, setError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [ruleData, setRuleData] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [singleProduct, setSingleProduct] = useState("");
   const [addProductsInRuleModalOpen, setAddProductsInRuleModalOpen] =
     useState(false);
@@ -63,8 +64,7 @@ const AutomationDetailModal = ({
     setSaleDetailsModalShow(false);
   };
 
-
-console.log('product data', productData)
+  console.log("product data", productData);
   const fetchGraphData = async (sku) => {
     const encodedSku = encodeURIComponent(sku);
     try {
@@ -131,33 +131,27 @@ console.log('product data', productData)
     }
   }, [automationDetailModalShow]);
   console.log(("single product", singleProduct));
-  // const deleteAutomation = async (ruleId, sku) => {
-  //   const encodedSku = encodeURIComponent(sku);
-  //   try {
-  //     const response = await axios.delete(
-  //       `${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`
-  //     );
+ 
+const trimmedSearchTerm = searchTerm.trim().toLowerCase();
 
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(
-  //       "Error deleting automation:",
-  //       error.response ? error.response.data : error.message
-  //     );
-  //     throw error;
-  //   }
-  // };
+const filteredProducts = productData.filter((data) =>
+  data.title.toLowerCase().includes(trimmedSearchTerm) ||
+  data.sku.toLowerCase().includes(trimmedSearchTerm)
+);
 
- const cancelAutomationTag = async (sku) => {
+
+
+
+  const cancelAutomationTag = async (sku) => {
     try {
       const res = await axios.get(`${BASE_URL}/api/product/${sku}`);
       const product = res.data?.data?.listings?.[0];
       const tags = product?.tags || [];
-      const automationTag = tags.find(tag => tag.tag === "Automation");
+      const automationTag = tags.find((tag) => tag.tag === "Automation");
       if (automationTag) {
         await axios.put(`${BASE_URL}/api/product/tag/${sku}/cancel`, {
           tag: automationTag.tag,
-          colorCode: automationTag.colorCode 
+          colorCode: automationTag.colorCode,
         });
       }
     } catch (err) {
@@ -165,18 +159,22 @@ console.log('product data', productData)
     }
   };
 
-   const deleteAutomation = async (ruleId, sku) => {
+  const deleteAutomation = async (ruleId, sku) => {
     const encodedSku = encodeURIComponent(sku);
     try {
-        await cancelAutomationTag(sku);
-      const response = await axios.delete(`${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`);
+      await cancelAutomationTag(sku);
+      const response = await axios.delete(
+        `${BASE_URL}/api/automation/products/${ruleId}/${encodedSku}/delete`
+      );
       return response.data;
     } catch (error) {
-      console.error("Error deleting automation:", error.response ? error.response.data : error.message);
+      console.error(
+        "Error deleting automation:",
+        error.response ? error.response.data : error.message
+      );
       throw error;
     }
   };
-
 
   const handleDeleteAutomation = async (ruleId, sku) => {
     Swal.fire({
@@ -237,9 +235,15 @@ console.log('product data', productData)
   const handleCheckboxChange = (e) => {
     setEditValues({ ...editValues, sale: e.target.checked });
   };
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+  const handleClearInput = () => {
+    setSearchTerm("");
+  };
 
   const handleSave = async (index, sku) => {
-      const encodedSku = encodeURIComponent(sku);
+    const encodedSku = encodeURIComponent(sku);
 
     try {
       const response = await axios.put(
@@ -248,9 +252,11 @@ console.log('product data', productData)
           maxPrice: parseFloat(editValues.maxPrice),
           minPrice: parseFloat(editValues.minPrice),
           sale: editValues.sale,
-        ...(["quantity-cycling", "age-by-day"].includes(ruleData.category) && {
-  targetQuantity: parseInt(editValues.targetQuantity),
-}),
+          ...(["quantity-cycling", "age-by-day"].includes(
+            ruleData.category
+          ) && {
+            targetQuantity: parseInt(editValues.targetQuantity),
+          }),
         }
       );
 
@@ -290,18 +296,39 @@ console.log('product data', productData)
             <MdOutlineClose className="text-xl" />
           </button>
 
-          <Button
-            onClick={handleAddProductsInRuleModalOpen}
-            className="text-sm flex items-center gap-1 mt-2"
-            style={{
-              padding: "8px 12px",
-              border: "none",
-              backgroundColor: "#0662BB",
-              borderRadius: "3px",
-            }}
-          >
-            <IoMdAdd className="text-[21px]" /> Add Product
-          </Button>
+          <div className="flex items-center gap-3 mt-2">
+            <Button
+              onClick={handleAddProductsInRuleModalOpen}
+              className="text-sm flex items-center gap-1"
+              style={{
+                padding: "8px 12px",
+                border: "none",
+                backgroundColor: "#0662BB",
+                borderRadius: "3px",
+              }}
+            >
+              <IoMdAdd className="text-[21px]" /> Add Product
+            </Button>
+
+            <InputGroup className="max-w-[500px]  ">
+              <Form.Control
+                type="text"
+                placeholder="Search by Product title or Sku"
+                value={searchTerm}
+                onChange={handleSearch}
+                style={{ borderRadius: "0px" }}
+                className="custom-input"
+              />
+              {searchTerm && (
+                <button
+                  onClick={handleClearInput}
+                  className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+                >
+                  <MdOutlineClose />
+                </button>
+              )}
+            </InputGroup>
+          </div>
           <div>
             <h4 className="text-center mb-2 ">{ruleData.ruleName}</h4>
             <p className="text-center ">
@@ -365,7 +392,7 @@ console.log('product data', productData)
               <thead
                 style={{
                   backgroundColor: "#f0f0f0",
-                
+
                   color: "#333",
                   fontFamily: "Arial, sans-serif",
                   fontSize: "14px",
@@ -380,7 +407,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                      zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Status
@@ -393,7 +420,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Image
@@ -406,7 +433,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Title
@@ -419,7 +446,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Sku
@@ -432,7 +459,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Max Price
@@ -445,7 +472,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Min Price
@@ -458,12 +485,14 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Sale Report
                   </th>
-                 {["quantity-cycling", "age-by-day"].includes(ruleData.category) && (
+                  {["quantity-cycling", "age-by-day"].includes(
+                    ruleData.category
+                  ) && (
                     <th
                       className="tableHeader"
                       style={{
@@ -472,7 +501,7 @@ console.log('product data', productData)
                         verticalAlign: "middle",
                         position: "sticky",
                         borderRight: "2px solid #C3C6D4",
-                            zIndex: 10
+                        zIndex: 10,
                       }}
                     >
                       Target Quantity
@@ -486,7 +515,7 @@ console.log('product data', productData)
                       verticalAlign: "middle",
                       position: "sticky",
                       borderRight: "2px solid #C3C6D4",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     On Change
@@ -498,7 +527,7 @@ console.log('product data', productData)
                       textAlign: "center",
                       verticalAlign: "middle",
                       position: "sticky",
-                          zIndex: 10
+                      zIndex: 10,
                     }}
                   >
                     Actions
@@ -513,19 +542,27 @@ console.log('product data', productData)
                   lineHeight: "1.5",
                 }}
               >
-                {productData.length > 0 ? (
-                  productData.map((data, index) => (
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((data, index) => (
                     <tr
                       key={index}
                       style={{ opacity: data.status === "Inactive" ? 0.6 : 1 }}
                     >
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         {data.status}
                       </td>
                       <td
-                         style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         <img
                           className="w-[50px] mx-auto"
@@ -534,7 +571,11 @@ console.log('product data', productData)
                         />
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         <Tooltip title={data.title}>
                           <p>
@@ -545,12 +586,20 @@ console.log('product data', productData)
                         </Tooltip>
                       </td>
                       <td
-                     style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         {data.sku}
                       </td>
                       <td
-                         style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         {editingRow === index ? (
                           <Form.Control
@@ -564,7 +613,11 @@ console.log('product data', productData)
                         )}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         {editingRow === index ? (
                           <Form.Control
@@ -578,7 +631,11 @@ console.log('product data', productData)
                         )}
                       </td>
                       <td
-                      style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         <button
                           onClick={() => handleSaleDetailsModalShow(data.sku)}
@@ -592,7 +649,9 @@ console.log('product data', productData)
                           </span>
                         </button>
                       </td>
-                    {["quantity-cycling", "age-by-day"].includes(ruleData.category) && (
+                      {["quantity-cycling", "age-by-day"].includes(
+                        ruleData.category
+                      ) && (
                         <td
                           style={{
                             textAlign: "center",
@@ -614,7 +673,11 @@ console.log('product data', productData)
                         </td>
                       )}
                       <td
-                         style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         {editingRow === index ? (
                           <Checkbox
@@ -630,7 +693,11 @@ console.log('product data', productData)
                         )}
                       </td>
                       <td
-                        style={{ textAlign: "center", verticalAlign: "middle",  zIndex: 0 }}
+                        style={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                          zIndex: 0,
+                        }}
                       >
                         <div className="flex justify-center items-center">
                           {editingRow === index ? (
@@ -676,7 +743,7 @@ console.log('product data', productData)
                       colSpan="9"
                       style={{ textAlign: "center", padding: "20px" }}
                     >
-                      No Data Found
+                      No Products Found
                     </td>
                   </tr>
                 )}

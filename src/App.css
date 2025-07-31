@@ -80,6 +80,15 @@ input[type="number"] {
 .ant-datePicker-input:hover {
   border: 1px solid lightgray;
 }
+.ant-picker-focused {
+  box-shadow: none !important;
+  border-color: gray !important;
+}
+.ant-picker-input > input:focus {
+  box-shadow: none !important;
+  border-color: gray !important;
+  outline: none !important;
+}
 
 .ant-picker-presets {
   height: 350px !important;

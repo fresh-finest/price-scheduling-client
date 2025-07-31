@@ -50,10 +50,10 @@ const Automation = () => {
 
   return (
     <section>
-      <div className="mt-5">
+      <div className="mt-2">
         <CreateRuleForm></CreateRuleForm>
       </div>
-      <div>
+      <div className="">
         <Automationtable></Automationtable>
       </div>
    
