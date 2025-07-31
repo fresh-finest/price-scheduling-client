@@ -232,12 +232,16 @@ const Automationtable = () => {
 
   return (
     <div>
-      <section>
+      <section   style={{
+            maxHeight: "91vh",
+            overflowY: "auto",
+            boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+          }}>
         <table
           style={{
             tableLayout: "fixed",
           }}
-          className="reportCustomTable table"
+          className="reportCustomTable table "
         >
           <thead
             style={{
@@ -255,6 +259,7 @@ const Automationtable = () => {
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
+                  zIndex: 100,
                 }}
               >
                 Enable/Disable
@@ -266,6 +271,7 @@ const Automationtable = () => {
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
+                    zIndex: 100,
                 }}
               >
                 Rule ID
@@ -277,6 +283,7 @@ const Automationtable = () => {
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
+                    zIndex: 100,
                 }}
               >
                 Rule Name
@@ -288,6 +295,7 @@ const Automationtable = () => {
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
+                    zIndex: 100,
                 }}
               >
                 Rule Type
@@ -299,6 +307,7 @@ const Automationtable = () => {
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
+                    zIndex: 100,
                 }}
               >
                 Products
@@ -311,6 +320,7 @@ const Automationtable = () => {
                   textAlign: "center",
                   verticalAlign: "middle",
                   borderRight: "2px solid #C3C6D4",
+                    zIndex: 100,
                 }}
               >
                 Actions
@@ -321,6 +331,7 @@ const Automationtable = () => {
                   position: "sticky",
                   textAlign: "center",
                   verticalAlign: "middle",
+                    zIndex: 100,
                 }}
               >
                 Created By
