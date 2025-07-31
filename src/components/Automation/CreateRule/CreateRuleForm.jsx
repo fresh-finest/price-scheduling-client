@@ -306,7 +306,7 @@ const CreateRuleForm = () => {
   console.log("final selected products", finalSelectedProducts);
 
   return (
-    <div className="mb-2">
+    <div className="">
       <Button
         onClick={handleRuleFormOpen}
         className="text-sm flex items-center gap-1 "

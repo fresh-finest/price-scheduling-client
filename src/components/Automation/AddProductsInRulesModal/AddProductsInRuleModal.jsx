@@ -20,6 +20,7 @@ const AddProductsInRuleModal = ({
   setAddProductsInRuleModalOpen,
   ruleId,
   ruleType,
+  onSuccess
 }) => {
   const [searchedProducts, setSearchedProducts] = useState([]);
   const [searchingError, setSearchingError] = useState("");
@@ -229,6 +230,7 @@ const handleAddButtonClick = async () => {
     });
 
     handleAddProductsInRuleModalClose();
+    onSuccess();
   } catch (error) {
     console.error("API Error:", error);
     Swal.fire({

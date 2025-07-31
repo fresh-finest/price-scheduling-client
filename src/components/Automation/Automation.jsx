@@ -14,6 +14,8 @@ import {
 import CreateRuleForm from "./CreateRule/CreateRuleForm";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
+import { InputGroup, Form } from "react-bootstrap";
+import { MdOutlineClose } from "react-icons/md";
 
 // const BASE_URL = "http://localhost:3000";
 // const BASE_URL = "http://192.168.0.109:3000";
@@ -21,6 +23,14 @@ const BASE_URL = `https://api.priceobo.com`;
 
 const Automation = () => {
   const [chartData, setChartData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+  const handleClearInput = () => {
+    setSearchTerm("");
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,13 +60,36 @@ const Automation = () => {
 
   return (
     <section>
-      <div className="mt-2">
+      <div className="my-3 flex items-center gap-4">
+       
         <CreateRuleForm></CreateRuleForm>
+
+        <div>
+         <InputGroup className="w-[500px]  ">
+          <Form.Control
+            type="text"
+            placeholder="Search by Sku"
+            value={searchTerm}
+            onChange={handleSearch}
+            style={{ borderRadius: "0px" }}
+            className="custom-input"
+          />
+          {searchTerm && (
+            <button
+              onClick={handleClearInput}
+              className="absolute right-2 top-1  p-1 z-10 text-xl rounded transition duration-500 text-black"
+            >
+              <MdOutlineClose />
+            </button>
+          )}
+        </InputGroup>
+      </div>
+
+      
       </div>
       <div className="">
-        <Automationtable></Automationtable>
+        <Automationtable searchTerm={searchTerm}></Automationtable>
       </div>
-   
     </section>
   );
 };

@@ -758,6 +758,7 @@ const filteredProducts = productData.filter((data) =>
         setAddProductsInRuleModalOpen={setAddProductsInRuleModalOpen}
         ruleId={ruleId}
         ruleType={ruleData.category}
+        onSuccess={fetchData}
       ></AddProductsInRuleModal>
 
       <Modal
