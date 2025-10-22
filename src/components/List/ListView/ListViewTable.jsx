@@ -4,11 +4,11 @@ import { Button } from "react-bootstrap";
 import { BsClipboardCheck, BsHeart, BsHeartFill } from "react-icons/bs";
 import { FaRegStar } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
-import { IoMdAdd } from "react-icons/io";
+import { IoMdAdd, IoMdCheckmark } from "react-icons/io";
 import { MdCheck } from "react-icons/md";
 
-// const BASE_URL = `http://localhost:3000`;
-const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `http://192.168.0.8:3000`;
+// const BASE_URL = `https://api.priceobo.com`;
 
 const ListViewTable = ({
   index,
@@ -27,6 +27,7 @@ const ListViewTable = ({
   getUnitCountForTimePeriod,
   selectedDay,
 }) => {
+
   const getUnitsForSelectedTime = (salesMetrics, selectedDay) => {
     const metric = salesMetrics.find((m) => m.time === selectedDay.value);
     return metric ? metric.totalUnits : "N/A";
@@ -123,6 +124,28 @@ const ListViewTable = ({
 
         <div>{item.status}</div>
       </td>
+
+      <td
+        className={` ${selectedRowIndex === index ? "selected-row" : ""}`}
+        style={{
+          cursor: "pointer",
+          height: "40px",
+          textAlign: "center",
+          verticalAlign: "middle",
+          backgroundColor: selectedRowIndex === index ? "#F1F1F2" : "",
+        }}
+      >
+       
+
+        <div className=" flex justify-center items-center">
+          <div className="flex flex-col justify-center items-center gap-1">
+            {item.buybox ? <img className="w-[25px] h-[25px] object-contain" src="https://cdn.shopify.com/s/files/1/0861/1106/0252/files/Tik.webp?v=1761140163" alt="right" />: <img className="w-[25px] h-[25px] object-contain" src="https://cdn.shopify.com/s/files/1/0861/1106/0252/files/X.webp?v=1761139490" alt="wrong" /> }
+
+          { item?.offerPrice ?<h4> ${item?.offerPrice}</h4> : <h4> ${item?.price}</h4> }
+          </div>
+        </div>
+      </td>
+
       <td
         style={{
           cursor: "pointer",
@@ -222,7 +245,7 @@ const ListViewTable = ({
               />
             )}
           </span>{" "}
-          <span
+          {/* <span
             className="bubble-text"
             style={{
               cursor: "pointer",
@@ -254,7 +277,7 @@ const ListViewTable = ({
                   }}
                 />
               ))}
-          </span>
+          </span> */}
         </div>
       </td>
       <td
