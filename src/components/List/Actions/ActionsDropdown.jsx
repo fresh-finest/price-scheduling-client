@@ -18,9 +18,11 @@ import Swal from "sweetalert2";
 import { IoIosArrowDown } from "react-icons/io";
 import AssginTagsModal from "./AssignTagsModal";
 
+
 const BASE_URL = `https://api.priceobo.com`;
 
 const ActionsDropdown = ({ filteredProducts, handleProductSync }) => {
+  console.log("filteredProducts", filteredProducts);
   const [loading, setLoading] = useState(false);
   const [exportThisPageLoading, setExportThisPageLoading] = useState(false);
   const [assignTagsModalOpen, setAssignTagsModalOpen] = useState(false);

@@ -16,9 +16,8 @@ import ProductDetailView from "./ProductDetailView";
 import noImage from "../../assets/images/noimage.png";
 
 // const BASE_URL = "http://localhost:3000";
-const BASE_URL = "http://192.168.0.102:3000";
 
-// const BASE_URL = `https://api.priceobo.com`;
+const BASE_URL = `https://api.priceobo.com`;
 
 // const BASE_URL_LIST = "http://localhost:3000";
 
@@ -39,12 +38,12 @@ const fetchScheduledData = async () => {
   return response.data.result;
 };
 
-const downloadExcel = (data) => {
+const downloadExcel = (data)=>{
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Listings");
+  XLSX.utils.book_append_sheet(workbook, worksheet,"Listings");
   XLSX.writeFile(workbook, "Products.xlsx");
-};
+}
 const ListView = () => {
   // const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(() => {
@@ -64,7 +63,7 @@ const ListView = () => {
   );
 
   const [columnWidths, setColumnWidths] = useState([
-    80, 80, 350, 80, 90, 90, 110, 90, 90,
+    80, 80, 350, 80, 90, 110, 90, 90,
   ]);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -147,7 +146,6 @@ const ListView = () => {
   } = useQuery("products", fetchProducts, {
     onSuccess: (data) => {
       if (!filterScheduled) {
-        console.log(data.listings);
         setFilteredProducts(data.listings);
       }
     },
@@ -449,7 +447,26 @@ const ListView = () => {
     ));
   };
 
-  console.log("filtered products", filteredProducts.price);
+  // const debouncedFilterProducts = useCallback(
+  //   debounce((value) => {
+  //     filterProducts(
+  //       productData?.listings || [],
+  //       scheduledData,
+  //       filterScheduled,
+  //       value
+  //     );
+  //   }, 300),
+  //   [productData, scheduledData, filterScheduled]
+  // );
+
+  // const handleSearch = (e) => {
+  //   const value = e.target.value;
+  //   setSearchTerm(value); // Update search term immediately in the input
+  //   debouncedFilterProducts(value); // Apply debounced filtering
+  //   setCurrentPage(1);
+
+  //   sessionStorage.setItem("searchTerm", value);
+  // };
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -872,9 +889,8 @@ const ListView = () => {
             )}
           </InputGroup>
         </div>
-
-        <Button
-          style={{
+       
+          <Button style={{
             borderRadius: "2px",
             // marginTop: "100px",
             backgroundColor: "#0D6EFD",
@@ -883,11 +899,11 @@ const ListView = () => {
             top: "10px",
             right: "660px",
           }}
-          variant="primary"
-          onClick={() => downloadExcel(filteredProducts)}
-        >
-          Export Data
-        </Button>
+            variant="primary"
+            onClick={() => downloadExcel(filteredProducts)}
+          >
+            Export Data
+          </Button>
 
         <Button
           style={{
@@ -1077,31 +1093,6 @@ const ListView = () => {
                         onMouseDown={(e) => handleResize(4, e)}
                       />
                     </th>
-                    <th>
-                      <p className="flex  items-center justify-center gap-1">
-                        FBA/FBM
-                        <ListFbaDropdown
-                          toggleFbaFbmSort={toggleFbaFbmSort}
-                        ></ListFbaDropdown>
-                        {/* <IoFunnelOutline
-                          size={15}
-                          style={{ cursor: "pointer", marginLeft: "8px" }}
-                          onClick={toggleFbaFbmSort}
-                        /> */}
-                      </p>
-                      <div
-                        style={{
-                          width: "1px",
-                          height: "100%",
-                          position: "absolute",
-                          right: "0",
-                          top: "0",
-                          cursor: "col-resize",
-                        }}
-                        onMouseDown={(e) => handleResize(4, e)}
-                      />
-                    </th>
-
                     <th
                       className="tableHeader"
                       style={{
@@ -1392,7 +1383,7 @@ const ListView = () => {
                             selectedRowIndex === index ? "#F1F1F2" : "",
                         }}
                       >
-                        ${parseFloat(item?.price).toFixed(2)}${item.colorCode}
+                        ${parseFloat(item?.price).toFixed(2)}
                       </td>
                       <td
                         style={{

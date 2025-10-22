@@ -9,7 +9,12 @@ import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import moment from "moment";
 import SalesDetailsBarChart from "../Graph/SalesDetailsBarChart";
-import { MdArrowBackIos, MdCheck, MdOutlineClose } from "react-icons/md";
+import {
+  MdArrowBackIos,
+  MdCheck,
+  MdOutlineArrowBackIos,
+  MdOutlineClose,
+} from "react-icons/md";
 import { BsClipboardCheck, BsFillInfoSquareFill } from "react-icons/bs";
 import { Card } from "../ui/card";
 import PriceVsCount from "./PriceVsCount";
@@ -21,6 +26,7 @@ import "./SaleDetails.css";
 import SaleDetailsProductDetailSkeleton from "../LoadingSkeleton/SaleDetailsProductDetailSkeleton";
 import AutomatePrice from "../Automation/AutomatePrice";
 import PriceVSCountPieChart from "./PriceVSCountPieChart";
+import SalesPieChart from "../Graph/SalesPieChart";
 const { RangePicker } = DatePicker;
 
 const BASE_URL = `https://api.priceobo.com`;
@@ -28,14 +34,11 @@ const BASE_URL = `https://api.priceobo.com`;
 
 const SaleDetailsModal = ({
   saleDetailsModalShow,
-
+  product,
   handleSaleDetailsModalClose,
   handleSaleDetailsModalShow,
   sku,
 }) => {
-
-
- 
   //   const { sku } = useParams();
   const [salesData, setSalesData] = useState([]);
   const [scheduleSalesData, setScheduleSalesData] = useState([]);
@@ -92,7 +95,7 @@ const SaleDetailsModal = ({
 
       if (startDate && endDate) {
         url = `${BASE_URL}/sales-metrics/range/${encodedIndentifier}`;
-        params.startDate = moment(startDate).format("YYYY-MM-DD");
+        params.startDate = moment(startDate).add(1,'day').format("YYYY-MM-DD");
         params.endDate = moment(endDate).format("YYYY-MM-DD");
         setView("day");
       }
@@ -118,17 +121,14 @@ const SaleDetailsModal = ({
   };
 
   const fetchScheduleSalesMetrics = async () => {
-    setScheduleChartLoading(true);
-    setScheduleSalesData([]); 
+     setScheduleChartLoading(true);
+     setScheduleSalesData([]); 
     const encodedSku = encodeURIComponent(sku);
-    const url = `${BASE_URL}/api/report/${encodedSku}`;
-
-  
     try {
-      const response = await axios.get(url);
+      const response = await axios.get(`${BASE_URL}/api/report/${encodedSku}`);
       const filterStartDate = startDate ? new Date(startDate) : null;
       const filterEndDate = endDate ? new Date(endDate) : null;
-  
+
       const filteredData = response.data.filter((item) => {
         const itemStartDate = new Date(item.interval.split(" - ")[0]);
         return (
@@ -136,14 +136,14 @@ const SaleDetailsModal = ({
           (!filterEndDate || itemStartDate <= filterEndDate)
         );
       });
-  
+
       const sortedData = filteredData.sort((a, b) => {
         return (
           new Date(a.interval.split(" - ")[0]) -
           new Date(b.interval.split(" - ")[0])
         );
       });
-  
+     
       setScheduleSalesData(sortedData);
     } catch (err) {
       console.error("Error fetching schedule sales data:", err);
@@ -151,7 +151,6 @@ const SaleDetailsModal = ({
       setScheduleChartLoading(false);
     }
   };
-  
 
   const fetchProductPrice = async () => {
     setLoading(true);
@@ -187,7 +186,7 @@ const SaleDetailsModal = ({
       fetchProductDetails();
       fetchAutomationStatus(sku);
     }
-  }, [sku]); 
+  }, [sku]); // Dependency array ensures effect runs only when SKU changes
 
   useEffect(() => {
     fetchSalesMetrics();
@@ -199,10 +198,6 @@ const SaleDetailsModal = ({
   useEffect(() => {
     fetchScheduleSalesMetrics();
   }, [sku, startDate, endDate]);
-
-  useEffect(() => {
-    fetchScheduleSalesMetrics()
-  },[sku])
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -222,11 +217,11 @@ const SaleDetailsModal = ({
       .writeText(text)
       .then(() => {
         if (type === "sku") {
-          setCopiedSku(text); 
-          setTimeout(() => setCopiedSku(null), 2000); 
+          setCopiedSku(text); // Set the copied SKU
+          setTimeout(() => setCopiedSku(null), 2000); // Reset after 2 seconds
         } else if (type === "asin") {
-          setCopiedAsin(text); 
-          setTimeout(() => setCopiedAsin(null), 2000); 
+          setCopiedAsin(text); // Set the copied SKU
+          setTimeout(() => setCopiedAsin(null), 2000); // Reset after 2 seconds
         }
       })
       .catch((err) => {
@@ -293,8 +288,6 @@ const SaleDetailsModal = ({
       value: [dayjs().startOf("year"), dayjs().endOf("day")],
     },
   ];
-
-
 
   return (
     <div>
@@ -390,7 +383,6 @@ const SaleDetailsModal = ({
                     className="ant-datePicker-input"
                     presets={rangePresets}
                     onChange={onRangeChange}
-                    format="DD MMM, YYYY"
                   />
                 </div>
               </div>
@@ -414,7 +406,7 @@ const SaleDetailsModal = ({
                     sku={sku}
                     asin={asin}
                     productDetails={productDetails}
-                  
+                    product={product}
                     productPrice={productPrice}
                   ></AutomatePrice>
                 )}

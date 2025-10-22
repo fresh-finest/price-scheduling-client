@@ -20,6 +20,8 @@ const COLORS = [
   "#D84040",
   "#80CBC4",
   "#578FCA",
+  "#4793AF",
+  "#4793AF",
   "#C7C0A4", 
   "#615E22",
   "#A47E5B",
@@ -137,14 +139,14 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
   console.log('sales data price vs count pie chart', salesData)
 
   return (
-    <Card className="w-full flex justify-end  ">
-      <ResponsiveContainer height={425}>
+    <Card className="w-full flex justify-end py-3 ">
+      <ResponsiveContainer height={400} >
         <PieChart>
           <Pie
             data={pieData}
             cx="50%"
             cy="50%"
-            outerRadius={190}
+            outerRadius={160}
             label={(props) =>
               renderCustomizedLabel({ ...props, name: props.name })
             }
@@ -161,6 +163,7 @@ const PriceVSCountPieChart = ({ salesData = [], view, identifierType }) => {
           </Pie>
           {/* <Tooltip formatter={(value) => `${value}%`} /> */}
           <Tooltip content={<CustomTooltip/>}/>
+
         </PieChart>
       </ResponsiveContainer>
     </Card>

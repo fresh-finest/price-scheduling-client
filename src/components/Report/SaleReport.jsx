@@ -4,32 +4,42 @@ import { DatePicker, Space, Switch } from "antd";
 import { InputGroup, Form } from "react-bootstrap";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import "antd/dist/reset.css";
+
 
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { MdOutlineClose } from "react-icons/md";
 import SaleReportLoadingSkeleton from "../LoadingSkeleton/SaleReportLoadingSkeleton";
 import { ClipLoader } from "react-spinners";
 import SaleReportChart from "./SaleReportChart";
-import SaleReportPieChart from "./SalesReportPieChart/SaleReportPieChart";
+import SaleReportPieChart from "./SaleReportPieChart/SaleReportPieChart";
 import { RiArrowUpDownFill } from "react-icons/ri";
 import { Card } from "../ui/card";
-import SaleReportTableRow from "./SaleReportTable/SaleReportTableRow";
-import SaleReportSelectedLineChart from "./SaleReportSelectedLineChart/SaleReportSelectedLineChart";
-import SaleReportSelectedPieChart from "./SaleReportSelectedPieChart/SaleReportSelectedPieChart";
-import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
+
+
 import SaleDetailsModal from "./SaleDetailsModal";
 
-import "./SaleReport.css";
+import './SaleReport.css'
 import ReportChangeFilterPopover from "./ReportChangeFilterPopover/ReportChangeFilterPopover";
 import { BsDashCircle } from "react-icons/bs";
-import ReportCurrentIntervalUnitsFilter from "./ReportCurrentIntervalUnitsFilter/ReportCurrentIntervalUnitsFilter";
+import SaleReportSelectedLineChart from "./SaleReportSelectedLineChart/SaleReportSelectedLineChart";
+import SaleReportTableRow from "./SaleReportTable/SaleReportTableRow";
+import SaleReportSelectedPieChart from "./SaleReportSelectedPieChart/SaleReportSelectedPieChart";
+import CurrentIntervalUnitsLineChart from "./CurrentIntervalUnitsLineChart/CurrentIntervalUnitsLineChart";
+import PreviousIntervalUnitsLineChart from "./PreviousIntervalUnitsLineChart/PreviousIntervalUnitsLineChart";
+
+import CurrentPreviousIntervalUnitsPieChart from "./CurrentPreviousIntervalUnitsPieChart/CurrentPreviousIntervalUnitsPieChart";
 import ReportPreviousIntervalUnitsFilter from "./ReportPreviousIntervalUnitsFilter/ReportPreviousIntervalUnitsFilter";
+import ReportCurrentIntervalUnitsFilter from "./ReportCurrentIntervalUnitsFilter/ReportCurrentIntervalUnitsFilter";
 import CurrentPreviousIntervalUnitsLineChart from "./CurrentPreviousIntervalUnitsLineChart/CurrentPreviousIntervalUnitsLineChart";
 
+
+
 const { RangePicker } = DatePicker;
-const BASE_URL = "http://192.168.0.26:3000";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = `https://api.priceobo.com`
+
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
 const MONTH_ORDER = [
@@ -59,17 +69,13 @@ const COLORS = [
   "#80CBC4",
   "#578FCA",
   "#C7C0A4", 
-  "#615E22",
-  "#A47E5B",
-  "#5B6366",
-  "#2382A9", 
-  "#2F6B9A", 
-  "#C86A27"
-
-
-
+   "#615E22",
+   "#A47E5B",
+   "#5B6366",
+   "#2382A9", 
+   "#2F6B9A", 
+   "#C86A27"
 ];
-
 
 const SaleReport = () => {
   const [products, setProducts] = useState([]);
@@ -129,7 +135,7 @@ const SaleReport = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const initialFetchDoneRef = useRef(false);
-
+  console.log("visible months", visibleMonths);
 
   const unitOptions = [
     { value: "between", label: "Between" },
@@ -161,7 +167,7 @@ const SaleReport = () => {
     axios
       .get(`${BASE_URL}/total-sales`)
       .then((response) => {
-     
+        console.log("Total Sales Payload:", response.data.payload);
 
         setData(response.data.payload);
         setChartLoading(false);
@@ -551,16 +557,10 @@ const SaleReport = () => {
     const type = isAsinMode ? "asin" : "sku";
 
     const endDate = dayjs().format("YYYY-MM-DD");
-    // const startDate = dayjs()
-    //   .subtract(18, "month")
-    //   .startOf("day")
-    //   .format("YYYY-MM-DD");
-
-  const startDate =   dayjs().subtract(17, "month").startOf("month").format("YYYY-MM-DD");
-
-
+    
+      const startDate =   dayjs().subtract(17, "month").startOf("month").format("YYYY-MM-DD");
     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${value}&startDate=${startDate}&endDate=${endDate}`;
-  
+    console.log("url", url);
 
     setIsDetailChartLoading(true);
     setSelectedValue(value);
@@ -579,37 +579,9 @@ const SaleReport = () => {
     }
   };
 
+  console.log("selected chart data from sale report", selectedChartData);
 
-
-  // const handleShowAllToggle = async (checked) => {
-  //   setShowDefaultCharts(checked);
-
-  //   if (!checked && lastSelected) {
-  //     setSelectedValue(lastSelected);
-
-  //     const type = isAsinMode ? "asin" : "sku";
-  //     const endDate = dayjs().format("YYYY-MM-DD");
-  //     const startDate = dayjs()
-  //       .subtract(6, "month")
-  //       .startOf("day")
-  //       .format("YYYY-MM-DD");
-
-  //     const url = `${BASE_URL}/api/favourite/sale-units?type=${type}&value=${lastSelected}&startDate=${startDate}&endDate=${endDate}`;
-  //     setIsDetailChartLoading(true);
-  //     try {
-  //       const response = await axios.get(url);
-  //       setSelectedChartData(response.data.data.entries || []);
-  //     } catch (error) {
-  //       console.error("Error re-fetching selected chart data", error);
-  //       setSelectedChartData([]);
-  //     } finally {
-  //       setIsDetailChartLoading(false);
-  //     }
-  //   } else {
-  //     setSelectedValue(null);
-  //     setSelectedChartData([]);
-  //   }
-  // };
+  
 
   const handleShowAllToggle = async (checked) => {
     setShowDefaultCharts(checked);
@@ -723,58 +695,7 @@ const SaleReport = () => {
     },
   ];
 
-  // const { uniqueMonths } = useMemo(() => {
-  //   if (data.length === 0) return { uniqueMonths: [] };
 
-  //   const today = new Date();
-  //   const currentYear = today.getFullYear();
-  //   const currentMonthIndex = today.getMonth();
-
-  //   const lastTwoMonths = [];
-  //   for (let i = 2; i > 0; i--) {
-  //     let monthIndex = (currentMonthIndex - i + 12) % 12;
-  //     let year = currentYear;
-  //     if (monthIndex > currentMonthIndex) {
-  //       year -= 1;
-  //     }
-  //     lastTwoMonths.push(`${MONTH_ORDER[monthIndex]} ${year}`);
-  //   }
-
-  //   const monthsSet = new Set();
-  //   data.forEach((entry) => {
-  //     const startDate = new Date(entry.interval.split("--")[0]);
-  //     const month = startDate.toLocaleString("en-US", { month: "short" });
-  //     const year = startDate.getFullYear();
-  //     monthsSet.add(`${month} ${year}`);
-  //   });
-
-  //   const sortedMonths = [...monthsSet].sort((a, b) => {
-  //     const [monthA, yearA] = a.split(" ");
-  //     const [monthB, yearB] = b.split(" ");
-  //     if (yearA !== yearB) return yearA - yearB;
-  //     return MONTH_ORDER.indexOf(monthA) - MONTH_ORDER.indexOf(monthB);
-  //   });
-
-  //   setColorMap(() => {
-  //     const newColorMap = {};
-  //     sortedMonths.forEach((month, index) => {
-  //       newColorMap[month] = COLORS[index % COLORS.length];
-  //     });
-  //     return newColorMap;
-  //   });
-
-  //   setVisibleMonths((prev) => {
-  //     if (Object.keys(prev).length === 0) {
-  //       return sortedMonths.reduce(
-  //         (acc, month) => ({ ...acc, [month]: lastTwoMonths.includes(month) }),
-  //         {}
-  //       );
-  //     }
-  //     return prev;
-  //   });
-
-  //   return { uniqueMonths: sortedMonths };
-  // }, [data]);
 
   const { uniqueMonths } = useMemo(() => {
     const monthSource = selectedChartData.length ? selectedChartData : data;
@@ -1265,6 +1186,16 @@ const SaleReport = () => {
                 See Details
               </button>
 
+              {/* <CurrentIntervalUnitsLineChart
+                metrics={selectedChartData}
+                currentDateRange={currentDateRange}
+                currentUnits={selectedProductDetails.currentUnits ?? 0}
+              />
+              <PreviousIntervalUnitsLineChart
+                metrics={selectedChartData}
+                previousDateRange={previousDateRange}
+                previousUnits={selectedProductDetails.previousUnits ?? 0}
+              /> */}
               <CurrentPreviousIntervalUnitsLineChart
                 currentMetrics={currentIntervalMetrics}
                 previousMetrics={previousIntervalMetrics}
@@ -1286,6 +1217,7 @@ const SaleReport = () => {
           )}
 
           <div className="flex flex-wrap gap-x-2 justify-center gap-y-2 my-3">
+           
             {[...uniqueMonths].reverse().map((month) => {
               const isChecked = visibleMonths[month] ?? false;
               const color = colorMap[month] ?? "black";
@@ -1363,8 +1295,6 @@ const SaleReport = () => {
       ></SaleDetailsModal>
     </div>
   );
-}; 
+};
 
 export default SaleReport;
-
-

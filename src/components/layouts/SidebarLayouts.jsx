@@ -2,29 +2,29 @@ import { useState } from "react";
 import { BsArrowLeftShort } from "react-icons/bs";
 import { RiArrowLeftSLine } from "react-icons/ri";
 import { FaChartLine, FaListUl, FaRegCalendarAlt } from "react-icons/fa";
+import { TbReportAnalytics } from "react-icons/tb";
 import { GoGear, GoHistory } from "react-icons/go";
-
+import { MdOutlineManageAccounts } from "react-icons/md";
+import { HiOutlineDocumentReport } from "react-icons/hi";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import AccountDropdown from "../shared/ui/AccountDropdown";
 import UserDropdown from "../shared/ui/UserDropDown";
 import priceoboIcon from "../../assets/images/pricebo-icon.png";
 import priceoboLogo from "../../assets/images/priceobo-logo.png";
-import { TbReportAnalytics } from "react-icons/tb";
+import { PiChartLineUpLight } from "react-icons/pi";
 import { AiOutlineProduct } from "react-icons/ai";
 import { LuGroup } from "react-icons/lu";
 import { FaListCheck } from "react-icons/fa6";
-
+import Notifications from "../shared/ui/Notifications";
 import { Cog } from "lucide-react";
-import Notifications from "../Notification/Notification";
 const SidebarLayout = () => {
   const [open, setOpen] = useState(true);
 
   const Menus = [
     { title: "Calendar", icon: <FaRegCalendarAlt />, path: "/calendar" },
     { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
-    { title: "Products", icon: <LuGroup />, path: "/product" },
+    // { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
-    // { title: "List", icon: <FaListUl />, path: "/list" },
     { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
@@ -34,7 +34,6 @@ const SidebarLayout = () => {
     //   path: "/manage",
     // },
     { title: "History", icon: <GoHistory />, path: "/history" },
-    // { title: "Dashboard", icon: <Cog />, path: "/dashboard" },
   ];
 
   return (
@@ -49,7 +48,6 @@ const SidebarLayout = () => {
         <div className="flex flex-1 ">
           {/* Sidebar */}
           <div
-            // className={`bg-[#0662BB]  h-screen p-4 relative ${
             className={`bg-[#FBFBFB] h-screen p-4 relative ${
               open ? "w-52" : "w-20"
             } duration-300  shadow flex flex-col sticky top-0 z-50`}
@@ -93,6 +91,43 @@ const SidebarLayout = () => {
                 />
               </div>
             )}
+
+            {/* <Link to="/" className="inline-flex py-2">
+              <img
+                className={` cursor-pointer block float-left mr-3 w-[30px]   object-cover text-[#2C86F2]`}
+                style={{ minWidth: "36px", minHeight: "30px" }}
+                src={priceoboIcon}
+                alt="priceobo_logo"
+              />
+
+              <span
+                className={`text-2xl font-semibold text-black flex-1 duration-200 ${
+                  !open && "hidden"
+                }`}
+              >
+                priceobo
+              </span>
+            </Link> */}
+
+            {/* icon with text: works fine */}
+
+            {/* <Link to="/" className="inline-flex py-2">
+              <img
+                className={` cursor-pointer block float-left mr-3 w-[30px]   object-cover text-[#2C86F2]`}
+                style={{ minWidth: "36px", minHeight: "30px" }}
+                src={priceoboIcon}
+                alt="priceobo_logo"
+              />
+
+              <span
+                className={`text-3xl font-normal text-black flex-1 duration-200 ${
+                  !open && "hidden"
+                }`}
+                style={{ fontFamily: "'Poppins', sans-serif" }}
+              >
+                priceobo
+              </span>
+            </Link> */}
 
             {/* Sidebar menu */}
             <ul className="flex-grow">

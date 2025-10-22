@@ -214,6 +214,130 @@ const ExistingTags = ({ tagsDataFetch, setTagsDataFetch }) => {
     });
   };
 
+  // const handleUploadClick = (tag) => {
+  //   MySwal.fire({
+  //     title: "Upload File",
+  //     html: (
+  //       <div>
+  //         <p className="flex justify-center items-center gap-1">
+  //           <Tooltip
+  //             placement="bottom"
+  //             title={
+  //               <div>
+  //                 <p className="text-lg">
+  //                   Supported formats: <strong>.xlsx, .xls, .csv</strong>
+  //                 </p>
+  //                 <p className="text-base">
+  //                   Please ensure the file contains valid SKUs in the first
+  //                   column.
+  //                 </p>
+  //                 <img
+  //                   src="https://mcusercontent.com/e006191206c6952a765463cfb/images/0f69dc40-1826-00b3-c827-3cfae98a1e8f.png"
+  //                   alt="Information Screenshot"
+  //                   style={{
+  //                     maxWidth: "100%",
+  //                     border: "1px solid #ccc",
+  //                     marginTop: "10px",
+  //                   }}
+  //                 />
+  //               </div>
+  //             }
+  //             overlayClassName="custom-tooltip"
+  //           >
+  //             <BsFillInfoSquareFill className="text-[#0D6EFD] hover:cursor-pointer" />
+  //           </Tooltip>
+  //           Upload a file for the tag: <strong>{tag.tagName}</strong>
+  //         </p>
+  //       </div>
+  //     ),
+  //     input: "file",
+  //     inputAttributes: {
+  //       accept: ".xlsx, .xls, .csv",
+  //     },
+  //     showCancelButton: true,
+  //     confirmButtonText: "Upload",
+  //     preConfirm: () => {
+  //       const input = Swal.getInput();
+  //       return (
+  //         input.files[0] || Swal.showValidationMessage("Please select a file!")
+  //       );
+  //     },
+  //   }).then((result) => {
+  //     if (result.isConfirmed) {
+  //       const file = result.value;
+  //       const reader = new FileReader();
+
+  //       reader.onload = async (event) => {
+  //         try {
+  //           const fileName = file.name.toLowerCase();
+  //           let skus = [];
+
+  //           if (fileName.endsWith(".csv")) {
+  //             const csvContent = event.target.result;
+  //             const rows = csvContent
+  //               .split("\n")
+  //               .map((line) => line.split(","));
+  //             skus = rows.map((row) => row[0].trim()).filter(Boolean);
+  //           } else {
+  //             const data = new Uint8Array(event.target.result);
+  //             const workbook = XLSX.read(data, { type: "array" });
+  //             const firstSheetName = workbook.SheetNames[0];
+  //             const worksheet = workbook.Sheets[firstSheetName];
+  //             const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  //             skus = rows.map((row) => row[0]).filter(Boolean);
+  //           }
+
+  //           if (skus.length === 0) {
+  //             MySwal.fire({
+  //               title: "Error!",
+  //               text: "No SKUs found in the file.",
+  //               icon: "error",
+  //             });
+  //             return;
+  //           }
+
+  //           const promises = skus.map((sku) => {
+  //             const encodedSku = encodeURIComponent(sku); // Encode the SKU
+  //             const url = `${BASE_URL}/api/product/tag/${encodedSku}`; // Use encoded SKU in the URL
+  //             const payload = {
+  //               tags: [
+  //                 {
+  //                   tag: tag.tagName,
+  //                   colorCode: tag.colorCode,
+  //                 },
+  //               ],
+  //             };
+
+  //             return axios.put(url, payload);
+  //           });
+
+  //           await Promise.all(promises);
+
+  //           MySwal.fire({
+  //             title: "Success!",
+  //             text: `Tags updated for ${skus.length} SKUs.`,
+  //             icon: "success",
+  //           });
+  //         } catch (error) {
+  //           console.error("Error processing file or updating tags:", error);
+  //           MySwal.fire({
+  //             title: "Error!",
+  //             text: "Failed to process file or update tags.",
+  //             icon: "error",
+  //           });
+  //         }
+  //       };
+
+  //       if (file.name.toLowerCase().endsWith(".csv")) {
+  //         reader.readAsText(file);
+  //       } else {
+  //         reader.readAsArrayBuffer(file);
+  //       }
+  //     }
+  //   });
+  // };
+
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
   };

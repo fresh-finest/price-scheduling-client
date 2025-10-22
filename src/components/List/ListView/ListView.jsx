@@ -1,19 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Form, InputGroup, Button, Pagination, Card } from "react-bootstrap";
 import ClipLoader from "react-spinners/ClipLoader";
-import {  MdOutlineClose } from "react-icons/md";
-
+import { useQuery } from "react-query";
+import { MdCheck, MdOutlineClose } from "react-icons/md";
+import { IoMdAdd } from "react-icons/io";
 import UpdatePriceFromList from "../UpdatePriceFromList";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { debounce } from "lodash";
+import { FixedSizeList as List } from "react-window";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import "./ListView.css";
 import ProductDetailView from "../ProductDetailView";
+import { Button as ShadcdnBtn } from "@/components/ui/button";
 
 import noImage from "../../../assets/images/noimage.png";
 
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = `http://localhost:3000`;
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -32,6 +35,7 @@ import { IoClose } from "react-icons/io5";
 import ListTagsDropdown from "../../shared/ui/ListTagsDropDown";
 import ActionsDropdown from "../Actions/ActionsDropdown";
 import Swal from "sweetalert2";
+import { FaSync } from "react-icons/fa";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -109,15 +113,8 @@ const ListView = () => {
       !(Array.isArray(value) && value.length === 0)
   );
 
-  console.log("filtered products", filteredProducts);
-
-  console.log('selected Product from list view', selectedProduct); 
-  console.log('selected listing from list view', selectedListing); 
-  console.log('selected asin from list view', selectedAsin);
-
-  const checkProductDetailsWhyIsNotComing =  selectedProduct && selectedListing && selectedAsin; 
-  console.log('checkProductDetailsWhyIsNitComing', checkProductDetailsWhyIsNotComing) 
-console.log('selected product', selectedProduct);
+  console.log("isFilterActive", isFilterActive);
+  console.log("filters", filters);
 
   const dayOptions = [
     { value: "1 D", label: "Yesterday" },
@@ -209,6 +206,8 @@ console.log('selected product', selectedProduct);
     }
   };
 
+  console.log("filtered products", filteredProducts);
+
   const fetchData = async (page) => {
     setIsSearching(true);
     try {
@@ -229,8 +228,6 @@ console.log('selected product', selectedProduct);
     debounce(async (value, page) => {
       setIsSearching(true);
 
-      console.log("debounced filter product value", value);
-      console.log("debounced filter product page", page);
       try {
         const response = await axios.get(
           `${BASE_URL}/api/product/${value}?page=${page}`
@@ -269,8 +266,7 @@ console.log('selected product', selectedProduct);
       return;
     }
 
-    if (isSearchMode && searchTerm) {
-      console.log("hitted here");
+    if (isSearchMode && searchTerm.trim()) {
       debouncedFilterProducts(searchTerm, currentPage);
     } else if (isScheduleSearchMode) {
       fetchAllSchedule(currentPage);
@@ -288,6 +284,7 @@ console.log('selected product', selectedProduct);
   }, [
     currentPage,
     isSearchMode,
+
     isScheduleSearchMode,
     isAllProductSearchMode,
     isSaleSearchMode,
@@ -397,7 +394,7 @@ console.log('selected product', selectedProduct);
   };
 
   const handleSearch = (value) => {
-    if (!value) {
+    if (!value.trim()) {
       setFilters((prev) => {
         const updatedFilters = { ...prev };
         delete updatedFilters.uid;
@@ -523,7 +520,6 @@ console.log('selected product', selectedProduct);
     try {
       setIsSyncing(true);
       const response = await axios.get(`${BASE_URL}/api/sync`);
-
       const { success, message } = response.data;
       if (success) {
         // Swal.fire({
@@ -689,12 +685,8 @@ console.log('selected product', selectedProduct);
         pendingTransshipmentQuantity
       );
 
-      console.log('asin from handle update function', asin)
-
       const response = await axios.get(`${BASE_URL}/details/${asin}`);
-      console.log('response from handle update function', response);
-      console.log('response from handle update function payload', response.data.payload);
-      setSelectedProduct(response.data);
+      setSelectedProduct(response?.data);
 
       const response2 = await axios.get(`${BASE_URL}/product/${asin}`);
       setSelectedListing(response2.data);
@@ -961,7 +953,7 @@ console.log('selected product', selectedProduct);
           >
             <Form.Control
               type="text"
-              placeholder="Search Title/ASIN/SKU"
+              placeholder="Search Title/ASIN/SKU/Title"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyPress}
@@ -1428,12 +1420,23 @@ console.log('selected product', selectedProduct);
                     <td
                       className="h-[83vh] text-base"
                       colSpan="8"
+                      // style={{
+                      //   display: "flex",
+                      //   justifyContent: "center",
+                      //   alignItems: "center",
+                      //   border: "1px solid red",
+                      //   width: "100%",
+                      // }}
+
                       style={{
                         textAlign: "center",
                         padding: "20px",
                         border: "none",
                       }}
                     >
+                      {/* <div className="spinner mt-[30vh]"></div> */}
+                      {/* <Spinner animation="border" variant="primary" /> */}
+
                       <div className="mt-[30vh]">
                         <ClipLoader
                           color="#0E6FFD"
@@ -1443,6 +1446,7 @@ console.log('selected product', selectedProduct);
                             borderWidth: "3px",
                           }}
                           size={40}
+                          // thickness={5}
                           width={100}
                           aria-label="Loading Spinner"
                           data-testid="loader"

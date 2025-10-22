@@ -20,8 +20,8 @@ import { useSelector } from "react-redux";
 import { IoCloseOutline } from "react-icons/io5";
 import { Checkbox } from "antd";
 
-// const BASE_URL = `https://api.priceobo.com`;
-const BASE_URL = `http://192.168.0.15:3000`;
+const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://localhost:3000`;
 // const BASE_URL = "http://192.168.0.26:3000";
 
 const CreateRuleForm = () => {

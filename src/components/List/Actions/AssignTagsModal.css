@@ -1,9 +1,10 @@
 .assign-tags-modal .modal-content {
-  overflow: visible !important; /* Prevents clipping of the popover */
-  position: relative;
-}
-
-.assign-tags-modal .popover-content {
-  z-index: 1055 !important; /* Ensures popover appears above the modal */
-  position: absolute !important;
-}
+    overflow: visible !important; /* Prevents clipping of the popover */
+    position: relative;
+  }
+  
+  .assign-tags-modal .popover-content {
+    z-index: 1055 !important; /* Ensures popover appears above the modal */
+    position: absolute !important;
+  }
+  

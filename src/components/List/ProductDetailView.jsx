@@ -147,13 +147,6 @@ const ProductDetailView = ({
   tagsUpdated,
   setTagsUpdated,
 }) => {
-
-  console.log('product from product detail view', product); 
-  console.log('asin from product detail view', asin); 
-  console.log('price from product detail view', price); 
-  console.log('fnsku from product detail view', fnSku); 
-  console.log('channel stock value from product detail view', channelStockValue); 
-  console.log('ful fill ment channel from product detail view', fulfillmentChannel)
   const [priceSchedule, setPriceSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -271,9 +264,7 @@ const ProductDetailView = ({
   const fetchTags = async () => {
     const encodedSku = encodeURIComponent(sku1);
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/product/tag/${encodedSku}`
-      );
+      const response = await axios.get(`${BASE_URL}/api/product/tag/${encodedSku}`);
       if (response.status === 200) {
         const fetchedTags = response.data.result.tags;
         setTags(fetchedTags);
