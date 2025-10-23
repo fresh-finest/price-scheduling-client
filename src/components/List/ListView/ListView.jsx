@@ -16,7 +16,7 @@ import { Button as ShadcdnBtn } from "@/components/ui/button";
 
 import noImage from "../../../assets/images/noimage.png";
 
-// const BASE_URL = `http://localhost:3000`;
+// const BASE_URL = `http://192.168.0.8:3000`;
 
 const BASE_URL = `https://api.priceobo.com`;
 
@@ -36,6 +36,7 @@ import ListTagsDropdown from "../../shared/ui/ListTagsDropDown";
 import ActionsDropdown from "../Actions/ActionsDropdown";
 import Swal from "sweetalert2";
 import { FaSync } from "react-icons/fa";
+import ListBuyBoxDropdown from "@/components/shared/ui/ListBuyBoxDropdown";
 
 const ListView = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -51,7 +52,7 @@ const ListView = () => {
   const [isLoadingMode, setIsLoadingMode] = useState(false);
   const [customFilterMode, setCustomFilterMode] = useState(false);
   const [columnWidths, setColumnWidths] = useState([
-    70, 70, 80, 350, 80, 90, 90, 120, 70, 90,
+    70, 70, 95, 80, 290, 80, 90, 90, 120, 70, 90,
   ]);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedAsin, setSelectedAsin] = useState("");
@@ -99,6 +100,7 @@ const ListView = () => {
     salesCondition: null,
     uid: null,
     tags: [],
+    buybox: null,
   });
 
   const itemsPerPage = 20;
@@ -172,6 +174,10 @@ const ListView = () => {
     if (filters.tags && filters.tags.length > 0) {
       const tagNames = filters.tags.join(",");
       params.append("tags", tagNames);
+    }
+
+    if (filters.buybox === true || filters.buybox === false) {
+      params.append("buybox", String(filters.buybox));
     }
 
     const finalUrl = `${baseUrl}?${params.toString()}`;
@@ -252,7 +258,9 @@ const ListView = () => {
       filters.salesCondition ||
       filters.stockCondition ||
       filters.uid ||
-      filters?.tags?.length > 0
+      filters?.tags?.length > 0 ||
+      filters.buybox === true ||
+      filters.buybox === false
     ) {
       fetchData(1);
     }
@@ -341,6 +349,20 @@ const ListView = () => {
     setSelectedSku("");
     setSelectedFnSku("");
     setSelectedPrice("");
+  };
+
+  const handleBuyBoxFilter = (value) => {
+    setFilters((prev) => ({
+      ...prev,
+      buybox: value,
+    }));
+    setCustomFilterMode(true);
+    setCurrentPage(1);
+  };
+
+  const handleClearBuyBoxSearch = () => {
+    setFilters((prev) => ({ ...prev, buybox: null }));
+    setCurrentPage(1);
   };
 
   const handleTagSelection = (tagNames) => {
@@ -559,6 +581,7 @@ const ListView = () => {
       fulfillmentChannel: null,
       stockCondition: null,
       salesCondition: null,
+      buybox: null,
     });
     setSelectedRowIndex(null);
     setSelectedProduct(null);
@@ -1026,6 +1049,7 @@ const ListView = () => {
                 salesCondition: null,
                 uid: null,
                 tags: [],
+                buybox: null,
               });
               setSelectedTags([]);
               setSelectAllTags(false);
@@ -1050,8 +1074,14 @@ const ListView = () => {
           </button>
         </div>
       )}
-      <section style={{ display: "flex", gap: "10px" }}>
-        <div style={{ paddingRight: "3px", width: "70%" }}>
+      <section
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "10px",
+        }}
+      >
+        <div style={{ paddingRight: "3px", width: "74%" }}>
           <div
             className=" rounded-md "
             style={{
@@ -1133,7 +1163,25 @@ const ListView = () => {
                       borderRight: "2px solid #C3C6D4",
                     }}
                   >
-                    Image
+                    {/* <p className="flex  items-center justify-center gap-1">
+                     <ListBuyBoxDropdown/>  Buy Box
+                    </p> */}
+                    <p className="flex  items-center justify-center gap-1">
+                      {(filters.buybox === true ||
+                        filters.buybox === false) && (
+                        <span>
+                          <BsDashCircle
+                            onClick={handleClearBuyBoxSearch}
+                            className="cursor-pointer text-sm text-red-400"
+                          />
+                        </span>
+                      )}
+                      Buy Box
+                      <ListBuyBoxDropdown
+                        selectedBuyBoxOption={filters.buybox}
+                        onBuyBoxChange={handleBuyBoxFilter}
+                      />
+                    </p>
                     <div
                       style={{
                         width: "5px",
@@ -1146,11 +1194,33 @@ const ListView = () => {
                       onMouseDown={(e) => handleResize(2, e)}
                     />
                   </th>
-
                   <th
                     className="tableHeader"
                     style={{
                       width: `${columnWidths[3]}px`,
+
+                      textAlign: "center",
+                      borderRight: "2px solid #C3C6D4",
+                    }}
+                  >
+                    Image
+                    <div
+                      style={{
+                        width: "5px",
+                        height: "100%",
+                        position: "absolute",
+                        right: "0",
+                        top: "0",
+                        cursor: "col-resize",
+                      }}
+                      onMouseDown={(e) => handleResize(3, e)}
+                    />
+                  </th>
+
+                  <th
+                    className="tableHeader"
+                    style={{
+                      width: `${columnWidths[4]}px`,
                       minWidth: "80px",
 
                       overflow: "hidden",
@@ -1169,13 +1239,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(3, e)}
+                      onMouseDown={(e) => handleResize(4, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[4]}px`,
+                      width: `${columnWidths[5]}px`,
 
                       textAlign: "center",
                       borderRight: "2px solid #C3C6D4",
@@ -1191,13 +1261,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(4, e)}
+                      onMouseDown={(e) => handleResize(5, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[5]}px`,
+                      width: `${columnWidths[6]}px`,
 
                       textAlign: "center",
                       borderRight: "2px solid #C3C6D4",
@@ -1228,13 +1298,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(5, e)}
+                      onMouseDown={(e) => handleResize(6, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[6]}px`,
+                      width: `${columnWidths[7]}px`,
 
                       textAlign: "center",
                       borderRight: "2px solid #C3C6D4",
@@ -1269,13 +1339,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(6, e)}
+                      onMouseDown={(e) => handleResize(7, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[7]}px`,
+                      width: `${columnWidths[8]}px`,
                       minWidth: "80px",
                       position: "relative",
                       textAlign: "center",
@@ -1329,13 +1399,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(7, e)}
+                      onMouseDown={(e) => handleResize(8, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[8]}px`,
+                      width: `${columnWidths[9]}px`,
                       minWidth: "80px",
                       position: "relative",
                       textAlign: "center",
@@ -1387,13 +1457,13 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(8, e)}
+                      onMouseDown={(e) => handleResize(9, e)}
                     />
                   </th>
                   <th
                     className="tableHeader"
                     style={{
-                      width: `${columnWidths[9]}px`,
+                      width: `${columnWidths[10]}px`,
                       minWidth: "80px",
                       position: "relative",
                       textAlign: "center",
@@ -1409,7 +1479,7 @@ const ListView = () => {
                         top: "0",
                         cursor: "col-resize",
                       }}
-                      onMouseDown={(e) => handleResize(9, e)}
+                      onMouseDown={(e) => handleResize(10, e)}
                     />
                   </th>
                 </tr>
@@ -1419,7 +1489,7 @@ const ListView = () => {
                   <tr>
                     <td
                       className="h-[83vh] text-base"
-                      colSpan="8"
+                      colSpan="9"
                       // style={{
                       //   display: "flex",
                       //   justifyContent: "center",
@@ -1518,8 +1588,7 @@ const ListView = () => {
             paddingLeft: "0px",
             marginTop: "20px",
             paddingRight: "0px",
-            width: "32%",
-
+            width: "28%",
             height: "93vh ",
           }}
         >

@@ -49,7 +49,7 @@ const SidebarLayout = () => {
           {/* Sidebar */}
           <div
             className={`bg-[#FBFBFB] h-screen p-4 relative ${
-              open ? "w-52" : "w-20"
+              open ? "w-44" : "w-20"
             } duration-300  shadow flex flex-col sticky top-0 z-50`}
           >
             {/* <BsArrowLeftShort
