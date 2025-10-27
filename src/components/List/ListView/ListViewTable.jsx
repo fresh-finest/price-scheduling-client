@@ -7,8 +7,8 @@ import { FaStar } from "react-icons/fa";
 import { IoMdAdd, IoMdCheckmark } from "react-icons/io";
 import { MdCheck } from "react-icons/md";
 
-const BASE_URL = `http://192.168.0.8:3000`;
-// const BASE_URL = `https://api.priceobo.com`;
+// const BASE_URL = `http://192.168.0.8:3000`;
+const BASE_URL = `https://api.priceobo.com`;
 
 const ListViewTable = ({
   index,
