@@ -23,6 +23,7 @@ import SaleReport from "./components/Report/SaleReport";
 import Account from "./pages/Account";
 import Products from "./components/Products/Products";
 import Chat from "./pages/Chat/Chat";
+import BuyBoxPage from "./pages/BuyBoxPage";
 
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
           <Route path="/report" element={<Report/>}/>
           <Route path="/chat" element={<Chat/>}/>
           <Route path="/automation" element={<Automation/>}/>
+          <Route path="/buyBox" element={<BuyBoxPage/>}/>
             <Route path="/status" element={<Job/>}/>
             <Route path="/list" element={<List />} />
             <Route path="product" element={<Products/>}/>

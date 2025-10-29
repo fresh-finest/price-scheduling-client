@@ -10,14 +10,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
-    proxy: {
-      "/url": {
-        target: "https://api.priceobo.com",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/url/, ""),
+   server: {
+        host: "0.0.0.0",
+        port: 5173,
+        proxy: {
+          "/url": {
+            target: "https://api.priceobo.com",
+            changeOrigin: true,
+            secure: false,
+            rewrite: (path) => path.replace(/^\/url/, ""),
+          },
+        },
       },
-    },
-  },
 });

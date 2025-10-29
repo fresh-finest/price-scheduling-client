@@ -99,8 +99,7 @@ const ListView = () => {
     stockCondition: null,
     salesCondition: null,
     uid: null,
-    tags: [],
-    buybox: null,
+    tags: []
   });
 
   const itemsPerPage = 20;
@@ -176,9 +175,7 @@ const ListView = () => {
       params.append("tags", tagNames);
     }
 
-    if (filters.buybox === true || filters.buybox === false) {
-      params.append("buybox", String(filters.buybox));
-    }
+   
 
     const finalUrl = `${baseUrl}?${params.toString()}`;
 
@@ -258,9 +255,7 @@ const ListView = () => {
       filters.salesCondition ||
       filters.stockCondition ||
       filters.uid ||
-      filters?.tags?.length > 0 ||
-      filters.buybox === true ||
-      filters.buybox === false
+      filters?.tags?.length > 0
     ) {
       fetchData(1);
     }
@@ -351,19 +346,7 @@ const ListView = () => {
     setSelectedPrice("");
   };
 
-  const handleBuyBoxFilter = (value) => {
-    setFilters((prev) => ({
-      ...prev,
-      buybox: value,
-    }));
-    setCustomFilterMode(true);
-    setCurrentPage(1);
-  };
-
-  const handleClearBuyBoxSearch = () => {
-    setFilters((prev) => ({ ...prev, buybox: null }));
-    setCurrentPage(1);
-  };
+ 
 
   const handleTagSelection = (tagNames) => {
     let updatedTags = [];
@@ -581,7 +564,6 @@ const ListView = () => {
       fulfillmentChannel: null,
       stockCondition: null,
       salesCondition: null,
-      buybox: null,
     });
     setSelectedRowIndex(null);
     setSelectedProduct(null);
@@ -1048,8 +1030,7 @@ const ListView = () => {
                 stockCondition: null,
                 salesCondition: null,
                 uid: null,
-                tags: [],
-                buybox: null,
+                tags: []
               });
               setSelectedTags([]);
               setSelectAllTags(false);
@@ -1154,7 +1135,7 @@ const ListView = () => {
                       onMouseDown={(e) => handleResize(1, e)}
                     />
                   </th>
-                  <th
+                  {/* <th
                     className="tableHeader"
                     style={{
                       width: `${columnWidths[2]}px`,
@@ -1163,9 +1144,7 @@ const ListView = () => {
                       borderRight: "2px solid #C3C6D4",
                     }}
                   >
-                    {/* <p className="flex  items-center justify-center gap-1">
-                     <ListBuyBoxDropdown/>  Buy Box
-                    </p> */}
+                  
                     <p className="flex  items-center justify-center gap-1">
                       {(filters.buybox === true ||
                         filters.buybox === false) && (
@@ -1193,7 +1172,7 @@ const ListView = () => {
                       }}
                       onMouseDown={(e) => handleResize(2, e)}
                     />
-                  </th>
+                  </th> */}
                   <th
                     className="tableHeader"
                     style={{

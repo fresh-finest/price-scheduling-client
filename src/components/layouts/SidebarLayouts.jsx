@@ -25,6 +25,7 @@ const SidebarLayout = () => {
     { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
     // { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
+    { title: "Buy Box", icon: <Cog />, path: "/buyBox" },
     { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
@@ -49,7 +50,7 @@ const SidebarLayout = () => {
           {/* Sidebar */}
           <div
             className={`bg-[#FBFBFB] h-screen p-4 relative ${
-              open ? "w-44" : "w-20"
+              open ? "w-52" : "w-20"
             } duration-300  shadow flex flex-col sticky top-0 z-50`}
           >
             {/* <BsArrowLeftShort
