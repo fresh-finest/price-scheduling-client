@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { BsArrowLeftShort } from "react-icons/bs";
+import { BsArrowLeftShort, BsBoxFill } from "react-icons/bs";
 import { RiArrowLeftSLine } from "react-icons/ri";
-import { FaChartLine, FaListUl, FaRegCalendarAlt } from "react-icons/fa";
+import { FaBox, FaChartLine, FaListUl, FaRegCalendarAlt } from "react-icons/fa";
 import { TbReportAnalytics } from "react-icons/tb";
 import { GoGear, GoHistory } from "react-icons/go";
 import { MdOutlineManageAccounts } from "react-icons/md";
@@ -25,6 +25,7 @@ const SidebarLayout = () => {
     { title: "Skus", icon: <AiOutlineProduct />, path: "/list" },
     // { title: "Products", icon: <LuGroup />, path: "/product" },
     { title: "Automation", icon: <Cog />, path: "/automation" },
+     { title: "Buy Box", icon: <BsBoxFill />, path: "/buy-box" },
     { title: "Report", icon: <TbReportAnalytics />, path: "/sale-report" },
     { title: "Status", icon: <FaListCheck />, path: "/status" },
     // { title: "Status", icon: <PiChartLineUpLight />, path: "/status" },
@@ -49,7 +50,7 @@ const SidebarLayout = () => {
           {/* Sidebar */}
           <div
             className={`bg-[#FBFBFB] h-screen p-4 relative ${
-              open ? "w-44" : "w-20"
+              open ? "w-52" : "w-20"
             } duration-300  shadow flex flex-col sticky top-0 z-50`}
           >
             {/* <BsArrowLeftShort

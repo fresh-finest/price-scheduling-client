@@ -23,6 +23,7 @@ import SaleReport from "./components/Report/SaleReport";
 import Account from "./pages/Account";
 import Products from "./components/Products/Products";
 import Chat from "./pages/Chat/Chat";
+import BuyBoxPage from "./pages/BuyBoxPage";
 
 
 function App() {
@@ -45,10 +46,11 @@ function App() {
           <Route path="details/:sku" element={<SaleDetails/>}/>
           <Route path="report/:sku" element={<ReportDetails/>}/>
           <Route path="/settings" element={<Settings/>}/>
-         
+           <Route path="/buy-box" element={<BuyBoxPage/>}/>
           <Route path="/report" element={<Report/>}/>
           <Route path="/chat" element={<Chat/>}/>
           <Route path="/automation" element={<Automation/>}/>
+         
             <Route path="/status" element={<Job/>}/>
             <Route path="/list" element={<List />} />
             <Route path="product" element={<Products/>}/>
